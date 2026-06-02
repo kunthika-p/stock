@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — จัดการคำสั่งซื้อ</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15px}
+.header{background:linear-gradient(135deg,#1a3a5c,#2563a8);color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+.header h1{font-size:18px;font-weight:700}
+.btn-refresh{background:rgba(255,255,255,.2);border:none;color:white;padding:7px 14px;border-radius:6px;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px}
+.tabs{display:flex;background:white;border-bottom:2px solid #e0e0e0}
+.tab-btn{flex:1;padding:12px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;color:#666;font-weight:500;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tab-btn.active{color:#1a3a5c;font-weight:700;border-bottom-color:#1a3a5c}
+.content{padding:16px;max-width:1000px;margin:0 auto}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* Order cards */
+.order-card{background:white;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:4px solid #d1d5db}
+.order-card.urgent{border-left-color:#dc2626}
+.order-card.medium{border-left-color:#d97706}
+.order-card.normal{border-left-color:#16a34a}
+.order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
+.order-name{font-size:15px;font-weight:700;color:#1a3a5c}
+.order-code{font-size:11px;color:#888;font-family:monospace}
+.urgency-badge{padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;white-space:nowrap}
+.u-ด่วน{background:#fee2e2;color:#991b1b}
+.u-เร่ง{background:#fef9c3;color:#92400e}
+.u-ปกติ{background:#d1fae5;color:#065f46}
+.order-detail{font-size:13px;color:#555;margin-bottom:12px;line-height:1.8}
+.order-detail span{font-weight:600;color:#222}
+.order-actions{display:flex;gap:8px}
+.btn-confirm{flex:1;background:#16a34a;color:white;border:none;border-radius:8px;padding:10px;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
+.btn-reject{background:white;color:#dc2626;border:1.5px solid #dc2626;border-radius:8px;padding:10px 14px;font-size:14px;font-family:'Sarabun',sans-serif;cursor:pointer}
+.btn-confirm:hover{background:#15803d}
+.empty{text-align:center;color:#aaa;padding:40px;font-size:15px}
+.loading{text-align:center;color:#888;padding:40px}
+.badge-count{display:inline-block;background:#dc2626;color:white;border-radius:10px;font-size:11px;padding:1px 7px;margin-left:4px}
+
+/* History */
+.hist-row{background:white;border-radius:8px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.07);font-size:13px}
+.hist-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.hist-name{font-weight:600;color:#1a3a5c}
+.hist-time{color:#888;font-size:11px}
+.hist-detail{color:#555}
+.status-done{color:#16a34a;font-weight:700}
+.status-rejected{color:#dc2626;font-weight:700}
+
+.toast{position:fixed;top:20px;right:20px;background:#1a3a5c;color:white;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;z-index:999;display:none}
+.toast.show{display:block}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🔧 Admin — คำสั่งซื้อ</h1>
+  </div>
+  <button class="btn-refresh" onclick="loadAll()">🔄 รีเฟรช</button>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('pending',this)">รอยืนยัน <span class="badge-count" id="pendingCount">0</span></button>
+  <button class="tab-btn" onclick="switchTab('history',this)">ประวัติ</button>
+</div>
+
+<div class="content">
+  <div class="tab-panel active" id="tab-pending">
+    <div id="pendingList"><div class="loading">⏳ กำลังโหลด...</div></div>
+  </div>
+  <div class="tab-panel" id="tab-history">
+    <div id="historyList"><div class="loading">⏳ กำลังโหลด...</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbxhXa14EfmWnaCrNZmvDIO_FUSLbp4jzgHiGZABIaT8_CpMc9rh0eDcMvutxxhIbpk/exec";
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+async function loadAll() {
+  loadPending();
+  loadHistory();
+}
+
+async function loadPending() {
+  try {
+    const res = await fetch(API + '?action=getOrders&status=pending');
+    const data = await res.json();
+    const orders = data.orders || [];
+    document.getElementById('pendingCount').textContent = orders.length;
+    if (!orders.length) {
+      document.getElementById('pendingList').innerHTML = '<div class="empty">✅ ไม่มีคำสั่งซื้อรอยืนยัน</div>';
+      return;
+    }
+    document.getElementById('pendingList').innerHTML = orders.map((o,i) => `
+      <div class="order-card ${o.urgency === 'ด่วน' ? 'urgent' : o.urgency === 'เร่ง' ? 'medium' : 'normal'}">
+        <div class="order-top">
+          <div>
+            <div class="order-name">${o.name || o.code}</div>
+            <div class="order-code">รหัส: ${o.code}</div>
+          </div>
+          <span class="urgency-badge u-${o.urgency}">${o.urgency}</span>
+        </div>
+        <div class="order-detail">
+          👤 ลูกค้า: <span>${o.customer}</span><br>
+          📦 จำนวน: <span>${o.qty} กก.</span><br>
+          📅 วันที่สั่ง: <span>${o.date || '-'}</span><br>
+          ${o.note ? '📝 หมายเหตุ: <span>' + o.note + '</span>' : ''}
+        </div>
+        <div class="order-actions">
+          <button class="btn-confirm" onclick="confirmOrder(${o.row}, '${o.code}', ${o.qty})">✅ ยืนยัน ตัดสต็อค</button>
+          <button class="btn-reject" onclick="rejectOrder(${o.row})">❌ ยกเลิก</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('pendingList').innerHTML = '<div class="empty">❌ โหลดไม่ได้</div>';
+  }
+}
+
+async function loadHistory() {
+  try {
+    const res = await fetch(API + '?action=getOrders&status=all');
+    const data = await res.json();
+    const orders = (data.orders || []).filter(o => o.status !== 'pending').reverse();
+    if (!orders.length) {
+      document.getElementById('historyList').innerHTML = '<div class="empty">ยังไม่มีประวัติ</div>';
+      return;
+    }
+    document.getElementById('historyList').innerHTML = orders.map(o => `
+      <div class="hist-row">
+        <div class="hist-top">
+          <span class="hist-name">${o.name || o.code} (${o.code})</span>
+          <span class="${o.status === 'confirmed' ? 'status-done' : 'status-rejected'}">${o.status === 'confirmed' ? '✅ ยืนยัน' : '❌ ยกเลิก'}</span>
+        </div>
+        <div class="hist-detail">👤 ${o.customer} | 📦 ${o.qty} กก. | ${o.urgency} | ${o.date || ''}</div>
+      </div>
+    `).join('');
+  } catch(e) {}
+}
+
+async function confirmOrder(row, code, qty) {
+  if (!confirm(`ยืนยันตัดสต็อค ${code} จำนวน ${qty} กก.?`)) return;
+  try {
+    await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'confirmOrder', row: row, code: code, qty: qty })
+    });
+    showToast('✅ ยืนยันและตัดสต็อคแล้ว');
+    loadAll();
+  } catch(e) { alert('เกิดข้อผิดพลาด'); }
+}
+
+async function rejectOrder(row) {
+  if (!confirm('ยืนยันยกเลิกคำสั่งซื้อนี้?')) return;
+  try {
+    await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'rejectOrder', row: row })
+    });
+    showToast('❌ ยกเลิกคำสั่งซื้อแล้ว');
+    loadAll();
+  } catch(e) { alert('เกิดข้อผิดพลาด'); }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+loadAll();
+setInterval(loadPending, 30000); // auto refresh ทุก 30 วิ
+</script>
+</body>
+</html>
