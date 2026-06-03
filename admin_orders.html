@@ -170,10 +170,10 @@ table.list tr:hover td{background:#f8fbff}
 
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('stock',this)">📋 สต็อค</button>
-  <button class="tab-btn" onclick="switchTab('pending',this)">รอยืนยัน <span class="badge-count" id="pendingCount">0</span></button>
-  <button class="tab-btn" onclick="switchTab('history',this)">ประวัติ</button>
   <button class="tab-btn" onclick="switchTab('overview',this)">📊 ภาพรวม</button>
   <button class="tab-btn" onclick="switchTab('stockin',this)">📥 รับสินค้าเข้า</button>
+  <button class="tab-btn" onclick="switchTab('pending',this)">รอยืนยัน <span class="badge-count" id="pendingCount">0</span></button>
+  <button class="tab-btn" onclick="switchTab('history',this)">ประวัติ</button>
 </div>
 
 <div class="content">
@@ -410,8 +410,10 @@ async function loadOverview() {
       const s = Number(i.stock)||0;
       const [cls, lbl] = s <= 0 ? ['sb-out','หมด'] : s < 20 ? ['sb-low','ต่ำ'] : ['sb-ok','ปกติ'];
       const name = fmtName([i.type, i.col, i.row].filter(Boolean).join(' '));
+      const code = (i.code !== undefined && i.code !== '' && !isNaN(Number(i.code)))
+        ? String(Number(i.code)).padStart(8, '0') : (i.code||'');
       return `<tr>
-        <td style="font-family:monospace;font-size:12px">${i.code||''}</td>
+        <td style="font-family:monospace;font-size:12px">${code}</td>
         <td style="text-align:left">${name}</td>
         <td style="text-align:center;font-weight:700;color:#1a3a5c">${s}</td>
         <td style="text-align:center"><span class="stk-badge ${cls}">${lbl}</span></td>
