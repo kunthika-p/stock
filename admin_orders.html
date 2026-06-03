@@ -169,8 +169,8 @@ table.list tr:hover td{background:#f8fbff}
 </div>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('stock',this)">📋 สต็อค</button>
-  <button class="tab-btn" onclick="switchTab('overview',this)">📊 ภาพรวม</button>
+  <button class="tab-btn active" onclick="switchTab('overview',this)">📊 ภาพรวม</button>
+  <button class="tab-btn" onclick="switchTab('stock',this)">📋 สต็อค</button>
   <button class="tab-btn" onclick="switchTab('stockin',this)">📥 รับสินค้าเข้า</button>
   <button class="tab-btn" onclick="switchTab('pending',this)">รอยืนยัน <span class="badge-count" id="pendingCount">0</span></button>
   <button class="tab-btn" onclick="switchTab('history',this)">ประวัติ</button>
@@ -179,7 +179,7 @@ table.list tr:hover td{background:#f8fbff}
 <div class="content">
 
   <!-- Tab: สต็อค -->
-  <div class="tab-panel active" id="tab-stock">
+  <div class="tab-panel" id="tab-stock">
     <div class="card">
       <div class="card-title">📋 ตารางสต็อค (Matrix View)
         <button onclick="loadStock()" style="background:#e5e7eb;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Sarabun',sans-serif">🔄 รีเฟรช</button>
@@ -252,7 +252,7 @@ table.list tr:hover td{background:#f8fbff}
 </div>
 
   <!-- Tab: ภาพรวม -->
-  <div class="tab-panel" id="tab-overview">
+  <div class="tab-panel active" id="tab-overview">
     <div class="content">
       <div class="ov-cards">
         <div class="ov-card blue"><div class="val" id="ov-total">—</div><div class="lbl">รายการทั้งหมด</div></div>
@@ -936,6 +936,7 @@ function showToast(msg) {
 }
 
 loadAll();
+loadOverview();
 setInterval(loadPending, 30000);
 </script>
 </body>
