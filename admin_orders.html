@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin — จัดการคำสั่งซื้อ</title>
+<title>Admin — STIC</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -11,10 +11,10 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .header{background:linear-gradient(135deg,#1a3a5c,#2563a8);color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
 .header h1{font-size:18px;font-weight:700}
 .btn-refresh{background:rgba(255,255,255,.2);border:none;color:white;padding:7px 14px;border-radius:6px;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px}
-.tabs{display:flex;background:white;border-bottom:2px solid #e0e0e0}
-.tab-btn{flex:1;padding:12px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;color:#666;font-weight:500;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tabs{display:flex;background:white;border-bottom:2px solid #e0e0e0;overflow-x:auto}
+.tab-btn{padding:12px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;color:#666;font-weight:500;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
 .tab-btn.active{color:#1a3a5c;font-weight:700;border-bottom-color:#1a3a5c}
-.content{padding:16px;max-width:1000px;margin:0 auto}
+.content{padding:16px;max-width:1400px;margin:0 auto}
 .tab-panel{display:none}.tab-panel.active{display:block}
 
 /* Order cards */
@@ -43,10 +43,47 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .hist-row{background:white;border-radius:8px;padding:12px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.07);font-size:13px}
 .hist-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .hist-name{font-weight:600;color:#1a3a5c}
-.hist-time{color:#888;font-size:11px}
 .hist-detail{color:#555}
 .status-done{color:#16a34a;font-weight:700}
 .status-rejected{color:#dc2626;font-weight:700}
+
+/* Stock tab */
+.card{background:white;border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:0 1px 5px rgba(0,0,0,.09)}
+.card-title{font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+.legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:13px;color:#555;padding:9px 13px;background:#f8fbff;border-radius:8px;margin-bottom:12px}
+.ld{width:13px;height:13px;border-radius:3px;display:inline-block;border:1px solid #ccc;margin-right:4px;vertical-align:middle}
+.tbl-wrap{overflow-x:auto}
+.stk-tbl{border-collapse:collapse;font-size:13px;table-layout:fixed}
+.stk-tbl th,.stk-tbl td{border:1px solid #c8d6e5}
+.th-corner{background:#1a3a5c;color:white;padding:7px 10px;font-weight:700;font-size:12px;text-align:center;white-space:nowrap}
+.th-col{background:#1a3a5c;color:white;padding:4px 2px;font-size:13px;text-align:center;white-space:nowrap;width:76px}
+.td-row{background:#f0f5ff;font-weight:700;padding:0 10px;text-align:center;color:#1a3a5c;border-right:2px solid #c8d6e5;white-space:nowrap;font-size:13px}
+.stk-cell{position:relative;width:76px;height:52px;text-align:center;vertical-align:middle;padding:0;cursor:default;overflow:hidden}
+.c-ok{background:#d1fae5}.c-low{background:#fef9c3}.c-out{background:#fee2e2}.c-blocked{background:#6b7280}
+.stk-v{display:block;font-size:16px;font-weight:700;color:#1a3a5c;line-height:1;margin-top:10px}
+.code-v{display:block;font-size:9px;color:#6b7280;margin-top:2px;font-family:monospace;line-height:1}
+.type-nav-wrap{overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
+.type-nav{display:flex;gap:6px;min-width:max-content}
+.type-btn-stk{padding:6px 15px;border:1.5px solid #c8d6e5;border-radius:20px;background:white;cursor:pointer;font-size:13px;font-family:'Sarabun',sans-serif;color:#555;transition:all .12s;white-space:nowrap}
+.type-btn-stk:hover{border-color:#2563a8;color:#2563a8}
+.type-btn-stk.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
+.type-panel{display:none}.type-panel.active{display:block}
+.tbadge{display:inline-block;font-size:10px;border-radius:10px;padding:1px 6px;margin-left:4px;background:rgba(0,0,0,.12)}
+.tbadge.has{background:#16a34a;color:white}
+.type-btn-stk.active .tbadge{background:rgba(255,255,255,.25)}
+.type-btn-stk.active .tbadge.has{background:rgba(255,255,255,.9);color:#065f46}
+.nut-group-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:950px){.nut-group-grid{grid-template-columns:1fr}}
+.nut-sub-title{font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:6px;padding:5px 10px;background:#f0f5ff;border-radius:6px;border-left:3px solid #1a3a5c;display:block}
+.badge{display:inline-block;padding:3px 11px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap}
+.badge.ok{background:#d1fae5;color:#065f46}.badge.low{background:#fef9c3;color:#92400e}.badge.out{background:#fee2e2;color:#991b1b}
+table.list{width:100%;border-collapse:collapse;font-size:14px}
+table.list th{background:#1a3a5c;color:white;padding:10px;text-align:left;font-weight:600;white-space:nowrap;font-size:13px}
+table.list td{padding:9px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+table.list tr:hover td{background:#f8fbff}
+.search-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.search-row input,.search-row select{padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:'Sarabun',sans-serif;flex:1;min-width:130px}
+.search-row input:focus,.search-row select:focus{outline:none;border-color:#2563a8}
 
 .toast{position:fixed;top:20px;right:20px;background:#1a3a5c;color:white;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;z-index:999;display:none}
 .toast.show{display:block}
@@ -56,7 +93,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 
 <div class="header">
   <div>
-    <h1>🔧 Admin — คำสั่งซื้อ</h1>
+    <h1>🔧 Admin — STIC</h1>
   </div>
   <button class="btn-refresh" onclick="loadAll()">🔄 รีเฟรช</button>
 </div>
@@ -64,6 +101,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 <div class="tabs">
   <button class="tab-btn active" onclick="switchTab('pending',this)">รอยืนยัน <span class="badge-count" id="pendingCount">0</span></button>
   <button class="tab-btn" onclick="switchTab('history',this)">ประวัติ</button>
+  <button class="tab-btn" onclick="switchTab('stock',this)">📋 สต็อค</button>
 </div>
 
 <div class="content">
@@ -73,6 +111,41 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
   <div class="tab-panel" id="tab-history">
     <div id="historyList"><div class="loading">⏳ กำลังโหลด...</div></div>
   </div>
+  <div class="tab-panel" id="tab-stock">
+    <div class="card">
+      <div class="card-title">📋 ตารางสต็อค (Matrix View)
+        <button onclick="loadStock()" style="background:#e5e7eb;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Sarabun',sans-serif">🔄 รีเฟรช</button>
+      </div>
+      <div class="legend">
+        <b>ตำนาน:</b>
+        <span><span class="ld" style="background:#d1fae5"></span>ปกติ (≥20)</span>
+        <span><span class="ld" style="background:#fef9c3"></span>น้อย (1–19)</span>
+        <span><span class="ld" style="background:#fee2e2"></span>หมด</span>
+        <span><span class="ld" style="background:#6b7280"></span>ไม่มีการผลิต</span>
+      </div>
+      <div class="type-nav-wrap"><div class="type-nav" id="stk-type-nav"></div></div>
+      <div id="stk-matrix-panels"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">รายการสินค้าทั้งหมด <span style="font-size:13px;font-weight:400;color:#888" id="stk-list-count"></span></div>
+      <div class="search-row">
+        <input id="stk-q" type="text" placeholder="🔍 ค้นหารหัส / ประเภท / ขนาด..." oninput="renderStockList()">
+        <select id="stk-ftype" onchange="renderStockList()"><option value="">ทุกประเภท</option></select>
+        <select id="stk-fstat" onchange="renderStockList()">
+          <option value="">ทุกสถานะ</option>
+          <option value="ok">ปกติ</option>
+          <option value="low">น้อย</option>
+          <option value="out">หมด</option>
+        </select>
+      </div>
+      <div class="tbl-wrap">
+        <table class="list"><thead><tr>
+          <th>รหัสสินค้า</th><th>ประเภท</th><th>ขนาด</th><th>ยาว</th>
+          <th style="text-align:right">สต็อค</th><th>หน่วย</th><th>สถานะ</th>
+        </tr></thead><tbody id="stk-list-tbody"></tbody></table>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -80,11 +153,31 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 <script>
 const API = "https://script.google.com/macros/s/AKfycbxhXa14EfmWnaCrNZmvDIO_FUSLbp4jzgHiGZABIaT8_CpMc9rh0eDcMvutxxhIbpk/exec";
 
+const MATRICES = {"น็อตเหลี่ยมเกลียว W":{"cols":["1/4","5/16","3/8","7/16","1/2"],"rows":["1/2","5/8","3/4","1","1.1/4","1.1/2","1.3/4","2","2.1/2","3","3.1/2","4","5","6"]},"น็อตหัวกลมเกลียว W":{"cols":["1/4","5/16","3/8","1/2"],"rows":["1","1.1/4","1.1/2","2 ค.","2.1/2","3","3.1/2","4","4.1/2","5","5.1/2","6","6.1/2","7","7.1/2","8","8.1/2","9","10","11","12"]},"สกรูเกลียวปล่อย":{"cols":["1/4","5/16","3/8"],"rows":["2","2.1/2","3","3.1/2","4","1.1/2"]},"น็อตเหลี่ยม W (ใหญ่)":{"cols":["5/8 W","3/4 W"],"rows":["1.1/2","2","2.1/2","3","3.1/2","4","4.1/2","5","6"]},"น็อตเหลี่ยม NC (ใหญ่)":{"cols":["5/8 NC","3/4 NC","7/8 NC","1 NC"],"rows":["1.1/2","2 ค.","2.1/2","3","3.1/2","4","4.1/2","5","5.1/2","6","6.1/2","7","8"]},"หัวน็อตมิล":{"cols":["ขาว","ดำ"],"rows":["M3","M4","M5","M6 (p1.0 ขอบ10)","M8 (p1.25 ขอบ12)","M8 (p1.25 ขอบ13)","M10 (p1.25 ขอบ14)","M10 (p1.5 ขอบ14)","M10 (p1.25 ขอบ17)","M10 (p1.5 ขอบ17)","M12 (p1.25 ขอบ17)","M12 (p1.5 ขอบ17)","M12 (p1.75 ขอบ19","M14 (p1.5 ขอบ22)","M14 (p2.0 ขอบ22)","M16 (p1.5 ขอบ24)","M16 (p2.0 ขอบ24)","M18 (p1.5 ขอบ27)","M18 (p2.5 ขอบ27)","M20 (p2.5 ขอบ30)","M22 (p2.5 ขอบ32)","M24"]},"หัวน็อตเกลียวหยาบ NC":{"cols":["STOCK"],"rows":["1/4","5/16","3/8","7/16","1/2","9/16","5/8","3/4","7/8","1"]},"หัวน็อตเกลียวหยาบ NF":{"cols":["STOCK"],"rows":["1/4","5/16","3/8","7/16","1/2","9/16","5/8","3/4"]},"หัวน็อตเกลียว W":{"cols":["STOCK"],"rows":["3/16","1/4 (ขอบ10)","1/4 (ขอบ11)","5/16 (ขอบ12.5)","5/16 (ขอบ14)","3/8","7/16","1/2","5/8","3/4","7/8","1"]},"สกรูมิลขาว":{"cols":["M5","M6","M8","M10","M12"],"rows":["10","12","15","20","25","30","35","40","45","50","55","60","70","80","90","100"]},"น็อตเหลี่ยม NC":{"cols":["1/4","5/16","3/8","7/16","1/2","9/16"],"rows":["1/2","5/8","3/4","1","1.1/4","1.1/2","2","2.1/2","3","3.1/2","4","5","6"]},"น็อตเหลี่ยม NF":{"cols":["1/4","5/16","3/8","7/16","1/2","9/16"],"rows":["1/2","5/8","3/4","1","1.1/4","1.1/2","2","2.1/2","3","3.1/2","4"]},"น็อตแข็ง M6-M16 (ตลอด)":{"cols":["M6 P1.0","M8 P1.25","M10 P1.5","M12 P1.75","M14 P2.0","M16 P2.0"],"rows":["10","12","16","20","25","30","35","40","45","50"]},"น็อตแข็ง M6-M16 (ครึ่ง)":{"cols":["M6 P1.0","M8 P1.25","M10 P1.5","M12 P1.75","M14 P2.0","M16 P2.0"],"rows":["40","45","50","55","60","65","70","75","80","90","100","110","120","130","140","150"]},"น็อตแข็ง M18-M30 (ตลอด)":{"cols":["M18 P2.5","M20 P2.5","M22 P2.5","M24 P3.0","M12 P1.5"],"rows":["40","45","50","60","55","65","25","30","35"]},"น็อตแข็ง M18-M30 (ครึ่ง)":{"cols":["M18 P2.5","M20 P2.5","M22 P2.5","M24 P3.0","M30 P3.5","M12 P1.5"],"rows":["55","60","65","70","75","80","90","100","85","110","120","130","140","150","45","50"]},"น็อตแข็งเกลียวมิล (ตลอด)":{"cols":["M10 P1.25","M12 P1.25","M14 P1.5","M16 P1.5","M18 P1.5"],"rows":["20","25","30","35","40","45","50","55","60"]},"น็อตแข็งเกลียวมิล (ครึ่ง)":{"cols":["M10 P1.25","M12 P1.25","M14 P1.5","M16 P1.5","M18 P1.5"],"rows":["45","50","55","60","65","70","75","80","90","100","40","120"]},"น็อตเหลี่ยม W ไม่ควบหัว":{"cols":["1/4","5/16","3/8","7/16","1/2"],"rows":["1/2","5/8","3/4","1","1.1/4","1.1/2","1.3/4","2","2.1/2","3","3.1/2","4","5","6"]},"น็อตเหลี่ยมเกลียว W (ยาว)":{"cols":["3/8×5","3/8×6","7/16×3.1/2","1/2×5","1/2×6"],"rows":["ครึ่ง","3/4","1","1.1/4"]},"หัวน็อตมิลแข็ง เกรด8":{"cols":["STOCK"],"rows":["M6","M8","M10","M12","M14","M16","M18","M20","M22","M24"]},"Spring Washer":{"cols":["STOCK"],"rows":["M3","M4","M5","M6","M8","M10","M12","M14","M16","M18","M20","M24"]},"หัวน็อตมิลแข็ง OVERSIZE":{"cols":["STOCK"],"rows":["M6","M8","M10","M12","M14","M16","M18","M20","M22","M24"]}};
+const TYPES = ["น็อตเหลี่ยมเกลียว W","น็อตหัวกลมเกลียว W","สกรูเกลียวปล่อย","น็อตเหลี่ยม W (ใหญ่)","น็อตเหลี่ยม NC (ใหญ่)","หัวน็อตมิล","หัวน็อตเกลียวหยาบ NC","หัวน็อตเกลียวหยาบ NF","หัวน็อตเกลียว W","สกรูมิลขาว","น็อตเหลี่ยม NC","น็อตเหลี่ยม NF","น็อตแข็ง M6-M16 (ตลอด)","น็อตแข็ง M6-M16 (ครึ่ง)","น็อตแข็ง M18-M30 (ตลอด)","น็อตแข็ง M18-M30 (ครึ่ง)","น็อตแข็งเกลียวมิล (ตลอด)","น็อตแข็งเกลียวมิล (ครึ่ง)","น็อตเหลี่ยม W ไม่ควบหัว","น็อตเหลี่ยมเกลียว W (ยาว)","หัวน็อตมิลแข็ง เกรด8","Spring Washer","หัวน็อตมิลแข็ง OVERSIZE"];
+const BOX_TYPES = ["สกรูมิลขาว","น็อตเหลี่ยม NC","น็อตเหลี่ยม NF","น็อตแข็ง M6-M16 (ตลอด)","น็อตแข็ง M6-M16 (ครึ่ง)","น็อตแข็ง M18-M30 (ตลอด)","น็อตแข็ง M18-M30 (ครึ่ง)","น็อตแข็งเกลียวมิล (ตลอด)","น็อตแข็งเกลียวมิล (ครึ่ง)","Spring Washer","หัวน็อตมิลแข็ง OVERSIZE"];
+const HUA_NUT = ["หัวน็อตมิล","หัวน็อตเกลียวหยาบ NC","หัวน็อตเกลียวหยาบ NF","หัวน็อตเกลียว W"];
+const NC_NF_SM = ["น็อตเหลี่ยม NC","น็อตเหลี่ยม NF"];
+const HUA_NUT_ENC = 'HUA_NUT_GROUP';
+const NC_NF_SM_ENC = 'NC_NF_SM_GROUP';
+
+let stockMap = {};
+let allItems = [];
+let curEnc = encT(TYPES[0]);
+
+function encT(t){return btoa(encodeURIComponent(t)).replace(/[^a-zA-Z0-9]/g,'');}
+function getStock(code){const k=String(parseInt(code,10)||code);return stockMap[code]||stockMap[k]||{stock:0};}
+function sts(s){return s>=20?'ok':s>0?'low':'out';}
+function badge(s){const st=sts(s);return`<span class="badge ${st}">${st==='ok'?'ปกติ':st==='low'?'น้อย':'หมด'}</span>`;}
+function getUnit(type){return BOX_TYPES.includes(type)?'กล่อง':'กระสอบ';}
+
+// ---- Order tabs ----
 function switchTab(name, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'stock' && Object.keys(stockMap).length === 0) loadStock();
 }
 
 async function loadAll() {
@@ -102,7 +195,7 @@ async function loadPending() {
       document.getElementById('pendingList').innerHTML = '<div class="empty">✅ ไม่มีคำสั่งซื้อรอยืนยัน</div>';
       return;
     }
-    document.getElementById('pendingList').innerHTML = orders.map((o,i) => `
+    document.getElementById('pendingList').innerHTML = orders.map((o) => `
       <div class="order-card ${o.urgency === 'ด่วน' ? 'urgent' : o.urgency === 'เร่ง' ? 'medium' : 'normal'}">
         <div class="order-top">
           <div>
@@ -173,6 +266,166 @@ async function rejectOrder(row) {
   } catch(e) { alert('เกิดข้อผิดพลาด'); }
 }
 
+// ---- Stock tab ----
+async function loadStock() {
+  document.getElementById('stk-matrix-panels').innerHTML = '<div class="loading">⏳ กำลังโหลดสต็อค...</div>';
+  try {
+    const res = await fetch(API + '?action=getStock');
+    const data = await res.json();
+    if (data.items) {
+      stockMap = {};
+      allItems = data.items.map(x => ({ ...x, code: String(x.code).padStart(8,'0') }));
+      allItems.forEach(x => { stockMap[x.code] = { stock: Number(x.stock)||0 }; });
+      buildStockNav();
+      buildMatrix();
+      populateTypeFilter();
+      renderStockList();
+    }
+  } catch(e) {
+    document.getElementById('stk-matrix-panels').innerHTML = '<div class="empty">❌ โหลดไม่ได้</div>';
+  }
+}
+
+function buildStockNav() {
+  // ทำ type nav โดยรวม HUA_NUT และ NC_NF_SM เป็นกลุ่ม
+  const nav = document.getElementById('stk-type-nav');
+  const isHua = HUA_NUT.some(t => encT(t) === curEnc) || curEnc === HUA_NUT_ENC;
+  const isNc = NC_NF_SM.some(t => encT(t) === curEnc) || curEnc === NC_NF_SM_ENC;
+  let html = '';
+  let huaDone = false, ncDone = false;
+  TYPES.forEach(t => {
+    if (HUA_NUT.includes(t)) {
+      if (!huaDone) {
+        const has = HUA_NUT.reduce((s,ht) => s + allItems.filter(x=>x.type===ht&&Number(x.stock)>0).length, 0);
+        html += `<button class="type-btn-stk ${isHua?'active':''}" data-enc="${HUA_NUT_ENC}" onclick="switchStockType('${HUA_NUT_ENC}')">🔩 หัวน็อต<span class="tbadge ${has>0?'has':''}">${has}</span></button>`;
+        huaDone = true;
+      }
+      return;
+    }
+    if (NC_NF_SM.includes(t)) {
+      if (!ncDone) {
+        const has = NC_NF_SM.reduce((s,nt) => s + allItems.filter(x=>x.type===nt&&Number(x.stock)>0).length, 0);
+        html += `<button class="type-btn-stk ${isNc?'active':''}" data-enc="${NC_NF_SM_ENC}" onclick="switchStockType('${NC_NF_SM_ENC}')">🎒 น็อตเหลี่ยม NC/NF<span class="tbadge ${has>0?'has':''}">${has}</span></button>`;
+        ncDone = true;
+      }
+      return;
+    }
+    const has = allItems.filter(x=>x.type===t&&Number(x.stock)>0).length;
+    const enc = encT(t);
+    const lbl = BOX_TYPES.includes(t)?'📦':'🎒';
+    html += `<button class="type-btn-stk ${enc===curEnc?'active':''}" data-enc="${enc}" onclick="switchStockType('${enc}')">${lbl} ${t}<span class="tbadge ${has>0?'has':''}">${has}</span></button>`;
+  });
+  nav.innerHTML = html;
+}
+
+function buildTypeTable(t) {
+  const m = MATRICES[t];
+  if (!m) return '<div class="empty">ไม่มีข้อมูล</div>';
+  const catItems = allItems.filter(x => x.type === t);
+  let h = '<div class="tbl-wrap"><table class="stk-tbl"><thead><tr>';
+  h += `<th class="th-corner">ยาว \\ ขนาด</th>`;
+  m.cols.forEach(c => h += `<th class="th-col">${c}</th>`);
+  h += '</tr></thead><tbody>';
+  m.rows.forEach(row => {
+    h += `<tr><td class="td-row">${row}</td>`;
+    m.cols.forEach(col => {
+      const it = catItems.find(x => String(x.col) === String(col) && String(x.row) === String(row));
+      if (!it) { h += '<td class="stk-cell c-blocked"></td>'; return; }
+      const s = getStock(it.code);
+      const cls = s.stock >= 20 ? 'c-ok' : s.stock > 0 ? 'c-low' : 'c-out';
+      h += `<td class="stk-cell ${cls}"><span class="stk-v">${s.stock}</span><span class="code-v">${it.code}</span></td>`;
+    });
+    h += '</tr>';
+  });
+  return h + '</tbody></table></div>';
+}
+
+function buildMatrix() {
+  const panels = document.getElementById('stk-matrix-panels');
+  panels.innerHTML = '';
+  const isHua = HUA_NUT.some(t => encT(t) === curEnc) || curEnc === HUA_NUT_ENC;
+  const isNc = NC_NF_SM.some(t => encT(t) === curEnc) || curEnc === NC_NF_SM_ENC;
+
+  // หัวน็อต group
+  const huaDiv = document.createElement('div');
+  huaDiv.className = 'type-panel' + (isHua ? ' active' : '');
+  huaDiv.id = 'mp-' + HUA_NUT_ENC;
+  huaDiv.innerHTML =
+    `<div class="nut-group-grid">
+      <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล')}</div>
+      <div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC')}</div>
+          <div><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W')}</div>
+        </div>
+        <span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF')}
+      </div>
+    </div>`;
+  panels.appendChild(huaDiv);
+
+  // NC/NF group
+  const ncDiv = document.createElement('div');
+  ncDiv.className = 'type-panel' + (isNc ? ' active' : '');
+  ncDiv.id = 'mp-' + NC_NF_SM_ENC;
+  ncDiv.innerHTML =
+    `<span class="nut-sub-title" style="margin-bottom:8px">น็อตเหลี่ยม NC</span>${buildTypeTable('น็อตเหลี่ยม NC')}` +
+    `<span class="nut-sub-title" style="margin-top:16px;margin-bottom:8px">น็อตเหลี่ยม NF</span>${buildTypeTable('น็อตเหลี่ยม NF')}`;
+  panels.appendChild(ncDiv);
+
+  // ประเภทอื่นๆ
+  TYPES.forEach(t => {
+    if (HUA_NUT.includes(t) || NC_NF_SM.includes(t)) return;
+    const enc = encT(t);
+    const div = document.createElement('div');
+    div.className = 'type-panel' + (enc === curEnc ? ' active' : '');
+    div.id = 'mp-' + enc;
+    div.innerHTML = buildTypeTable(t);
+    panels.appendChild(div);
+  });
+}
+
+function switchStockType(enc) {
+  curEnc = enc;
+  document.querySelectorAll('.type-btn-stk').forEach(b => b.classList.toggle('active', b.dataset.enc === enc));
+  document.querySelectorAll('.type-panel').forEach(p => p.classList.remove('active'));
+  const p = document.getElementById('mp-' + enc);
+  if (p) p.classList.add('active');
+}
+
+function populateTypeFilter() {
+  const sel = document.getElementById('stk-ftype');
+  sel.innerHTML = '<option value="">ทุกประเภท</option>';
+  TYPES.forEach(t => sel.innerHTML += `<option value="${t}">${t}</option>`);
+}
+
+function renderStockList() {
+  const q = document.getElementById('stk-q').value.toLowerCase();
+  const ft = document.getElementById('stk-ftype').value;
+  const fs = document.getElementById('stk-fstat').value;
+  const rows = allItems.filter(x => {
+    const s = getStock(x.code).stock;
+    if (q && !(x.code + ' ' + x.type + ' ' + x.col + ' ' + x.row).toLowerCase().includes(q)) return false;
+    if (ft && x.type !== ft) return false;
+    if (fs && sts(s) !== fs) return false;
+    return true;
+  });
+  document.getElementById('stk-list-count').textContent = `(แสดง ${rows.length} จาก ${allItems.length})`;
+  const tbody = document.getElementById('stk-list-tbody');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty">ไม่พบรายการ</div></td></tr>'; return; }
+  tbody.innerHTML = rows.map(x => {
+    const s = getStock(x.code);
+    const unit = getUnit(x.type);
+    return `<tr>
+      <td style="font-family:monospace;font-size:13px;font-weight:700;color:#1a3a5c">${x.code}</td>
+      <td style="font-size:13px">${x.type}</td>
+      <td>${x.col}</td><td>${x.row}</td>
+      <td style="text-align:right;font-weight:700;font-size:15px">${s.stock}</td>
+      <td><span style="font-size:12px;background:#f3f4f6;padding:2px 8px;border-radius:6px">${unit}</span></td>
+      <td>${badge(s.stock)}</td>
+    </tr>`;
+  }).join('');
+}
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -181,7 +434,7 @@ function showToast(msg) {
 }
 
 loadAll();
-setInterval(loadPending, 30000); // auto refresh ทุก 30 วิ
+setInterval(loadPending, 30000);
 </script>
 </body>
 </html>
