@@ -217,7 +217,17 @@ let editingCartIndex = null;
 
 function fmtName(n) {
   if (!n) return n;
-  return String(n).replace(/ (\d[\d./]*)$/, ' x $1');
+  let s = String(n);
+  s = s.replace(/\bSTOCK\b\s*/g, '');
+  s = s.replace(/หัวน็อตเกลียวหยาบ\s*/g, 'หัวน็อต ');
+  s = s.replace(/หัวน็อตเกลียว\s*/g, 'หัวน็อต ');
+  s = s.replace(/น็อตแข็งเกลียวมิล/g, 'น็อตมิลแข็ง');
+  s = s.replace(/น็อตแข็ง/g, 'น็อตมิลแข็ง');
+  s = s.replace(/M\d+[-–]M\d+\s*\([^)]+\)\s*/g, '');
+  s = s.replace(/(M\d+)\s+(P[\d.]+)/g, '$1 x $2');
+  s = s.trim().replace(/\s{2,}/g, ' ');
+  s = s.replace(/ (\d[\d./]*)$/, ' x $1');
+  return s;
 }
 
 // ---- Customer Autocomplete ----
