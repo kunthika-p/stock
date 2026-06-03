@@ -105,14 +105,65 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 
 /* Inline qty edit */
 .qty-edit-input{width:70px;padding:4px 6px;border:1.5px solid #2563a8;border-radius:6px;font-size:13px;font-family:'Sarabun',sans-serif;text-align:center}
+
+/* ── Tab navigation ── */
+.main-tabs{display:flex;background:white;border-bottom:2px solid #e0e0e0;position:sticky;top:58px;z-index:99;overflow-x:auto}
+.main-tab-btn{padding:11px 20px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;color:#666;font-weight:500;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.main-tab-btn.active{color:#1a3a5c;font-weight:700;border-bottom-color:#1a3a5c}
+.main-tab-panel{display:none}.main-tab-panel.active{display:block}
+
+/* ── ภาพรวม ── */
+.ov-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;padding:16px 16px 0}
+@media(min-width:500px){.ov-cards{grid-template-columns:repeat(4,1fr)}}
+.ov-card{background:white;border-radius:10px;padding:16px;text-align:center;box-shadow:0 1px 5px rgba(0,0,0,.09)}
+.ov-card .val{font-size:28px;font-weight:700}.ov-card .lbl{font-size:12px;color:#666;margin-top:3px}
+.ov-card.blue .val{color:#2563a8}.ov-card.green .val{color:#16a34a}
+.ov-card.amber .val{color:#d97706}.ov-card.red .val{color:#dc2626}
+.ov-content{padding:0 16px 16px}
+.ov-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.ov-tbl th{background:#1a3a5c;color:white;padding:8px 10px;font-weight:600;font-size:12px;text-align:left;border:1px solid #0f2844}
+.ov-tbl td{padding:7px 10px;border:1px solid #e5e7eb;vertical-align:middle}
+.ov-tbl tr:hover td{background:#f8fbff}
+.stk-badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:700}
+.sb-ok{background:#d1fae5;color:#065f46}.sb-low{background:#fef9c3;color:#92400e}.sb-out{background:#fee2e2;color:#991b1b}
+
+/* ── รับสินค้าเข้า ── */
+.si-wrap{padding:16px;max-width:900px;margin:0 auto}
+.si-card{background:white;border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:0 1px 5px rgba(0,0,0,.09)}
+.si-card-title{font-size:15px;font-weight:700;color:#1a3a5c;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #eee}
+.si-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px}
+.si-field{display:flex;flex-direction:column;gap:5px}
+.si-field label{font-size:13px;font-weight:600;color:#374151}
+.si-field input,.si-field select{padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:'Sarabun',sans-serif;outline:none}
+.si-field input:focus,.si-field select:focus{border-color:#2563a8}
+.si-row{display:grid;grid-template-columns:2fr 1fr 1fr 2fr auto;gap:10px;align-items:end;margin-bottom:12px}
+@media(max-width:600px){.si-row{grid-template-columns:1fr 1fr;}.si-row .si-field:last-child{grid-column:1/-1}}
+.btn-si-add{background:#2563a8;color:white;border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;align-self:flex-end}
+.btn-si-add:hover{background:#1a4e96}
+.si-grid-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.si-grid-tbl th{background:#1a3a5c;color:white;padding:8px 10px;font-weight:600;font-size:12px;text-align:center;border:1px solid #0f2844;white-space:nowrap}
+.si-grid-tbl td{padding:8px 10px;border:1px solid #e5e7eb;text-align:center;vertical-align:middle}
+.si-grid-tbl .td-left{text-align:left}
+.si-grid-tbl tr:hover td{background:#f8fbff}
+.btn-si-del{background:none;border:none;color:#dc2626;font-size:16px;cursor:pointer;padding:2px 6px}
+.btn-si-submit{width:100%;background:#16a34a;color:white;border:none;border-radius:10px;padding:14px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer;margin-top:8px}
+.btn-si-submit:disabled{background:#9ca3af;cursor:default}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>🛒 สั่งสินค้า STIC</h1>
-  <p>กรอกชื่อลูกค้าก่อน แล้วกดช่อง ✅ เพื่อเพิ่มในตะกร้า</p>
+  <h1>📦 STIC — ระบบสต็อคสินค้า</h1>
 </div>
+
+<div class="main-tabs">
+  <button class="main-tab-btn active" onclick="switchTab('order',this)">🛒 สั่งสินค้า</button>
+  <button class="main-tab-btn" onclick="switchTab('overview',this)">📊 ภาพรวม</button>
+  <button class="main-tab-btn" onclick="switchTab('stockin',this)">📥 รับสินค้าเข้า</button>
+</div>
+
+<!-- ══ TAB: สั่งสินค้า ══ -->
+<div class="main-tab-panel active" id="tab-order">
 
 <!-- Customer name bar -->
 <div class="customer-bar" id="customerBar">
@@ -188,6 +239,106 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeCartModalDirect()">ปิด</button>
       <button class="btn-confirm" onclick="submitAllOrders()">✅ ยืนยันสั่งทั้งหมด</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end tab-order -->
+
+<!-- ══ TAB: ภาพรวม ══ -->
+<div class="main-tab-panel" id="tab-overview">
+  <div class="ov-cards">
+    <div class="ov-card blue"><div class="val" id="ov-total">—</div><div class="lbl">รายการทั้งหมด</div></div>
+    <div class="ov-card green"><div class="val" id="ov-ok">—</div><div class="lbl">มีสต็อค</div></div>
+    <div class="ov-card amber"><div class="val" id="ov-low">—</div><div class="lbl">สต็อคต่ำ (&lt;20)</div></div>
+    <div class="ov-card red"><div class="val" id="ov-out">—</div><div class="lbl">หมดสต็อค</div></div>
+  </div>
+  <div class="ov-content">
+    <div style="background:white;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.09);overflow:hidden">
+      <div style="padding:14px 16px;font-size:15px;font-weight:700;color:#1a3a5c;border-bottom:1px solid #eee">รายการสต็อคทั้งหมด</div>
+      <div class="tbl-wrap"><table class="ov-tbl" id="ovTable">
+        <thead><tr>
+          <th style="width:110px">รหัส</th>
+          <th>ชื่อสินค้า</th>
+          <th style="width:80px;text-align:center">สต็อค</th>
+          <th style="width:90px;text-align:center">สถานะ</th>
+        </tr></thead>
+        <tbody id="ovTbody"><tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa">⏳ กำลังโหลด...</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB: รับสินค้าเข้า ══ -->
+<div class="main-tab-panel" id="tab-stockin">
+  <div class="si-wrap">
+    <!-- Meta -->
+    <div class="si-card">
+      <div class="si-card-title">📋 ข้อมูลการรับสินค้า</div>
+      <div class="si-meta">
+        <div class="si-field">
+          <label>วันที่รับสินค้า</label>
+          <input type="date" id="si-date">
+        </div>
+        <div class="si-field">
+          <label>ผู้บันทึก</label>
+          <input type="text" id="si-recorder" placeholder="ชื่อผู้บันทึก">
+        </div>
+      </div>
+    </div>
+
+    <!-- Add item -->
+    <div class="si-card">
+      <div class="si-card-title">➕ เพิ่มรายการสินค้า</div>
+      <div class="si-row">
+        <div class="si-field" style="position:relative">
+          <label>ค้นหาสินค้า (ชื่อ / รหัส)</label>
+          <input type="text" id="si-search" placeholder="พิมพ์ชื่อหรือรหัส..." autocomplete="off"
+            oninput="siSearch()" onkeydown="siSearchKey(event)">
+          <div id="si-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #2563a8;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
+        </div>
+        <div class="si-field">
+          <label>จำนวน</label>
+          <input type="number" id="si-qty" placeholder="0" min="1" step="1">
+        </div>
+        <div class="si-field">
+          <label>หน่วย</label>
+          <select id="si-unit">
+            <option value="กระสอบ">กระสอบ</option>
+            <option value="กล่อง">กล่อง</option>
+            <option value="ถัง">ถัง</option>
+          </select>
+        </div>
+        <div class="si-field">
+          <label>หมายเหตุ</label>
+          <input type="text" id="si-note" placeholder="(ไม่บังคับ)">
+        </div>
+        <button class="btn-si-add" onclick="siAddItem()">+ เพิ่ม</button>
+      </div>
+    </div>
+
+    <!-- Summary grid -->
+    <div class="si-card">
+      <div class="si-card-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>📦 รายการที่จะรับเข้า</span>
+        <span id="si-count" style="font-size:13px;font-weight:400;color:#666">0 รายการ</span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="si-grid-tbl">
+          <thead><tr>
+            <th style="width:36px">#</th>
+            <th style="text-align:left">ชื่อสินค้า</th>
+            <th style="width:110px">รหัส</th>
+            <th style="width:80px">กระสอบ</th>
+            <th style="width:80px">กล่อง</th>
+            <th style="width:80px">ถัง</th>
+            <th style="text-align:left">หมายเหตุ</th>
+            <th style="width:50px">ลบ</th>
+          </tr></thead>
+          <tbody id="si-tbody"><tr><td colspan="8" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr></tbody>
+        </table>
+      </div>
+      <button class="btn-si-submit" id="si-submit-btn" onclick="siSubmit()" disabled>💾 บันทึกรับสินค้าเข้า</button>
     </div>
   </div>
 </div>
@@ -600,6 +751,175 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Tab switching ─────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.main-tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'overview') loadOverview();
+}
+
+// ── ภาพรวม ────────────────────────────────────────────────────
+async function loadOverview() {
+  try {
+    const res = await fetch(API + '?action=getStock', {credentials:'omit'});
+    const data = await res.json();
+    const items = data.items || [];
+    let ok=0, low=0, out=0;
+    items.forEach(i => {
+      const s = Number(i.stock)||0;
+      if (s <= 0) out++; else if (s < 20) low++; else ok++;
+    });
+    document.getElementById('ov-total').textContent = items.length;
+    document.getElementById('ov-ok').textContent = ok;
+    document.getElementById('ov-low').textContent = low;
+    document.getElementById('ov-out').textContent = out;
+
+    const tbody = document.getElementById('ovTbody');
+    if (!items.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa">ไม่มีข้อมูล</td></tr>'; return; }
+    tbody.innerHTML = items.map(i => {
+      const s = Number(i.stock)||0;
+      const [cls, lbl] = s <= 0 ? ['sb-out','หมด'] : s < 20 ? ['sb-low','ต่ำ'] : ['sb-ok','ปกติ'];
+      const name = fmtName([i.type, i.col, i.row].filter(Boolean).join(' '));
+      return `<tr>
+        <td style="font-family:monospace;font-size:12px">${i.code||''}</td>
+        <td class="td-left">${name}</td>
+        <td style="text-align:center;font-weight:700;color:#1a3a5c">${s}</td>
+        <td style="text-align:center"><span class="stk-badge ${cls}">${lbl}</span></td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('ovTbody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#dc2626">โหลดไม่ได้: '+e.message+'</td></tr>';
+  }
+}
+
+// ── รับสินค้าเข้า ──────────────────────────────────────────────
+let siItems = [];
+let siSearchIdx = -1;
+let siSearchResults = [];
+
+// ตั้งวันที่ default เป็นวันนี้
+(function(){ const d=new Date(); document.getElementById('si-date').value=d.toISOString().split('T')[0]; })();
+
+function siSearch() {
+  const q = document.getElementById('si-search').value.trim().toLowerCase();
+  const drop = document.getElementById('si-drop');
+  siSearchIdx = -1;
+  if (!q) { drop.style.display='none'; return; }
+  siSearchResults = allItems.filter(i => {
+    const name = [i.type,i.col,i.row].filter(Boolean).join(' ').toLowerCase();
+    return name.includes(q) || String(i.code).includes(q);
+  }).slice(0, 12);
+  if (!siSearchResults.length) { drop.style.display='none'; return; }
+  drop.innerHTML = siSearchResults.map((i,idx) => {
+    const name = fmtName([i.type,i.col,i.row].filter(Boolean).join(' '));
+    return `<div style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #f3f4f6;font-size:13px;display:flex;justify-content:space-between"
+      onmousedown="siSelectItem(${idx})" data-idx="${idx}">
+      <span style="font-weight:600;color:#1a3a5c">${name}</span>
+      <span style="font-size:11px;color:#888;font-family:monospace">${i.code}</span>
+    </div>`;
+  }).join('');
+  drop.style.display = 'block';
+}
+
+function siSearchKey(e) {
+  const drop = document.getElementById('si-drop');
+  const items = drop.querySelectorAll('[data-idx]');
+  if (!items.length) { if(e.key==='Enter') siAddItem(); return; }
+  if (e.key==='ArrowDown') { e.preventDefault(); siSearchIdx=Math.min(siSearchIdx+1,items.length-1); }
+  else if (e.key==='ArrowUp') { e.preventDefault(); siSearchIdx=Math.max(siSearchIdx-1,0); }
+  else if (e.key==='Enter') { e.preventDefault(); if(siSearchIdx>=0) siSelectItem(siSearchIdx); else siAddItem(); return; }
+  else if (e.key==='Escape') { drop.style.display='none'; return; }
+  items.forEach((el,i) => el.style.background = i===siSearchIdx ? '#f0f5ff' : '');
+}
+
+function siSelectItem(idx) {
+  const item = siSearchResults[idx];
+  if (!item) return;
+  document.getElementById('si-search').value = fmtName([item.type,item.col,item.row].filter(Boolean).join(' '));
+  document.getElementById('si-search').dataset.code = item.code;
+  document.getElementById('si-search').dataset.name = fmtName([item.type,item.col,item.row].filter(Boolean).join(' '));
+  document.getElementById('si-drop').style.display = 'none';
+  document.getElementById('si-qty').focus();
+}
+
+document.addEventListener('click', e => {
+  if (!document.getElementById('si-search').contains(e.target))
+    document.getElementById('si-drop').style.display = 'none';
+});
+
+function siAddItem() {
+  const code = document.getElementById('si-search').dataset.code;
+  const name = document.getElementById('si-search').dataset.name || document.getElementById('si-search').value.trim();
+  const qty  = parseInt(document.getElementById('si-qty').value);
+  const unit = document.getElementById('si-unit').value;
+  const note = document.getElementById('si-note').value.trim();
+  if (!name) { alert('กรุณาเลือกสินค้า'); return; }
+  if (!qty || qty < 1) { alert('กรุณาใส่จำนวน'); return; }
+
+  siItems.push({ code: code||'', name, qty, unit, note });
+  siRender();
+
+  // reset form
+  document.getElementById('si-search').value = '';
+  document.getElementById('si-search').dataset.code = '';
+  document.getElementById('si-search').dataset.name = '';
+  document.getElementById('si-qty').value = '';
+  document.getElementById('si-note').value = '';
+  document.getElementById('si-search').focus();
+}
+
+function siRemove(idx) {
+  siItems.splice(idx, 1);
+  siRender();
+}
+
+function siRender() {
+  document.getElementById('si-count').textContent = siItems.length + ' รายการ';
+  document.getElementById('si-submit-btn').disabled = siItems.length === 0;
+  const tbody = document.getElementById('si-tbody');
+  if (!siItems.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr>';
+    return;
+  }
+  tbody.innerHTML = siItems.map((item, i) => `<tr>
+    <td>${i+1}</td>
+    <td class="td-left" style="font-weight:600;color:#1a3a5c">${item.name}</td>
+    <td style="font-family:monospace;font-size:12px">${item.code}</td>
+    <td style="font-weight:700;color:#1a3a5c">${item.unit==='กระสอบ'?item.qty:''}</td>
+    <td style="font-weight:700;color:#7c3aed">${item.unit==='กล่อง'?item.qty:''}</td>
+    <td style="font-weight:700;color:#d97706">${item.unit==='ถัง'?item.qty:''}</td>
+    <td class="td-left" style="font-size:12px;color:#666">${item.note||''}</td>
+    <td><button class="btn-si-del" onclick="siRemove(${i})">✕</button></td>
+  </tr>`).join('');
+}
+
+async function siSubmit() {
+  const date = document.getElementById('si-date').value;
+  const recorder = document.getElementById('si-recorder').value.trim();
+  if (!date) { alert('กรุณาใส่วันที่รับสินค้า'); return; }
+  if (!recorder) { alert('กรุณาใส่ชื่อผู้บันทึก'); return; }
+  if (!siItems.length) { alert('กรุณาเพิ่มรายการสินค้า'); return; }
+
+  const btn = document.getElementById('si-submit-btn');
+  btn.textContent = '⏳ กำลังบันทึก...'; btn.disabled = true;
+
+  try {
+    await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'stockIn', date, recorder, items: siItems })
+    });
+    showToast('✅ บันทึกรับสินค้าเข้า ' + siItems.length + ' รายการแล้ว');
+    siItems = [];
+    siRender();
+  } catch(e) {
+    alert('เกิดข้อผิดพลาด: ' + e.message);
+  }
+
+  btn.textContent = '💾 บันทึกรับสินค้าเข้า'; btn.disabled = false;
 }
 
 loadData();
