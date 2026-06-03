@@ -370,18 +370,22 @@ let stockMap = {}, allItems = [], historyData = [];
 function fmtName(n) {
   if (!n) return n;
   let s = String(n);
-  s = s.replace(/\bSTOCK\b\s*/g, '');                          // ตัด STOCK
-  s = s.replace(/หัวน็อตเกลียวหยาบ\s*/g, 'หัวน็อต ');        // เกลียวหยาบ NC/NF
-  s = s.replace(/หัวน็อตเกลียว\s*/g, 'หัวน็อต ');            // เกลียว W
-  s = s.replace(/น็อตแข็งเกลียวมิล/g, 'น็อตมิลแข็ง');        // เกลียวมิล
-  s = s.replace(/น็อตแข็ง/g, 'น็อตมิลแข็ง');                  // น็อตแข็ง ทั่วไป
-  // ตัด M6-M16 ออก แต่เก็บ (ตลอด)/(ครึ่ง) ไว้ต่อท้าย
+  s = s.replace(/\bSTOCK\b\s*/g, '');
+  s = s.replace(/หัวน็อตเกลียวหยาบ\s*/g, 'หัวน็อต ');
+  s = s.replace(/หัวน็อตเกลียว\s*/g, 'หัวน็อต ');
+  s = s.replace(/น็อตแข็งเกลียวมิล/g, 'น็อตมิลแข็ง');
+  s = s.replace(/น็อตแข็ง/g, 'น็อตมิลแข็ง');
+  // บันทึก suffix (ตลอด)/(ครึ่ง) ก่อนแล้วเพิ่ม x ก่อนต่อท้าย
   let suffix = '';
   s = s.replace(/M\d+[-–]M\d+\s*(\([^)]+\))\s*/g, (_, p1) => { suffix = ' ' + p1; return ''; });
-  if (suffix) s = s.trimEnd() + suffix;
-  s = s.replace(/(M\d+)\s+(P[\d.]+)/g, '$1 x $2');            // M6 P1.0 → M6 x P1.0
+  s = s.replace(/(M\d+)\s+(P[\d.]+)/g, '$1 x $2');
   s = s.trim().replace(/\s{2,}/g, ' ');
-  s = s.replace(/ (\d+(?:\.\d+\/\d+)?)$/, ' x $1');            // x ก่อนตัวเลขความยาว (int หรือ 1.1/4) เท่านั้น
+  // ใส่ x ก่อนตัวเลขสุดท้าย (int, mixed fraction, simple fraction)
+  // ยกเว้น หัวน็อต ที่ fraction คือขนาด ไม่ใช่ความยาว
+  if (!s.startsWith('หัวน็อต')) {
+    s = s.replace(/ (\d[\d./]*)$/, ' x $1');
+  }
+  if (suffix) s = s + suffix;
   return s;
 }
 let curEnc = encT(TYPES[0]);
