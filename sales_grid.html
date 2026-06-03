@@ -139,6 +139,10 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
         <div class="urgency-opt sel-urgent" onclick="selectItemUrgency('ด่วน',this)">🔴 ด่วน</div>
       </div>
     </div>
+    <div class="field">
+      <label>หมายเหตุ (ถ้ามี)</label>
+      <input type="text" id="inputItemNote" placeholder="">
+    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModalDirect()">ยกเลิก</button>
       <button class="btn-confirm" id="btnAddCart" onclick="addToCart()">🛒 เพิ่มในตะกร้า</button>
@@ -324,9 +328,9 @@ function openModal(code, name, type) {
   // ถ้ามีในตะกร้าแล้ว ให้แสดงจำนวนเดิม
   const existing = cart.find(i => i.code === code);
   document.getElementById('inputQty').value = existing ? existing.qty : '';
+  document.getElementById('inputItemNote').value = existing ? (existing.note||'') : '';
   if (existing) {
     document.getElementById('btnAddCart').textContent = '✏️ อัปเดตจำนวน';
-    // ตั้ง urgency ตามที่มีอยู่
     selectedItemUrgency = existing.urgency;
   } else {
     document.getElementById('btnAddCart').textContent = '🛒 เพิ่มในตะกร้า';
@@ -356,12 +360,14 @@ function addToCart() {
   const qty = parseFloat(document.getElementById('inputQty').value);
   if (!qty || qty <= 0) { alert('กรุณากรอกจำนวน'); return; }
   const unit = getUnit(selectedType);
+  const note = document.getElementById('inputItemNote').value.trim();
   const existing = cart.find(i => i.code === selectedCode);
   if (existing) {
     existing.qty = qty;
     existing.urgency = selectedItemUrgency;
+    existing.note = note;
   } else {
-    cart.push({ code: selectedCode, name: selectedName, type: selectedType, qty, unit, urgency: selectedItemUrgency });
+    cart.push({ code: selectedCode, name: selectedName, type: selectedType, qty, unit, urgency: selectedItemUrgency, note });
   }
   closeModalDirect();
   updateCartBar();
@@ -419,6 +425,7 @@ function renderCartItems() {
           <div class="cart-item-name">${item.name}<br>
             <span style="font-size:11px;color:#888;font-family:'Courier New',monospace">${item.code}</span>
             <span style="font-size:11px;font-weight:700;color:${urgencyColor[item.urgency]||'#555'};margin-left:6px">${item.urgency}</span>
+            ${item.note?`<br><span style="font-size:11px;color:#888">📝 ${item.note}</span>`:''}
           </div>
           <input class="qty-edit-input" id="inlineQtyInput" type="number" value="${item.qty}" min="1" step="1">
           <button class="btn-confirm" style="padding:5px 10px;font-size:12px;border-radius:6px;margin-left:4px" onclick="saveInlineQty(${origIdx})">บันทึก</button>
@@ -430,6 +437,7 @@ function renderCartItems() {
           <div class="cart-item-name">${item.name}<br>
             <span style="font-size:11px;color:#888;font-family:'Courier New',monospace">${item.code}</span>
             <span style="font-size:11px;font-weight:700;color:${urgencyColor[item.urgency]||'#555'};margin-left:6px">${item.urgency}</span>
+            ${item.note?`<br><span style="font-size:11px;color:#888">📝 ${item.note}</span>`:''}
           </div>
           <div class="cart-item-qty" onclick="startInlineEdit(${origIdx})" title="กดเพื่อแก้ไขจำนวน">${item.qty} ${item.unit} ✏️</div>
           <button class="cart-item-del" onclick="removeFromCart(${origIdx})">✕</button>
@@ -489,7 +497,7 @@ async function submitAllOrders() {
           action: 'newOrder',
           code: item.code, name: item.name,
           customer: customerName, qty: item.qty, unit: item.unit,
-          urgency: item.urgency, note, date
+          urgency: item.urgency, note: item.note||'', date
         })
       });
     }
