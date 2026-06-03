@@ -213,6 +213,11 @@ let cart = [];
 let customerName = '';
 let editingCartIndex = null;
 
+function fmtName(n) {
+  if (!n) return n;
+  return String(n).replace(/ (\d[\d./]*)$/, ' x $1');
+}
+
 // ---- Customer Autocomplete ----
 let acIndex = -1;
 
@@ -397,7 +402,7 @@ function openModal(code, name, type) {
   selectedType = type;
   selectedItemUrgency = 'ปกติ';
   const unit = getUnit(type);
-  document.getElementById('modalName').textContent = name;
+  document.getElementById('modalName').textContent = fmtName(name);
   document.getElementById('modalCode').textContent = 'รหัส: ' + code;
   document.getElementById('qtyLabel').textContent = 'จำนวน (' + unit + ') *';
 
@@ -443,7 +448,7 @@ function addToCart() {
     existing.urgency = selectedItemUrgency;
     existing.note = note;
   } else {
-    cart.push({ code: selectedCode, name: selectedName, type: selectedType, qty, unit, urgency: selectedItemUrgency, note });
+    cart.push({ code: selectedCode, name: fmtName(selectedName), type: selectedType, qty, unit, urgency: selectedItemUrgency, note });
   }
   closeModalDirect();
   updateCartBar();
