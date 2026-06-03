@@ -375,10 +375,13 @@ function fmtName(n) {
   s = s.replace(/หัวน็อตเกลียว\s*/g, 'หัวน็อต ');            // เกลียว W
   s = s.replace(/น็อตแข็งเกลียวมิล/g, 'น็อตมิลแข็ง');        // เกลียวมิล
   s = s.replace(/น็อตแข็ง/g, 'น็อตมิลแข็ง');                  // น็อตแข็ง ทั่วไป
-  s = s.replace(/M\d+[-–]M\d+\s*\([^)]+\)\s*/g, '');          // ตัด M6-M16 (ตลอด) ฯลฯ
+  // ตัด M6-M16 ออก แต่เก็บ (ตลอด)/(ครึ่ง) ไว้ต่อท้าย
+  let suffix = '';
+  s = s.replace(/M\d+[-–]M\d+\s*(\([^)]+\))\s*/g, (_, p1) => { suffix = ' ' + p1; return ''; });
+  if (suffix) s = s.trimEnd() + suffix;
   s = s.replace(/(M\d+)\s+(P[\d.]+)/g, '$1 x $2');            // M6 P1.0 → M6 x P1.0
   s = s.trim().replace(/\s{2,}/g, ' ');
-  s = s.replace(/ (\d[\d./]*)$/, ' x $1');                     // x ก่อนตัวเลขสุดท้าย
+  s = s.replace(/ (\d+(?:\.\d+\/\d+)?)$/, ' x $1');            // x ก่อนตัวเลขความยาว (int หรือ 1.1/4) เท่านั้น
   return s;
 }
 let curEnc = encT(TYPES[0]);
