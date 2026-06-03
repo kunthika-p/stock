@@ -113,7 +113,7 @@ async function loadPending() {
         </div>
         <div class="order-detail">
           👤 ลูกค้า: <span>${o.customer}</span><br>
-          📦 จำนวน: <span>${o.qty} กก.</span><br>
+          📦 จำนวน: <span>${o.qty} ${o.unit || 'กระสอบ'}</span><br>
           📅 วันที่สั่ง: <span>${o.date || '-'}</span><br>
           ${o.note ? '📝 หมายเหตุ: <span>' + o.note + '</span>' : ''}
         </div>
@@ -143,14 +143,14 @@ async function loadHistory() {
           <span class="hist-name">${o.name || o.code} (${o.code})</span>
           <span class="${o.status === 'confirmed' ? 'status-done' : 'status-rejected'}">${o.status === 'confirmed' ? '✅ ยืนยัน' : '❌ ยกเลิก'}</span>
         </div>
-        <div class="hist-detail">👤 ${o.customer} | 📦 ${o.qty} กก. | ${o.urgency} | ${o.date || ''}</div>
+        <div class="hist-detail">👤 ${o.customer} | 📦 ${o.qty} ${o.unit || 'กระสอบ'} | ${o.urgency} | ${o.date || ''}</div>
       </div>
     `).join('');
   } catch(e) {}
 }
 
 async function confirmOrder(row, code, qty) {
-  if (!confirm(`ยืนยันตัดสต็อค ${code} จำนวน ${qty} กก.?`)) return;
+  if (!confirm(`ยืนยันตัดสต็อค ${code} จำนวน ${qty}?`)) return;
   try {
     await fetch(API, {
       method: 'POST',
