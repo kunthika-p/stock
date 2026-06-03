@@ -13,7 +13,15 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .header h1{font-size:18px;font-weight:700}
 .header p{font-size:12px;opacity:.8;margin-top:2px}
 
-.type-nav-wrap{overflow-x:auto;padding:10px 12px;background:white;border-bottom:1px solid #e0e0e0;white-space:nowrap;position:sticky;top:58px;z-index:99}
+/* Customer name bar */
+.customer-bar{background:#fff8e1;border-bottom:2px solid #f59e0b;padding:10px 14px;position:sticky;top:58px;z-index:100;display:flex;align-items:center;gap:10px}
+.customer-bar label{font-size:13px;font-weight:700;color:#92400e;white-space:nowrap}
+.customer-bar input{flex:1;padding:8px 12px;border:1.5px solid #f59e0b;border-radius:8px;font-size:14px;font-family:'Sarabun',sans-serif;outline:none;background:white}
+.customer-bar input:focus{border-color:#d97706}
+.customer-bar .name-tag{background:#1a3a5c;color:white;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:700;white-space:nowrap;display:none}
+.customer-bar .btn-change{background:none;border:1px solid #92400e;color:#92400e;border-radius:6px;padding:4px 10px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer;white-space:nowrap}
+
+.type-nav-wrap{overflow-x:auto;padding:10px 12px;background:white;border-bottom:1px solid #e0e0e0;white-space:nowrap;position:sticky;top:106px;z-index:99}
 .type-btn{display:inline-block;padding:6px 14px;border:1.5px solid #d1d5db;border-radius:20px;font-size:13px;font-family:'Sarabun',sans-serif;background:white;color:#555;margin-right:6px;cursor:pointer}
 .type-btn.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
 
@@ -29,10 +37,11 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .stk-cell{width:70px;height:50px;text-align:center;vertical-align:middle;padding:0;overflow:hidden}
 .stk-cell.has{background:#d1fae5;cursor:pointer}
 .stk-cell.has:hover{background:#a7f3d0}
+.stk-cell.has.locked{background:#d1fae5;cursor:not-allowed;opacity:.6}
 .stk-cell.out{background:#fee2e2;cursor:default}
 .stk-cell.blocked{background:#e5e7eb}
 .cell-tick{font-size:20px;display:block}
-.cell-code{font-size:9px;color:#666;font-family:monospace}
+.cell-code{font-size:9px;color:#666;font-family:'Courier New',monospace;letter-spacing:0.5px}
 
 .loading{text-align:center;color:#888;padding:40px}
 .empty{text-align:center;color:#aaa;padding:20px}
@@ -72,17 +81,33 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .cart-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end}
 .cart-modal.open{display:flex}
 .cart-modal .modal{max-height:90vh}
+
+/* Cart items */
+.cart-type-header{font-size:12px;font-weight:700;color:#2563a8;background:#f0f5ff;padding:4px 8px;margin:8px -4px 4px;border-radius:4px}
 .cart-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;gap:8px}
 .cart-item-name{font-size:13px;color:#1a3a5c;font-weight:600;flex:1}
-.cart-item-qty{font-size:13px;color:#555}
+.cart-item-qty{font-size:13px;color:#2563a8;font-weight:700;cursor:pointer;text-decoration:underline dotted;min-width:60px;text-align:right}
+.cart-item-qty:hover{color:#1a3a5c}
 .cart-item-del{background:none;border:none;color:#dc2626;font-size:18px;cursor:pointer;padding:0 4px}
+
+/* Inline qty edit */
+.qty-edit-input{width:70px;padding:4px 6px;border:1.5px solid #2563a8;border-radius:6px;font-size:13px;font-family:'Sarabun',sans-serif;text-align:center}
 </style>
 </head>
 <body>
 
 <div class="header">
   <h1>🛒 สั่งสินค้า STIC</h1>
-  <p>กดช่อง ✅ เพื่อเพิ่มในตะกร้า</p>
+  <p>กรอกชื่อลูกค้าก่อน แล้วกดช่อง ✅ เพื่อเพิ่มในตะกร้า</p>
+</div>
+
+<!-- Customer name bar -->
+<div class="customer-bar" id="customerBar">
+  <label>👤 ชื่อลูกค้า:</label>
+  <input type="text" id="customerInput" placeholder="กรอกชื่อก่อนสั่งสินค้า" oninput="onCustomerInput()" onkeydown="if(event.key==='Enter')confirmCustomer()">
+  <button class="btn-confirm" style="padding:8px 14px;font-size:13px;border-radius:8px;white-space:nowrap" onclick="confirmCustomer()">ตกลง</button>
+  <span class="name-tag" id="customerTag"></span>
+  <button class="btn-change" id="btnChangeName" style="display:none" onclick="changeName()">เปลี่ยน</button>
 </div>
 
 <div class="legend">
@@ -106,9 +131,17 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
       <label id="qtyLabel">จำนวน *</label>
       <input type="number" id="inputQty" placeholder="0" min="1" step="1">
     </div>
+    <div class="field">
+      <label>ความเร่งด่วน *</label>
+      <div class="urgency-opts" id="itemUrgencyOpts">
+        <div class="urgency-opt sel-normal selected" onclick="selectItemUrgency('ปกติ',this)">🟢 ปกติ</div>
+        <div class="urgency-opt sel-medium" onclick="selectItemUrgency('เร่ง',this)">🟡 เร่ง</div>
+        <div class="urgency-opt sel-urgent" onclick="selectItemUrgency('ด่วน',this)">🔴 ด่วน</div>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModalDirect()">ยกเลิก</button>
-      <button class="btn-confirm" onclick="addToCart()">🛒 เพิ่มในตะกร้า</button>
+      <button class="btn-confirm" id="btnAddCart" onclick="addToCart()">🛒 เพิ่มในตะกร้า</button>
     </div>
   </div>
 </div>
@@ -123,19 +156,10 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 <div class="cart-modal" id="cartModal" onclick="closeCartModal(event)">
   <div class="modal">
     <div class="modal-title">🛒 ตะกร้าสินค้า</div>
-    <div id="cartItems" style="margin:12px 0;max-height:40vh;overflow-y:auto"></div>
-    <div class="field">
-      <label>ชื่อลูกค้า *</label>
-      <input type="text" id="inputCustomer" placeholder="กรอกชื่อลูกค้า">
+    <div style="font-size:13px;color:#555;margin:4px 0 12px">
+      👤 <strong id="cartCustomerName"></strong>
     </div>
-    <div class="field">
-      <label>ความเร่งด่วน *</label>
-      <div class="urgency-opts">
-        <div class="urgency-opt sel-normal selected" onclick="selectUrgency('ปกติ',this)">🟢 ปกติ</div>
-        <div class="urgency-opt sel-medium" onclick="selectUrgency('เร่ง',this)">🟡 เร่ง</div>
-        <div class="urgency-opt sel-urgent" onclick="selectUrgency('ด่วน',this)">🔴 ด่วน</div>
-      </div>
-    </div>
+    <div id="cartItems" style="margin:12px 0;max-height:45vh;overflow-y:auto"></div>
     <div class="field">
       <label>หมายเหตุ (ถ้ามี)</label>
       <input type="text" id="inputNote" placeholder="">
@@ -154,31 +178,54 @@ const API = "https://script.google.com/macros/s/AKfycbxhXa14EfmWnaCrNZmvDIO_FUSL
 
 const MATRICES = {"น็อตเหลี่ยมเกลียว W":{"cols":["1/4","5/16","3/8","7/16","1/2"],"rows":["1/2","5/8","3/4","1","1.1/4","1.1/2","1.3/4","2","2.1/2","3","3.1/2","4","5","6"]},"น็อตหัวกลมเกลียว W":{"cols":["1/4","5/16","3/8","1/2"],"rows":["1","1.1/4","1.1/2","2 ค.","2.1/2","3","3.1/2","4","4.1/2","5","5.1/2","6","6.1/2","7","7.1/2","8","8.1/2","9","10","11","12"]},"สกรูเกลียวปล่อย":{"cols":["1/4","5/16","3/8"],"rows":["2","2.1/2","3","3.1/2","4","1.1/2"]},"น็อตเหลี่ยม W (ใหญ่)":{"cols":["5/8 W","3/4 W"],"rows":["1.1/2","2","2.1/2","3","3.1/2","4","4.1/2","5","6"]},"น็อตเหลี่ยม NC (ใหญ่)":{"cols":["5/8 NC","3/4 NC","7/8 NC","1 NC"],"rows":["1.1/2","2 ค.","2.1/2","3","3.1/2","4","4.1/2","5","5.1/2","6","6.1/2","7","8"]},"หัวน็อตมิล":{"cols":["ขาว","ดำ"],"rows":["M3","M4","M5","M6 (p1.0 ขอบ10)","M8 (p1.25 ขอบ12)","M8 (p1.25 ขอบ13)","M10 (p1.25 ขอบ14)","M10 (p1.5 ขอบ14)","M10 (p1.25 ขอบ17)","M10 (p1.5 ขอบ17)","M12 (p1.25 ขอบ17)","M12 (p1.5 ขอบ17)","M12 (p1.75 ขอบ19","M14 (p1.5 ขอบ22)","M14 (p2.0 ขอบ22)","M16 (p1.5 ขอบ24)","M16 (p2.0 ขอบ24)","M18 (p1.5 ขอบ27)","M18 (p2.5 ขอบ27)","M20 (p2.5 ขอบ30)","M22 (p2.5 ขอบ32)","M24"]},"หัวน็อตเกลียวหยาบ NC":{"cols":["STOCK"],"rows":["1/4","5/16","3/8","7/16","1/2","9/16","5/8","3/4","7/8","1"]},"หัวน็อตเกลียวหยาบ NF":{"cols":["STOCK"],"rows":["1/4","5/16","3/8","7/16","1/2","9/16","5/8","3/4"]},"หัวน็อตเกลียว W":{"cols":["STOCK"],"rows":["3/16","1/4 (ขอบ10)","1/4 (ขอบ11)","5/16 (ขอบ12.5)","5/16 (ขอบ14)","3/8","7/16","1/2","5/8","3/4","7/8","1"]},"สกรูมิลขาว":{"cols":["M5","M6","M8","M10","M12"],"rows":["10","12","15","20","25","30","35","40","45","50","55","60","70","80","90","100"]},"น็อตเหลี่ยม NC":{"cols":["1/4","5/16","3/8","7/16","1/2","9/16"],"rows":["1/2","5/8","3/4","1","1.1/4","1.1/2","2","2.1/2","3","3.1/2","4","5","6"]},"น็อตเหลี่ยม NF":{"cols":["1/4","5/16","3/8","7/16","1/2","9/16"],"rows":["1/2","5/8","3/4","1","1.1/4","1.1/2","2","2.1/2","3","3.1/2","4"]},"น็อตแข็ง M6-M16 (ตลอด)":{"cols":["M6 P1.0","M8 P1.25","M10 P1.5","M12 P1.75","M14 P2.0","M16 P2.0"],"rows":["10","12","16","20","25","30","35","40","45","50"]},"น็อตแข็ง M6-M16 (ครึ่ง)":{"cols":["M6 P1.0","M8 P1.25","M10 P1.5","M12 P1.75","M14 P2.0","M16 P2.0"],"rows":["40","45","50","55","60","65","70","75","80","90","100","110","120","130","140","150"]},"น็อตแข็ง M18-M30 (ตลอด)":{"cols":["M18 P2.5","M20 P2.5","M22 P2.5","M24 P3.0","M12 P1.5"],"rows":["40","45","50","60","55","65","25","30","35"]},"น็อตแข็ง M18-M30 (ครึ่ง)":{"cols":["M18 P2.5","M20 P2.5","M22 P2.5","M24 P3.0","M30 P3.5","M12 P1.5"],"rows":["55","60","65","70","75","80","90","100","85","110","120","130","140","150","45","50"]},"น็อตแข็งเกลียวมิล (ตลอด)":{"cols":["M10 P1.25","M12 P1.25","M14 P1.5","M16 P1.5","M18 P1.5"],"rows":["20","25","30","35","40","45","50","55","60"]},"น็อตแข็งเกลียวมิล (ครึ่ง)":{"cols":["M10 P1.25","M12 P1.25","M14 P1.5","M16 P1.5","M18 P1.5"],"rows":["45","50","55","60","65","70","75","80","90","100","40","120"]},"น็อตเหลี่ยม W ไม่ควบหัว":{"cols":["1/4","5/16","3/8","7/16","1/2"],"rows":["1/2","5/8","3/4","1","1.1/4","1.1/2","1.3/4","2","2.1/2","3","3.1/2","4","5","6"]},"น็อตเหลี่ยมเกลียว W (ยาว)":{"cols":["3/8×5","3/8×6","7/16×3.1/2","1/2×5","1/2×6"],"rows":["ครึ่ง","3/4","1","1.1/4"]},"หัวน็อตมิลแข็ง เกรด8":{"cols":["STOCK"],"rows":["M6","M8","M10","M12","M14","M16","M18","M20","M22","M24"]},"Spring Washer":{"cols":["STOCK"],"rows":["M3","M4","M5","M6","M8","M10","M12","M14","M16","M18","M20","M24"]},"หัวน็อตมิลแข็ง OVERSIZE":{"cols":["STOCK"],"rows":["M6","M8","M10","M12","M14","M16","M18","M20","M22","M24"]}};
 const TYPES = ["น็อตเหลี่ยมเกลียว W","น็อตหัวกลมเกลียว W","สกรูเกลียวปล่อย","น็อตเหลี่ยม W (ใหญ่)","น็อตเหลี่ยม NC (ใหญ่)","หัวน็อตมิล","หัวน็อตเกลียวหยาบ NC","หัวน็อตเกลียวหยาบ NF","หัวน็อตเกลียว W","สกรูมิลขาว","น็อตเหลี่ยม NC","น็อตเหลี่ยม NF","น็อตแข็ง M6-M16 (ตลอด)","น็อตแข็ง M6-M16 (ครึ่ง)","น็อตแข็ง M18-M30 (ตลอด)","น็อตแข็ง M18-M30 (ครึ่ง)","น็อตแข็งเกลียวมิล (ตลอด)","น็อตแข็งเกลียวมิล (ครึ่ง)","น็อตเหลี่ยม W ไม่ควบหัว","น็อตเหลี่ยมเกลียว W (ยาว)","หัวน็อตมิลแข็ง เกรด8","Spring Washer","หัวน็อตมิลแข็ง OVERSIZE"];
-
 const BOX_TYPES = ["สกรูมิลขาว","น็อตเหลี่ยม NC","น็อตเหลี่ยม NF","น็อตแข็ง M6-M16 (ตลอด)","น็อตแข็ง M6-M16 (ครึ่ง)","น็อตแข็ง M18-M30 (ตลอด)","น็อตแข็ง M18-M30 (ครึ่ง)","น็อตแข็งเกลียวมิล (ตลอด)","น็อตแข็งเกลียวมิล (ครึ่ง)","Spring Washer","หัวน็อตมิลแข็ง OVERSIZE"];
 
 let allItems = [];
-let allTypes = [];
 let selectedCode = '';
 let selectedName = '';
 let selectedType = '';
-let selectedUrgency = 'ปกติ';
+let selectedItemUrgency = 'ปกติ';
 let cart = [];
+let customerName = '';
+let editingCartIndex = null;
 
+// ---- Customer name ----
+function onCustomerInput() {
+  // nothing, just enable/disable on confirm
+}
+
+function confirmCustomer() {
+  const val = document.getElementById('customerInput').value.trim();
+  if (!val) { alert('กรุณากรอกชื่อลูกค้า'); return; }
+  customerName = val;
+  document.getElementById('customerInput').style.display = 'none';
+  document.querySelector('.customer-bar .btn-confirm').style.display = 'none';
+  document.querySelector('.customer-bar label').textContent = '👤 ลูกค้า:';
+  const tag = document.getElementById('customerTag');
+  tag.textContent = customerName;
+  tag.style.display = 'inline-block';
+  document.getElementById('btnChangeName').style.display = 'inline-block';
+}
+
+function changeName() {
+  customerName = '';
+  document.getElementById('customerInput').style.display = '';
+  document.getElementById('customerInput').value = '';
+  document.querySelector('.customer-bar .btn-confirm').style.display = '';
+  document.querySelector('.customer-bar label').textContent = '👤 ชื่อลูกค้า:';
+  document.getElementById('customerTag').style.display = 'none';
+  document.getElementById('btnChangeName').style.display = 'none';
+  cart = [];
+  updateCartBar();
+}
+
+// ---- Data ----
 async function loadData() {
   try {
     const res = await fetch(API + '?action=getStock');
     const data = await res.json();
     if (!data.items) throw new Error();
-
-    allItems = data.items.map(p => ({
-      ...p,
-      code: String(p.code).padStart(8, '0')
-    }));
-
-    // group by type
-    allTypes = [...new Set(allItems.map(p => p.type))].filter(Boolean);
-
+    allItems = data.items.map(p => ({ ...p, code: String(p.code).padStart(8, '0') }));
     buildTypeNav();
     renderAll();
   } catch(e) {
@@ -203,26 +250,19 @@ function scrollToType(type, btn) {
 function renderAll() {
   const content = document.getElementById('content');
   content.innerHTML = '';
-
   TYPES.forEach(type => {
     const items = allItems.filter(p => p.type === type);
     const m = MATRICES[type];
-
     const wrap = document.createElement('div');
     wrap.className = 'tbl-wrap';
     wrap.id = 'type-' + type.replace(/[\s()\/]/g,'_');
-
     let html = `<div class="type-title">${type}</div>`;
-
     if (m) {
-      const cols = m.cols;
-      const rows = m.rows;
-
+      const cols = m.cols, rows = m.rows;
       html += '<div style="overflow-x:auto"><table class="stk"><thead><tr>';
       html += `<th class="th-corner">ขนาด / น้ำหนัก</th>`;
       cols.forEach(c => html += `<th class="th-col">${c}</th>`);
       html += '</tr></thead><tbody>';
-
       rows.forEach(row => {
         html += `<tr><td class="td-row">${row}</td>`;
         cols.forEach(col => {
@@ -256,7 +296,6 @@ function renderAll() {
         </div>`;
       }).join('');
     }
-
     wrap.innerHTML = html;
     content.appendChild(wrap);
   });
@@ -266,16 +305,44 @@ function getUnit(type) {
   return BOX_TYPES.includes(type) ? 'กล่อง' : 'กระสอบ';
 }
 
+// ---- Modal ----
 function openModal(code, name, type) {
+  if (!customerName) {
+    alert('กรุณากรอกชื่อลูกค้าก่อนนะคะ 👆');
+    document.getElementById('customerInput').focus();
+    return;
+  }
   selectedCode = code;
   selectedName = name;
   selectedType = type;
+  selectedItemUrgency = 'ปกติ';
   const unit = getUnit(type);
   document.getElementById('modalName').textContent = name;
   document.getElementById('modalCode').textContent = 'รหัส: ' + code;
   document.getElementById('qtyLabel').textContent = 'จำนวน (' + unit + ') *';
-  document.getElementById('inputQty').value = '';
+
+  // ถ้ามีในตะกร้าแล้ว ให้แสดงจำนวนเดิม
+  const existing = cart.find(i => i.code === code);
+  document.getElementById('inputQty').value = existing ? existing.qty : '';
+  if (existing) {
+    document.getElementById('btnAddCart').textContent = '✏️ อัปเดตจำนวน';
+    // ตั้ง urgency ตามที่มีอยู่
+    selectedItemUrgency = existing.urgency;
+  } else {
+    document.getElementById('btnAddCart').textContent = '🛒 เพิ่มในตะกร้า';
+  }
+
+  document.querySelectorAll('#itemUrgencyOpts .urgency-opt').forEach(e => e.classList.remove('selected'));
+  const urgencyMap = {'ปกติ':'sel-normal','เร่ง':'sel-medium','ด่วน':'sel-urgent'};
+  document.querySelector('#itemUrgencyOpts .' + (urgencyMap[selectedItemUrgency]||'sel-normal')).classList.add('selected');
+
   document.getElementById('modalBg').classList.add('open');
+}
+
+function selectItemUrgency(val, el) {
+  selectedItemUrgency = val;
+  document.querySelectorAll('#itemUrgencyOpts .urgency-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
 }
 
 function closeModal(e) {
@@ -289,18 +356,19 @@ function addToCart() {
   const qty = parseFloat(document.getElementById('inputQty').value);
   if (!qty || qty <= 0) { alert('กรุณากรอกจำนวน'); return; }
   const unit = getUnit(selectedType);
-  // ตรวจสอบว่ามีอยู่แล้วหรือไม่
   const existing = cart.find(i => i.code === selectedCode);
   if (existing) {
-    existing.qty += qty;
+    existing.qty = qty;
+    existing.urgency = selectedItemUrgency;
   } else {
-    cart.push({ code: selectedCode, name: selectedName, type: selectedType, qty, unit });
+    cart.push({ code: selectedCode, name: selectedName, type: selectedType, qty, unit, urgency: selectedItemUrgency });
   }
   closeModalDirect();
   updateCartBar();
-  showToast('✅ เพิ่มในตะกร้าแล้ว');
+  showToast('✅ ' + (existing ? 'อัปเดตแล้ว' : 'เพิ่มในตะกร้าแล้ว'));
 }
 
+// ---- Cart ----
 function updateCartBar() {
   const bar = document.getElementById('cartBar');
   const info = document.getElementById('cartInfo');
@@ -308,11 +376,12 @@ function updateCartBar() {
     bar.classList.remove('show');
   } else {
     bar.classList.add('show');
-    info.textContent = '🛒 ' + cart.length + ' รายการ';
+    info.textContent = '🛒 ' + cart.length + ' รายการ' + (customerName ? ' · ' + customerName : '');
   }
 }
 
 function openCartModal() {
+  document.getElementById('cartCustomerName').textContent = customerName;
   renderCartItems();
   document.getElementById('cartModal').classList.add('open');
 }
@@ -321,37 +390,90 @@ function closeCartModal(e) {
 }
 function closeCartModalDirect() {
   document.getElementById('cartModal').classList.remove('open');
+  editingCartIndex = null;
 }
 
 function renderCartItems() {
   const el = document.getElementById('cartItems');
   if (!cart.length) { el.innerHTML = '<div style="text-align:center;color:#aaa;padding:16px">ตะกร้าว่าง</div>'; return; }
-  el.innerHTML = cart.map((item, i) => `
-    <div class="cart-item">
-      <div class="cart-item-name">${item.name}<br><span style="font-size:11px;color:#888;font-family:monospace">${item.code}</span></div>
-      <div class="cart-item-qty">${item.qty} ${item.unit}</div>
-      <button class="cart-item-del" onclick="removeFromCart(${i})">✕</button>
-    </div>
-  `).join('');
+
+  // เรียงตาม TYPES order
+  const sortedCart = [...cart].sort((a, b) => {
+    const ai = TYPES.indexOf(a.type), bi = TYPES.indexOf(b.type);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+  });
+
+  const urgencyColor = {'ปกติ':'#16a34a','เร่ง':'#d97706','ด่วน':'#dc2626'};
+  let html = '';
+  let lastType = null;
+
+  sortedCart.forEach((item) => {
+    const origIdx = cart.indexOf(item);
+    if (item.type !== lastType) {
+      html += `<div class="cart-type-header">${item.type}</div>`;
+      lastType = item.type;
+    }
+    if (editingCartIndex === origIdx) {
+      html += `
+        <div class="cart-item">
+          <div class="cart-item-name">${item.name}<br>
+            <span style="font-size:11px;color:#888;font-family:'Courier New',monospace">${item.code}</span>
+            <span style="font-size:11px;font-weight:700;color:${urgencyColor[item.urgency]||'#555'};margin-left:6px">${item.urgency}</span>
+          </div>
+          <input class="qty-edit-input" id="inlineQtyInput" type="number" value="${item.qty}" min="1" step="1">
+          <button class="btn-confirm" style="padding:5px 10px;font-size:12px;border-radius:6px;margin-left:4px" onclick="saveInlineQty(${origIdx})">บันทึก</button>
+          <button class="cart-item-del" onclick="cancelInlineEdit()">✕</button>
+        </div>`;
+    } else {
+      html += `
+        <div class="cart-item">
+          <div class="cart-item-name">${item.name}<br>
+            <span style="font-size:11px;color:#888;font-family:'Courier New',monospace">${item.code}</span>
+            <span style="font-size:11px;font-weight:700;color:${urgencyColor[item.urgency]||'#555'};margin-left:6px">${item.urgency}</span>
+          </div>
+          <div class="cart-item-qty" onclick="startInlineEdit(${origIdx})" title="กดเพื่อแก้ไขจำนวน">${item.qty} ${item.unit} ✏️</div>
+          <button class="cart-item-del" onclick="removeFromCart(${origIdx})">✕</button>
+        </div>`;
+    }
+  });
+
+  el.innerHTML = html;
+  if (editingCartIndex !== null) {
+    const inp = document.getElementById('inlineQtyInput');
+    if (inp) { inp.focus(); inp.select(); }
+  }
 }
 
-function removeFromCart(i) {
-  cart.splice(i, 1);
+function startInlineEdit(i) {
+  editingCartIndex = i;
+  renderCartItems();
+}
+
+function saveInlineQty(i) {
+  const val = parseFloat(document.getElementById('inlineQtyInput').value);
+  if (!val || val <= 0) { alert('กรุณากรอกจำนวน'); return; }
+  cart[i].qty = val;
+  editingCartIndex = null;
   renderCartItems();
   updateCartBar();
 }
 
-function selectUrgency(val, el) {
-  selectedUrgency = val;
-  document.querySelectorAll('.urgency-opt').forEach(e => e.classList.remove('selected'));
-  el.classList.add('selected');
+function cancelInlineEdit() {
+  editingCartIndex = null;
+  renderCartItems();
+}
+
+function removeFromCart(i) {
+  cart.splice(i, 1);
+  editingCartIndex = null;
+  renderCartItems();
+  updateCartBar();
 }
 
 async function submitAllOrders() {
-  const customer = document.getElementById('inputCustomer').value.trim();
-  const note = document.getElementById('inputNote').value.trim();
-  if (!customer) { alert('กรุณากรอกชื่อลูกค้า'); return; }
+  if (!customerName) { alert('ไม่พบชื่อลูกค้า'); return; }
   if (!cart.length) { alert('กรุณาเพิ่มสินค้าในตะกร้า'); return; }
+  const note = document.getElementById('inputNote').value.trim();
 
   const btn = document.querySelector('.cart-modal .btn-confirm');
   btn.textContent = '⏳ กำลังส่ง...';
@@ -359,21 +481,23 @@ async function submitAllOrders() {
 
   try {
     const date = new Date().toLocaleDateString('th-TH');
+    const count = cart.length;
     for (const item of cart) {
       await fetch(API, {
         method: 'POST',
         body: JSON.stringify({
           action: 'newOrder',
           code: item.code, name: item.name,
-          customer, qty: item.qty, unit: item.unit,
-          urgency: selectedUrgency, note, date
+          customer: customerName, qty: item.qty, unit: item.unit,
+          urgency: item.urgency, note, date
         })
       });
     }
     cart = [];
+    editingCartIndex = null;
     updateCartBar();
     closeCartModalDirect();
-    showToast('✅ ส่งคำสั่งซื้อ ' + cart.length + ' รายการแล้ว');
+    showToast('✅ ส่งคำสั่งซื้อ ' + count + ' รายการแล้ว');
   } catch(e) {
     alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
   }
