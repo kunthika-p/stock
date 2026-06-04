@@ -232,8 +232,6 @@ table.list tr:hover td{background:#f8fbff}
   <button class="tab-btn active" onclick="switchTab('overview',this)">📊 ภาพรวม</button>
   <button class="tab-btn" onclick="switchTab('stock',this)">📋 สต็อค</button>
   <button class="tab-btn" onclick="switchTab('stockin',this)">📥 รับสินค้าเข้า</button>
-  <button class="tab-btn" onclick="switchTab('tankin',this)">🪣 รับเข้า (ถัง)</button>
-  <button class="tab-btn" onclick="switchTab('pack',this)">📦 บรรจุสินค้า</button>
   <button class="tab-btn" onclick="switchTab('pending',this)">รอยืนยัน <span class="badge-count" id="pendingCount">0</span></button>
   <button class="tab-btn" onclick="switchTab('history',this)">ประวัติ</button>
 </div>
@@ -359,12 +357,13 @@ table.list tr:hover td{background:#f8fbff}
             </div>
             <div class="si-field"><label>จำนวน</label><input type="number" id="si-qty" placeholder="0" min="1" step="1"></div>
             <div class="si-field"><label>หน่วย</label>
-              <select id="si-unit">
+              <select id="si-unit" onchange="siToggleTankPack()">
                 <option value="กระสอบ">กระสอบ</option>
                 <option value="กล่อง">กล่อง</option>
                 <option value="ถัง">ถัง</option>
               </select>
             </div>
+            <div class="si-field" id="si-tankpack-wrap" style="display:none"><label>ถังบรรจุ (ถ้ามี)</label><input type="number" id="si-tankpack" placeholder="0" min="0" step="1"></div>
             <div class="si-field"><label>หมายเหตุ</label><input type="text" id="si-note" placeholder="(ไม่บังคับ)"></div>
             <button class="btn-si-add" onclick="siAddItem()">+ เพิ่ม</button>
           </div>
@@ -382,7 +381,8 @@ table.list tr:hover td{background:#f8fbff}
                 <th style="width:110px">รหัส</th>
                 <th style="width:80px">กระสอบ</th>
                 <th style="width:80px">กล่อง</th>
-                <th style="width:80px">ถัง</th>
+                <th style="width:80px">ถังรับเข้า</th>
+                <th style="width:80px">ถังบรรจุ</th>
                 <th style="text-align:left">หมายเหตุ</th>
                 <th style="width:50px">ลบ</th>
               </tr></thead>
@@ -394,107 +394,6 @@ table.list tr:hover td{background:#f8fbff}
       </div>
     </div>
   </div>
-
-<!-- Tab: รับเข้า (ถัง) -->
-<div class="tab-panel" id="tab-tankin">
-  <div class="content">
-    <div class="ti-card">
-      <div class="ti-card-title">🪣 รับสินค้าเข้าในรูปแบบถัง</div>
-      <div class="ti-meta">
-        <div class="ti-field"><label>วันที่รับเข้า</label><input type="date" id="ti-date"></div>
-        <div class="ti-field"><label>ผู้บันทึก</label><input type="text" id="ti-recorder" placeholder="ชื่อผู้บันทึก"></div>
-      </div>
-      <div style="position:relative;margin-bottom:12px">
-        <div class="ti-field"><label>ค้นหาสินค้า (ชื่อ / รหัส)</label>
-          <input type="text" id="ti-search" placeholder="พิมพ์ชื่อหรือรหัส..." autocomplete="off" oninput="tiSearch()">
-        </div>
-        <div id="ti-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #d97706;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
-      </div>
-      <div class="ti-meta">
-        <div class="ti-field"><label>หมายเลข Job</label><input type="text" id="ti-job" placeholder="เช่น JOB-2506-001"></div>
-        <div class="ti-field"><label>จำนวน (ถัง)</label><input type="number" id="ti-qty" placeholder="0" min="1" step="1"></div>
-      </div>
-      <div class="ti-field" style="margin-bottom:12px"><label>หมายเหตุ</label><input type="text" id="ti-note" placeholder="(ไม่บังคับ)"></div>
-      <button class="btn-ti-submit" id="ti-submit-btn" onclick="tiSubmit()">💾 บันทึกรับเข้า (ถัง)</button>
-    </div>
-  </div>
-</div>
-
-<!-- Tab: บรรจุสินค้า -->
-<div class="tab-panel" id="tab-pack">
-  <div class="content">
-    <div class="pack-card">
-      <div class="pack-card-title">📦 บันทึกการบรรจุ — แปลง ถัง → กระสอบ / กล่อง</div>
-
-      <!-- Step 1: เลือกสินค้า + Job -->
-      <div class="pack-step">
-        <div class="pack-num">1</div>
-        <div class="pack-step-body">
-          <div class="pack-2col">
-            <div class="pack-field" style="position:relative">
-              <label>สินค้า</label>
-              <input type="text" id="pack-search" placeholder="พิมพ์ชื่อหรือรหัส..." autocomplete="off" oninput="packSearch()">
-              <div id="pack-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #7c3aed;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
-            </div>
-            <div class="pack-field">
-              <label>หมายเลข Job</label>
-              <input type="text" id="pack-job" placeholder="เช่น JOB-2506-001" oninput="packUpdatePreview()" onblur="packLoadTank()">
-            </div>
-          </div>
-          <div id="pack-tank-info" class="tank-info-box"></div>
-        </div>
-      </div>
-
-      <!-- Step 2: จำนวนถังที่ใช้ -->
-      <div class="pack-step">
-        <div class="pack-num">2</div>
-        <div class="pack-step-body">
-          <div class="pack-field">
-            <label>จำนวนถังที่ใช้บรรจุ</label>
-            <input type="number" id="pack-tank-qty" placeholder="0" min="1" step="1" oninput="packUpdatePreview()">
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 3: ผลลัพธ์ -->
-      <div class="pack-step">
-        <div class="pack-num">3</div>
-        <div class="pack-step-body">
-          <div class="pack-2col">
-            <div class="pack-field">
-              <label>จำนวนที่ได้จากการบรรจุ</label>
-              <input type="number" id="pack-out-qty" placeholder="0" min="1" step="1" oninput="packUpdatePreview()">
-            </div>
-            <div class="pack-field">
-              <label>หน่วย</label>
-              <select id="pack-out-unit" onchange="packUpdatePreview()">
-                <option value="กระสอบ">กระสอบ</option>
-                <option value="กล่อง">กล่อง</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ผู้บันทึก -->
-      <div class="pack-field" style="margin-bottom:14px">
-        <label>ผู้บันทึก</label>
-        <input type="text" id="pack-recorder" placeholder="ชื่อผู้บันทึก">
-      </div>
-
-      <!-- Preview -->
-      <div class="pack-preview" id="pack-preview">
-        <div class="pack-card-title" style="font-size:12px;color:#7c3aed;margin-bottom:8px">📋 สรุปก่อนยืนยัน</div>
-        <div class="pack-prow"><span class="pack-plbl">สินค้า</span><span class="pack-pval">—</span></div>
-        <div class="pack-prow"><span class="pack-plbl">Job</span><span class="pack-pval">—</span></div>
-        <div class="pack-prow"><span class="pack-plbl">ถังที่ใช้</span><span class="pack-pval red">—</span></div>
-        <div class="pack-prow"><span class="pack-plbl">ผลลัพธ์</span><span class="pack-pval green">—</span></div>
-      </div>
-
-      <button class="btn-pack-submit" id="pack-submit-btn" onclick="packSubmit()" disabled>✅ ยืนยันการบรรจุ</button>
-    </div>
-  </div>
-</div>
 
 <!-- Edit modal -->
 <div class="edit-modal-bg" id="editModalBg" onclick="if(event.target===this)closeEditModal()">
@@ -634,6 +533,11 @@ async function loadOverview() {
 }
 
 // ── รับสินค้าเข้า ──────────────────────────────────────────────
+function siToggleTankPack() {
+  const unit = document.getElementById('si-unit').value;
+  document.getElementById('si-tankpack-wrap').style.display = unit === 'ถัง' ? '' : 'none';
+  if (unit !== 'ถัง') document.getElementById('si-tankpack').value = '';
+}
 let siItems = [];
 let siSearchIdx = -1;
 let siSearchResults = [];
@@ -693,14 +597,18 @@ function siAddItem() {
   const qty  = parseInt(document.getElementById('si-qty').value);
   const unit = document.getElementById('si-unit').value;
   const note = document.getElementById('si-note').value.trim();
+  const tankPack = unit==='ถัง' ? (parseInt(document.getElementById('si-tankpack').value)||0) : 0;
   if (!name) { alert('กรุณาเลือกสินค้า'); return; }
   if (!qty || qty < 1) { alert('กรุณาใส่จำนวน'); return; }
-  siItems.push({ code: code||'', name, qty, unit, note });
+  siItems.push({ code: code||'', name, qty, unit, tankPack, note });
   siRender();
   document.getElementById('si-search').value = '';
   document.getElementById('si-search').dataset.code = '';
   document.getElementById('si-search').dataset.name = '';
   document.getElementById('si-qty').value = '';
+  document.getElementById('si-tankpack').value = '';
+  document.getElementById('si-tankpack-wrap').style.display='none';
+  document.getElementById('si-unit').value='กระสอบ';
   document.getElementById('si-note').value = '';
   document.getElementById('si-search').focus();
 }
@@ -709,7 +617,7 @@ function siRender() {
   document.getElementById('si-count').textContent = siItems.length + ' รายการ';
   document.getElementById('si-submit-btn').disabled = siItems.length === 0;
   const tbody = document.getElementById('si-tbody');
-  if (!siItems.length) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr>'; return; }
+  if (!siItems.length) { tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr>'; return; }
   tbody.innerHTML = siItems.map((item,i) => `<tr>
     <td>${i+1}</td>
     <td class="td-left" style="font-weight:600;color:#1a3a5c">${item.name}</td>
@@ -717,6 +625,7 @@ function siRender() {
     <td style="font-weight:700;color:#1a3a5c">${item.unit==='กระสอบ'?item.qty:''}</td>
     <td style="font-weight:700;color:#7c3aed">${item.unit==='กล่อง'?item.qty:''}</td>
     <td style="font-weight:700;color:#d97706">${item.unit==='ถัง'?item.qty:''}</td>
+    <td style="font-weight:700;color:#16a34a">${item.unit==='ถัง'&&item.tankPack?item.tankPack:''}</td>
     <td class="td-left" style="font-size:12px;color:#666">${item.note||''}</td>
     <td><button class="btn-si-del" onclick="siRemove(${i})">✕</button></td>
   </tr>`).join('');
@@ -1318,3 +1227,4 @@ setInterval(loadPending, 30000);
 </script>
 </body>
 </html>
+                                                                                                                                                                                                                        
