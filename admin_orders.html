@@ -363,7 +363,8 @@ table.list tr:hover td{background:#f8fbff}
                 <option value="ถัง">ถัง</option>
               </select>
             </div>
-            <div class="si-field" id="si-tankpack-wrap" style="display:none"><label>ถังบรรจุ (ถ้ามี)</label><input type="number" id="si-tankpack" placeholder="0" min="0" step="1"></div>
+            <div class="si-field" id="si-tankpack-wrap" style="display:none"><label>ถังที่บรรจุแล้ว</label><input type="number" id="si-tankpack" placeholder="0" min="0" step="1"></div>
+            <div class="si-field" id="si-packout-wrap" style="display:none"><label>ได้ (กระสอบ/กล่อง)</label><div style="display:flex;gap:6px"><input type="number" id="si-packout-qty" placeholder="0" min="0" step="1" style="flex:1"><select id="si-packout-unit" style="padding:9px 8px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:'Sarabun',sans-serif"><option value="กระสอบ">กระสอบ</option><option value="กล่อง">กล่อง</option></select></div></div>
             <div class="si-field"><label>หมายเหตุ</label><input type="text" id="si-note" placeholder="(ไม่บังคับ)"></div>
             <button class="btn-si-add" onclick="siAddItem()">+ เพิ่ม</button>
           </div>
@@ -535,8 +536,13 @@ async function loadOverview() {
 // ── รับสินค้าเข้า ──────────────────────────────────────────────
 function siToggleTankPack() {
   const unit = document.getElementById('si-unit').value;
-  document.getElementById('si-tankpack-wrap').style.display = unit === 'ถัง' ? '' : 'none';
-  if (unit !== 'ถัง') document.getElementById('si-tankpack').value = '';
+  const isTank = unit === 'ถัง';
+  document.getElementById('si-tankpack-wrap').style.display = isTank ? '' : 'none';
+  document.getElementById('si-packout-wrap').style.display = isTank ? '' : 'none';
+  if (!isTank) {
+    document.getElementById('si-tankpack').value = '';
+    document.getElementById('si-packout-qty').value = '';
+  }
 }
 let siItems = [];
 let siSearchIdx = -1;
@@ -598,16 +604,20 @@ function siAddItem() {
   const unit = document.getElementById('si-unit').value;
   const note = document.getElementById('si-note').value.trim();
   const tankPack = unit==='ถัง' ? (parseInt(document.getElementById('si-tankpack').value)||0) : 0;
+  const packOutQty = unit==='ถัง' ? (parseInt(document.getElementById('si-packout-qty').value)||0) : 0;
+  const packOutUnit = unit==='ถัง' ? document.getElementById('si-packout-unit').value : 'กระสอบ';
   if (!name) { alert('กรุณาเลือกสินค้า'); return; }
   if (!qty || qty < 1) { alert('กรุณาใส่จำนวน'); return; }
-  siItems.push({ code: code||'', name, qty, unit, tankPack, note });
+  siItems.push({ code: code||'', name, qty, unit, tankPack, packOutQty, packOutUnit, note });
   siRender();
   document.getElementById('si-search').value = '';
   document.getElementById('si-search').dataset.code = '';
   document.getElementById('si-search').dataset.name = '';
   document.getElementById('si-qty').value = '';
   document.getElementById('si-tankpack').value = '';
+  document.getElementById('si-packout-qty').value = '';
   document.getElementById('si-tankpack-wrap').style.display='none';
+  document.getElementById('si-packout-wrap').style.display='none';
   document.getElementById('si-unit').value='กระสอบ';
   document.getElementById('si-note').value = '';
   document.getElementById('si-search').focus();
@@ -625,7 +635,7 @@ function siRender() {
     <td style="font-weight:700;color:#1a3a5c">${item.unit==='กระสอบ'?item.qty:''}</td>
     <td style="font-weight:700;color:#7c3aed">${item.unit==='กล่อง'?item.qty:''}</td>
     <td style="font-weight:700;color:#d97706">${item.unit==='ถัง'?item.qty:''}</td>
-    <td style="font-weight:700;color:#16a34a">${item.unit==='ถัง'&&item.tankPack?item.tankPack:''}</td>
+    <td style="font-weight:700;color:#16a34a">${item.unit==='ถัง'&&item.tankPack?item.tankPack+' → '+( item.packOutQty||'?' )+' '+( item.packOutUnit||'กระสอบ' ):''}</td>
     <td class="td-left" style="font-size:12px;color:#666">${item.note||''}</td>
     <td><button class="btn-si-del" onclick="siRemove(${i})">✕</button></td>
   </tr>`).join('');
@@ -639,7 +649,27 @@ async function siSubmit() {
   const btn = document.getElementById('si-submit-btn');
   btn.textContent = '⏳ กำลังบันทึก...'; btn.disabled = true;
   try {
-    await fetch(API, { method:'POST', body:JSON.stringify({action:'stockIn',date,recorder,items:siItems}) });
+    const normalItems = siItems.filter(x => x.unit !== 'ถัง');
+    const tankItems   = siItems.filter(x => x.unit === 'ถัง');
+
+    // บันทึกกระสอบ/กล่องปกติ
+    if (normalItems.length) {
+      await fetch(API, { method:'POST', body:JSON.stringify({action:'stockIn',date,recorder,items:normalItems}) });
+    }
+    // บันทึกถังรับเข้า + แปลงเป็นกระสอบถ้ามี
+    for (const item of tankItems) {
+      // รับถังเข้า stock_tank
+      await fetch(API, { method:'POST', body:JSON.stringify({action:'stockInTank',date,recorder,
+        code:item.code, name:item.name, job:'-', qty:item.qty, note:item.note}) });
+      // ถ้ามีถังบรรจุ: ตัดถัง + เพิ่มกระสอบ/กล่อง
+      if (item.tankPack > 0 && item.packOutQty > 0) {
+        const res = await fetch(API, { method:'POST', body:JSON.stringify({action:'packItems',date,recorder,
+          code:item.code, name:item.name, job:'-', tankUsed:item.tankPack,
+          outQty:item.packOutQty, outUnit:item.packOutUnit}) });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+      }
+    }
     showToast('✅ บันทึกรับสินค้าเข้า '+siItems.length+' รายการแล้ว');
     siItems = []; siRender();
     loadStock();
@@ -1223,8 +1253,4 @@ async function packSubmit() {
 
 loadAll();
 loadOverview();
-setInterval(loadPending, 30000);
-</script>
-</body>
-</html>
-                                                                                                                                                                                                                        
+setInterv
