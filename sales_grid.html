@@ -73,7 +73,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .field label{display:block;font-size:14px;font-weight:600;color:#374151;margin-bottom:6px}
 .field input,.field select{width:100%;padding:11px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:15px;font-family:'Sarabun',sans-serif;outline:none}
 .field input:focus{border-color:#2563a8}
-.urgency-opts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.urgency-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .urgency-opt{padding:10px 6px;border:1.5px solid #d1d5db;border-radius:8px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
 .urgency-opt.sel-normal{background:#d1fae5;border-color:#16a34a;color:#065f46}
 .urgency-opt.sel-medium{background:#fef9c3;border-color:#d97706;color:#92400e}
@@ -156,16 +156,55 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
   <button class="btn-change" id="btnChangeName" style="display:none" onclick="changeName()">เปลี่ยน</button>
 </div>
 
+<!-- Tab nav -->
+<div style="display:flex;background:white;border-bottom:2px solid #e0e0e0;overflow-x:auto">
+  <button id="tab-btn-order" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:700;color:#1a3a5c;border-bottom:3px solid #1a3a5c;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('order',this)">🛒 สั่งสินค้า</button>
+  <button id="tab-btn-history" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:500;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('history',this)">📋 ประวัติ <span id="sales-hist-count" style="background:#dc2626;color:white;border-radius:10px;font-size:11px;padding:1px 6px;margin-left:3px;display:none"></span></button>
+</div>
+
+<!-- Tab: สั่งสินค้า -->
+<div id="sales-tab-order">
 <div class="legend">
   <span><span class="ld" style="background:#d1fae5;border:1px solid #ccc"></span>✅ มีสินค้า (กดสั่งได้)</span>
   <span><span class="ld" style="background:#fee2e2;border:1px solid #ccc"></span>❌ หมด</span>
   <span><span class="ld" style="background:#e5e7eb;border:1px solid #ccc"></span>— ไม่มีรายการ</span>
 </div>
-
 <div class="type-nav-wrap" id="typeNav"></div>
-
 <div class="content" id="content">
   <div class="loading">⏳ กำลังโหลดข้อมูล...</div>
+</div>
+</div>
+
+<!-- Tab: ประวัติ -->
+<div id="sales-tab-history" style="display:none;padding:16px;max-width:1400px;margin:0 auto">
+  <div style="background:white;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.09);overflow:hidden;margin-bottom:16px">
+    <div style="padding:14px 16px;font-size:15px;font-weight:700;color:#1a3a5c;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
+      <span>📋 คำสั่งซื้อที่รอส่ง Admin</span>
+      <span id="sales-hist-count2" style="font-size:13px;font-weight:400;color:#888"></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:700px">
+        <thead><tr style="background:#1a3a5c;color:white">
+          <th style="padding:9px 10px;text-align:left;min-width:120px">ลูกค้า</th>
+          <th style="padding:9px 10px;text-align:left;min-width:160px">ชื่อสินค้า</th>
+          <th style="padding:9px 10px">รหัส</th>
+          <th style="padding:9px 10px">กระสอบ</th>
+          <th style="padding:9px 10px">กล่อง</th>
+          <th style="padding:9px 10px">ความเร่งด่วน</th>
+          <th style="padding:9px 10px;text-align:left">หมายเหตุ</th>
+          <th style="padding:9px 10px;width:90px">จัดการ</th>
+        </tr></thead>
+        <tbody id="sales-hist-tbody">
+          <tr><td colspan="8" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <button id="sales-confirm-all-btn" onclick="confirmAllToAdmin()" disabled
+    style="width:100%;background:#16a34a;color:white;border:none;border-radius:12px;padding:16px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer;opacity:.6">
+    ✅ ยืนยันส่งทั้งหมดไปที่ Admin
+  </button>
+  <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:8px">กดปุ่มนี้เมื่อต้องการส่งคำสั่งซื้อทั้งหมดให้ Admin ดำเนินการ</p>
 </div>
 
 <!-- Modal เพิ่มสินค้า -->
@@ -181,7 +220,6 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
       <label>ความเร่งด่วน *</label>
       <div class="urgency-opts" id="itemUrgencyOpts">
         <div class="urgency-opt sel-normal selected" onclick="selectItemUrgency('ปกติ',this)">🟢 ปกติ</div>
-        <div class="urgency-opt sel-medium" onclick="selectItemUrgency('เร่ง',this)">🟡 เร่ง</div>
         <div class="urgency-opt sel-urgent" onclick="selectItemUrgency('ด่วน',this)">🔴 ด่วน</div>
       </div>
     </div>
@@ -492,7 +530,7 @@ function openModal(code, name, type) {
   }
 
   document.querySelectorAll('#itemUrgencyOpts .urgency-opt').forEach(e => e.classList.remove('selected'));
-  const urgencyMap = {'ปกติ':'sel-normal','เร่ง':'sel-medium','ด่วน':'sel-urgent'};
+  const urgencyMap = {'ปกติ':'sel-normal','ด่วน':'sel-urgent'};
   document.querySelector('#itemUrgencyOpts .' + (urgencyMap[selectedItemUrgency]||'sel-normal')).classList.add('selected');
 
   document.getElementById('modalBg').classList.add('open');
@@ -564,7 +602,7 @@ function renderCartItems() {
     return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
   });
 
-  const urgencyColor = {'ปกติ':'#16a34a','เร่ง':'#d97706','ด่วน':'#dc2626'};
+  const urgencyColor = {'ปกติ':'#16a34a','ด่วน':'#dc2626'};
   let html = '';
   let lastType = null;
 
@@ -633,40 +671,125 @@ function removeFromCart(i) {
   updateCartBar();
 }
 
+// staged orders รอ confirm ทั้งหมด
+let stagedOrders = [];
+
 async function submitAllOrders() {
   if (!customerName) { alert('ไม่พบชื่อลูกค้า'); return; }
   if (!cart.length) { alert('กรุณาเพิ่มสินค้าในตะกร้า'); return; }
   const note = document.getElementById('inputNote').value.trim();
+  const date = new Date().toLocaleDateString('th-TH');
+  cart.forEach(item => {
+    stagedOrders.push({
+      id: Date.now() + Math.random(),
+      customer: customerName, code: item.code, name: item.name,
+      qty: item.qty, unit: item.unit, urgency: item.urgency,
+      note: item.note || note || '', date
+    });
+  });
+  cart = [];
+  editingCartIndex = null;
+  updateCartBar();
+  closeCartModalDirect();
+  showToast('✅ เพิ่มใน ประวัติ แล้ว กรุณายืนยันก่อนส่ง Admin');
+  // เปิด tab ประวัติ
+  setTimeout(() => {
+    const btn = document.getElementById('tab-btn-history');
+    if (btn) { btn.click(); }
+  }, 300);
+  renderSalesHistory();
+}
 
-  const btn = document.querySelector('.cart-modal .btn-confirm');
-  btn.textContent = '⏳ กำลังส่ง...';
-  btn.disabled = true;
+// render tab ประวัติ
+function renderSalesHistory() {
+  const tbody = document.getElementById('sales-hist-tbody');
+  const confirmBtn = document.getElementById('sales-confirm-all-btn');
+  if (!tbody) return;
+  if (!stagedOrders.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>';
+    if (confirmBtn) confirmBtn.disabled = true;
+    return;
+  }
+  if (confirmBtn) confirmBtn.disabled = false;
+  const urgColor = {'ปกติ':'#d1fae5','ด่วน':'#fee2e2'};
+  const urgText = {'ปกติ':'🟢 ปกติ','ด่วน':'🔴 ด่วน'};
+  const grouped = {};
+  stagedOrders.forEach(o => {
+    if (!grouped[o.customer]) grouped[o.customer] = [];
+    grouped[o.customer].push(o);
+  });
+  let html = '', totalSack=0, totalBox=0;
+  Object.entries(grouped).forEach(([cust, orders], gi) => {
+    let cSack=0, cBox=0;
+    orders.forEach((o, idx) => {
+      const isBox = o.unit==='กล่อง';
+      if (isBox) cBox+=o.qty; else cSack+=o.qty;
+      html += `<tr${idx===0?' class="group-sep"':''}>
+        <td class="td-cust" style="font-weight:700;color:#1a3a5c">${idx===0?cust:''}</td>
+        <td class="td-name" style="text-align:left">${o.name}</td>
+        <td style="font-family:monospace;font-size:12px">${o.code}</td>
+        <td style="font-weight:700;color:#1a3a5c">${!isBox?o.qty:''}</td>
+        <td style="font-weight:700;color:#7c3aed">${isBox?o.qty:''}</td>
+        <td><span style="background:${urgColor[o.urgency]||'#f3f4f6'};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600">${urgText[o.urgency]||o.urgency}</span></td>
+        <td style="font-size:12px;color:#666">${o.note||''}</td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <button onclick="salesEditOrder('${o.id}')" style="background:white;border:1.5px solid #d97706;color:#d97706;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✏️</button>
+            <button onclick="salesDeleteOrder('${o.id}')" style="background:white;border:1.5px solid #dc2626;color:#dc2626;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✕</button>
+          </div>
+        </td>
+      </tr>`;
+    });
+    html += `<tr style="background:#f0f5ff"><td colspan="3" style="text-align:right;font-size:12px;color:#555;font-style:italic">รวม ${cust}</td>
+      <td style="font-weight:700;color:#1a3a5c">${cSack||'-'}</td>
+      <td style="font-weight:700;color:#7c3aed">${cBox||'-'}</td>
+      <td colspan="3"></td></tr>`;
+    totalSack+=cSack; totalBox+=cBox;
+  });
+  html += `<tr style="background:#1a3a5c;color:white;font-weight:700">
+    <td colspan="3" style="text-align:right;padding:8px 10px">รวมทั้งหมด</td>
+    <td style="padding:8px 10px">${totalSack} กระสอบ</td>
+    <td style="padding:8px 10px">${totalBox} กล่อง</td>
+    <td colspan="3"></td></tr>`;
+  tbody.innerHTML = html;
+  document.getElementById('sales-hist-count').textContent = stagedOrders.length + ' รายการ';
+}
 
+function salesDeleteOrder(id) {
+  stagedOrders = stagedOrders.filter(o => String(o.id) !== String(id));
+  renderSalesHistory();
+}
+
+function salesEditOrder(id) {
+  const o = stagedOrders.find(x => String(x.id) === String(id));
+  if (!o) return;
+  const newQty = prompt('แก้ไขจำนวน (' + o.unit + ') สำหรับ ' + o.name + ':', o.qty);
+  if (newQty === null) return;
+  const q = parseInt(newQty);
+  if (!q || q < 1) { alert('จำนวนไม่ถูกต้อง'); return; }
+  o.qty = q;
+  renderSalesHistory();
+}
+
+async function confirmAllToAdmin() {
+  if (!stagedOrders.length) { alert('ไม่มีคำสั่งซื้อ'); return; }
+  if (!confirm('ยืนยันส่งคำสั่งซื้อ ' + stagedOrders.length + ' รายการไปที่ Admin?')) return;
+  const btn = document.getElementById('sales-confirm-all-btn');
+  btn.textContent = '⏳ กำลังส่ง...'; btn.disabled = true;
   try {
-    const date = new Date().toLocaleDateString('th-TH');
-    const count = cart.length;
-    for (const item of cart) {
+    for (const o of stagedOrders) {
       await fetch(API, {
         method: 'POST',
-        body: JSON.stringify({
-          action: 'newOrder',
-          code: item.code, name: item.name,
-          customer: customerName, qty: item.qty, unit: item.unit,
-          urgency: item.urgency, note: item.note||'', date
-        })
+        body: JSON.stringify({ action:'newOrder', code:o.code, name:o.name,
+          customer:o.customer, qty:o.qty, unit:o.unit, urgency:o.urgency, note:o.note, date:o.date })
       });
     }
-    cart = [];
-    editingCartIndex = null;
-    updateCartBar();
-    closeCartModalDirect();
-    showToast('✅ ส่งคำสั่งซื้อ ' + count + ' รายการแล้ว');
-  } catch(e) {
-    alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
-  }
-
-  btn.textContent = '✅ ยืนยันสั่งทั้งหมด';
-  btn.disabled = false;
+    const count = stagedOrders.length;
+    stagedOrders = [];
+    renderSalesHistory();
+    showToast('✅ ส่งคำสั่งซื้อ ' + count + ' รายการไปที่ Admin แล้ว');
+  } catch(e) { alert('เกิดข้อผิดพลาด กรุณาลองใหม่'); }
+  btn.textContent = '✅ ยืนยันส่งทั้งหมดไปที่ Admin'; btn.disabled = false;
 }
 
 function showToast(msg) {
@@ -676,6 +799,32 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+function showSalesTab(tab, btn) {
+  document.getElementById('sales-tab-order').style.display = tab==='order' ? '' : 'none';
+  document.getElementById('sales-tab-history').style.display = tab==='history' ? '' : 'none';
+  document.querySelectorAll('[id^="tab-btn-"]').forEach(b => {
+    b.style.borderBottomColor = 'transparent';
+    b.style.color = '#666';
+    b.style.fontWeight = '500';
+  });
+  btn.style.borderBottomColor = '#1a3a5c';
+  btn.style.color = '#1a3a5c';
+  btn.style.fontWeight = '700';
+  if (tab==='history') renderSalesHistory();
+}
+
+// อัปเดต badge count + ปุ่ม confirm
+const _origRenderSalesHistory = renderSalesHistory;
+function renderSalesHistory() {
+  _origRenderSalesHistory();
+  const cnt = document.getElementById('sales-hist-count');
+  const cnt2 = document.getElementById('sales-hist-count2');
+  const n = stagedOrders.length;
+  if (cnt) { cnt.textContent = n; cnt.style.display = n ? 'inline' : 'none'; }
+  if (cnt2) cnt2.textContent = n + ' รายการ';
+  const btn = document.getElementById('sales-confirm-all-btn');
+  if (btn) btn.style.opacity = n ? '1' : '.6';
+}
 
 loadData();
 </script>
