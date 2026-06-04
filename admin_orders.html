@@ -156,6 +156,37 @@ table.list tr:hover td{background:#f8fbff}
 .search-row input:focus,.search-row select:focus{outline:none;border-color:#2563a8}
 .toast{position:fixed;top:20px;right:20px;background:#1a3a5c;color:white;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;z-index:999;display:none}
 .toast.show{display:block}
+/* ── รับเข้า (ถัง) ── */
+.ti-card{background:white;border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:0 1px 5px rgba(0,0,0,.09)}
+.ti-card-title{font-size:15px;font-weight:700;color:#92400e;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #fde68a}
+.ti-meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:500px){.ti-meta{grid-template-columns:1fr}}
+.ti-field{display:flex;flex-direction:column;gap:5px}
+.ti-field label{font-size:13px;font-weight:600;color:#374151}
+.ti-field input{padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:'Sarabun',sans-serif;outline:none}
+.ti-field input:focus{border-color:#d97706}
+.btn-ti-submit{width:100%;background:#d97706;color:white;border:none;border-radius:10px;padding:14px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer;margin-top:8px}
+.btn-ti-submit:disabled{background:#9ca3af;cursor:default}
+/* ── บรรจุสินค้า ── */
+.pack-card{background:white;border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:0 1px 5px rgba(0,0,0,.09)}
+.pack-card-title{font-size:15px;font-weight:700;color:#5b21b6;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #ddd6fe}
+.pack-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:4px}
+.pack-num{width:26px;height:26px;border-radius:50%;background:#7c3aed;color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:22px}
+.pack-step-body{flex:1}
+.pack-field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.pack-field label{font-size:13px;font-weight:600;color:#374151}
+.pack-field input,.pack-field select{padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:'Sarabun',sans-serif;outline:none}
+.pack-field input:focus,.pack-field select:focus{border-color:#7c3aed}
+.pack-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tank-info-box{background:#fff8e1;border:1.5px solid #f59e0b;border-radius:8px;padding:10px 14px;font-size:13px;color:#78350f;margin:8px 0 10px;display:none}
+.pack-preview{background:#f5f3ff;border:1.5px solid #c4b5fd;border-radius:10px;padding:14px;margin-bottom:14px}
+.pack-prow{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #ede9fe}
+.pack-prow:last-child{border-bottom:none}
+.pack-plbl{color:#6b7280}
+.pack-pval{font-weight:700;color:#1a3a5c}
+.pack-pval.red{color:#dc2626}.pack-pval.green{color:#16a34a}
+.btn-pack-submit{width:100%;background:#7c3aed;color:white;border:none;border-radius:10px;padding:14px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
+.btn-pack-submit:disabled{background:#9ca3af;cursor:default}
 </style>
 </head>
 <body>
@@ -172,6 +203,8 @@ table.list tr:hover td{background:#f8fbff}
   <button class="tab-btn active" onclick="switchTab('overview',this)">📊 ภาพรวม</button>
   <button class="tab-btn" onclick="switchTab('stock',this)">📋 สต็อค</button>
   <button class="tab-btn" onclick="switchTab('stockin',this)">📥 รับสินค้าเข้า</button>
+  <button class="tab-btn" onclick="switchTab('tankin',this)">🪣 รับเข้า (ถัง)</button>
+  <button class="tab-btn" onclick="switchTab('pack',this)">📦 บรรจุสินค้า</button>
   <button class="tab-btn" onclick="switchTab('pending',this)">รอยืนยัน <span class="badge-count" id="pendingCount">0</span></button>
   <button class="tab-btn" onclick="switchTab('history',this)">ประวัติ</button>
 </div>
@@ -333,6 +366,107 @@ table.list tr:hover td{background:#f8fbff}
     </div>
   </div>
 
+<!-- Tab: รับเข้า (ถัง) -->
+<div class="tab-panel" id="tab-tankin">
+  <div class="content">
+    <div class="ti-card">
+      <div class="ti-card-title">🪣 รับสินค้าเข้าในรูปแบบถัง</div>
+      <div class="ti-meta">
+        <div class="ti-field"><label>วันที่รับเข้า</label><input type="date" id="ti-date"></div>
+        <div class="ti-field"><label>ผู้บันทึก</label><input type="text" id="ti-recorder" placeholder="ชื่อผู้บันทึก"></div>
+      </div>
+      <div style="position:relative;margin-bottom:12px">
+        <div class="ti-field"><label>ค้นหาสินค้า (ชื่อ / รหัส)</label>
+          <input type="text" id="ti-search" placeholder="พิมพ์ชื่อหรือรหัส..." autocomplete="off" oninput="tiSearch()">
+        </div>
+        <div id="ti-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #d97706;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
+      </div>
+      <div class="ti-meta">
+        <div class="ti-field"><label>หมายเลข Job</label><input type="text" id="ti-job" placeholder="เช่น JOB-2506-001"></div>
+        <div class="ti-field"><label>จำนวน (ถัง)</label><input type="number" id="ti-qty" placeholder="0" min="1" step="1"></div>
+      </div>
+      <div class="ti-field" style="margin-bottom:12px"><label>หมายเหตุ</label><input type="text" id="ti-note" placeholder="(ไม่บังคับ)"></div>
+      <button class="btn-ti-submit" id="ti-submit-btn" onclick="tiSubmit()">💾 บันทึกรับเข้า (ถัง)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: บรรจุสินค้า -->
+<div class="tab-panel" id="tab-pack">
+  <div class="content">
+    <div class="pack-card">
+      <div class="pack-card-title">📦 บันทึกการบรรจุ — แปลง ถัง → กระสอบ / กล่อง</div>
+
+      <!-- Step 1: เลือกสินค้า + Job -->
+      <div class="pack-step">
+        <div class="pack-num">1</div>
+        <div class="pack-step-body">
+          <div class="pack-2col">
+            <div class="pack-field" style="position:relative">
+              <label>สินค้า</label>
+              <input type="text" id="pack-search" placeholder="พิมพ์ชื่อหรือรหัส..." autocomplete="off" oninput="packSearch()">
+              <div id="pack-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #7c3aed;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
+            </div>
+            <div class="pack-field">
+              <label>หมายเลข Job</label>
+              <input type="text" id="pack-job" placeholder="เช่น JOB-2506-001" oninput="packUpdatePreview()" onblur="packLoadTank()">
+            </div>
+          </div>
+          <div id="pack-tank-info" class="tank-info-box"></div>
+        </div>
+      </div>
+
+      <!-- Step 2: จำนวนถังที่ใช้ -->
+      <div class="pack-step">
+        <div class="pack-num">2</div>
+        <div class="pack-step-body">
+          <div class="pack-field">
+            <label>จำนวนถังที่ใช้บรรจุ</label>
+            <input type="number" id="pack-tank-qty" placeholder="0" min="1" step="1" oninput="packUpdatePreview()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: ผลลัพธ์ -->
+      <div class="pack-step">
+        <div class="pack-num">3</div>
+        <div class="pack-step-body">
+          <div class="pack-2col">
+            <div class="pack-field">
+              <label>จำนวนที่ได้จากการบรรจุ</label>
+              <input type="number" id="pack-out-qty" placeholder="0" min="1" step="1" oninput="packUpdatePreview()">
+            </div>
+            <div class="pack-field">
+              <label>หน่วย</label>
+              <select id="pack-out-unit" onchange="packUpdatePreview()">
+                <option value="กระสอบ">กระสอบ</option>
+                <option value="กล่อง">กล่อง</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ผู้บันทึก -->
+      <div class="pack-field" style="margin-bottom:14px">
+        <label>ผู้บันทึก</label>
+        <input type="text" id="pack-recorder" placeholder="ชื่อผู้บันทึก">
+      </div>
+
+      <!-- Preview -->
+      <div class="pack-preview" id="pack-preview">
+        <div class="pack-card-title" style="font-size:12px;color:#7c3aed;margin-bottom:8px">📋 สรุปก่อนยืนยัน</div>
+        <div class="pack-prow"><span class="pack-plbl">สินค้า</span><span class="pack-pval">—</span></div>
+        <div class="pack-prow"><span class="pack-plbl">Job</span><span class="pack-pval">—</span></div>
+        <div class="pack-prow"><span class="pack-plbl">ถังที่ใช้</span><span class="pack-pval red">—</span></div>
+        <div class="pack-prow"><span class="pack-plbl">ผลลัพธ์</span><span class="pack-pval green">—</span></div>
+      </div>
+
+      <button class="btn-pack-submit" id="pack-submit-btn" onclick="packSubmit()" disabled>✅ ยืนยันการบรรจุ</button>
+    </div>
+  </div>
+</div>
+
 <!-- Edit modal -->
 <div class="edit-modal-bg" id="editModalBg" onclick="if(event.target===this)closeEditModal()">
   <div class="edit-modal">
@@ -489,6 +623,10 @@ function siSelectItem(idx) {
 document.addEventListener('click', e => {
   const s = document.getElementById('si-search');
   if (s && !s.contains(e.target)) document.getElementById('si-drop').style.display = 'none';
+  const ti = document.getElementById('ti-search');
+  if (ti && !ti.contains(e.target)) document.getElementById('ti-drop').style.display = 'none';
+  const pk = document.getElementById('pack-search');
+  if (pk && !pk.contains(e.target)) document.getElementById('pack-drop').style.display = 'none';
 });
 function siAddItem() {
   const code = document.getElementById('si-search').dataset.code;
@@ -949,6 +1087,170 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════
+//  🪣 รับเข้า (ถัง) — Tank Stock-In
+// ═══════════════════════════════════════
+let tiSearchResults = [], tiSearchIdx = -1;
+(function(){ const d=new Date(); setTimeout(()=>{ const el=document.getElementById('ti-date'); if(el) el.value=d.toISOString().split('T')[0]; },100); })();
+
+function tiSearch() {
+  const q = document.getElementById('ti-search').value.trim().toLowerCase();
+  const drop = document.getElementById('ti-drop');
+  tiSearchIdx = -1;
+  if (!q) { drop.style.display='none'; return; }
+  tiSearchResults = allItems.filter(i => {
+    const name = [i.type,i.col,i.row].filter(Boolean).join(' ').toLowerCase();
+    return name.includes(q) || String(i.code).includes(q);
+  }).slice(0, 12);
+  if (!tiSearchResults.length) { drop.style.display='none'; return; }
+  drop.innerHTML = tiSearchResults.map((i,idx) => {
+    const name = fmtName([i.type,i.col,i.row].filter(Boolean).join(' '));
+    return `<div style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #f3f4f6;font-size:13px;display:flex;justify-content:space-between"
+      onmousedown="tiSelectItem(${idx})" data-idx="${idx}">
+      <span style="font-weight:600;color:#1a3a5c">${name}</span>
+      <span style="font-size:11px;color:#888;font-family:monospace">${i.code}</span>
+    </div>`;
+  }).join('');
+  drop.style.display = 'block';
+}
+function tiSelectItem(idx) {
+  const item = tiSearchResults[idx];
+  if (!item) return;
+  const name = fmtName([item.type,item.col,item.row].filter(Boolean).join(' '));
+  document.getElementById('ti-search').value = name;
+  document.getElementById('ti-search').dataset.code = item.code;
+  document.getElementById('ti-search').dataset.name = name;
+  document.getElementById('ti-drop').style.display = 'none';
+  document.getElementById('ti-job').focus();
+}
+async function tiSubmit() {
+  const date     = document.getElementById('ti-date').value;
+  const recorder = document.getElementById('ti-recorder').value.trim();
+  const code     = document.getElementById('ti-search').dataset.code || '';
+  const name     = document.getElementById('ti-search').dataset.name || document.getElementById('ti-search').value.trim();
+  const job      = document.getElementById('ti-job').value.trim();
+  const qty      = parseInt(document.getElementById('ti-qty').value);
+  const note     = document.getElementById('ti-note').value.trim();
+  if (!date)     { alert('กรุณาใส่วันที่'); return; }
+  if (!recorder) { alert('กรุณาใส่ชื่อผู้บันทึก'); return; }
+  if (!name)     { alert('กรุณาเลือกสินค้า'); return; }
+  if (!job)      { alert('กรุณาใส่หมายเลข Job'); return; }
+  if (!qty || qty < 1) { alert('กรุณาใส่จำนวนถัง'); return; }
+  const btn = document.getElementById('ti-submit-btn');
+  btn.textContent = '⏳ กำลังบันทึก...'; btn.disabled = true;
+  try {
+    const res = await fetch(API, { method:'POST', body:JSON.stringify({action:'stockInTank',date,recorder,code,name,job,qty,note}) });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast(`✅ รับเข้า ${qty} ถัง — ${name} (Job: ${job})`);
+    document.getElementById('ti-search').value=''; document.getElementById('ti-search').dataset.code=''; document.getElementById('ti-search').dataset.name='';
+    document.getElementById('ti-job').value=''; document.getElementById('ti-qty').value=''; document.getElementById('ti-note').value='';
+  } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
+  btn.textContent = '💾 บันทึกรับเข้า (ถัง)'; btn.disabled = false;
+}
+
+// ═══════════════════════════════════════
+//  📦 บรรจุสินค้า — Pack Items
+// ═══════════════════════════════════════
+let packSearchResults = [], packSearchIdx = -1, packTankQty = 0;
+
+function packSearch() {
+  const q = document.getElementById('pack-search').value.trim().toLowerCase();
+  const drop = document.getElementById('pack-drop');
+  packSearchIdx = -1;
+  if (!q) { drop.style.display='none'; return; }
+  packSearchResults = allItems.filter(i => {
+    const name = [i.type,i.col,i.row].filter(Boolean).join(' ').toLowerCase();
+    return name.includes(q) || String(i.code).includes(q);
+  }).slice(0, 12);
+  if (!packSearchResults.length) { drop.style.display='none'; return; }
+  drop.innerHTML = packSearchResults.map((i,idx) => {
+    const name = fmtName([i.type,i.col,i.row].filter(Boolean).join(' '));
+    return `<div style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #f3f4f6;font-size:13px;display:flex;justify-content:space-between"
+      onmousedown="packSelectItem(${idx})" data-idx="${idx}">
+      <span style="font-weight:600;color:#1a3a5c">${name}</span>
+      <span style="font-size:11px;color:#888;font-family:monospace">${i.code}</span>
+    </div>`;
+  }).join('');
+  drop.style.display = 'block';
+}
+function packSelectItem(idx) {
+  const item = packSearchResults[idx];
+  if (!item) return;
+  const name = fmtName([item.type,item.col,item.row].filter(Boolean).join(' '));
+  document.getElementById('pack-search').value = name;
+  document.getElementById('pack-search').dataset.code = item.code;
+  document.getElementById('pack-search').dataset.name = name;
+  document.getElementById('pack-drop').style.display = 'none';
+  document.getElementById('pack-job').focus();
+}
+async function packLoadTank() {
+  const code = document.getElementById('pack-search').dataset.code;
+  const job  = document.getElementById('pack-job').value.trim();
+  const box  = document.getElementById('pack-tank-info');
+  if (!code || !job) { box.style.display='none'; packTankQty=0; packUpdatePreview(); return; }
+  box.innerHTML='⏳ กำลังโหลดสต็อคถัง...'; box.style.display='block';
+  try {
+    const res = await fetch(`${API}?action=getTankStock&code=${encodeURIComponent(code)}&job=${encodeURIComponent(job)}`,{credentials:'omit'});
+    const data = await res.json();
+    const items = data.tankItems || [];
+    if (!items.length) {
+      packTankQty = 0;
+      box.innerHTML = `⚠️ ไม่พบสต็อคถังของ Job <strong>${job}</strong> สำหรับสินค้านี้`;
+    } else {
+      packTankQty = items[0].qty;
+      box.innerHTML = `🪣 สต็อคถังคงเหลือ: <strong>${packTankQty} ถัง</strong> (Job: ${job})`;
+    }
+  } catch(e) { box.innerHTML='❌ โหลดไม่ได้: '+e.message; packTankQty=0; }
+  packUpdatePreview();
+}
+function packUpdatePreview() {
+  const name     = document.getElementById('pack-search').dataset.name || '—';
+  const job      = document.getElementById('pack-job').value.trim() || '—';
+  const tankUsed = parseInt(document.getElementById('pack-tank-qty').value) || 0;
+  const outQty   = parseInt(document.getElementById('pack-out-qty').value) || 0;
+  const outUnit  = document.getElementById('pack-out-unit').value;
+  document.getElementById('pack-preview').innerHTML = `
+    <div style="font-size:12px;font-weight:700;color:#7c3aed;margin-bottom:10px">📋 สรุปก่อนยืนยัน</div>
+    <div class="pack-prow"><span class="pack-plbl">สินค้า</span><span class="pack-pval">${name}</span></div>
+    <div class="pack-prow"><span class="pack-plbl">Job</span><span class="pack-pval">${job}</span></div>
+    <div class="pack-prow"><span class="pack-plbl">ถังที่ใช้</span><span class="pack-pval red">${tankUsed>0?'−'+tankUsed+' ถัง':'—'}</span></div>
+    <div class="pack-prow"><span class="pack-plbl">ผลลัพธ์</span><span class="pack-pval green">${outQty>0?'+'+outQty+' '+outUnit:'—'}</span></div>`;
+  const ok = name!=='—' && job!=='—' && tankUsed>0 && tankUsed<=packTankQty && outQty>0;
+  document.getElementById('pack-submit-btn').disabled = !ok;
+}
+async function packSubmit() {
+  const code     = document.getElementById('pack-search').dataset.code || '';
+  const name     = document.getElementById('pack-search').dataset.name || document.getElementById('pack-search').value.trim();
+  const job      = document.getElementById('pack-job').value.trim();
+  const tankUsed = parseInt(document.getElementById('pack-tank-qty').value);
+  const outQty   = parseInt(document.getElementById('pack-out-qty').value);
+  const outUnit  = document.getElementById('pack-out-unit').value;
+  const recorder = document.getElementById('pack-recorder').value.trim();
+  if (!name)     { alert('กรุณาเลือกสินค้า'); return; }
+  if (!job)      { alert('กรุณาใส่หมายเลข Job'); return; }
+  if (!tankUsed || tankUsed<1) { alert('กรุณาใส่จำนวนถังที่ใช้'); return; }
+  if (tankUsed > packTankQty) { alert(`ถังไม่เพียงพอ (มีแค่ ${packTankQty} ถัง)`); return; }
+  if (!outQty || outQty<1)   { alert('กรุณาใส่จำนวนที่ได้จากการบรรจุ'); return; }
+  if (!recorder) { alert('กรุณาใส่ชื่อผู้บันทึก'); return; }
+  if (!confirm(`ยืนยันบรรจุ:\nตัดถัง ${tankUsed} ถัง → เพิ่ม ${outQty} ${outUnit}?`)) return;
+  const btn = document.getElementById('pack-submit-btn');
+  btn.textContent='⏳ กำลังบันทึก...'; btn.disabled=true;
+  try {
+    const res = await fetch(API, { method:'POST', body:JSON.stringify({action:'packItems',code,name,job,tankUsed,outQty,outUnit,recorder,date:new Date().toISOString()}) });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast(`✅ บรรจุแล้ว: −${tankUsed} ถัง → +${outQty} ${outUnit}`);
+    document.getElementById('pack-search').value=''; document.getElementById('pack-search').dataset.code=''; document.getElementById('pack-search').dataset.name='';
+    document.getElementById('pack-job').value=''; document.getElementById('pack-tank-qty').value=''; document.getElementById('pack-out-qty').value='';
+    document.getElementById('pack-recorder').value='';
+    document.getElementById('pack-tank-info').style.display='none';
+    packTankQty=0; packUpdatePreview();
+    loadStock();
+  } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); btn.disabled=false; }
+  btn.textContent='✅ ยืนยันการบรรจุ';
 }
 
 loadAll();
