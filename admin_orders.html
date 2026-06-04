@@ -156,6 +156,19 @@ table.list tr:hover td{background:#f8fbff}
 .search-row input:focus,.search-row select:focus{outline:none;border-color:#2563a8}
 .toast{position:fixed;top:20px;right:20px;background:#1a3a5c;color:white;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;z-index:999;display:none}
 .toast.show{display:block}
+/* ── Password Gate ── */
+#pw-gate{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a5c,#2563a8);z-index:9999;display:flex;align-items:center;justify-content:center}
+.pw-box{background:white;border-radius:16px;padding:36px 28px;width:90%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.pw-logo{font-size:36px;margin-bottom:8px}
+.pw-title{font-size:20px;font-weight:700;color:#1a3a5c;margin-bottom:4px}
+.pw-sub{font-size:13px;color:#888;margin-bottom:24px}
+.pw-input-wrap{position:relative;margin-bottom:14px}
+.pw-input{width:100%;padding:13px 44px 13px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:16px;font-family:'Sarabun',sans-serif;outline:none;letter-spacing:3px;text-align:center}
+.pw-input:focus{border-color:#2563a8}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#9ca3af;line-height:1}
+.pw-btn{width:100%;padding:13px;background:#1a3a5c;color:white;border:none;border-radius:10px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
+.pw-btn:hover{background:#0f2844}
+.pw-err{color:#dc2626;font-size:13px;margin-top:10px;min-height:20px}
 /* ── รับเข้า (ถัง) ── */
 .ti-card{background:white;border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:0 1px 5px rgba(0,0,0,.09)}
 .ti-card-title{font-size:15px;font-weight:700;color:#92400e;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #fde68a}
@@ -190,6 +203,22 @@ table.list tr:hover td{background:#f8fbff}
 </style>
 </head>
 <body>
+
+<!-- Password Gate -->
+<div id="pw-gate">
+  <div class="pw-box">
+    <div class="pw-logo">🔧</div>
+    <div class="pw-title">Admin — STIC</div>
+    <div class="pw-sub">เฉพาะผู้ดูแลระบบเท่านั้น</div>
+    <div class="pw-input-wrap">
+      <input type="password" id="pw-input" class="pw-input" placeholder="รหัสผ่าน Admin"
+        onkeydown="if(event.key==='Enter')pwCheck()">
+      <button class="pw-eye" id="pw-eye-btn" onclick="pwToggle()">👁</button>
+    </div>
+    <button class="pw-btn" onclick="pwCheck()">เข้าสู่ระบบ</button>
+    <div class="pw-err" id="pw-err"></div>
+  </div>
+</div>
 
 <div class="header">
   <h1>🔧 Admin — STIC</h1>
@@ -486,6 +515,36 @@ table.list tr:hover td{background:#f8fbff}
 <div class="toast" id="toast"></div>
 
 <script>
+// ══════════════════════════════════════════════════════════
+//  🔑 ตั้งรหัสผ่านหน้า Admin ที่นี่ (แยกจาก Sales)
+const ADMIN_PASSWORD = 'sticadmin'; // ← เปลี่ยนรหัสผ่านตรงนี้
+// ══════════════════════════════════════════════════════════
+(function pwInit() {
+  if (sessionStorage.getItem('stic_admin_auth') === 'yes') {
+    document.getElementById('pw-gate').style.display = 'none';
+  } else {
+    setTimeout(() => { const el = document.getElementById('pw-input'); if(el) el.focus(); }, 200);
+  }
+})();
+function pwCheck() {
+  if (document.getElementById('pw-input').value === ADMIN_PASSWORD) {
+    sessionStorage.setItem('stic_admin_auth', 'yes');
+    document.getElementById('pw-gate').style.display = 'none';
+  } else {
+    const err = document.getElementById('pw-err');
+    err.textContent = '❌ รหัสผ่านไม่ถูกต้อง';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+    setTimeout(() => err.textContent = '', 3000);
+  }
+}
+function pwToggle() {
+  const inp = document.getElementById('pw-input');
+  const btn = document.getElementById('pw-eye-btn');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
 const API = "https://script.google.com/macros/s/AKfycbxhXa14EfmWnaCrNZmvDIO_FUSLbp4jzgHiGZABIaT8_CpMc9rh0eDcMvutxxhIbpk/exec";
 
 const MATRICES = {"น็อตเหลี่ยมเกลียว W":{"cols":["1/4","5/16","3/8","7/16","1/2"],"rows":["1/2","5/8","3/4","1","1.1/4","1.1/2","1.3/4","2","2.1/2","3","3.1/2","4","5","6"]},"น็อตหัวกลมเกลียว W":{"cols":["1/4","5/16","3/8","1/2"],"rows":["1","1.1/4","1.1/2","2 ค.","2.1/2","3","3.1/2","4","4.1/2","5","5.1/2","6","6.1/2","7","7.1/2","8","8.1/2","9","10","11","12"]},"สกรูเกลียวปล่อย":{"cols":["1/4","5/16","3/8"],"rows":["2","2.1/2","3","3.1/2","4","1.1/2"]},"น็อตเหลี่ยม W (ใหญ่)":{"cols":["5/8 W","3/4 W"],"rows":["1.1/2","2","2.1/2","3","3.1/2","4","4.1/2","5","6"]},"น็อตเหลี่ยม NC (ใหญ่)":{"cols":["5/8 NC","3/4 NC","7/8 NC","1 NC"],"rows":["1.1/2","2 ค.","2.1/2","3","3.1/2","4","4.1/2","5","5.1/2","6","6.1/2","7","8"]},"หัวน็อตมิล":{"cols":["ขาว","ดำ"],"rows":["M3","M4","M5","M6 (p1.0 ขอบ10)","M8 (p1.25 ขอบ12)","M8 (p1.25 ขอบ13)","M10 (p1.25 ขอบ14)","M10 (p1.5 ขอบ14)","M10 (p1.25 ขอบ17)","M10 (p1.5 ขอบ17)","M12 (p1.25 ขอบ17)","M12 (p1.5 ขอบ17)","M12 (p1.75 ขอบ19","M14 (p1.5 ขอบ22)","M14 (p2.0 ขอบ22)","M16 (p1.5 ขอบ24)","M16 (p2.0 ขอบ24)","M18 (p1.5 ขอบ27)","M18 (p2.5 ขอบ27)","M20 (p2.5 ขอบ30)","M22 (p2.5 ขอบ32)","M24"]},"หัวน็อตเกลียวหยาบ NC":{"cols":["STOCK"],"rows":["1/4","5/16","3/8","7/16","1/2","9/16","5/8","3/4","7/8","1"]},"หัวน็อตเกลียวหยาบ NF":{"cols":["STOCK"],"rows":["1/4","5/16","3/8","7/16","1/2","9/16","5/8","3/4"]},"หัวน็อตเกลียว W":{"cols":["STOCK"],"rows":["3/16","1/4 (ขอบ10)","1/4 (ขอบ11)","5/16 (ขอบ12.5)","5/16 (ขอบ14)","3/8","7/16","1/2","5/8","3/4","7/8","1"]},"สกรูมิลขาว":{"cols":["M5","M6","M8","M10","M12"],"rows":["10","12","15","20","25","30","35","40","45","50","55","60","70","80","90","100"]},"น็อตเหลี่ยม NC":{"cols":["1/4","5/16","3/8","7/16","1/2","9/16"],"rows":["1/2","5/8","3/4","1","1.1/4","1.1/2","2","2.1/2","3","3.1/2","4","5","6"]},"น็อตเหลี่ยม NF":{"cols":["1/4","5/16","3/8","7/16","1/2","9/16"],"rows":["1/2","5/8","3/4","1","1.1/4","1.1/2","2","2.1/2","3","3.1/2","4"]},"น็อตแข็ง M6-M16 (ตลอด)":{"cols":["M6 P1.0","M8 P1.25","M10 P1.5","M12 P1.75","M14 P2.0","M16 P2.0"],"rows":["10","12","16","20","25","30","35","40","45","50"]},"น็อตแข็ง M6-M16 (ครึ่ง)":{"cols":["M6 P1.0","M8 P1.25","M10 P1.5","M12 P1.75","M14 P2.0","M16 P2.0"],"rows":["40","45","50","55","60","65","70","75","80","90","100","110","120","130","140","150"]},"น็อตแข็ง M18-M30 (ตลอด)":{"cols":["M18 P2.5","M20 P2.5","M22 P2.5","M24 P3.0","M12 P1.5"],"rows":["40","45","50","60","55","65","25","30","35"]},"น็อตแข็ง M18-M30 (ครึ่ง)":{"cols":["M18 P2.5","M20 P2.5","M22 P2.5","M24 P3.0","M30 P3.5","M12 P1.5"],"rows":["55","60","65","70","75","80","90","100","85","110","120","130","140","150","45","50"]},"น็อตแข็งเกลียวมิล (ตลอด)":{"cols":["M10 P1.25","M12 P1.25","M14 P1.5","M16 P1.5","M18 P1.5"],"rows":["20","25","30","35","40","45","50","55","60"]},"น็อตแข็งเกลียวมิล (ครึ่ง)":{"cols":["M10 P1.25","M12 P1.25","M14 P1.5","M16 P1.5","M18 P1.5"],"rows":["45","50","55","60","65","70","75","80","90","100","40","120"]},"น็อตเหลี่ยม W ไม่ควบหัว":{"cols":["1/4","5/16","3/8","7/16","1/2"],"rows":["1/2","5/8","3/4","1","1.1/4","1.1/2","1.3/4","2","2.1/2","3","3.1/2","4","5","6"]},"น็อตเหลี่ยมเกลียว W (ยาว)":{"cols":["3/8×5","3/8×6","7/16×3.1/2","1/2×5","1/2×6"],"rows":["ครึ่ง","3/4","1","1.1/4"]},"หัวน็อตมิลแข็ง เกรด8":{"cols":["STOCK"],"rows":["M6","M8","M10","M12","M14","M16","M18","M20","M22","M24"]},"Spring Washer":{"cols":["STOCK"],"rows":["M3","M4","M5","M6","M8","M10","M12","M14","M16","M18","M20","M24"]},"หัวน็อตมิลแข็ง OVERSIZE":{"cols":["STOCK"],"rows":["M6","M8","M10","M12","M14","M16","M18","M20","M22","M24"]}};
