@@ -105,37 +105,11 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 
 /* Inline qty edit */
 .qty-edit-input{width:70px;padding:4px 6px;border:1.5px solid #2563a8;border-radius:6px;font-size:13px;font-family:'Sarabun',sans-serif;text-align:center}
-/* ── Password Gate ── */
-#pw-gate{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a5c,#2563a8);z-index:9999;display:flex;align-items:center;justify-content:center}
-.pw-box{background:white;border-radius:16px;padding:36px 28px;width:90%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.pw-logo{font-size:36px;margin-bottom:8px}
-.pw-title{font-size:20px;font-weight:700;color:#1a3a5c;margin-bottom:4px}
-.pw-sub{font-size:13px;color:#888;margin-bottom:24px}
-.pw-input-wrap{position:relative;margin-bottom:14px}
-.pw-input{width:100%;padding:13px 44px 13px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:16px;font-family:'Sarabun',sans-serif;outline:none;letter-spacing:3px;text-align:center}
-.pw-input:focus{border-color:#2563a8}
-.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#9ca3af;line-height:1}
-.pw-btn{width:100%;padding:13px;background:#2563a8;color:white;border:none;border-radius:10px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
-.pw-btn:hover{background:#1a3a5c}
-.pw-err{color:#dc2626;font-size:13px;margin-top:10px;min-height:20px}
+
 </style>
 </head>
 <body>
 
-<!-- Password Gate -->
-<div id="pw-gate">
-  <div class="pw-box">
-    <div class="pw-logo">🔩</div>
-    <div class="pw-title">STIC Stock</div>
-    <div class="pw-sub">กรุณาใส่รหัสผ่านเพื่อสั่งสินค้า</div>
-    <div class="pw-input-wrap">
-      <input type="password" id="pw-input" class="pw-input" placeholder="รหัสผ่าน"
-        onkeydown="if(event.key==='Enter')pwCheck()">
-      <button class="pw-eye" id="pw-eye-btn" onclick="pwToggle()">👁</button>
-    </div>
-    <button class="pw-btn" onclick="pwCheck()">เข้าสู่ระบบ</button>
-    <div class="pw-err" id="pw-err"></div>
-  </div>
 </div>
 
 <div class="header">
@@ -263,35 +237,6 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-//  🔑 ตั้งรหัสผ่านหน้าสั่งสินค้าที่นี่ (Sales)
-const SALES_PASSWORD = 'sticsales'; // ← เปลี่ยนรหัสผ่านตรงนี้
-// ══════════════════════════════════════════════════════════
-(function pwInit() {
-  if (sessionStorage.getItem('stic_sales_auth') === 'yes') {
-    document.getElementById('pw-gate').style.display = 'none';
-  } else {
-    setTimeout(() => { const el = document.getElementById('pw-input'); if(el) el.focus(); }, 200);
-  }
-})();
-function pwCheck() {
-  if (document.getElementById('pw-input').value === SALES_PASSWORD) {
-    sessionStorage.setItem('stic_sales_auth', 'yes');
-    document.getElementById('pw-gate').style.display = 'none';
-  } else {
-    const err = document.getElementById('pw-err');
-    err.textContent = '❌ รหัสผ่านไม่ถูกต้อง';
-    document.getElementById('pw-input').value = '';
-    document.getElementById('pw-input').focus();
-    setTimeout(() => err.textContent = '', 3000);
-  }
-}
-function pwToggle() {
-  const inp = document.getElementById('pw-input');
-  const btn = document.getElementById('pw-eye-btn');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
-}
 
 const API = "https://script.google.com/macros/s/AKfycbxhXa14EfmWnaCrNZmvDIO_FUSLbp4jzgHiGZABIaT8_CpMc9rh0eDcMvutxxhIbpk/exec";
 
@@ -731,102 +676,4 @@ function renderSalesHistory() {
         <td style="font-weight:700;color:#1a3a5c">${!isBox?o.qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?o.qty:''}</td>
         <td><span style="background:${urgColor[o.urgency]||'#f3f4f6'};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600">${urgText[o.urgency]||o.urgency}</span></td>
-        <td style="font-size:12px;color:#666">${o.note||''}</td>
-        <td>
-          <div style="display:flex;gap:4px">
-            <button onclick="salesEditOrder('${o.id}')" style="background:white;border:1.5px solid #d97706;color:#d97706;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✏️</button>
-            <button onclick="salesDeleteOrder('${o.id}')" style="background:white;border:1.5px solid #dc2626;color:#dc2626;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✕</button>
-          </div>
-        </td>
-      </tr>`;
-    });
-    html += `<tr style="background:#f0f5ff"><td colspan="3" style="text-align:right;font-size:12px;color:#555;font-style:italic">รวม ${cust}</td>
-      <td style="font-weight:700;color:#1a3a5c">${cSack||'-'}</td>
-      <td style="font-weight:700;color:#7c3aed">${cBox||'-'}</td>
-      <td colspan="3"></td></tr>`;
-    totalSack+=cSack; totalBox+=cBox;
-  });
-  html += `<tr style="background:#1a3a5c;color:white;font-weight:700">
-    <td colspan="3" style="text-align:right;padding:8px 10px">รวมทั้งหมด</td>
-    <td style="padding:8px 10px">${totalSack} กระสอบ</td>
-    <td style="padding:8px 10px">${totalBox} กล่อง</td>
-    <td colspan="3"></td></tr>`;
-  tbody.innerHTML = html;
-  document.getElementById('sales-hist-count').textContent = stagedOrders.length + ' รายการ';
-}
-
-function salesDeleteOrder(id) {
-  stagedOrders = stagedOrders.filter(o => String(o.id) !== String(id));
-  renderSalesHistory();
-}
-
-function salesEditOrder(id) {
-  const o = stagedOrders.find(x => String(x.id) === String(id));
-  if (!o) return;
-  const newQty = prompt('แก้ไขจำนวน (' + o.unit + ') สำหรับ ' + o.name + ':', o.qty);
-  if (newQty === null) return;
-  const q = parseInt(newQty);
-  if (!q || q < 1) { alert('จำนวนไม่ถูกต้อง'); return; }
-  o.qty = q;
-  renderSalesHistory();
-}
-
-async function confirmAllToAdmin() {
-  if (!stagedOrders.length) { alert('ไม่มีคำสั่งซื้อ'); return; }
-  if (!confirm('ยืนยันส่งคำสั่งซื้อ ' + stagedOrders.length + ' รายการไปที่ Admin?')) return;
-  const btn = document.getElementById('sales-confirm-all-btn');
-  btn.textContent = '⏳ กำลังส่ง...'; btn.disabled = true;
-  try {
-    for (const o of stagedOrders) {
-      await fetch(API, {
-        method: 'POST',
-        body: JSON.stringify({ action:'newOrder', code:o.code, name:o.name,
-          customer:o.customer, qty:o.qty, unit:o.unit, urgency:o.urgency, note:o.note, date:o.date })
-      });
-    }
-    const count = stagedOrders.length;
-    stagedOrders = [];
-    renderSalesHistory();
-    showToast('✅ ส่งคำสั่งซื้อ ' + count + ' รายการไปที่ Admin แล้ว');
-  } catch(e) { alert('เกิดข้อผิดพลาด กรุณาลองใหม่'); }
-  btn.textContent = '✅ ยืนยันส่งทั้งหมดไปที่ Admin'; btn.disabled = false;
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-function showSalesTab(tab, btn) {
-  document.getElementById('sales-tab-order').style.display = tab==='order' ? '' : 'none';
-  document.getElementById('sales-tab-history').style.display = tab==='history' ? '' : 'none';
-  document.querySelectorAll('[id^="tab-btn-"]').forEach(b => {
-    b.style.borderBottomColor = 'transparent';
-    b.style.color = '#666';
-    b.style.fontWeight = '500';
-  });
-  btn.style.borderBottomColor = '#1a3a5c';
-  btn.style.color = '#1a3a5c';
-  btn.style.fontWeight = '700';
-  if (tab==='history') renderSalesHistory();
-}
-
-// อัปเดต badge count + ปุ่ม confirm
-const _origRenderSalesHistory = renderSalesHistory;
-function renderSalesHistory() {
-  _origRenderSalesHistory();
-  const cnt = document.getElementById('sales-hist-count');
-  const cnt2 = document.getElementById('sales-hist-count2');
-  const n = stagedOrders.length;
-  if (cnt) { cnt.textContent = n; cnt.style.display = n ? 'inline' : 'none'; }
-  if (cnt2) cnt2.textContent = n + ' รายการ';
-  const btn = document.getElementById('sales-confirm-all-btn');
-  if (btn) btn.style.opacity = n ? '1' : '.6';
-}
-
-loadData();
-</script>
-</body>
-</html>
+        <td style="font-size:12px;color:#666">${o.note||''}<
