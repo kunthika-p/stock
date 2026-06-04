@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STIC Stock System</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Sarabun',sans-serif;background:#f0f4f8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -18,8 +19,7 @@ h1{font-size:26px;font-weight:700;margin-bottom:6px;color:#1a3a5c}
 .btn-card .desc{font-size:13px;opacity:.8}
 .footer{margin-top:32px;font-size:12px;color:#9ca3af}
 .company-logo{width:110px;object-fit:contain;margin-bottom:20px}
-/* SVG icons */
-.icon svg{width:36px;height:36px;fill:white}
+.btn-card .icon i{font-size:36px;color:white}
 </style>
 </head>
 <body>
@@ -29,22 +29,13 @@ h1{font-size:26px;font-weight:700;margin-bottom:6px;color:#1a3a5c}
   <p class="sub">ระบบสต็อคสินค้าออนไลน์</p>
 
   <a href="sales_grid.html" class="btn-card">
-    <div class="icon">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>
-      </svg>
-    </div>
+    <div class="icon"><i class="ti ti-shopping-cart" aria-hidden="true"></i></div>
     <div class="title">สั่งสินค้า</div>
     <div class="desc">สำหรับฝ่ายขาย — เลือกสินค้าและส่งคำสั่งซื้อ</div>
   </a>
 
   <a href="admin_orders.html" class="btn-card">
-    <div class="icon">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-        <polyline points="9 22 9 12 15 12 15 22"/>
-      </svg>
-    </div>
+    <div class="icon"><i class="ti ti-home" aria-hidden="true"></i></div>
     <div class="title">Admin</div>
     <div class="desc">สำหรับผู้ดูแลระบบ — จัดการสต็อคและออเดอร์</div>
   </a>
