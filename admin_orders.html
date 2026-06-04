@@ -365,6 +365,47 @@ table.list tr:hover td{background:#f8fbff}
           <button class="btn-si-submit" id="si-submit-btn" onclick="siSubmit()" disabled>💾 บันทึกรับสินค้าเข้า</button>
         </div>
       </div>
+
+      <!-- ── Method 3: เปลี่ยนบรรจุภัณฑ์ ── -->
+      <div class="pack-card">
+        <div class="pack-card-title">🔄 เปลี่ยนบรรจุภัณฑ์ (ถัง → กระสอบ/กล่อง)</div>
+        <div class="pack-2col">
+          <div class="pack-field" style="position:relative">
+            <label>ค้นหาสินค้า (ชื่อ / รหัส)</label>
+            <input type="text" id="pack-search" placeholder="พิมพ์ชื่อหรือรหัส..." autocomplete="off"
+              oninput="packSearch()" onblur="setTimeout(()=>document.getElementById('pack-drop').style.display='none',200)">
+            <div id="pack-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #7c3aed;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
+          </div>
+          <div class="pack-field">
+            <label>หมายเลข Job</label>
+            <input type="text" id="pack-job" placeholder="เช่น J2501" oninput="packLoadTank()">
+          </div>
+        </div>
+        <div class="tank-info-box" id="pack-tank-info" style="display:none;background:#fff8e1;border:1.5px solid #f59e0b;border-radius:8px;padding:10px 14px;font-size:13px;color:#78350f;margin:8px 0 10px"></div>
+        <div class="pack-2col">
+          <div class="pack-field">
+            <label>ถังที่ใช้</label>
+            <input type="number" id="pack-tank-qty" placeholder="0" min="1" step="1" oninput="packUpdatePreview()">
+          </div>
+          <div class="pack-field">
+            <label>ได้ (กระสอบ/กล่อง)</label>
+            <div style="display:flex;gap:6px">
+              <input type="number" id="pack-out-qty" placeholder="0" min="1" step="1" style="flex:1" oninput="packUpdatePreview()">
+              <select id="pack-out-unit" style="padding:9px 8px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:'Sarabun',sans-serif" onchange="packUpdatePreview()">
+                <option value="กระสอบ">กระสอบ</option>
+                <option value="กล่อง">กล่อง</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="pack-field">
+          <label>ผู้บันทึก</label>
+          <input type="text" id="pack-recorder" placeholder="ชื่อผู้บันทึก" oninput="packUpdatePreview()">
+        </div>
+        <div class="pack-preview" id="pack-preview" style="margin-top:12px"></div>
+        <button class="btn-pack-submit" id="pack-submit-btn" onclick="packSubmit()" disabled>📦 ยืนยันการบรรจุสินค้า</button>
+      </div>
+
     </div>
   </div>
 
@@ -1198,8 +1239,5 @@ async function packSubmit() {
 }
 
 loadAll();
-  loadOverview();
-  setInterval(loadAll, 30000);
-  </script>
-  </body>
-  </html>
+loadOverview();
+setInterv
