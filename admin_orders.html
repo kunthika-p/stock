@@ -369,17 +369,11 @@ table.list tr:hover td{background:#f8fbff}
       <!-- ── Method 3: เปลี่ยนบรรจุภัณฑ์ ── -->
       <div class="pack-card">
         <div class="pack-card-title">🔄 เปลี่ยนบรรจุภัณฑ์ (ถัง → กระสอบ/กล่อง)</div>
-        <div class="pack-2col">
-          <div class="pack-field" style="position:relative">
-            <label>ค้นหาสินค้า (ชื่อ / รหัส)</label>
-            <input type="text" id="pack-search" placeholder="พิมพ์ชื่อหรือรหัส..." autocomplete="off"
-              oninput="packSearch()" onblur="setTimeout(()=>document.getElementById('pack-drop').style.display='none',200)">
-            <div id="pack-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #7c3aed;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
-          </div>
-          <div class="pack-field">
-            <label>หมายเลข Job</label>
-            <input type="text" id="pack-job" placeholder="เช่น J2501" oninput="packLoadTank()">
-          </div>
+        <div class="pack-field" style="position:relative">
+          <label>ค้นหาสินค้า (ชื่อ / รหัส)</label>
+          <input type="text" id="pack-search" placeholder="พิมพ์ชื่อหรือรหัส..." autocomplete="off"
+            oninput="packSearch()" onblur="setTimeout(()=>document.getElementById('pack-drop').style.display='none',200)">
+          <div id="pack-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #7c3aed;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
         </div>
         <div class="tank-info-box" id="pack-tank-info" style="display:none;background:#fff8e1;border:1.5px solid #f59e0b;border-radius:8px;padding:10px 14px;font-size:13px;color:#78350f;margin:8px 0 10px"></div>
         <div class="pack-2col">
@@ -1173,49 +1167,44 @@ function packSelectItem(idx) {
 }
 async function packLoadTank() {
   const code = document.getElementById('pack-search').dataset.code;
-  const job  = document.getElementById('pack-job').value.trim();
   const box  = document.getElementById('pack-tank-info');
-  if (!code || !job) { box.style.display='none'; packTankQty=0; packUpdatePreview(); return; }
+  if (!code) { box.style.display='none'; packTankQty=0; packUpdatePreview(); return; }
   box.innerHTML='⏳ กำลังโหลดสต็อคถัง...'; box.style.display='block';
   try {
-    const res = await fetch(`${API}?action=getTankStock&code=${encodeURIComponent(code)}&job=${encodeURIComponent(job)}`);
+    const res = await fetch(`${API}?action=getTankStock&code=${encodeURIComponent(code)}`);
     const data = await res.json();
     const items = data.tankItems || [];
     if (!items.length) {
       packTankQty = 0;
-      box.innerHTML = `⚠️ ไม่พบสต็อคถังของ Job <strong>${job}</strong> สำหรับสินค้านี้`;
+      box.innerHTML = `⚠️ ไม่พบสต็อคถังสำหรับสินค้านี้`;
     } else {
       packTankQty = items[0].qty;
-      box.innerHTML = `🪣 สต็อคถังคงเหลือ: <strong>${packTankQty} ถัง</strong> (Job: ${job})`;
+      box.innerHTML = `🪣 สต็อคถังคงเหลือ: <strong>${packTankQty} ถัง</strong>`;
     }
   } catch(e) { box.innerHTML='❌ โหลดไม่ได้: '+e.message; packTankQty=0; }
   packUpdatePreview();
 }
 function packUpdatePreview() {
   const name     = document.getElementById('pack-search').dataset.name || '—';
-  const job      = document.getElementById('pack-job').value.trim() || '—';
   const tankUsed = parseInt(document.getElementById('pack-tank-qty').value) || 0;
   const outQty   = parseInt(document.getElementById('pack-out-qty').value) || 0;
   const outUnit  = document.getElementById('pack-out-unit').value;
   document.getElementById('pack-preview').innerHTML = `
     <div style="font-size:12px;font-weight:700;color:#7c3aed;margin-bottom:10px">📋 สรุปก่อนยืนยัน</div>
     <div class="pack-prow"><span class="pack-plbl">สินค้า</span><span class="pack-pval">${name}</span></div>
-    <div class="pack-prow"><span class="pack-plbl">Job</span><span class="pack-pval">${job}</span></div>
     <div class="pack-prow"><span class="pack-plbl">ถังที่ใช้</span><span class="pack-pval red">${tankUsed>0?'−'+tankUsed+' ถัง':'—'}</span></div>
     <div class="pack-prow"><span class="pack-plbl">ผลลัพธ์</span><span class="pack-pval green">${outQty>0?'+'+outQty+' '+outUnit:'—'}</span></div>`;
-  const ok = name!=='—' && job!=='—' && tankUsed>0 && tankUsed<=packTankQty && outQty>0;
+  const ok = name!=='—' && tankUsed>0 && tankUsed<=packTankQty && outQty>0;
   document.getElementById('pack-submit-btn').disabled = !ok;
 }
 async function packSubmit() {
   const code     = document.getElementById('pack-search').dataset.code || '';
   const name     = document.getElementById('pack-search').dataset.name || document.getElementById('pack-search').value.trim();
-  const job      = document.getElementById('pack-job').value.trim();
   const tankUsed = parseInt(document.getElementById('pack-tank-qty').value);
   const outQty   = parseInt(document.getElementById('pack-out-qty').value);
   const outUnit  = document.getElementById('pack-out-unit').value;
   const recorder = document.getElementById('pack-recorder').value.trim();
   if (!name)     { alert('กรุณาเลือกสินค้า'); return; }
-  if (!job)      { alert('กรุณาใส่หมายเลข Job'); return; }
   if (!tankUsed || tankUsed<1) { alert('กรุณาใส่จำนวนถังที่ใช้'); return; }
   if (tankUsed > packTankQty) { alert(`ถังไม่เพียงพอ (มีแค่ ${packTankQty} ถัง)`); return; }
   if (!outQty || outQty<1)   { alert('กรุณาใส่จำนวนที่ได้จากการบรรจุ'); return; }
@@ -1224,12 +1213,12 @@ async function packSubmit() {
   const btn = document.getElementById('pack-submit-btn');
   btn.textContent='⏳ กำลังบันทึก...'; btn.disabled=true;
   try {
-    const res = await fetch(API, { method:'POST', body:JSON.stringify({action:'packItems',code,name,job,tankUsed,outQty,outUnit,recorder,date:new Date().toISOString()}) });
+    const res = await fetch(API, { method:'POST', body:JSON.stringify({action:'packItems',code,name,tankUsed,outQty,outUnit,recorder,date:new Date().toISOString()}) });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     showToast(`✅ บรรจุแล้ว: −${tankUsed} ถัง → +${outQty} ${outUnit}`);
     document.getElementById('pack-search').value=''; document.getElementById('pack-search').dataset.code=''; document.getElementById('pack-search').dataset.name='';
-    document.getElementById('pack-job').value=''; document.getElementById('pack-tank-qty').value=''; document.getElementById('pack-out-qty').value='';
+    document.getElementById('pack-tank-qty').value=''; document.getElementById('pack-out-qty').value='';
     document.getElementById('pack-recorder').value='';
     document.getElementById('pack-tank-info').style.display='none';
     packTankQty=0; packUpdatePreview();
