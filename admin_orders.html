@@ -156,19 +156,7 @@ table.list tr:hover td{background:#f8fbff}
 .search-row input:focus,.search-row select:focus{outline:none;border-color:#2563a8}
 .toast{position:fixed;top:20px;right:20px;background:#1a3a5c;color:white;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;z-index:999;display:none}
 .toast.show{display:block}
-/* ── Password Gate ── */
-#pw-gate{position:fixed;inset:0;background:linear-gradient(135deg,#1a3a5c,#2563a8);z-index:9999;display:flex;align-items:center;justify-content:center}
-.pw-box{background:white;border-radius:16px;padding:36px 28px;width:90%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.pw-logo{font-size:36px;margin-bottom:8px}
-.pw-title{font-size:20px;font-weight:700;color:#1a3a5c;margin-bottom:4px}
-.pw-sub{font-size:13px;color:#888;margin-bottom:24px}
-.pw-input-wrap{position:relative;margin-bottom:14px}
-.pw-input{width:100%;padding:13px 44px 13px 14px;border:1.5px solid #d1d5db;border-radius:10px;font-size:16px;font-family:'Sarabun',sans-serif;outline:none;letter-spacing:3px;text-align:center}
-.pw-input:focus{border-color:#2563a8}
-.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;color:#9ca3af;line-height:1}
-.pw-btn{width:100%;padding:13px;background:#1a3a5c;color:white;border:none;border-radius:10px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
-.pw-btn:hover{background:#0f2844}
-.pw-err{color:#dc2626;font-size:13px;margin-top:10px;min-height:20px}
+
 /* ── รับเข้า (ถัง) ── */
 .ti-card{background:white;border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:0 1px 5px rgba(0,0,0,.09)}
 .ti-card-title{font-size:15px;font-weight:700;color:#92400e;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #fde68a}
@@ -204,20 +192,6 @@ table.list tr:hover td{background:#f8fbff}
 </head>
 <body>
 
-<!-- Password Gate -->
-<div id="pw-gate">
-  <div class="pw-box">
-    <div class="pw-logo">🔧</div>
-    <div class="pw-title">Admin — STIC</div>
-    <div class="pw-sub">เฉพาะผู้ดูแลระบบเท่านั้น</div>
-    <div class="pw-input-wrap">
-      <input type="password" id="pw-input" class="pw-input" placeholder="รหัสผ่าน Admin"
-        onkeydown="if(event.key==='Enter')pwCheck()">
-      <button class="pw-eye" id="pw-eye-btn" onclick="pwToggle()">👁</button>
-    </div>
-    <button class="pw-btn" onclick="pwCheck()">เข้าสู่ระบบ</button>
-    <div class="pw-err" id="pw-err"></div>
-  </div>
 </div>
 
 <div class="header">
@@ -415,35 +389,6 @@ table.list tr:hover td{background:#f8fbff}
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-//  🔑 ตั้งรหัสผ่านหน้า Admin ที่นี่ (แยกจาก Sales)
-const ADMIN_PASSWORD = 'sticadmin'; // ← เปลี่ยนรหัสผ่านตรงนี้
-// ══════════════════════════════════════════════════════════
-(function pwInit() {
-  if (sessionStorage.getItem('stic_admin_auth') === 'yes') {
-    document.getElementById('pw-gate').style.display = 'none';
-  } else {
-    setTimeout(() => { const el = document.getElementById('pw-input'); if(el) el.focus(); }, 200);
-  }
-})();
-function pwCheck() {
-  if (document.getElementById('pw-input').value === ADMIN_PASSWORD) {
-    sessionStorage.setItem('stic_admin_auth', 'yes');
-    document.getElementById('pw-gate').style.display = 'none';
-  } else {
-    const err = document.getElementById('pw-err');
-    err.textContent = '❌ รหัสผ่านไม่ถูกต้อง';
-    document.getElementById('pw-input').value = '';
-    document.getElementById('pw-input').focus();
-    setTimeout(() => err.textContent = '', 3000);
-  }
-}
-function pwToggle() {
-  const inp = document.getElementById('pw-input');
-  const btn = document.getElementById('pw-eye-btn');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
-}
 
 const API = "https://script.google.com/macros/s/AKfycbxhXa14EfmWnaCrNZmvDIO_FUSLbp4jzgHiGZABIaT8_CpMc9rh0eDcMvutxxhIbpk/exec";
 
