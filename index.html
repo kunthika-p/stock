@@ -7,18 +7,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Sarabun',sans-serif;background:linear-gradient(135deg,#1a3a5c,#2563a8);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.container{text-align:center;color:white;max-width:400px;width:100%}
-.logo{font-size:48px;margin-bottom:16px}
-h1{font-size:26px;font-weight:700;margin-bottom:6px}
-.sub{font-size:14px;opacity:.75;margin-bottom:40px}
-.btn-card{display:block;background:white;border-radius:16px;padding:24px 20px;margin-bottom:16px;text-decoration:none;color:#1a3a5c;box-shadow:0 4px 20px rgba(0,0,0,.2);transition:transform .15s,box-shadow .15s}
-.btn-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.25)}
-.btn-card .icon{font-size:32px;margin-bottom:8px}
+body{font-family:'Sarabun',sans-serif;background:#f0f4f8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.container{text-align:center;color:#1a3a5c;max-width:400px;width:100%}
+h1{font-size:26px;font-weight:700;margin-bottom:6px;color:#1a3a5c}
+.sub{font-size:14px;color:#6b7280;margin-bottom:40px}
+.btn-card{display:block;background:linear-gradient(135deg,#1a3a5c,#2563a8);border-radius:16px;padding:24px 20px;margin-bottom:16px;text-decoration:none;color:white;box-shadow:0 4px 20px rgba(26,58,92,.25);transition:transform .15s,box-shadow .15s}
+.btn-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(26,58,92,.35)}
+.btn-card .icon{margin-bottom:10px;display:flex;align-items:center;justify-content:center}
 .btn-card .title{font-size:18px;font-weight:700;margin-bottom:4px}
-.btn-card .desc{font-size:13px;color:#666}
-.footer{margin-top:32px;font-size:12px;opacity:.5}
-.company-logo{width:140px;object-fit:contain;margin-bottom:16px}
+.btn-card .desc{font-size:13px;opacity:.8}
+.footer{margin-top:32px;font-size:12px;color:#9ca3af}
+.company-logo{width:150px;object-fit:contain;margin-bottom:20px}
+/* SVG icons */
+.icon svg{width:36px;height:36px;fill:white}
 </style>
 </head>
 <body>
@@ -28,13 +29,22 @@ h1{font-size:26px;font-weight:700;margin-bottom:6px}
   <p class="sub">แสงไทยอุตสาหกรรม — ระบบสต็อคสินค้าออนไลน์</p>
 
   <a href="sales_grid.html" class="btn-card">
-    <div class="icon">🛒</div>
+    <div class="icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>
+      </svg>
+    </div>
     <div class="title">สั่งสินค้า</div>
     <div class="desc">สำหรับฝ่ายขาย — เลือกสินค้าและส่งคำสั่งซื้อ</div>
   </a>
 
   <a href="admin_orders.html" class="btn-card">
-    <div class="icon">🏠</div>
+    <div class="icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
     <div class="title">Admin</div>
     <div class="desc">สำหรับผู้ดูแลระบบ — จัดการสต็อคและออเดอร์</div>
   </a>
