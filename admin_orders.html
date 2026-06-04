@@ -443,8 +443,11 @@ function switchTab(name, btn) {
 
 // ── ภาพรวม ────────────────────────────────────────────────────
 async function loadOverview() {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 20000);
   try {
-    const res = await fetch(API + '?action=getStock', {credentials:'omit'});
+    const res = await fetch(API + '?action=getStock', {signal: ctrl.signal});
+    clearTimeout(timer);
     const data = await res.json();
     const items = data.items || [];
     let ok=0, low=0, out=0;
@@ -472,7 +475,7 @@ async function loadOverview() {
       </tr>`;
     }).join('');
   } catch(e) {
-    document.getElementById('ovTbody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#dc2626">โหลดไม่ได้: '+e.message+'</td></tr>';
+    document.getElementById('ovTbody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#dc2626">โหลดไม่ได้: '+e.message+' <button onclick="loadOverview()" style="margin-left:8px;padding:6px 14px;background:#1a3a5c;color:white;border:none;border-radius:6px;cursor:pointer;font-family:Sarabun,sans-serif">ลองใหม่</button></td></tr>';
   }
 }
 
@@ -630,7 +633,7 @@ function loadAll() {
 async function loadStock() {
   document.getElementById('stk-matrix-panels').innerHTML = '<div class="loading">⏳ กำลังโหลดสต็อค...</div>';
   try {
-    const res = await fetch(API + '?action=getStock', {credentials:'omit'});
+    const res = await fetch(API + '?action=getStock');
     const data = await res.json();
     if (data.items) {
       stockMap = {};
@@ -785,7 +788,7 @@ function getOrderDate(o) { return fmtOrderDate(o.date || o.timestamp); }
 
 async function loadPending() {
   try {
-    const res = await fetch(API + '?action=getOrders&status=pending', {credentials:'omit'});
+    const res = await fetch(API + '?action=getOrders&status=pending');
     const data = await res.json();
     const orders = data.orders || [];
     document.getElementById('pendingCount').textContent = orders.length;
@@ -934,7 +937,7 @@ async function rejectOrder(row) {
 // ---- History tab ----
 async function loadHistory() {
   try {
-    const res = await fetch(API + '?action=getOrders&status=all', {credentials:'omit'});
+    const res = await fetch(API + '?action=getOrders&status=all');
     const data = await res.json();
     historyData = (data.orders||[]).filter(o => o.status !== 'pending').reverse();
     renderHistory();
@@ -1134,7 +1137,7 @@ async function packLoadTank() {
   if (!code || !job) { box.style.display='none'; packTankQty=0; packUpdatePreview(); return; }
   box.innerHTML='⏳ กำลังโหลดสต็อคถัง...'; box.style.display='block';
   try {
-    const res = await fetch(`${API}?action=getTankStock&code=${encodeURIComponent(code)}&job=${encodeURIComponent(job)}`,{credentials:'omit'});
+    const res = await fetch(`${API}?action=getTankStock&code=${encodeURIComponent(code)}&job=${encodeURIComponent(job)}`);
     const data = await res.json();
     const items = data.tankItems || [];
     if (!items.length) {
