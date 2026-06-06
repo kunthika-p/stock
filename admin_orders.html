@@ -848,8 +848,8 @@ function renderStockList() {
 }
 
 // ---- Pending tab ----
-const urgColor2 = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'};
-const urgText2  = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
+const urgColor2 = {'ด่วน':'#fee2e2','จอง':'#fef9c3','เร่ง':'#fef9c3','ปกติ':'#d1fae5'};
+const urgText2  = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','เร่ง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
 
 function fmtOrderDate(d) {
   if (!d) return '-';
@@ -1056,8 +1056,8 @@ function renderHistory() {
     byCustomer[o.customer].push(o);
   });
 
-  const urgColor = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'};
-  const urgText = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
+  const urgColor = {'ด่วน':'#fee2e2','จอง':'#fef9c3','เร่ง':'#fef9c3','ปกติ':'#d1fae5'};
+  const urgText = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','เร่ง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
   let html = '';
   let totalSack = 0, totalBox = 0;
 
