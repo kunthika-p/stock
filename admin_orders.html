@@ -778,8 +778,6 @@ function buildMatrix() {
     div.innerHTML = `<div class="type-panel-title">${t}</div>` + buildTypeTable(t);
     panels.appendChild(div);
   });
-}
-
   requestAnimationFrame(() => window.scrollTo(0, savedY));
 }
 
