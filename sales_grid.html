@@ -34,8 +34,8 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .grade-A{background:#d1fae5;color:#065f46}.grade-B{background:#dbeafe;color:#1e40af}
 .grade-C{background:#fef9c3;color:#92400e}.grade-D{background:#fee2e2;color:#991b1b}
 
-.type-nav-wrap{overflow-x:auto;padding:10px 12px;background:white;border-bottom:1px solid #e0e0e0;white-space:nowrap;position:sticky;top:106px;z-index:99}
-.type-btn{display:inline-block;padding:6px 14px;border:1.5px solid #d1d5db;border-radius:20px;font-size:13px;font-family:'Sarabun',sans-serif;background:white;color:#555;margin-right:6px;cursor:pointer}
+.type-nav-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;background:white;border-bottom:1px solid #e0e0e0;position:sticky;top:106px;z-index:99}
+.type-btn{display:inline-block;padding:6px 14px;border:1.5px solid #d1d5db;border-radius:20px;font-size:13px;font-family:'Sarabun',sans-serif;background:white;color:#555;cursor:pointer}
 .type-btn.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
 
 .content{padding:12px}
@@ -391,7 +391,12 @@ function scrollToType(type, btn) {
   document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   const el = document.getElementById('type-' + type.replace(/[\s()\/]/g,'_'));
-  if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  if (el) {
+    const navWrap = document.getElementById('typeNav');
+    const offset = (navWrap ? navWrap.offsetTop + navWrap.offsetHeight : 160) + 8;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({top, behavior:'smooth'});
+  }
 }
 
 function renderAll() {
