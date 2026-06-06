@@ -748,7 +748,7 @@ function buildMatrix() {
         huaDiv.className = 'type-panel';
         huaDiv.id = 'mp-'+HUA_NUT_ENC;
         huaDiv.innerHTML = `<div class="type-panel-title">🔩 หัวน็อต</div>
-          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
             <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล')}</div>
             <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC')}</div>
             <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF')}</div>
