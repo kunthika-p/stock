@@ -137,8 +137,8 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .type-btn-stk{padding:6px 15px;border:1.5px solid #c8d6e5;border-radius:20px;background:white;cursor:pointer;font-size:13px;font-family:'Sarabun',sans-serif;color:#555;transition:all .12s;white-space:nowrap}
 .type-btn-stk:hover{border-color:#2563a8;color:#2563a8}
 .type-btn-stk.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
-.type-panel{display:block;margin-bottom:28px}
-.type-panel-title{font-size:15px;font-weight:700;color:#1a3a5c;padding:8px 12px;background:#f0f5ff;border-left:4px solid #1a3a5c;border-radius:0 6px 6px 0;margin-bottom:10px}
+.type-panel{display:block;margin-bottom:20px;background:white;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.09);padding:12px}
+.type-panel-title{font-size:15px;font-weight:700;color:#1a3a5c;margin-bottom:10px}
 .tbadge{display:inline-block;font-size:10px;border-radius:10px;padding:1px 6px;margin-left:4px;background:rgba(0,0,0,.12)}
 .tbadge.has{background:#16a34a;color:white}
 .type-btn-stk.active .tbadge{background:rgba(255,255,255,.25)}
@@ -774,12 +774,12 @@ function buildMatrix() {
 function switchStockType(enc) {
   curEnc = enc;
   document.querySelectorAll('.type-btn-stk').forEach(b=>b.classList.toggle('active',b.dataset.enc===enc));
-  const el = document.getElementById('mp-'+enc);
-  if (el) {
+  const panel = document.getElementById('mp-'+enc);
+  if (panel) {
     const navWrap = document.querySelector('.type-nav-wrap');
     const navBottom = navWrap ? navWrap.getBoundingClientRect().bottom : 60;
-    const elTop = el.getBoundingClientRect().top;
-    window.scrollBy({top: elTop - navBottom - 8, behavior:'smooth'});
+    const panelTop = panel.getBoundingClientRect().top;
+    window.scrollBy({top: panelTop - navBottom - 8, behavior:'smooth'});
   }
 }
 
