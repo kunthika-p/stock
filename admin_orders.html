@@ -123,7 +123,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .card-title{font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
 .legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:13px;color:#555;padding:9px 13px;background:#f8fbff;border-radius:8px;margin-bottom:12px}
 .ld{width:13px;height:13px;border-radius:3px;display:inline-block;border:1px solid #ccc;margin-right:4px;vertical-align:middle}
-.stk-tbl{border-collapse:collapse;font-size:13px;table-layout:fixed}
+.stk-tbl{border-collapse:collapse;font-size:13px;table-layout:fixed;width:100%}
 .stk-tbl th,.stk-tbl td{border:1px solid #c8d6e5}
 .th-corner{background:#1a3a5c;color:white;padding:7px 10px;font-weight:700;font-size:12px;text-align:center;white-space:nowrap}
 .th-col{background:#1a3a5c;color:white;padding:4px 2px;font-size:13px;text-align:center;white-space:nowrap;width:76px}
@@ -737,6 +737,7 @@ function buildTypeTable(t) {
 }
 
 function buildMatrix() {
+  const savedY = window.scrollY;
   const panels = document.getElementById('stk-matrix-panels');
   panels.innerHTML = '';
   let huaAdded = false, ncAdded = false;
@@ -777,6 +778,9 @@ function buildMatrix() {
     div.innerHTML = `<div class="type-panel-title">${t}</div>` + buildTypeTable(t);
     panels.appendChild(div);
   });
+}
+
+  requestAnimationFrame(() => window.scrollTo(0, savedY));
 }
 
 function switchStockType(enc) {
