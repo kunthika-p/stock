@@ -739,31 +739,41 @@ function buildTypeTable(t) {
 function buildMatrix() {
   const panels = document.getElementById('stk-matrix-panels');
   panels.innerHTML = '';
-  const isHua = HUA_NUT.some(t=>encT(t)===curEnc)||curEnc===HUA_NUT_ENC;
-  const isNc = NC_NF_SM.some(t=>encT(t)===curEnc)||curEnc===NC_NF_SM_ENC;
-  const huaDiv = document.createElement('div');
-  huaDiv.className = 'type-panel';
-  huaDiv.id = 'mp-'+HUA_NUT_ENC;
-  huaDiv.innerHTML = `<div class="type-panel-title">🔩 หัวน็อต</div><div class="nut-group-grid">
-    <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล')}</div>
-    <div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC')}</div>
-        <div><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W')}</div>
-      </div>
-      <span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF')}
-    </div></div>`;
-  panels.appendChild(huaDiv);
-  const ncDiv = document.createElement('div');
-  ncDiv.className = 'type-panel';
-  ncDiv.id = 'mp-'+NC_NF_SM_ENC;
-  ncDiv.innerHTML =
-    `<div class="type-panel-title">🎒 น็อตเหลี่ยม NC/NF</div>`+
-    `<span class="nut-sub-title" style="margin-bottom:8px">น็อตเหลี่ยม NC</span>${buildTypeTable('น็อตเหลี่ยม NC')}`+
-    `<span class="nut-sub-title" style="margin-top:16px;margin-bottom:8px">น็อตเหลี่ยม NF</span>${buildTypeTable('น็อตเหลี่ยม NF')}`;
-  panels.appendChild(ncDiv);
+  let huaAdded = false, ncAdded = false;
   TYPES.forEach(t => {
-    if (HUA_NUT.includes(t)||NC_NF_SM.includes(t)) return;
+    if (HUA_NUT.includes(t)) {
+      if (!huaAdded) {
+        huaAdded = true;
+        const huaDiv = document.createElement('div');
+        huaDiv.className = 'type-panel';
+        huaDiv.id = 'mp-'+HUA_NUT_ENC;
+        huaDiv.innerHTML = `<div class="type-panel-title">🔩 หัวน็อต</div><div class="nut-group-grid">
+          <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล')}</div>
+          <div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC')}</div>
+              <div><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W')}</div>
+            </div>
+            <span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF')}
+          </div></div>`;
+        panels.appendChild(huaDiv);
+      }
+      return;
+    }
+    if (NC_NF_SM.includes(t)) {
+      if (!ncAdded) {
+        ncAdded = true;
+        const ncDiv = document.createElement('div');
+        ncDiv.className = 'type-panel';
+        ncDiv.id = 'mp-'+NC_NF_SM_ENC;
+        ncDiv.innerHTML =
+          `<div class="type-panel-title">🎒 น็อตเหลี่ยม NC/NF</div>`+
+          `<span class="nut-sub-title" style="margin-bottom:8px">น็อตเหลี่ยม NC</span>${buildTypeTable('น็อตเหลี่ยม NC')}`+
+          `<span class="nut-sub-title" style="margin-top:16px;margin-bottom:8px">น็อตเหลี่ยม NF</span>${buildTypeTable('น็อตเหลี่ยม NF')}`;
+        panels.appendChild(ncDiv);
+      }
+      return;
+    }
     const enc = encT(t); const div = document.createElement('div');
     div.className = 'type-panel'; div.id = 'mp-'+enc;
     div.innerHTML = `<div class="type-panel-title">${t}</div>` + buildTypeTable(t);
@@ -779,7 +789,7 @@ function switchStockType(enc) {
     const navWrap = document.querySelector('.type-nav-wrap');
     const navBottom = navWrap ? navWrap.getBoundingClientRect().bottom : 60;
     const panelTop = panel.getBoundingClientRect().top;
-    window.scrollBy({top: panelTop - navBottom - 8, behavior:'smooth'});
+    window.scrollBy({top: panelTop - navBottom - 8, behavior:'instant'});
   }
 }
 
