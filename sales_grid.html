@@ -192,8 +192,9 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
     </div>
     <div class="field">
       <label>ความเร่งด่วน *</label>
-      <div class="urgency-opts" id="itemUrgencyOpts">
+      <div class="urgency-opts" id="itemUrgencyOpts" style="grid-template-columns:1fr 1fr 1fr">
         <div class="urgency-opt sel-normal selected" onclick="selectItemUrgency('ปกติ',this)">🟢 ปกติ</div>
+        <div class="urgency-opt sel-medium" onclick="selectItemUrgency('จอง',this)">🟡 จอง</div>
         <div class="urgency-opt sel-urgent" onclick="selectItemUrgency('ด่วน',this)">🔴 ด่วน</div>
       </div>
     </div>
@@ -485,7 +486,7 @@ function openModal(code, name, type) {
   }
 
   document.querySelectorAll('#itemUrgencyOpts .urgency-opt').forEach(e => e.classList.remove('selected'));
-  const urgencyMap = {'ปกติ':'sel-normal','ด่วน':'sel-urgent'};
+  const urgencyMap = {'ปกติ':'sel-normal','จอง':'sel-medium','ด่วน':'sel-urgent'};
   document.querySelector('#itemUrgencyOpts .' + (urgencyMap[selectedItemUrgency]||'sel-normal')).classList.add('selected');
 
   document.getElementById('modalBg').classList.add('open');
@@ -557,7 +558,7 @@ function renderCartItems() {
     return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
   });
 
-  const urgencyColor = {'ปกติ':'#16a34a','ด่วน':'#dc2626'};
+  const urgencyColor = {'ปกติ':'#16a34a','จอง':'#d97706','ด่วน':'#dc2626'};
   let html = '';
   let lastType = null;
 
@@ -666,8 +667,8 @@ function renderSalesHistory() {
     return;
   }
   if (confirmBtn) confirmBtn.disabled = false;
-  const urgColor = {'ปกติ':'#d1fae5','ด่วน':'#fee2e2'};
-  const urgText = {'ปกติ':'🟢 ปกติ','ด่วน':'🔴 ด่วน'};
+  const urgColor = {'ปกติ':'#d1fae5','จอง':'#fef9c3','ด่วน':'#fee2e2'};
+  const urgText = {'ปกติ':'🟢 ปกติ','จอง':'🟡 จอง','ด่วน':'🔴 ด่วน'};
   const grouped = {};
   stagedOrders.forEach(o => {
     if (!grouped[o.customer]) grouped[o.customer] = [];
