@@ -28,7 +28,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .order-code{font-size:11px;color:#888;font-family:monospace}
 .urgency-badge{padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;white-space:nowrap}
 .u-ด่วน{background:#fee2e2;color:#991b1b}
-.u-เร่ง{background:#fef9c3;color:#92400e}
+.u-จอง{background:#fef9c3;color:#92400e}
 .u-ปกติ{background:#d1fae5;color:#065f46}
 .order-detail{font-size:13px;color:#555;margin-bottom:12px;line-height:1.8}
 .order-detail span{font-weight:600;color:#222}
@@ -259,9 +259,9 @@ table.list tr:hover td{background:#f8fbff}
     <div class="hist-filter">
       <input type="text" id="hist-q" placeholder="🔍 ค้นหาชื่อลูกค้า / สินค้า..." oninput="renderHistory()">
       <select id="hist-urgency" onchange="renderHistory()">
-        <option value="">ทุกความเร่งด่วน</option>
+        <option value="">ทุกความจองด่วน</option>
         <option value="ด่วน">🔴 ด่วน</option>
-        <option value="เร่ง">🟡 เร่ง</option>
+        <option value="จอง">🟡 จอง</option>
         <option value="ปกติ">🟢 ปกติ</option>
       </select>
     </div>
@@ -273,7 +273,7 @@ table.list tr:hover td{background:#f8fbff}
           <th style="text-align:left;min-width:180px">ชื่อ / ขนาดสินค้า</th>
           <th style="width:80px">กระสอบ</th>
           <th style="width:80px">กล่อง</th>
-          <th style="width:100px">ความเร่งด่วน</th>
+          <th style="width:100px">ความจองด่วน</th>
           <th style="width:80px">สถานะ</th>
           <th style="text-align:left;min-width:120px">หมายเหตุ</th>
         </tr></thead>
@@ -848,8 +848,8 @@ function renderStockList() {
 }
 
 // ---- Pending tab ----
-const urgColor2 = {'ด่วน':'#fee2e2','เร่ง':'#fef9c3','ปกติ':'#d1fae5'};
-const urgText2  = {'ด่วน':'🔴 ด่วน','เร่ง':'🟡 เร่ง','ปกติ':'🟢 ปกติ'};
+const urgColor2 = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'};
+const urgText2  = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
 
 function fmtOrderDate(d) {
   if (!d) return '-';
@@ -945,7 +945,7 @@ async function loadPending() {
               <th>รหัส</th>
               <th>กระสอบ</th>
               <th>กล่อง</th>
-              <th>ความเร่งด่วน</th>
+              <th>ความจองด่วน</th>
               <th>วันที่สั่ง</th>
               <th>หมายเหตุ</th>
               <th>จัดการ</th>
@@ -1056,8 +1056,8 @@ function renderHistory() {
     byCustomer[o.customer].push(o);
   });
 
-  const urgColor = {'ด่วน':'#fee2e2','เร่ง':'#fef9c3','ปกติ':'#d1fae5'};
-  const urgText = {'ด่วน':'🔴 ด่วน','เร่ง':'🟡 เร่ง','ปกติ':'🟢 ปกติ'};
+  const urgColor = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'};
+  const urgText = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
   let html = '';
   let totalSack = 0, totalBox = 0;
 
