@@ -137,7 +137,8 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .type-btn-stk{padding:6px 15px;border:1.5px solid #c8d6e5;border-radius:20px;background:white;cursor:pointer;font-size:13px;font-family:'Sarabun',sans-serif;color:#555;transition:all .12s;white-space:nowrap}
 .type-btn-stk:hover{border-color:#2563a8;color:#2563a8}
 .type-btn-stk.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
-.type-panel{display:none}.type-panel.active{display:block}
+.type-panel{display:block;margin-bottom:28px}
+.type-panel-title{font-size:15px;font-weight:700;color:#1a3a5c;padding:8px 12px;background:#f0f5ff;border-left:4px solid #1a3a5c;border-radius:0 6px 6px 0;margin-bottom:10px}
 .tbadge{display:inline-block;font-size:10px;border-radius:10px;padding:1px 6px;margin-left:4px;background:rgba(0,0,0,.12)}
 .tbadge.has{background:#16a34a;color:white}
 .type-btn-stk.active .tbadge{background:rgba(255,255,255,.25)}
@@ -741,9 +742,9 @@ function buildMatrix() {
   const isHua = HUA_NUT.some(t=>encT(t)===curEnc)||curEnc===HUA_NUT_ENC;
   const isNc = NC_NF_SM.some(t=>encT(t)===curEnc)||curEnc===NC_NF_SM_ENC;
   const huaDiv = document.createElement('div');
-  huaDiv.className = 'type-panel'+(isHua?' active':'');
+  huaDiv.className = 'type-panel';
   huaDiv.id = 'mp-'+HUA_NUT_ENC;
-  huaDiv.innerHTML = `<div class="nut-group-grid">
+  huaDiv.innerHTML = `<div class="type-panel-title">🔩 หัวน็อต</div><div class="nut-group-grid">
     <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล')}</div>
     <div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
@@ -754,25 +755,32 @@ function buildMatrix() {
     </div></div>`;
   panels.appendChild(huaDiv);
   const ncDiv = document.createElement('div');
-  ncDiv.className = 'type-panel'+(isNc?' active':'');
+  ncDiv.className = 'type-panel';
   ncDiv.id = 'mp-'+NC_NF_SM_ENC;
   ncDiv.innerHTML =
+    `<div class="type-panel-title">🎒 น็อตเหลี่ยม NC/NF</div>`+
     `<span class="nut-sub-title" style="margin-bottom:8px">น็อตเหลี่ยม NC</span>${buildTypeTable('น็อตเหลี่ยม NC')}`+
     `<span class="nut-sub-title" style="margin-top:16px;margin-bottom:8px">น็อตเหลี่ยม NF</span>${buildTypeTable('น็อตเหลี่ยม NF')}`;
   panels.appendChild(ncDiv);
   TYPES.forEach(t => {
     if (HUA_NUT.includes(t)||NC_NF_SM.includes(t)) return;
     const enc = encT(t); const div = document.createElement('div');
-    div.className = 'type-panel'+(enc===curEnc?' active':''); div.id = 'mp-'+enc;
-    div.innerHTML = buildTypeTable(t); panels.appendChild(div);
+    div.className = 'type-panel'; div.id = 'mp-'+enc;
+    div.innerHTML = `<div class="type-panel-title">${t}</div>` + buildTypeTable(t);
+    panels.appendChild(div);
   });
 }
 
 function switchStockType(enc) {
   curEnc = enc;
   document.querySelectorAll('.type-btn-stk').forEach(b=>b.classList.toggle('active',b.dataset.enc===enc));
-  document.querySelectorAll('.type-panel').forEach(p=>p.classList.remove('active'));
-  const p = document.getElementById('mp-'+enc); if(p) p.classList.add('active');
+  const el = document.getElementById('mp-'+enc);
+  if (el) {
+    const navWrap = document.querySelector('.type-nav-wrap');
+    const navBottom = navWrap ? navWrap.getBoundingClientRect().bottom : 60;
+    const elTop = el.getBoundingClientRect().top;
+    window.scrollBy({top: elTop - navBottom - 8, behavior:'smooth'});
+  }
 }
 
 function populateTypeFilter() {
