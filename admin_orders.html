@@ -132,8 +132,8 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .c-ok{background:#d1fae5}.c-low{background:#fef9c3}.c-out{background:#fee2e2}.c-blocked{background:#6b7280}
 .stk-v{display:block;font-size:16px;font-weight:700;color:#1a3a5c;line-height:1;margin-top:10px}
 .code-v{display:block;font-size:9px;color:#6b7280;margin-top:2px;font-family:monospace;line-height:1}
-.type-nav-wrap{overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
-.type-nav{display:flex;gap:6px;min-width:max-content}
+.type-nav-wrap{margin-bottom:12px}
+.type-nav{display:flex;flex-wrap:wrap;gap:6px}
 .type-btn-stk{padding:6px 15px;border:1.5px solid #c8d6e5;border-radius:20px;background:white;cursor:pointer;font-size:13px;font-family:'Sarabun',sans-serif;color:#555;transition:all .12s;white-space:nowrap}
 .type-btn-stk:hover{border-color:#2563a8;color:#2563a8}
 .type-btn-stk.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
@@ -773,6 +773,8 @@ function switchStockType(enc) {
   document.querySelectorAll('.type-btn-stk').forEach(b=>b.classList.toggle('active',b.dataset.enc===enc));
   document.querySelectorAll('.type-panel').forEach(p=>p.classList.remove('active'));
   const p = document.getElementById('mp-'+enc); if(p) p.classList.add('active');
+  const matrixTop = document.getElementById('stk-matrix-panels');
+  if(matrixTop) matrixTop.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function populateTypeFilter() {
