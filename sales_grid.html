@@ -393,9 +393,9 @@ function scrollToType(type, btn) {
   const el = document.getElementById('type-' + type.replace(/[\s()\/]/g,'_'));
   if (el) {
     const navWrap = document.getElementById('typeNav');
-    const offset = (navWrap ? navWrap.offsetTop + navWrap.offsetHeight : 160) + 8;
-    const top = el.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({top, behavior:'smooth'});
+    const navBottom = navWrap ? navWrap.getBoundingClientRect().bottom : 160;
+    const elTop = el.getBoundingClientRect().top;
+    window.scrollBy({top: elTop - navBottom - 8, behavior:'instant'});
   }
 }
 
