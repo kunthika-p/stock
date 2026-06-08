@@ -136,8 +136,8 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .c-ok{background:#d1fae5}.c-low{background:#fef9c3}.c-out{background:#fee2e2}.c-blocked{background:#6b7280}
 .stk-v{display:block;font-size:16px;font-weight:700;color:#1a3a5c;line-height:1;margin-top:10px}
 .code-v{display:block;font-size:9px;color:#6b7280;margin-top:2px;font-family:monospace;line-height:1}
-.type-nav-wrap{overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
-.type-nav{display:flex;gap:6px;min-width:max-content}
+.type-nav-wrap{padding-bottom:4px;margin-bottom:12px}
+.type-nav{display:flex;gap:6px;flex-wrap:wrap}
 .type-btn-stk{padding:6px 15px;border:1.5px solid #c8d6e5;border-radius:20px;background:white;cursor:pointer;font-size:13px;font-family:'Sarabun',sans-serif;color:#555;transition:all .12s;white-space:nowrap}
 .type-btn-stk:hover{border-color:#2563a8;color:#2563a8}
 .type-btn-stk.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
@@ -297,7 +297,7 @@ table.list tr:hover td{background:#f8fbff}
         <div class="ov-card red"><div class="val" id="ov-out">—</div><div class="lbl">หมดสต็อค</div></div>
       </div>
       <div style="background:white;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.09);overflow:hidden">
-        <div style="padding:14px 16px;font-size:15px;font-weight:700;color:#1a3a5c;border-bottom:1px solid #eee">รายการสต็อคทั้งหมด</div>
+        <div style="padding:14px 16px;font-size:15px;font-weight:700;color:#1a3a5c;border-bottom:1px solid #eee">สินค้าที่ต้องดูแล (น้อย + หมด)</div>
         <div class="tbl-wrap"><table class="ov-tbl">
           <thead><tr>
             <th style="width:110px">รหัส</th>
@@ -466,9 +466,10 @@ async function loadOverview() {
     document.getElementById('ov-ok').textContent = ok;
     document.getElementById('ov-low').textContent = low;
     document.getElementById('ov-out').textContent = out;
+    const filtered = items.filter(i => (Number(i.stock)||0) < 20);
     const tbody = document.getElementById('ovTbody');
-    if (!items.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa">ไม่มีข้อมูล</td></tr>'; return; }
-    tbody.innerHTML = items.map(i => {
+    if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#16a34a">✅ สต็อคปกติทุกรายการ</td></tr>'; return; }
+    tbody.innerHTML = filtered.map(i => {
       const s = Number(i.stock)||0;
       const [cls, lbl] = s <= 0 ? ['sb-out','หมด'] : s < 20 ? ['sb-low','ต่ำ'] : ['sb-ok','ปกติ'];
       const name = fmtName([i.type, i.col, i.row].filter(Boolean).join(' '));
