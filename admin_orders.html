@@ -1262,4 +1262,14 @@ async function packSubmit() {
     showToast(`✅ บรรจุแล้ว: −${tankUsed} ถัง → +${outQty} ${outUnit}`);
     document.getElementById('pack-search').value=''; document.getElementById('pack-search').dataset.code=''; document.getElementById('pack-search').dataset.name='';
     document.getElementById('pack-tank-qty').value=''; document.getElementById('pack-out-qty').value='';
-    document.getElementById
+    document.getElementById('pack-recorder').value='';
+    document.getElementById('pack-tank-info').style.display='none';
+    document.getElementById('pack-preview').innerHTML='';
+    packTankQty=0;
+    packUpdatePreview();
+  } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
+  btn.textContent='📦 ยืนยันการบรรจุสินค้า'; btn.disabled=false;
+}
+</script>
+</body>
+</html>
