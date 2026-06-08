@@ -471,9 +471,9 @@ function fmtName(n) {
 let curEnc = encT(TYPES[0]);
 
 function encT(t){return btoa(encodeURIComponent(t)).replace(/[^a-zA-Z0-9]/g,'');}
-function getStock(code){return stockMap[code]||{stock:0};}
-function sts(s){return s>=20?'ok':s>0?'low':'out';}
-function badge(s){const st=sts(s);return`<span class="badge ${st}">${st==='ok'?'ปกติ':st==='low'?'น้อย':'หมด'}</span>`;}
+function getStock(code){return stockMap[code]||{stock:0,min_qty:0};}
+function sts(s,min){const m=(min!=null&&min>0)?min:20;return s>=m?'ok':s>0?'low':'out';}
+function badge(s,min){const st=sts(s,min);return`<span class="badge ${st}">${st==='ok'?'ปกติ':st==='low'?'น้อย':'หมด'}</span>`;}
 function getUnit(type){return BOX_TYPES.includes(type)?'กล่อง':'กระสอบ';}
 
 // ---- Tab switching ----
@@ -494,9 +494,9 @@ function renderOvTable() {
   let rows = ovItems.map(i => ({...i, s: Number(i.stock)||0}));
   // sort: out first, then low, then ok
   rows.sort((a,b) => a.s - b.s);
-  if (filter === 'alert') rows = rows.filter(r => r.s < 20);
+  if (filter === 'alert') rows = rows.filter(r => sts(r.s, Number(r.min_qty)||0) !== 'ok');
   else if (filter === 'out') rows = rows.filter(r => r.s <= 0);
-  else if (filter === 'low') rows = rows.filter(r => r.s > 0 && r.s < 20);
+  else if (filter === 'low') rows = rows.filter(r => r.s > 0 && sts(r.s, Number(r.min_qty)||0) === 'low');
   if (!rows.length) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#16a34a;font-weight:600">✅ ไม่มีสินค้าที่ต้องดูแล</td></tr>';
     return;
@@ -526,7 +526,8 @@ async function loadOverview() {
     let ok=0, low=0, out=0;
     ovItems.forEach(i => {
       const s = Number(i.stock)||0;
-      if (s <= 0) out++; else if (s < 20) low++; else ok++;
+      const m = Number(i.min_qty)||0;
+      if (s <= 0) out++; else if (sts(s,m)==='low') low++; else ok++;
     });
     document.getElementById('ov-total').textContent = ovItems.length;
     document.getElementById('ov-ok').textContent = ok;
@@ -697,7 +698,7 @@ async function loadStock() {
     if (data.items) {
       stockMap = {};
       allItems = data.items.map(x => ({ ...x, code: String(x.code).padStart(8,'0') }));
-      allItems.forEach(x => { stockMap[x.code] = { stock: Number(x.stock)||0 }; });
+      allItems.forEach(x => { stockMap[x.code] = { stock: Number(x.stock)||0, min_qty: Number(x.min_qty)||0 }; });
       buildStockNav();
       buildMatrix();
       populateTypeFilter();
@@ -751,7 +752,7 @@ function buildTypeTable(t) {
       const it = catItems.find(x => String(x.col)===String(col) && String(x.row)===String(row));
       if (!it) { h += '<td class="stk-cell c-blocked"></td>'; return; }
       const s = getStock(it.code);
-      const cls = s.stock>=20?'c-ok':s.stock>0?'c-low':'c-out';
+      const cls = sts(s.stock,s.min_qty||it.min_qty||0)==='ok'?'c-ok':sts(s.stock,s.min_qty||it.min_qty||0)==='low'?'c-low':'c-out';
       h += `<td class="stk-cell ${cls}"><span class="stk-v">${s.stock}</span><span class="code-v">${it.code}</span></td>`;
     });
     h += '</tr>';
@@ -830,7 +831,7 @@ function renderStockList() {
     const s = getStock(x.code).stock;
     if (q && !(x.code+' '+x.type+' '+x.col+' '+x.row).toLowerCase().includes(q)) return false;
     if (ft && x.type !== ft) return false;
-    if (fs && sts(s) !== fs) return false;
+    if (fs && sts(s, getStock(x.code).min_qty||Number(x.min_qty)||0) !== fs) return false;
     return true;
   });
   document.getElementById('stk-list-count').textContent = `(แสดง ${rows.length} จาก ${allItems.length})`;
@@ -838,12 +839,13 @@ function renderStockList() {
   if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty">ไม่พบรายการ</div></td></tr>'; return; }
   tbody.innerHTML = rows.map(x => {
     const s = getStock(x.code); const unit = getUnit(x.type);
+    const minq = s.min_qty||Number(x.min_qty)||0;
     return `<tr>
       <td style="font-family:monospace;font-size:13px;font-weight:700;color:#1a3a5c">${x.code}</td>
       <td style="font-size:13px">${x.type}</td><td>${x.col}</td><td>${x.row}</td>
-      <td style="text-align:right;font-weight:700;font-size:15px">${s.stock}</td>
+      <td style="text-align:right;font-weight:700;font-size:15px">${s.stock}${minq>0?`<span style="font-size:10px;color:#888;margin-left:4px">/${minq}</span>`:''}</td>
       <td><span style="font-size:12px;background:#f3f4f6;padding:2px 8px;border-radius:6px">${unit}</span></td>
-      <td>${badge(s.stock)}</td></tr>`;
+      <td>${badge(s.stock,minq)}</td></tr>`;
   }).join('');
 }
 
