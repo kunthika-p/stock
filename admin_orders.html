@@ -1271,6 +1271,12 @@ async function packSubmit() {
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
   btn.textContent='📦 ยืนยันการบรรจุสินค้า'; btn.disabled=false;
 }
+
+// ── เริ่มต้น: โหลด ภาพรวม อัตโนมัติเมื่อหน้าพร้อม ───────────
+document.addEventListener('DOMContentLoaded', function() {
+  loadOverview();
+  loadPendingCount();
+});
 </script>
 </body>
 </html>
