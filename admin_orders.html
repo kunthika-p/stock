@@ -483,6 +483,7 @@ function switchTab(name, btn) {
   btn.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
   if (name === 'overview') loadOverview();
+  if (name === 'stock')    loadStock();
 }
 
 // ── ภาพรวม ────────────────────────────────────────────────────
