@@ -28,7 +28,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .order-code{font-size:11px;color:#888;font-family:monospace}
 .urgency-badge{padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;white-space:nowrap}
 .u-ด่วน{background:#fee2e2;color:#991b1b}
-.u-เร่ง{background:#fef9c3;color:#92400e}
+.u-จอง{background:#fef9c3;color:#92400e}
 .u-ปกติ{background:#d1fae5;color:#065f46}
 .order-detail{font-size:13px;color:#555;margin-bottom:12px;line-height:1.8}
 .order-detail span{font-weight:600;color:#222}
@@ -55,7 +55,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .edit-urg-btn{flex:1;padding:8px 4px;border:2px solid #d1d5db;border-radius:8px;background:white;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .12s;opacity:.55}
 .edit-urg-btn.active{opacity:1;border-width:2.5px}
 .edit-urg-btn[data-urg="ปกติ"].active{border-color:#16a34a;background:#d1fae5;color:#065f46}
-.edit-urg-btn[data-urg="เร่ง"].active{border-color:#d97706;background:#fef9c3;color:#92400e}
+.edit-urg-btn[data-urg="จอง"].active{border-color:#d97706;background:#fef9c3;color:#92400e}
 .edit-urg-btn[data-urg="ด่วน"].active{border-color:#dc2626;background:#fee2e2;color:#991b1b}
 .empty{text-align:center;color:#aaa;padding:40px;font-size:15px}
 .loading{text-align:center;color:#888;padding:40px}
@@ -267,7 +267,7 @@ table.list tr:hover td{background:#f8fbff}
       <select id="hist-urgency" onchange="renderHistory()">
         <option value="">ทุกความเร่งด่วน</option>
         <option value="ด่วน">🔴 ด่วน</option>
-        <option value="เร่ง">🟡 เร่ง</option>
+        <option value="จอง">🟡 จอง</option>
         <option value="ปกติ">🟢 ปกติ</option>
       </select>
     </div>
@@ -388,7 +388,7 @@ table.list tr:hover td{background:#f8fbff}
       <label>ความเร่งด่วน</label>
       <div class="edit-urg-group">
         <button class="edit-urg-btn" data-urg="ปกติ" onclick="setEditUrg('ปกติ',this)">🟢 ปกติ</button>
-        <button class="edit-urg-btn" data-urg="เร่ง" onclick="setEditUrg('เร่ง',this)">🟡 เร่ง</button>
+        <button class="edit-urg-btn" data-urg="จอง" onclick="setEditUrg('จอง',this)">🟡 จอง</button>
         <button class="edit-urg-btn" data-urg="ด่วน" onclick="setEditUrg('ด่วน',this)">🔴 ด่วน</button>
       </div>
     </div>
@@ -884,8 +884,8 @@ function renderStockList() {
 }
 
 // ---- Pending tab ----
-const urgColor2 = {'ด่วน':'#fee2e2','เร่ง':'#fef9c3','ปกติ':'#d1fae5'};
-const urgText2  = {'ด่วน':'🔴 ด่วน','เร่ง':'🟡 เร่ง','ปกติ':'🟢 ปกติ'};
+const urgColor2 = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'};
+const urgText2  = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
 
 function fmtOrderDate(d) {
   if (!d) return '-';
@@ -928,7 +928,7 @@ async function loadPending() {
   }
 }
 
-const urgOrder = {'ด่วน':0,'เร่ง':1,'ปกติ':2,'':3};
+const urgOrder = {'ด่วน':0,'จอง':1,'ปกติ':2,'':3};
 const gradeOrder2 = {'A':0,'B':1,'C':2,'D':3,'':4};
 
 function renderPendingTable() {
@@ -938,7 +938,7 @@ function renderPendingTable() {
   // ติด _unit ให้แต่ละ order
   orders.forEach(o => {
     const _si = allItems.find(x => x.code === o.code);
-    const VALID_URG = ['ด่วน','เร่ง','ปกติ'];
+    const VALID_URG = ['ด่วน','จอง','เร่ง','ปกติ']; // เร่ง ไว้รองรับ orders เก่า
     const UNIT_VALS = ['กล่อง','กระสอบ'];
     // ตรวจว่า urgency/note สลับกัน (orders เก่าที่เก็บ unit ไว้ใน urgency field)
     if (VALID_URG.includes(o.urgency)) {
@@ -978,8 +978,8 @@ function renderPendingTable() {
     });
   } else if (pendingSort === 'urgency') {
     sortedCusts.sort((a,b) => {
-      const ua = Math.min(...grouped[a].map(o => urgOrder[o.urgency]??3));
-      const ub = Math.min(...grouped[b].map(o => urgOrder[o.urgency]??3));
+      const ua = Math.min(...grouped[a].map(o => urgOrder[o._urgency]??3));
+      const ub = Math.min(...grouped[b].map(o => urgOrder[o._urgency]??3));
       return ua - ub;
     });
   } else if (pendingSort === 'date') {
@@ -1192,6 +1192,21 @@ async function loadHistory() {
     const res = await fetch(API + '?action=getOrders&status=all');
     const data = await res.json();
     historyData = (data.orders||[]).filter(o => o.status !== 'pending').reverse();
+    // resolve urgency/note เหมือน pending (รองรับ orders เก่าที่เก็บ column สลับกัน)
+    const VALID_URG2 = ['ด่วน','จอง','เร่ง','ปกติ'];
+    const UNIT_VALS2 = ['กล่อง','กระสอบ'];
+    historyData.forEach(o => {
+      if (VALID_URG2.includes(o.urgency)) {
+        o._urgency = o.urgency;
+        o._note = (UNIT_VALS2.includes(o.note)||VALID_URG2.includes(o.note)) ? '' : (o.note||'');
+      } else if (VALID_URG2.includes(o.note)) {
+        o._urgency = o.note;
+        o._note = '';
+      } else {
+        o._urgency = '';
+        o._note = (UNIT_VALS2.includes(o.note)||VALID_URG2.includes(o.note)) ? '' : (o.note||'');
+      }
+    });
     renderHistory();
   } catch(e) {}
 }
@@ -1215,7 +1230,7 @@ function renderHistory() {
   const fu = document.getElementById('hist-urgency').value;
   let rows = historyData.filter(o => {
     if (q && !(o.customer+' '+(o.name||o.code)).toLowerCase().includes(q)) return false;
-    if (fu && o.urgency !== fu) return false;
+    if (fu && o._urgency !== fu) return false;
     return true;
   });
 
@@ -1232,8 +1247,8 @@ function renderHistory() {
     byCustomer[o.customer].push(o);
   });
 
-  const urgColor = {'ด่วน':'#fee2e2','เร่ง':'#fef9c3','ปกติ':'#d1fae5'};
-  const urgText = {'ด่วน':'🔴 ด่วน','เร่ง':'🟡 เร่ง','ปกติ':'🟢 ปกติ'};
+  const urgColor = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'};
+  const urgText = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
   let html = '';
   let totalSack = 0, totalBox = 0;
 
@@ -1252,9 +1267,9 @@ function renderHistory() {
         <td class="td-name">${fmtName(o.name||o.code)}</td>
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?qty:''}</td>
-        <td><span style="background:${urgColor[o.urgency]||'#f3f4f6'};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600">${urgText[o.urgency]||o.urgency}</span></td>
+        <td><span style="background:${urgColor[o._urgency]||'#f3f4f6'};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600">${urgText[o._urgency]||o._urgency||'-'}</span></td>
         <td>${statusHtml}</td>
-        <td class="td-left" style="font-size:12px;color:#888">${(['กล่อง','กระสอบ'].includes(o.note)) ? '' : (o.note||'')}</td>
+        <td class="td-left" style="font-size:12px;color:#888">${o._note||''}</td>
       </tr>`;
     });
     // สรุปต่อลูกค้า
