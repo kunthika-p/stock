@@ -34,6 +34,9 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .order-detail span{font-weight:600;color:#222}
 .order-actions{display:flex;gap:8px}
 .btn-confirm{background:#16a34a;color:white;border:none;border-radius:7px;padding:5px 10px;font-size:12px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
+.btn-sel-cust{display:inline-flex;align-items:center;gap:2px;padding:1px 6px;background:transparent;color:#9ca3af;border:0.5px solid #d1d5db;border-radius:4px;font-size:10px;font-family:'Sarabun',sans-serif;cursor:pointer;margin-left:5px;vertical-align:middle}
+.btn-sel-cust i{font-size:11px}
+.btn-sel-cust:hover{background:#eff6ff;color:#2563a8;border-color:#93c5fd}
 .btn-reject{background:white;color:#dc2626;border:1.5px solid #dc2626;border-radius:7px;padding:5px 10px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer}
 .btn-edit{background:white;color:#d97706;border:1.5px solid #d97706;border-radius:7px;padding:5px 10px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer}
 /* Edit modal */
@@ -1005,9 +1008,10 @@ function renderPendingTable() {
       const qty = Number(o.qty)||0;
       if (isBox) custBox += qty; else custSack += qty;
       rows += `<tr class="${idx===0?'cust-sep':''}">
-        <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" onchange="updateBulkCount()"></td>
+        <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-customer="${cust}" onchange="updateBulkCount()"></td>
         <td>${idx===0?`<span class="grade-badge ${gbClass}">${grade||'—'}</span>`:''}</td>
-        <td class="td-left" style="font-weight:700;color:#1a3a5c">${idx===0?cust:''}</td>
+        <td class="td-left" style="font-weight:700;color:#1a3a5c">${idx===0?`${cust}<button class="btn-sel-cust" onclick="selectCustomer('${cust.replace(/'/g,"\\'")}')" title="เลือกทั้งหมดของ ${cust}"><i class="ti ti-checks" aria-hidden="true"></i>เลือกทั้งหมด</button>`:''}
+        </td>
         <td class="td-left" style="color:#374151">${fmtName(o.name||o.code)}</td>
         <td style="font-family:monospace;font-size:11px">${o.code}</td>
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
@@ -1080,6 +1084,11 @@ function renderPendingTable() {
         </table>
       </div>
     </div>`;
+}
+
+function selectCustomer(cust) {
+  document.querySelectorAll(`.pend-chk[data-customer="${CSS.escape(cust)}"]`).forEach(chk => { chk.checked = true; });
+  updateBulkCount();
 }
 
 function updateBulkCount() {
