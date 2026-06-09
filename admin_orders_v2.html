@@ -34,9 +34,6 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .order-detail span{font-weight:600;color:#222}
 .order-actions{display:flex;gap:8px}
 .btn-confirm{background:#16a34a;color:white;border:none;border-radius:7px;padding:5px 10px;font-size:12px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
-.btn-sel-cust{display:inline-flex;align-items:center;gap:2px;padding:1px 6px;background:transparent;color:#9ca3af;border:0.5px solid #d1d5db;border-radius:4px;font-size:10px;font-family:'Sarabun',sans-serif;cursor:pointer;margin-left:5px;vertical-align:middle}
-.btn-sel-cust i{font-size:11px}
-.btn-sel-cust:hover{background:#eff6ff;color:#2563a8;border-color:#93c5fd}
 .btn-reject{background:white;color:#dc2626;border:1.5px solid #dc2626;border-radius:7px;padding:5px 10px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer}
 .btn-edit{background:white;color:#d97706;border:1.5px solid #d97706;border-radius:7px;padding:5px 10px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer}
 /* Edit modal */
@@ -1008,9 +1005,9 @@ function renderPendingTable() {
       const qty = Number(o.qty)||0;
       if (isBox) custBox += qty; else custSack += qty;
       rows += `<tr class="${idx===0?'cust-sep':''}">
-        <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-customer="${cust}" onchange="updateBulkCount()"></td>
+        <td style="text-align:center">${idx===0?`<button onclick="confirmCustomer('${cust.replace(/'/g,"\\'")}',${items.length})" title="ยืนยันทั้งหมดของ ${cust}" style="background:none;border:none;cursor:pointer;color:#16a34a;font-size:15px;padding:0;display:inline-flex;align-items:center;justify-content:center"><i class="ti ti-square-check"></i></button>`:''}</td>
         <td>${idx===0?`<span class="grade-badge ${gbClass}">${grade||'—'}</span>`:''}</td>
-        <td class="td-left" style="font-weight:700;color:#1a3a5c">${idx===0?`${cust}<button class="btn-sel-cust" onclick="selectCustomer('${cust.replace(/'/g,"\\'")}')" title="เลือกทั้งหมดของ ${cust}"><i class="ti ti-checks" aria-hidden="true"></i>เลือกทั้งหมด</button>`:''}
+        <td class="td-left" style="font-weight:700;color:#1a3a5c">${idx===0?cust:''}
         </td>
         <td class="td-left" style="color:#374151">${fmtName(o.name||o.code)}</td>
         <td style="font-family:monospace;font-size:11px">${o.code}</td>
@@ -1063,13 +1060,13 @@ function renderPendingTable() {
             ${sortOpts}
           </select>
         </div>
-        <button id="bulkConfirmBtn" class="btn-confirm" style="display:none;padding:6px 12px;font-size:12px" onclick="bulkConfirm()">✅ ยืนยันที่เลือก (<span id="bulkCount">0</span>)</button>
+        <button class="btn-confirm" style="padding:5px 13px;font-size:12px;display:flex;align-items:center;gap:4px" onclick="confirmAllOrders()"><i class="ti ti-checks" style="font-size:13px"></i> ยืนยันทั้งหมด</button>
       </div>
       <div class="tbl-wrap">
         <table class="pend-tbl">
           <thead><tr>
-            <th style="width:26px"><input type="checkbox" onclick="toggleAllPend(this)" title="เลือกทั้งหมด"></th>
-            <th style="width:30px">เกรด</th>
+            <th style="width:34px"><i class="ti ti-square-check" style="font-size:14px;color:#16a34a"></i></th>
+            <th style="width:30px">กลุ่ม</th>
             <th style="text-align:left;min-width:90px">ลูกค้า</th>
             <th style="text-align:left;min-width:150px">ชื่อสินค้า</th>
             <th>รหัส</th>
@@ -1086,40 +1083,37 @@ function renderPendingTable() {
     </div>`;
 }
 
-function selectCustomer(cust) {
-  document.querySelectorAll(`.pend-chk[data-customer="${CSS.escape(cust)}"]`).forEach(chk => { chk.checked = true; });
-  updateBulkCount();
-}
-
-function updateBulkCount() {
-  const n = document.querySelectorAll('.pend-chk:checked').length;
-  const btn = document.getElementById('bulkConfirmBtn');
-  if (btn) {
-    btn.style.display = n > 0 ? '' : 'none';
-    const span = document.getElementById('bulkCount');
-    if (span) span.textContent = n;
-  }
-}
-
-function toggleAllPend(el) {
-  document.querySelectorAll('.pend-chk').forEach(c => { c.checked = el.checked; });
-  updateBulkCount();
-}
-
-async function bulkConfirm() {
-  const checked = [...document.querySelectorAll('.pend-chk:checked')];
-  if (!checked.length) return;
-  if (!confirm(`ยืนยัน ${checked.length} รายการ?`)) return;
+async function confirmCustomer(cust, count) {
+  if (!confirm(`ยืนยัน order ทั้งหมด ${count} รายการของ "${cust}"?`)) return;
+  const orders = pendingOrders.filter(o => o.customer === cust);
   let ok = 0, fail = 0;
-  for (const chk of checked) {
+  for (const o of orders) {
+    const qty = Number(o.qty)||0;
     try {
       await fetch(API, { method:'POST', body:JSON.stringify({
-        action:'confirmOrder', row:Number(chk.dataset.row), code:chk.dataset.code, qty:Number(chk.dataset.qty)
+        action:'confirmOrder', row:Number(o.row), code:o.code, qty
       })});
       ok++;
     } catch(e) { fail++; }
   }
-  showToast(`✅ ยืนยัน ${ok} รายการแล้ว${fail?' (ล้มเหลว '+fail+')':''}`);
+  showToast(`✅ ยืนยัน ${ok} รายการของ ${cust} แล้ว${fail?' (ล้มเหลว '+fail+')':''}`);
+  loadPending(); loadHistory();
+}
+
+async function confirmAllOrders() {
+  if (!pendingOrders.length) return;
+  if (!confirm(`ยืนยัน order ทั้งหมด ${pendingOrders.length} รายการ?`)) return;
+  let ok = 0, fail = 0;
+  for (const o of pendingOrders) {
+    const qty = Number(o.qty)||0;
+    try {
+      await fetch(API, { method:'POST', body:JSON.stringify({
+        action:'confirmOrder', row:Number(o.row), code:o.code, qty
+      })});
+      ok++;
+    } catch(e) { fail++; }
+  }
+  showToast(`✅ ยืนยันทั้งหมด ${ok} รายการแล้ว${fail?' (ล้มเหลว '+fail+')':''}`);
   loadPending(); loadHistory();
 }
 
