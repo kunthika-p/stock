@@ -648,8 +648,8 @@ async function siSubmit() {
   btn.textContent = '💾 บันทึกรับสินค้าเข้า'; btn.disabled = false;
 }
 
-function loadAll() {
-  loadStock();
+async function loadAll() {
+  await loadStock();
   loadPending();
   loadHistory();
 }
@@ -908,7 +908,10 @@ async function loadPending() {
       let custSack = 0, custBox = 0;
 
       items.forEach((o, idx) => {
-        const _unit = (o.unit && o.unit !== '') ? o.unit : ((o.note === 'กล่อง' || o.note === 'กระสอบ') ? o.note : 'กระสอบ');
+        const _stockItem = allItems.find(x => x.code === o.code);
+        const _unit = _stockItem ? getUnit(resolveType(_stockItem))
+          : (o.unit && o.unit !== '') ? o.unit
+          : ((o.note === 'กล่อง' || o.note === 'กระสอบ') ? o.note : 'กระสอบ');
         const isBox = _unit === 'กล่อง';
         const qty = Number(o.qty)||0;
         if (isBox) custBox += qty; else custSack += qty;
