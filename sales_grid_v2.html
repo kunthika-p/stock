@@ -413,6 +413,8 @@ function renderAll() {
     if (type === '__HUA_NUT__') {
       const wrap = document.createElement('div');
       wrap.className = 'tbl-wrap';
+      const huaRow = document.createElement('div');
+      huaRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start';
       HUA_NUT.forEach(ht => {
         const subwrap = document.createElement('div');
         subwrap.id = 'type-' + ht.replace(/[\s()\\/]/g,'_');
@@ -425,15 +427,15 @@ function renderAll() {
         html2 += `<th class="th-corner">ขนาด / น้ำหนัก</th>`;
         cols2.forEach(c => html2 += `<th class="th-col">${c}</th>`);
         html2 += '</tr></thead><tbody>';
-        rows2.forEach(row => {
-          html2 += `<tr><td class="td-row">${row}</td>`;
+        rows2.forEach(r => {
+          html2 += `<tr><td class="td-row">${r}</td>`;
           cols2.forEach(col => {
-            const item = htItems.find(p => String(p.col)===String(col) && String(p.row)===String(row));
+            const item = htItems.find(p => String(p.col)===String(col) && String(p.row)===String(r));
             if (!item) { html2 += `<td class="stk-cell blocked"></td>`; return; }
             const hasStock = Number(item.stock) > 0;
             const cls = hasStock ? 'has' : 'out';
             const tick = hasStock ? '✅' : '❌';
-            const nm = (ht+' '+col+' '+row).replace(/'/g,"\\'");
+            const nm = (ht+' '+col+' '+r).replace(/'/g,"\\'");
             const t2 = ht.replace(/'/g,"\\'");
             const onclick2 = hasStock ? `onclick="openModal('${item.code}','${nm}','${t2}')"` : '';
             html2 += `<td class="stk-cell ${cls}" ${onclick2}><span class="cell-tick">${tick}</span><span class="cell-code">${item.code}</span></td>`;
@@ -442,8 +444,9 @@ function renderAll() {
         });
         html2 += '</tbody></table></div>';
         subwrap.innerHTML = html2;
-        wrap.appendChild(subwrap);
+        huaRow.appendChild(subwrap);
       });
+      wrap.appendChild(huaRow);
       content.appendChild(wrap);
       return;
     }
