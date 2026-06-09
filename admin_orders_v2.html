@@ -938,9 +938,24 @@ function renderPendingTable() {
   // ติด _unit ให้แต่ละ order
   orders.forEach(o => {
     const _si = allItems.find(x => x.code === o.code);
+    const VALID_URG = ['ด่วน','เร่ง','ปกติ'];
+    const UNIT_VALS = ['กล่อง','กระสอบ'];
+    // ตรวจว่า urgency/note สลับกัน (orders เก่าที่เก็บ unit ไว้ใน urgency field)
+    if (VALID_URG.includes(o.urgency)) {
+      o._urgency = o.urgency;
+      o._note = (UNIT_VALS.includes(o.note)||VALID_URG.includes(o.note)) ? '' : (o.note||'');
+    } else if (VALID_URG.includes(o.note)) {
+      o._urgency = o.note;   // urgency เก็บผิด field
+      o._note = '';
+    } else {
+      o._urgency = '';
+      o._note = (UNIT_VALS.includes(o.note)||VALID_URG.includes(o.note)) ? '' : (o.note||'');
+    }
+    // _unit: ใช้จาก stock ก่อน → o.unit → ถ้า urgency เป็น unit value → note
     o._unit = _si ? getUnit(resolveType(_si))
       : (o.unit && o.unit !== '') ? o.unit
-      : ((o.note === 'กล่อง' || o.note === 'กระสอบ') ? o.note : 'กระสอบ');
+      : (UNIT_VALS.includes(o.urgency) ? o.urgency
+      : (UNIT_VALS.includes(o.note) ? o.note : 'กระสอบ'));
   });
 
   // จัดกลุ่มตามลูกค้า
@@ -997,9 +1012,9 @@ function renderPendingTable() {
         <td style="font-family:monospace;font-size:11px">${o.code}</td>
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?qty:''}</td>
-        <td><span style="background:${urgColor2[o.urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o.urgency]||o.urgency||'-'}</span></td>
+        <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
         <td style="font-size:11px;white-space:nowrap">${getOrderDate(o)}</td>
-        <td style="font-size:11px;color:#666">${(['กล่อง','กระสอบ'].includes(o.note)) ? '' : (o.note||'')}</td>
+        <td style="font-size:11px;color:#666">${o._note}</td>
         <td>
           <div class="pend-actions">
             <button class="btn-confirm" onclick="confirmOrder(${o.row},'${o.code}',${qty})">✅</button>
@@ -1105,10 +1120,9 @@ let editUrgency = 'ปกติ';
 function openEditModalByRow(row) {
   const o = pendingOrders.find(x => x.row === row);
   if (!o) return;
-  const _si = allItems.find(x => x.code === o.code);
-  const unit = _si ? getUnit(resolveType(_si)) : (o.unit||'กระสอบ');
-  const noteVal = (['กล่อง','กระสอบ'].includes(o.note)) ? '' : (o.note||'');
-  openEditModal(row, o.name||o.code, o.code, o.qty, unit, o.urgency||'ปกติ', noteVal);
+  // ใช้ _unit และ _urgency/_note ที่ resolve แล้ว (จาก renderPendingTable)
+  const unit = o._unit || 'กระสอบ';
+  openEditModal(row, o.name||o.code, o.code, o.qty, unit, o._urgency||'ปกติ', o._note||'');
 }
 
 function openEditModal(row, name, code, qty, unit, urgency, note) {
