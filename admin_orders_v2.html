@@ -880,6 +880,17 @@ function fmtOrderDate(d) {
 function getOrderDate(o) { return fmtOrderDate(o.date || o.timestamp); }
 
 async function loadPending() {
+  // ถ้า allItems ยังไม่ได้โหลด ดึงมาก่อนเพื่อให้ resolveType ทำงานได้
+  if (!allItems.length) {
+    try {
+      const sr = await fetch(API + '?action=getStock');
+      const sd = await sr.json();
+      if (sd.items) {
+        allItems = sd.items.map(x => ({ ...x, code: String(x.code).padStart(8,'0') }));
+        allItems.forEach(x => { stockMap[x.code] = { stock: Number(x.stock)||0 }; });
+      }
+    } catch(e) {}
+  }
   try {
     const res = await fetch(API + '?action=getOrders&status=pending');
     const data = await res.json();
