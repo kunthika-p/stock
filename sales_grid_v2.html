@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>สั่งสินค้า — STIC</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15px}
@@ -48,6 +49,29 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .th-col{background:#1a3a5c;color:white;padding:4px 2px;font-size:12px;text-align:center;white-space:nowrap;width:70px}
 .td-row{background:#f0f5ff;font-weight:700;padding:0 8px;text-align:center;color:#1a3a5c;border-right:2px solid #c8d6e5;white-space:nowrap;font-size:12px;min-width:80px}
 .stk-cell{width:70px;height:50px;text-align:center;vertical-align:middle;padding:0;overflow:hidden}
+
+@media(max-width:900px){
+  .header{padding:8px 12px}
+  .header h1{font-size:15px}
+  .header p{font-size:10px}
+  .customer-bar{padding:6px 10px;top:44px}
+  .type-nav-wrap{top:90px;padding:6px 8px;gap:4px}
+  .type-btn{padding:4px 10px;font-size:11px}
+  .content{padding:8px}
+  .tbl-wrap{padding:8px}
+  .type-title{font-size:13px}
+  .th-corner{padding:4px 6px;font-size:9px;min-width:52px}
+  .th-col{padding:3px 1px;font-size:9px;width:44px}
+  .td-row{padding:0 4px;font-size:9px;min-width:52px}
+  .stk-cell{width:44px;height:34px}
+  .cell-tick{font-size:13px}
+  .cell-code{font-size:7px}
+  #sales-tab-history{padding:10px}
+  #sales-tab-history table{font-size:11px}
+  #sales-tab-history th,#sales-tab-history td{padding:5px 6px}
+  .cart-bar .cart-info{font-size:12px}
+  .cart-bar .btn-cart{padding:7px 13px;font-size:12px}
+}
 .stk-cell.has{background:#d1fae5;cursor:pointer}
 .stk-cell.has:hover{background:#a7f3d0}
 .stk-cell.has.locked{background:#d1fae5;cursor:not-allowed;opacity:.6}
@@ -166,7 +190,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
           <th style="padding:9px 10px">กล่อง</th>
           <th style="padding:9px 10px">ความเร่งด่วน</th>
           <th style="padding:9px 10px;text-align:left">หมายเหตุ</th>
-          <th style="padding:9px 10px;width:90px">จัดการ</th>
+          <th style="padding:9px 10px;width:60px"></th>
         </tr></thead>
         <tbody id="sales-hist-tbody">
           <tr><td colspan="8" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>
@@ -852,8 +876,8 @@ function renderSalesHistory() {
         <td style="font-size:12px;color:#666">${o.note||''}</td>
         <td>
           <div style="display:flex;gap:4px">
-            <button onclick="salesEditOrder('${o.id}')" style="background:white;border:1.5px solid #d97706;color:#d97706;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✏️</button>
-            <button onclick="salesDeleteOrder('${o.id}')" style="background:white;border:1.5px solid #dc2626;color:#dc2626;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✕</button>
+            <button onclick="salesEditOrder('${o.id}')" style="background:white;border:1px solid #d97706;color:#d97706;border-radius:5px;padding:2px 6px;font-size:11px;cursor:pointer">✏️</button>
+            <button onclick="salesDeleteOrder('${o.id}')" style="background:white;border:1px solid #dc2626;color:#dc2626;border-radius:5px;padding:2px 6px;font-size:11px;cursor:pointer">✕</button>
           </div>
         </td>
       </tr>`;

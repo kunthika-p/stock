@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — STIC</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15px}
@@ -33,9 +34,9 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .order-detail{font-size:13px;color:#555;margin-bottom:12px;line-height:1.8}
 .order-detail span{font-weight:600;color:#222}
 .order-actions{display:flex;gap:8px}
-.btn-confirm{background:#16a34a;color:white;border:none;border-radius:7px;padding:5px 10px;font-size:12px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
-.btn-reject{background:white;color:#dc2626;border:1.5px solid #dc2626;border-radius:7px;padding:5px 10px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer}
-.btn-edit{background:white;color:#d97706;border:1.5px solid #d97706;border-radius:7px;padding:5px 10px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer}
+.btn-confirm{background:#16a34a;color:white;border:none;border-radius:5px;padding:2px 6px;font-size:11px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
+.btn-reject{background:white;color:#dc2626;border:1px solid #dc2626;border-radius:5px;padding:2px 6px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer}
+.btn-edit{background:white;color:#d97706;border:1px solid #d97706;border-radius:5px;padding:2px 6px;font-size:11px;font-family:'Sarabun',sans-serif;cursor:pointer}
 /* Edit modal */
 .edit-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center}
 .edit-modal-bg.open{display:flex}
@@ -1060,7 +1061,6 @@ function renderPendingTable() {
             ${sortOpts}
           </select>
         </div>
-        <button class="btn-confirm" style="padding:5px 13px;font-size:12px;display:flex;align-items:center;gap:4px" onclick="confirmAllOrders()"><i class="ti ti-checks" style="font-size:13px"></i> ยืนยันทั้งหมด</button>
       </div>
       <div class="tbl-wrap">
         <table class="pend-tbl">
@@ -1075,7 +1075,7 @@ function renderPendingTable() {
             <th>สถานะ</th>
             <th>วันที่</th>
             <th>หมายเหตุ</th>
-            <th>จัดการ</th>
+            <th></th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
