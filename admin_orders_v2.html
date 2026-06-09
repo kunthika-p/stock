@@ -461,7 +461,7 @@ function switchTab(name, btn) {
   document.getElementById('tab-' + name).classList.add('active');
   if (name === 'overview') loadOverview();
   if (name === 'stock') loadStock();
-  if (name === 'pending') loadPending();
+  if (name === 'pending') { if (!allItems.length) loadStock().then(loadPending); else loadPending(); }
   if (name === 'history') loadHistory();
 }
 
