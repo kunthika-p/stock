@@ -446,6 +446,11 @@ function encT(t){return btoa(encodeURIComponent(t)).replace(/[^a-zA-Z0-9]/g,'');
 function getStock(code){return stockMap[code]||{stock:0};}
 function sts(s){return s>=20?'ok':s>0?'low':'out';}
 function badge(s){const st=sts(s);return`<span class="badge ${st}">${st==='ok'?'ปกติ':st==='low'?'น้อย':'หมด'}</span>`;}
+const NC_BIG_COLS = ['5/8 NC','3/4 NC','7/8 NC','1 NC'];
+function resolveType(item){
+  if(item.type==='น็อตเหลี่ยม NC'&&NC_BIG_COLS.includes(item.col)) return 'น็อตเหลี่ยม NC (ใหญ่)';
+  return item.type;
+}
 function getUnit(type){return BOX_TYPES.includes(type)?'กล่อง':'กระสอบ';}
 
 // ---- Tab switching ----
@@ -849,7 +854,7 @@ function renderStockList() {
   const tbody = document.getElementById('stk-list-tbody');
   if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty">ไม่พบรายการ</div></td></tr>'; return; }
   tbody.innerHTML = rows.map(x => {
-    const s = getStock(x.code); const unit = getUnit(x.type);
+    const s = getStock(x.code); const unit = getUnit(resolveType(x));
     return `<tr>
       <td style="font-family:monospace;font-size:13px;font-weight:700;color:#1a3a5c">${x.code}</td>
       <td style="font-size:13px">${x.type}</td><td>${x.col}</td><td>${x.row}</td>
