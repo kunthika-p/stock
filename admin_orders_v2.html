@@ -723,7 +723,7 @@ function buildStockNav() {
     if (HUA_NUT.includes(t)) {
       if (!huaDone) {
         const has = HUA_NUT.reduce((s,ht)=>s+allItems.filter(x=>x.type===ht&&Number(x.stock)>0).length,0);
-        html += `<button class="type-btn-stk ${isHua?'active':''}" data-enc="${HUA_NUT_ENC}" onclick="switchStockType('${HUA_NUT_ENC}')">🔩 หัวน็อต<span class="tbadge ${has>0?'has':''}">${has}</span></button>`;
+        html += `<button class="type-btn-stk ${isHua?'active':''}" data-enc="${HUA_NUT_ENC}" onclick="switchStockType('${HUA_NUT_ENC}')">หัวน็อต</button>`;
         huaDone = true;
       }
       return;
@@ -731,7 +731,7 @@ function buildStockNav() {
     if (NC_NF_SM.includes(t)) {
       if (!ncDone) {
         const has = NC_NF_SM.reduce((s,nt)=>{const al=MERGED_TYPES[nt]||[nt];return s+allItems.filter(x=>al.includes(x.type)&&Number(x.stock)>0).length;},0);
-        html += `<button class="type-btn-stk ${isNc?'active':''}" data-enc="${NC_NF_SM_ENC}" onclick="switchStockType('${NC_NF_SM_ENC}')">🎒 น็อตเหลี่ยม NC/NF<span class="tbadge ${has>0?'has':''}">${has}</span></button>`;
+        html += `<button class="type-btn-stk ${isNc?'active':''}" data-enc="${NC_NF_SM_ENC}" onclick="switchStockType('${NC_NF_SM_ENC}')">น็อตเหลี่ยม NC/NF</button>`;
         ncDone = true;
       }
       return;
@@ -739,7 +739,7 @@ function buildStockNav() {
     if (OTHER_TYPES.includes(t)) {
       if (!otherDone) {
         const has = OTHER_TYPES.reduce((s,ot)=>s+allItems.filter(x=>x.type===ot&&Number(x.stock)>0).length,0);
-        html += `<button class="type-btn-stk ${isOther?'active':''}" data-enc="${OTHER_ENC}" onclick="switchStockType('${OTHER_ENC}')">📦 อื่นๆ<span class="tbadge ${has>0?'has':''}">${has}</span></button>`;
+        html += `<button class="type-btn-stk ${isOther?'active':''}" data-enc="${OTHER_ENC}" onclick="switchStockType('${OTHER_ENC}')">อื่นๆ</button>`;
         otherDone = true;
       }
       return;
@@ -748,14 +748,13 @@ function buildStockNav() {
     if (nmTab) {
       const enc = encT(t);
       const has = allItems.filter(x => nmTab.cols.includes(x.col) && nmTab.colSrc[x.col] && x.type.startsWith(nmTab.colSrc[x.col]) && Number(x.stock) > 0).length;
-      html += `<button class="type-btn-stk ${enc===curEnc?'active':''}" data-enc="${enc}" onclick="switchStockType('${enc}')">📦 ${nmTab.name}<span class="tbadge ${has>0?'has':''}">${has}</span></button>`;
+      html += `<button class="type-btn-stk ${enc===curEnc?'active':''}" data-enc="${enc}" onclick="switchStockType('${enc}')">${nmTab.name}</button>`;
       return;
     }
     const tAliases = MERGED_TYPES[t] || [t];
     const has = allItems.filter(x=>tAliases.includes(x.type)&&Number(x.stock)>0).length;
     const enc = encT(t);
-    const lbl = BOX_TYPES.includes(t)?'📦':'🎒';
-    html += `<button class="type-btn-stk ${enc===curEnc?'active':''}" data-enc="${enc}" onclick="switchStockType('${enc}')">${lbl} ${t}<span class="tbadge ${has>0?'has':''}">${has}</span></button>`;
+    html += `<button class="type-btn-stk ${enc===curEnc?'active':''}" data-enc="${enc}" onclick="switchStockType('${enc}')">${t}</button>`;
   });
   nav.innerHTML = html;
 }
