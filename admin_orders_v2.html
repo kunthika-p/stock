@@ -903,8 +903,8 @@ function renderStockList() {
 }
 
 // ---- Pending tab ----
-const urgColor2 = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'};
-const urgText2  = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
+const urgColor2 = {'ด่วน':'#fee2e2','จอง':'#fef9c3','เร่ง':'#fef9c3','ปกติ':'#d1fae5'};
+const urgText2  = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','เร่ง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
 
 function fmtOrderDate(d) {
   if (!d) return '-';
@@ -947,7 +947,7 @@ async function loadPending() {
   }
 }
 
-const urgOrder = {'ด่วน':0,'จอง':1,'ปกติ':2,'':3};
+const urgOrder = {'ด่วน':0,'จอง':1,'เร่ง':1,'ปกติ':2,'':3};
 const gradeOrder2 = {'A':0,'B':1,'C':2,'D':3,'':4};
 
 function renderPendingTable() {
@@ -1292,6 +1292,19 @@ async function loadHistory() {
     const VALID_URG2 = ['ด่วน','จอง','เร่ง','ปกติ'];
     const UNIT_VALS2 = ['กล่อง','กระสอบ'];
     historyData.forEach(o => {
+      // ตรวจจับ date/note swap: ถ้า date column มีค่าที่ไม่ใช่วันที่ → ย้ายไป _note
+      const rawDate = String(o.date||'');
+      const isValidDate = rawDate && (
+        (!isNaN(new Date(rawDate)) && new Date(rawDate).getFullYear() >= 1900 && new Date(rawDate).getFullYear() <= 2499) ||
+        /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(rawDate)
+      );
+      if (!isValidDate && rawDate) {
+        // date column มีค่า note → ย้ายกลับ
+        const noteAsDate = String(o.note||'');
+        const noteIsDate = !isNaN(new Date(noteAsDate)) && new Date(noteAsDate).getFullYear() >= 1900;
+        if (noteIsDate) { o.date = noteAsDate; o.note = rawDate; }
+        else { o.date = ''; if (!o.note) o.note = rawDate; }
+      }
       if (VALID_URG2.includes(o.urgency)) {
         o._urgency = o.urgency;
         o._note = (UNIT_VALS2.includes(o.note)||VALID_URG2.includes(o.note)) ? '' : (o.note||'');
@@ -1309,16 +1322,25 @@ async function loadHistory() {
 
 function fmtDate(raw) {
   if (!raw) return '-';
-  const d = new Date(raw);
-  if (isNaN(d)) return raw;
-  const dd = String(d.getDate()).padStart(2,'0');
-  const mm = String(d.getMonth()+1).padStart(2,'0');
-  // ปีที่เก็บใน Sheets เป็น พ.ศ. อยู่แล้ว ไม่ต้องบวก 543
-  const ceYear = d.getFullYear();
-  const yyyy = ceYear < 2500 ? ceYear + 543 : ceYear;
-  const hh = String(d.getHours()).padStart(2,'0');
-  const min = String(d.getMinutes()).padStart(2,'0');
-  return `${dd}/${mm}/${yyyy}&nbsp;&nbsp;${hh}.${min} น.`;
+  const s = String(raw);
+  // ISO / standard date (CE year 1900-2499)
+  const d = new Date(s);
+  if (!isNaN(d) && d.getFullYear() >= 1900 && d.getFullYear() <= 2499) {
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const yyyy = d.getFullYear() + 543;
+    const hh = String(d.getHours()).padStart(2,'0');
+    const min = String(d.getMinutes()).padStart(2,'0');
+    return `${dd}/${mm}/${yyyy}&nbsp;&nbsp;${hh}.${min} น.`;
+  }
+  // Thai D/M/YYYY (พ.ศ.) เช่น "10/6/2569"
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) {
+    const yr = parseInt(m[3]) > 2500 ? parseInt(m[3]) - 543 : parseInt(m[3]);
+    const d2 = new Date(yr, parseInt(m[2])-1, parseInt(m[1]));
+    if (!isNaN(d2)) return `${m[1].padStart(2,'0')}/${m[2].padStart(2,'0')}/${yr+543}`;
+  }
+  return '-';
 }
 
 function setHistStatusFilter(val) {
@@ -1368,8 +1390,8 @@ function renderHistory() {
     byCustomer[o.customer].push(o);
   });
 
-  const urgColor = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'};
-  const urgText  = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
+  const urgColor = {'ด่วน':'#fee2e2','จอง':'#fef9c3','เร่ง':'#fef9c3','ปกติ':'#d1fae5'};
+  const urgText  = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','เร่ง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
   let html = '';
   let totalSack = 0, totalBox = 0;
 

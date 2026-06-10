@@ -1071,6 +1071,18 @@ async function loadTrackingOrders() {
     const VALID_URG = ['ด่วน','จอง','เร่ง','ปกติ'];
     const UNIT_VALS = ['กล่อง','กระสอบ'];
     raw.forEach(o => {
+      // ตรวจจับ date/note swap
+      const rawDate = String(o.date||'');
+      const isValidDate = rawDate && (
+        (!isNaN(new Date(rawDate)) && new Date(rawDate).getFullYear() >= 1900 && new Date(rawDate).getFullYear() <= 2499) ||
+        /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(rawDate)
+      );
+      if (!isValidDate && rawDate) {
+        const noteAsDate = String(o.note||'');
+        const noteIsDate = !isNaN(new Date(noteAsDate)) && new Date(noteAsDate).getFullYear() >= 1900;
+        if (noteIsDate) { o.date = noteAsDate; o.note = rawDate; }
+        else { o.date = ''; if (!o.note) o.note = rawDate; }
+      }
       if (VALID_URG.includes(o.urgency)) {
         o._urgency = o.urgency;
         o._note = (UNIT_VALS.includes(o.note)||VALID_URG.includes(o.note)) ? '' : (o.note||'');
@@ -1217,7 +1229,7 @@ function parseOrderDate(dateStr) {
 function fmtTrackDate(dateStr) {
   if (!dateStr) return '';
   const iso = parseOrderDate(dateStr);
-  if (!iso) return String(dateStr);
+  if (!iso) return '';   // non-date value → ว่าง แทนที่จะ return raw
   const [y,m,d] = iso.split('-');
   return `${d}/${m}/${parseInt(y)+543}`;
 }
