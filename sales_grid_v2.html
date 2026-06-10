@@ -1124,13 +1124,13 @@ function populateTrackDropdowns() {
     usedGrades.map(g => `<div class="tdd-item" onclick="tddPick('tddg','${g}','${g}')">${g}</div>`).join('');
 
   // customer
-  const custs = [...new Set(trackOrders.map(o => o.customer || ''))].filter(Boolean).sort((a,b) => a.localeCompare(b,'th'));
+  const custs = [...new Set(trackOrders.map(o => String(o.customer||'')))].filter(Boolean).sort((a,b) => a.localeCompare(b,'th'));
   const cMenu = document.getElementById('tddc-m');
   cMenu.innerHTML = `<div class="tdd-item tdd-sel" onclick="tddPick('tddc','ลูกค้า','')">ทั้งหมด</div>` +
     custs.map(c => `<div class="tdd-item" onclick="tddPick('tddc',${JSON.stringify(c)},${JSON.stringify(c)})">${c}</div>`).join('');
 
   // product name
-  const names = [...new Set(trackOrders.map(o => fmtName(o.name) || ''))].filter(Boolean).sort((a,b) => a.localeCompare(b,'th'));
+  const names = [...new Set(trackOrders.map(o => String(fmtName(o.name)||'')))].filter(Boolean).sort((a,b) => a.localeCompare(b,'th'));
   const nMenu = document.getElementById('tddn-m');
   nMenu.innerHTML = `<div class="tdd-item tdd-sel" onclick="tddPick('tddn','ชื่อสินค้า','')">ทั้งหมด</div>` +
     names.map(n => `<div class="tdd-item" onclick="tddPick('tddn',${JSON.stringify(n)},${JSON.stringify(n)})">${n}</div>`).join('');
