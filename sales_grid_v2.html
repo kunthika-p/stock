@@ -1074,7 +1074,7 @@ async function loadTrackingOrders() {
       // ตรวจจับ date/note swap
       const rawDate = String(o.date||'');
       const isValidDate = rawDate && (
-        (!isNaN(new Date(rawDate)) && new Date(rawDate).getFullYear() >= 1900 && new Date(rawDate).getFullYear() <= 2499) ||
+        (!isNaN(new Date(rawDate)) && new Date(rawDate).getFullYear() >= 1900) ||
         /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(rawDate)
       );
       if (!isValidDate && rawDate) {
@@ -1214,15 +1214,19 @@ function renderTracking() {
 
 function parseOrderDate(dateStr) {
   if (!dateStr) return '';
+  // handle ISO (including Buddhist Era stored as CE year > 2500)
+  const iso = String(dateStr).slice(0,10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    const yr = parseInt(iso.slice(0,4));
+    const ceYear = yr > 2500 ? yr - 543 : yr;
+    return `${String(ceYear).padStart(4,'0')}${iso.slice(4)}`;
+  }
   // handle 'DD/MM/YYYY' Thai format
   const m = String(dateStr).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (m) {
     const year = parseInt(m[3]) > 2500 ? parseInt(m[3]) - 543 : parseInt(m[3]);
     return `${year}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
   }
-  // handle ISO
-  const iso = String(dateStr).slice(0,10);
-  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
   return '';
 }
 

@@ -907,13 +907,7 @@ const urgColor2 = {'ด่วน':'#fee2e2','จอง':'#fef9c3','เร่ง'
 const urgText2  = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','เร่ง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
 
 function fmtOrderDate(d) {
-  if (!d) return '-';
-  const dt = new Date(d);
-  if (isNaN(dt)) return '-';
-  const dd = String(dt.getDate()).padStart(2,'0');
-  const mm = String(dt.getMonth()+1).padStart(2,'0');
-  const yyyy = dt.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
+  return fmtDate(d); // reuse fmtDate: handles Thai D/M/YYYY, ISO CE, ISO พ.ศ.เป็น CE
 }
 function getOrderDate(o) { return fmtOrderDate(o.date || o.timestamp); }
 
@@ -1295,7 +1289,7 @@ async function loadHistory() {
       // ตรวจจับ date/note swap: ถ้า date column มีค่าที่ไม่ใช่วันที่ → ย้ายไป _note
       const rawDate = String(o.date||'');
       const isValidDate = rawDate && (
-        (!isNaN(new Date(rawDate)) && new Date(rawDate).getFullYear() >= 1900 && new Date(rawDate).getFullYear() <= 2499) ||
+        (!isNaN(new Date(rawDate)) && new Date(rawDate).getFullYear() >= 1900) ||
         /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(rawDate)
       );
       if (!isValidDate && rawDate) {
@@ -1323,22 +1317,24 @@ async function loadHistory() {
 function fmtDate(raw) {
   if (!raw) return '-';
   const s = String(raw);
-  // ISO / standard date (CE year 1900-2499)
+  // เช็ค Thai D/M/YYYY ก่อน (ป้องกัน new Date() ตีเป็น M/D/Y ผิด)
+  const mThai = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mThai) {
+    const yr = parseInt(mThai[3]) > 2500 ? parseInt(mThai[3]) - 543 : parseInt(mThai[3]);
+    const d2 = new Date(yr, parseInt(mThai[2])-1, parseInt(mThai[1]));
+    if (!isNaN(d2)) return `${mThai[1].padStart(2,'0')}/${mThai[2].padStart(2,'0')}/${yr+543}`;
+  }
+  // ISO / standard date (CE หรือ พ.ศ.เก็บเป็น CE เช่น "2569-06-10T...")
   const d = new Date(s);
-  if (!isNaN(d) && d.getFullYear() >= 1900 && d.getFullYear() <= 2499) {
+  if (!isNaN(d) && d.getFullYear() >= 1900) {
+    let ceYear = d.getFullYear();
+    if (ceYear > 2500) ceYear -= 543; // Sheets เก็บ พ.ศ. เป็น ค.ศ. → แปลงกลับ
     const dd = String(d.getDate()).padStart(2,'0');
     const mm = String(d.getMonth()+1).padStart(2,'0');
-    const yyyy = d.getFullYear() + 543;
+    const yyyy = ceYear + 543;
     const hh = String(d.getHours()).padStart(2,'0');
     const min = String(d.getMinutes()).padStart(2,'0');
     return `${dd}/${mm}/${yyyy}&nbsp;&nbsp;${hh}.${min} น.`;
-  }
-  // Thai D/M/YYYY (พ.ศ.) เช่น "10/6/2569"
-  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m) {
-    const yr = parseInt(m[3]) > 2500 ? parseInt(m[3]) - 543 : parseInt(m[3]);
-    const d2 = new Date(yr, parseInt(m[2])-1, parseInt(m[1]));
-    if (!isNaN(d2)) return `${m[1].padStart(2,'0')}/${m[2].padStart(2,'0')}/${yr+543}`;
   }
   return '-';
 }
