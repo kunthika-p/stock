@@ -64,6 +64,11 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 
 /* Pending grid table */
 .pend-wrap{background:white;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden}
+.bulk-bar{display:none;align-items:center;gap:10px;padding:8px 14px;background:#1a3a5c;color:white;font-size:13px;font-weight:600}
+.bulk-bar.show{display:flex}
+.btn-bulk-confirm{background:#16a34a;color:white;border:none;border-radius:6px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif}
+.btn-bulk-confirm:hover{background:#15803d}
+.pend-chk{width:16px;height:16px;cursor:pointer;accent-color:#2563a8}
 .pend-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}
 .pend-tbl th{background:#1a3a5c;color:white;padding:6px 8px;font-weight:600;font-size:12px;text-align:center;border:1px solid #0f2844;white-space:nowrap}
 .pend-tbl td{padding:5px 8px;border:1px solid #e5e7eb;vertical-align:middle;text-align:center}
@@ -1006,7 +1011,7 @@ function renderPendingTable() {
       const qty = Number(o.qty)||0;
       if (isBox) custBox += qty; else custSack += qty;
       rows += `<tr class="${idx===0?'cust-sep':''}">
-        <td style="text-align:center">${idx===0?`<button onclick="confirmCustomer('${cust.replace(/'/g,"\\'")}',${items.length})" title="ยืนยันทั้งหมดของ ${cust}" style="background:none;border:none;cursor:pointer;color:#16a34a;font-size:15px;padding:0;display:inline-flex;align-items:center;justify-content:center"><i class="ti ti-square-check"></i></button>`:''}</td>
+        <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" onchange="updateBulkCount()"></td>
         <td>${idx===0?`<span class="grade-badge ${gbClass}">${grade||'—'}</span>`:''}</td>
         <td class="td-left" style="font-weight:700;color:#1a3a5c">${idx===0?cust:''}
         </td>
@@ -1052,6 +1057,11 @@ function renderPendingTable() {
   ].map(o => `<option value="${o.v}"${pendingSort===o.v?' selected':''}>${o.l}</option>`).join('');
 
   document.getElementById('pendingList').innerHTML = `
+    <div class="bulk-bar" id="bulkBar">
+      <span id="bulkCount">0 รายการที่เลือก</span>
+      <button class="btn-bulk-confirm" onclick="confirmBulk()">✅ ยืนยันที่เลือก</button>
+      <button onclick="uncheckAll()" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:12px">ยกเลิกการเลือก</button>
+    </div>
     <div class="pend-wrap">
       <div style="padding:8px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid #e5e7eb">
         <span style="font-size:13px;font-weight:700;color:#1a3a5c">📋 รอยืนยัน (${orders.length})</span>
@@ -1065,7 +1075,7 @@ function renderPendingTable() {
       <div class="tbl-wrap">
         <table class="pend-tbl">
           <thead><tr>
-            <th style="width:34px"><i class="ti ti-square-check" style="font-size:14px;color:#16a34a"></i></th>
+            <th style="width:34px"><input type="checkbox" id="chk-all" onchange="toggleAllChk(this)" style="width:16px;height:16px;cursor:pointer;accent-color:#90caf9"></th>
             <th style="width:30px">กลุ่ม</th>
             <th style="text-align:left;min-width:90px">ลูกค้า</th>
             <th style="text-align:left;min-width:150px">ชื่อสินค้า</th>
@@ -1081,6 +1091,54 @@ function renderPendingTable() {
         </table>
       </div>
     </div>`;
+}
+
+function updateBulkCount() {
+  const chks = document.querySelectorAll('.pend-chk:checked');
+  const bar = document.getElementById('bulkBar');
+  const cnt = document.getElementById('bulkCount');
+  if (!bar) return;
+  if (chks.length > 0) {
+    bar.classList.add('show');
+    cnt.textContent = chks.length + ' รายการที่เลือก';
+  } else {
+    bar.classList.remove('show');
+  }
+  // sync select-all checkbox
+  const all = document.querySelectorAll('.pend-chk');
+  const chkAll = document.getElementById('chk-all');
+  if (chkAll) chkAll.indeterminate = chks.length > 0 && chks.length < all.length;
+  if (chkAll) chkAll.checked = chks.length === all.length && all.length > 0;
+}
+
+function toggleAllChk(el) {
+  document.querySelectorAll('.pend-chk').forEach(c => c.checked = el.checked);
+  updateBulkCount();
+}
+
+function uncheckAll() {
+  document.querySelectorAll('.pend-chk').forEach(c => c.checked = false);
+  const chkAll = document.getElementById('chk-all');
+  if (chkAll) { chkAll.checked = false; chkAll.indeterminate = false; }
+  updateBulkCount();
+}
+
+async function confirmBulk() {
+  const chks = [...document.querySelectorAll('.pend-chk:checked')];
+  if (!chks.length) return;
+  if (!confirm(`ยืนยัน ${chks.length} รายการที่เลือก?`)) return;
+  let ok = 0, fail = 0;
+  for (const c of chks) {
+    const row = Number(c.dataset.row);
+    const code = c.dataset.code;
+    const qty = Number(c.dataset.qty);
+    try {
+      await fetch(API, { method:'POST', body:JSON.stringify({ action:'confirmOrder', row, code, qty }) });
+      ok++;
+    } catch(e) { fail++; }
+  }
+  showToast(`✅ ยืนยัน ${ok} รายการแล้ว${fail?' (ล้มเหลว '+fail+')':''}`);
+  loadPending(); loadHistory();
 }
 
 async function confirmCustomer(cust, count) {
