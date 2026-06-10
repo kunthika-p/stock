@@ -1127,16 +1127,29 @@ async function confirmBulk() {
   const chks = [...document.querySelectorAll('.pend-chk:checked')];
   if (!chks.length) return;
   if (!confirm(`ยืนยัน ${chks.length} รายการที่เลือก?`)) return;
-  let ok = 0, fail = 0;
-  for (const c of chks) {
-    const row = Number(c.dataset.row);
-    const code = c.dataset.code;
-    const qty = Number(c.dataset.qty);
-    try {
-      await fetch(API, { method:'POST', body:JSON.stringify({ action:'confirmOrder', row, code, qty }) });
-      ok++;
-    } catch(e) { fail++; }
-  }
+
+  // แสดง loading ทันที
+  const bulkBtn = document.querySelector('.btn-bulk-confirm');
+  const origText = bulkBtn.textContent;
+  bulkBtn.textContent = '⏳ กำลังยืนยัน...';
+  bulkBtn.disabled = true;
+
+  // ยิงทุก request พร้อมกัน แทน loop ทีละอัน
+  const results = await Promise.allSettled(chks.map(c =>
+    fetch(API, { method:'POST', body:JSON.stringify({
+      action:'confirmOrder',
+      row: Number(c.dataset.row),
+      code: c.dataset.code,
+      qty: Number(c.dataset.qty)
+    })})
+  ));
+
+  const ok = results.filter(r => r.status === 'fulfilled').length;
+  const fail = results.filter(r => r.status === 'rejected').length;
+
+  bulkBtn.textContent = origText;
+  bulkBtn.disabled = false;
+
   showToast(`✅ ยืนยัน ${ok} รายการแล้ว${fail?' (ล้มเหลว '+fail+')':''}`);
   loadPending(); loadHistory();
 }
@@ -1454,7 +1467,6 @@ function packSelectItem(idx) {
   if (drop) drop.style.display = 'none';
 }
 async function packSubmit() {
-  const date     = (document.getElementById('pack-date')||{value:''}).value;
   const recorder = ((document.getElementById('pack-recorder')||{value:''}).value||'').trim();
   const s        = document.getElementById('pack-search') || {};
   const code     = (s.dataset||{}).code || '';
@@ -1482,24 +1494,8 @@ async function packSubmit() {
   if (btn) { btn.textContent = '💾 บันทึกบรรจุสินค้า'; btn.disabled = false; }
 }
 
-// ═══════════════════════════════════════
-//  🔢 loadPendingCount (badge)
-// ═══════════════════════════════════════
-async function loadPendingCount() {
-  try {
-    const res  = await fetch(API + '?action=getPending');
-    const data = await res.json();
-    const arr  = Array.isArray(data) ? data : (data.data || []);
-    document.getElementById('pendingCount').textContent = arr.length || '';
-  } catch(e) { /* silent */ }
-}
-
-// ═══════════════════════════════════════
-//  🚀 Init
-// ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   loadOverview();
-  loadPendingCount();
 });
 </script>
 </body>
