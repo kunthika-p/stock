@@ -81,8 +81,15 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .gb-C{background:#fef9c3;color:#92400e}.gb-D{background:#fee2e2;color:#991b1b}.gb-X{background:#f3f4f6;color:#666}
 
 /* History table */
-.hist-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.hist-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
 .hist-filter input,.hist-filter select{padding:8px 11px;border:1.5px solid #d1d5db;border-radius:7px;font-size:13px;font-family:'Sarabun',sans-serif}
+.hist-sf-bar{display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.hist-sf-btn{padding:5px 13px;border-radius:20px;border:1.5px solid #d1d5db;background:white;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer;font-weight:500;color:#555;transition:all .15s}
+.hist-sf-btn.sf-active-ok{border-color:#16a34a;background:#d1fae5;color:#065f46;font-weight:700}
+.hist-sf-btn.sf-active-rej{border-color:#dc2626;background:#fee2e2;color:#991b1b;font-weight:700}
+.hist-sf-btn.sf-active-all{border-color:#1a3a5c;background:#1a3a5c;color:white;font-weight:700}
+.btn-restore{background:none;border:1px solid #d97706;color:#d97706;border-radius:5px;padding:2px 8px;font-size:11px;cursor:pointer;font-family:'Sarabun',sans-serif;white-space:nowrap}
+.btn-restore:hover{background:#fef9c3}
 .tbl-wrap{overflow-x:auto}
 .hist-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}
 .hist-tbl th{background:#1a3a5c;color:white;padding:9px 10px;font-weight:600;font-size:12px;text-align:center;border:1px solid #c8d6e5;white-space:nowrap}
@@ -268,6 +275,12 @@ table.list tr:hover td{background:#f8fbff}
 
   <!-- Tab: ประวัติ -->
   <div class="tab-panel" id="tab-history">
+    <div class="hist-sf-bar">
+      <span style="font-size:12px;color:#888;white-space:nowrap">แสดง:</span>
+      <button class="hist-sf-btn sf-active-ok" id="sf-btn-confirmed" onclick="setHistStatusFilter('confirmed')">✅ ยืนยันแล้ว <span id="sf-count-confirmed" style="background:#16a34a;color:white;border-radius:10px;padding:0 5px;font-size:11px">0</span></button>
+      <button class="hist-sf-btn" id="sf-btn-rejected" onclick="setHistStatusFilter('rejected')">❌ ยกเลิก <span id="sf-count-rejected" style="background:#dc2626;color:white;border-radius:10px;padding:0 5px;font-size:11px">0</span></button>
+      <button class="hist-sf-btn" id="sf-btn-all" onclick="setHistStatusFilter('')">ทั้งหมด <span id="sf-count-all" style="background:#555;color:white;border-radius:10px;padding:0 5px;font-size:11px">0</span></button>
+    </div>
     <div class="hist-filter">
       <input type="text" id="hist-q" placeholder="🔍 ค้นหาชื่อลูกค้า / สินค้า..." oninput="renderHistory()">
       <select id="hist-urgency" onchange="renderHistory()">
@@ -443,6 +456,7 @@ const CUSTOMERS = [{"name":"99 พาร์ท ซัพพลาย","code":"59
 const CUST_MAP = Object.fromEntries(CUSTOMERS.map(c => [c.name, c]));
 
 let stockMap = {}, allItems = [], historyData = [];
+let histStatusFilter = 'confirmed'; // default: แสดงเฉพาะยืนยัน
 
 function fmtName(n) {
   if (!n) return n;
@@ -1252,12 +1266,21 @@ async function confirmOrder(row, code, qty) {
 }
 
 async function rejectOrder(row) {
-  if (!confirm('ยืนยันยกเลิกคำสั่งซื้อนี้?')) return;
+  if (!confirm('⚠️ ยืนยันยกเลิกคำสั่งซื้อนี้?\n\nOrder จะถูกยกเลิกและย้ายออกจาก "รอยืนยัน"\nสามารถคืนสถานะได้ที่แท็บ ประวัติ → ❌ ยกเลิก')) return;
   try {
     await fetch(API, { method:'POST', body:JSON.stringify({action:'rejectOrder',row}) });
-    showToast('❌ ยกเลิกคำสั่งซื้อแล้ว');
+    showToast('❌ ยกเลิกแล้ว — คืนสถานะได้ที่ ประวัติ → ❌ ยกเลิก');
     loadPending(); loadHistory();
   } catch(e) { alert('เกิดข้อผิดพลาด'); }
+}
+
+async function restoreOrder(row) {
+  if (!confirm('🔄 คืนสถานะ order นี้กลับเป็น "รอยืนยัน"?')) return;
+  try {
+    await fetch(API, { method:'POST', body:JSON.stringify({action:'restoreOrder', row}) });
+    showToast('🔄 คืนสถานะแล้ว — order กลับไปที่ รอยืนยัน');
+    loadPending(); loadHistory();
+  } catch(e) { alert('เกิดข้อผิดพลาด: ' + e.message); }
 }
 
 // ---- History tab ----
@@ -1299,10 +1322,32 @@ function fmtDate(raw) {
   return `${dd}/${mm}/${yyyy}&nbsp;&nbsp;${hh}.${min} น.`;
 }
 
+function setHistStatusFilter(val) {
+  histStatusFilter = val;
+  // update button styles
+  document.getElementById('sf-btn-confirmed').className = 'hist-sf-btn' + (val==='confirmed'?' sf-active-ok':'');
+  document.getElementById('sf-btn-rejected').className  = 'hist-sf-btn' + (val==='rejected'?' sf-active-rej':'');
+  document.getElementById('sf-btn-all').className       = 'hist-sf-btn' + (val===''?' sf-active-all':'');
+  renderHistory();
+}
+
 function renderHistory() {
   const q = document.getElementById('hist-q').value.toLowerCase();
   const fu = document.getElementById('hist-urgency').value;
+
+  // อัพเดต badge count ทุกครั้ง
+  const cntAll = historyData.length;
+  const cntOk  = historyData.filter(o => o.status === 'confirmed').length;
+  const cntRej = historyData.filter(o => o.status !== 'confirmed').length;
+  document.getElementById('sf-count-confirmed').textContent = cntOk;
+  document.getElementById('sf-count-rejected').textContent  = cntRej;
+  document.getElementById('sf-count-all').textContent       = cntAll;
+
   let rows = historyData.filter(o => {
+    // filter by status tab
+    if (histStatusFilter === 'confirmed' && o.status !== 'confirmed') return false;
+    if (histStatusFilter === 'rejected'  && o.status === 'confirmed') return false;
+    // search / urgency filter
     if (q && !(o.customer+' '+(o.name||o.code)).toLowerCase().includes(q)) return false;
     if (fu && o._urgency !== fu) return false;
     return true;
@@ -1310,11 +1355,14 @@ function renderHistory() {
 
   const tbody = document.getElementById('historyTbody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีประวัติ</td></tr>';
+    const msg = histStatusFilter === 'confirmed' ? 'ยังไม่มีออเดอร์ที่ยืนยัน'
+              : histStatusFilter === 'rejected'  ? 'ไม่มีออเดอร์ที่ยกเลิก'
+              : 'ยังไม่มีประวัติ';
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#aaa;padding:24px">${msg}</td></tr>`;
     return;
   }
 
-  // จัดกลุ่มตามลูกค้า แล้วเรียงภายในกลุ่มตามวันที่
+  // จัดกลุ่มตามลูกค้า
   const byCustomer = {};
   rows.forEach(o => {
     if (!byCustomer[o.customer]) byCustomer[o.customer] = [];
@@ -1322,19 +1370,21 @@ function renderHistory() {
   });
 
   const urgColor = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'};
-  const urgText = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
+  const urgText  = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
   let html = '';
   let totalSack = 0, totalBox = 0;
 
-  Object.entries(byCustomer).forEach(([cust, orders], gi) => {
+  Object.entries(byCustomer).forEach(([cust, orders]) => {
     let custSack = 0, custBox = 0;
     orders.forEach((o, idx) => {
       const isBox = (o.unit||'กระสอบ') === 'กล่อง';
       const qty = Number(o.qty)||0;
       if (isBox) custBox += qty; else custSack += qty;
-      const statusHtml = o.status === 'confirmed'
+      const isConfirmed = o.status === 'confirmed';
+      const statusHtml = isConfirmed
         ? '<span class="status-done">✅ ยืนยัน</span>'
-        : '<span class="status-rejected">❌ ยกเลิก</span>';
+        : `<span class="status-rejected">❌ ยกเลิก</span>
+           <button class="btn-restore" onclick="restoreOrder(${o.row})" title="คืนสถานะกลับไปรอยืนยัน">🔄 คืน</button>`;
       html += `<tr${idx===0?' class="group-sep"':''}>
         <td style="white-space:nowrap">${fmtDate(o.date)}</td>
         <td class="td-cust">${idx===0?cust:''}</td>
@@ -1342,11 +1392,10 @@ function renderHistory() {
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?qty:''}</td>
         <td><span style="background:${urgColor[o._urgency]||'#f3f4f6'};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600">${urgText[o._urgency]||o._urgency||'-'}</span></td>
-        <td>${statusHtml}</td>
+        <td style="white-space:nowrap">${statusHtml}</td>
         <td class="td-left" style="font-size:12px;color:#888">${o._note||''}</td>
       </tr>`;
     });
-    // สรุปต่อลูกค้า
     html += `<tr style="background:#f0f5ff">
       <td colspan="3" style="text-align:right;font-size:12px;color:#555;font-style:italic">รวม ${cust}</td>
       <td style="font-weight:700;color:#1a3a5c">${custSack||'-'}</td>
@@ -1357,7 +1406,6 @@ function renderHistory() {
     totalBox += custBox;
   });
 
-  // สรุปทั้งหมด
   html += `<tr class="summary-row">
     <td colspan="3" style="text-align:right">📊 รวมทั้งหมด</td>
     <td>${totalSack} กระสอบ</td>
@@ -1430,7 +1478,6 @@ async function tiSubmit() {
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     showToast(`✅ รับเข้า ${qty} ถัง — ${name} (Job: ${job})`);
-    document.getElementById('ti-search').value=''; document.getElementById('ti-search').dataset.code=''; document.getElementById('ti-search').dataset.name='';
     document.getElementById('ti-job').value=''; document.getElementById('ti-qty').value=''; document.getElementById('ti-note').value='';
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
   btn.textContent = '💾 บันทึกรับเข้า (ถัง)'; btn.disabled = false;
@@ -1441,9 +1488,6 @@ async function tiSubmit() {
 // ═══════════════════════════════════════
 let packSearchResults = [], packSearchIdx = -1
 
-// ═══════════════════════════════════════
-//  📦 Pack Items — functions
-// ═══════════════════════════════════════
 function packSearch() {
   const q = (document.getElementById('pack-search')||{value:''}).value.trim().toLowerCase();
   const drop = document.getElementById('pack-drop');
@@ -1467,6 +1511,7 @@ function packSelectItem(idx) {
   if (drop) drop.style.display = 'none';
 }
 async function packSubmit() {
+  const date     = (document.getElementById('pack-date')||{value:''}).value;
   const recorder = ((document.getElementById('pack-recorder')||{value:''}).value||'').trim();
   const s        = document.getElementById('pack-search') || {};
   const code     = (s.dataset||{}).code || '';
@@ -1494,8 +1539,24 @@ async function packSubmit() {
   if (btn) { btn.textContent = '💾 บันทึกบรรจุสินค้า'; btn.disabled = false; }
 }
 
+// ═══════════════════════════════════════
+//  🔢 loadPendingCount (badge)
+// ═══════════════════════════════════════
+async function loadPendingCount() {
+  try {
+    const res  = await fetch(API + '?action=getPending');
+    const data = await res.json();
+    const arr  = Array.isArray(data) ? data : (data.data || []);
+    document.getElementById('pendingCount').textContent = arr.length || '';
+  } catch(e) { /* silent */ }
+}
+
+// ═══════════════════════════════════════
+//  🚀 Init
+// ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   loadOverview();
+  loadPendingCount();
 });
 </script>
 </body>
