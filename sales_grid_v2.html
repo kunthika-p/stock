@@ -35,8 +35,9 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .grade-A{background:#d1fae5;color:#065f46}.grade-B{background:#dbeafe;color:#1e40af}
 .grade-C{background:#fef9c3;color:#92400e}.grade-D{background:#fee2e2;color:#991b1b}
 
-.type-nav-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;background:white;border-bottom:1px solid #e0e0e0;position:sticky;top:106px;z-index:99}
-.type-btn{display:inline-block;padding:6px 14px;border:1.5px solid #d1d5db;border-radius:20px;font-size:13px;font-family:'Sarabun',sans-serif;background:white;color:#555;cursor:pointer}
+.type-nav-wrap{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:6px;padding:7px 10px;background:white;border-bottom:1px solid #e0e0e0;position:sticky;top:106px;z-index:99;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.type-nav-wrap::-webkit-scrollbar{display:none}
+.type-btn{display:inline-block;padding:5px 12px;border:1.5px solid #d1d5db;border-radius:20px;font-size:12px;font-family:'Sarabun',sans-serif;background:white;color:#555;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .type-btn.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
 
 .content{padding:12px}
@@ -55,8 +56,8 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
   .header h1{font-size:15px}
   .header p{font-size:10px}
   .customer-bar{padding:6px 10px;top:44px}
-  .type-nav-wrap{top:90px;padding:6px 8px;gap:4px}
-  .type-btn{padding:4px 10px;font-size:11px}
+  .type-nav-wrap{top:90px;padding:5px 8px;gap:4px}
+  .type-btn{padding:4px 9px;font-size:11px}
   .content{padding:8px}
   .tbl-wrap{padding:8px}
   .type-title{font-size:13px}
@@ -903,7 +904,7 @@ async function submitAllOrders() {
   if (!customerName) { alert('ไม่พบชื่อลูกค้า'); return; }
   if (!cart.length) { alert('กรุณาเพิ่มสินค้าในตะกร้า'); return; }
   const note = document.getElementById('inputNote').value.trim();
-  const date = new Date().toLocaleDateString('th-TH');
+  const date = new Date().toISOString();
   cart.forEach(item => {
     stagedOrders.push({
       id: Date.now() + Math.random(),
