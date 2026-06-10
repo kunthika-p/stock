@@ -839,15 +839,24 @@ function renderCartItems() {
     }
     if (editingCartIndex === origIdx) {
       html += `
-        <div class="cart-item">
-          <div class="cart-item-name">${item.name}<br>
-            <span style="font-size:11px;color:#888;font-family:'Courier New',monospace">${item.code}</span>
-            <span style="font-size:11px;font-weight:700;color:${urgencyColor[item.urgency]||'#555'};margin-left:6px">${item.urgency}</span>
-            ${item.note?`<br><span style="font-size:11px;color:#888">📝 ${item.note}</span>`:''}
+        <div class="cart-item" style="flex-direction:column;align-items:stretch;gap:6px">
+          <div style="font-size:13px;font-weight:600;color:#1a3a5c">${item.name}
+            <span style="font-size:11px;color:#888;font-family:'Courier New',monospace;margin-left:6px">${item.code}</span>
           </div>
-          <input class="qty-edit-input" id="inlineQtyInput" type="number" value="${item.qty}" min="1" step="1">
-          <button class="btn-confirm" style="padding:5px 10px;font-size:12px;border-radius:6px;margin-left:4px" onclick="saveInlineQty(${origIdx})">บันทึก</button>
-          <button class="cart-item-del" onclick="cancelInlineEdit()">✕</button>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <input class="qty-edit-input" id="inlineQtyInput" type="number" value="${item.qty}" min="1" step="1" style="width:70px">
+            <select id="inlineUrgInput" style="padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;font-family:'Sarabun',sans-serif;font-size:12px">
+              <option value="ปกติ" ${item.urgency==='ปกติ'?'selected':''}>🟢 ปกติ</option>
+              <option value="จอง" ${item.urgency==='จอง'?'selected':''}>🟡 จอง</option>
+              <option value="ด่วน" ${item.urgency==='ด่วน'?'selected':''}>🔴 ด่วน</option>
+            </select>
+          </div>
+          <input id="inlineNoteInput" type="text" placeholder="หมายเหตุ (ถ้ามี)" value="${item.note||''}"
+            style="padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;font-family:'Sarabun',sans-serif;font-size:12px;width:100%;box-sizing:border-box">
+          <div style="display:flex;gap:6px">
+            <button class="btn-confirm" style="flex:1;padding:6px;font-size:12px;border-radius:6px" onclick="saveInlineEdit(${origIdx})">บันทึก</button>
+            <button class="cart-item-del" style="padding:6px 10px" onclick="cancelInlineEdit()">✕</button>
+          </div>
         </div>`;
     } else {
       html += `
@@ -875,10 +884,13 @@ function startInlineEdit(i) {
   renderCartItems();
 }
 
-function saveInlineQty(i) {
+function saveInlineQty(i) { saveInlineEdit(i); } // backward compat
+function saveInlineEdit(i) {
   const val = parseFloat(document.getElementById('inlineQtyInput').value);
   if (!val || val <= 0) { alert('กรุณากรอกจำนวน'); return; }
   cart[i].qty = val;
+  cart[i].urgency = document.getElementById('inlineUrgInput').value;
+  cart[i].note    = document.getElementById('inlineNoteInput').value.trim();
   editingCartIndex = null;
   renderCartItems();
   updateCartBar();
@@ -1248,4 +1260,4 @@ document.addEventListener('click', e => {
 loadData();
 </script>
 </body>
-</html>
+</html>                               
