@@ -130,6 +130,29 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 /* Inline qty edit */
 .qty-edit-input{width:70px;padding:4px 6px;border:1.5px solid #2563a8;border-radius:6px;font-size:13px;font-family:'Sarabun',sans-serif;text-align:center}
 
+/* ===== Tracking Tab ===== */
+.track-tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+.track-tbl thead tr{background:#1a3a5c}
+.track-tbl th{padding:7px 6px;color:white !important;border:1px solid #0f2844;white-space:nowrap;vertical-align:middle;text-align:center}
+.track-tbl td{padding:6px 8px;border:1px solid #e5e7eb;text-align:center;font-size:12px;vertical-align:middle}
+.track-sep td{border-top:2px solid #2563a8}
+.track-sum td{background:#f0f5ff;font-size:11px;color:#555;font-style:italic}
+.track-grade{display:inline-block;width:20px;height:20px;line-height:20px;border-radius:50%;font-size:11px;font-weight:600;text-align:center}
+.tg-A{background:#d1fae5;color:#065f46}.tg-B{background:#dbeafe;color:#1e40af}.tg-C{background:#fee2e2;color:#991b1b}.tg-D{background:#f3f4f6;color:#555}
+.track-pill-ok{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500;background:#d1fae5;color:#065f46}
+.track-pill-wait{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500;background:#fef9c3;color:#78350f}
+/* custom dropdown in tracking header */
+.tdd{position:relative;display:inline-block;width:100%}
+.tdd-btn{display:flex !important;align-items:center !important;justify-content:center !important;gap:3px !important;width:100% !important;background:transparent !important;border:none !important;padding:0 !important;cursor:pointer !important;color:#ffffff !important;font-size:12px !important;font-weight:500 !important;font-family:'Sarabun',sans-serif !important}
+.tdd-menu{display:none;position:absolute;top:calc(100% + 2px);left:0;min-width:120px;background:#ffffff !important;border:1px solid #d1d5db;box-shadow:0 4px 14px rgba(0,0,0,.18);z-index:999;border-radius:4px;overflow:hidden;max-height:220px;overflow-y:auto}
+.tdd-menu.open{display:block}
+.tdd-item{padding:7px 12px;color:#222 !important;background:#ffffff !important;cursor:pointer;font-size:12px;font-weight:400;text-align:left;white-space:nowrap;font-family:'Sarabun',sans-serif}
+.tdd-item:hover{background:#f0f5ff !important;color:#1a3a5c !important}
+.tdd-item.tdd-sel{color:#1a3a5c !important;font-weight:700}
+.track-date-th{position:relative;cursor:pointer}
+.track-date-lbl{color:#ffffff !important;font-size:12px;font-weight:500;font-family:'Sarabun',sans-serif;display:flex;align-items:center;justify-content:center;gap:3px;pointer-events:none}
+.track-date-th input[type=date]{position:absolute;opacity:0;inset:0;width:100%;height:100%;cursor:pointer}
+
 </style>
 </head>
 <body>
@@ -158,6 +181,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 <div style="display:flex;background:white;border-bottom:2px solid #e0e0e0;overflow-x:auto">
   <button id="tab-btn-order" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:700;color:#1a3a5c;border-bottom:3px solid #1a3a5c;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('order',this)">🛒 สั่งสินค้า</button>
   <button id="tab-btn-history" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:500;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('history',this)">📋 ประวัติ <span id="sales-hist-count" style="background:#dc2626;color:white;border-radius:10px;font-size:11px;padding:1px 6px;margin-left:3px;display:none"></span></button>
+  <button id="tab-btn-track" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:500;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('track',this)">📍 ติดตามออเดอร์ <span id="track-count-badge" style="background:#2563a8;color:white;border-radius:10px;font-size:11px;padding:1px 6px;margin-left:3px;display:none"></span></button>
 </div>
 
 <!-- Tab: สั่งสินค้า -->
@@ -203,6 +227,65 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
     ✅ ยืนยันส่งทั้งหมดไปที่ Admin
   </button>
   <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:8px">กดปุ่มนี้เมื่อต้องการส่งคำสั่งซื้อทั้งหมดให้ Admin ดำเนินการ</p>
+</div>
+
+<!-- Tab: ติดตามออเดอร์ -->
+<div id="sales-tab-track" style="display:none;padding:12px;max-width:1400px;margin:0 auto">
+  <div style="background:white;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.09);overflow:hidden">
+    <div style="overflow-x:auto">
+      <table class="track-tbl">
+        <thead>
+          <tr>
+            <th style="width:72px">
+              <div class="tdd" id="tddg">
+                <button class="tdd-btn" onclick="tddTog('tddg')">กลุ่ม ▾</button>
+                <div class="tdd-menu" id="tddg-m">
+                  <div class="tdd-item tdd-sel" onclick="tddPick('tddg','กลุ่ม','')">ทั้งหมด</div>
+                </div>
+              </div>
+            </th>
+            <th>
+              <div class="tdd" id="tddc">
+                <button class="tdd-btn" onclick="tddTog('tddc')">ลูกค้า ▾</button>
+                <div class="tdd-menu" id="tddc-m">
+                  <div class="tdd-item tdd-sel" onclick="tddPick('tddc','ลูกค้า','')">ทั้งหมด</div>
+                </div>
+              </div>
+            </th>
+            <th style="min-width:150px">
+              <div class="tdd" id="tddn">
+                <button class="tdd-btn" onclick="tddTog('tddn')">ชื่อสินค้า ▾</button>
+                <div class="tdd-menu" style="min-width:200px" id="tddn-m">
+                  <div class="tdd-item tdd-sel" onclick="tddPick('tddn','ชื่อสินค้า','')">ทั้งหมด</div>
+                </div>
+              </div>
+            </th>
+            <th style="width:85px">รหัส</th>
+            <th style="width:60px">กระสอบ</th>
+            <th style="width:50px">กล่อง</th>
+            <th style="width:115px">
+              <div class="tdd" id="tdds">
+                <button class="tdd-btn" onclick="tddTog('tdds')">สถานะ ▾</button>
+                <div class="tdd-menu" id="tdds-m">
+                  <div class="tdd-item tdd-sel" onclick="tddPick('tdds','สถานะ','')">ทั้งหมด</div>
+                  <div class="tdd-item" onclick="tddPick('tdds','✅ ยืนยันแล้ว','confirmed')">✅ ยืนยันแล้ว</div>
+                  <div class="tdd-item" onclick="tddPick('tdds','⏳ รอยืนยัน','pending')">⏳ รอยืนยัน</div>
+                </div>
+              </div>
+            </th>
+            <th style="width:115px" class="track-date-th" onclick="document.getElementById('trackDatePick').showPicker()">
+              <div class="track-date-lbl" id="track-date-lbl">วันที่สั่ง ▾</div>
+              <input type="date" id="trackDatePick" oninput="onTrackDateChange(this.value)">
+            </th>
+            <th style="text-align:left;min-width:60px">หมายเหตุ</th>
+          </tr>
+        </thead>
+        <tbody id="track-tbody">
+          <tr><td colspan="9" style="text-align:center;color:#aaa;padding:30px">⏳ กำลังโหลด...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <!-- Modal เพิ่มสินค้า -->
@@ -940,6 +1023,7 @@ async function confirmAllToAdmin() {
 function showSalesTab(tab, btn) {
   document.getElementById('sales-tab-order').style.display = tab==='order' ? '' : 'none';
   document.getElementById('sales-tab-history').style.display = tab==='history' ? '' : 'none';
+  document.getElementById('sales-tab-track').style.display = tab==='track' ? '' : 'none';
   document.querySelectorAll('[id^="tab-btn-"]').forEach(b => {
     b.style.borderBottomColor = 'transparent';
     b.style.color = '#666';
@@ -949,6 +1033,7 @@ function showSalesTab(tab, btn) {
   btn.style.color = '#1a3a5c';
   btn.style.fontWeight = '700';
   if (tab==='history') renderSalesHistory();
+  if (tab==='track') { if (!trackLoaded) loadTrackingOrders(); else renderTracking(); }
 }
 
 function showToast(msg) {
@@ -957,6 +1042,208 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
 }
+
+// ===== Tracking Tab =====
+let trackOrders = [];
+let trackLoaded = false;
+let trackFilters = { grade: '', customer: '', name: '', status: '', date: '' };
+
+async function loadTrackingOrders() {
+  document.getElementById('track-tbody').innerHTML =
+    '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:30px">⏳ กำลังโหลด...</td></tr>';
+  try {
+    const res = await fetch(API + '?action=getOrders&status=all', {credentials:'omit'});
+    const data = await res.json();
+    const raw = data.orders || [];
+    // apply legacy urgency/note fix (same as admin)
+    const VALID_URG = ['ด่วน','จอง','เร่ง','ปกติ'];
+    const UNIT_VALS = ['กล่อง','กระสอบ'];
+    raw.forEach(o => {
+      if (VALID_URG.includes(o.urgency)) {
+        o._urgency = o.urgency;
+        o._note = (UNIT_VALS.includes(o.note)||VALID_URG.includes(o.note)) ? '' : (o.note||'');
+      } else if (VALID_URG.includes(o.note)) {
+        o._urgency = o.note;
+        o._note = '';
+      } else {
+        o._urgency = '';
+        o._note = (UNIT_VALS.includes(o.note)||VALID_URG.includes(o.note)) ? '' : (o.note||'');
+      }
+      const _si = allItems.find(x => x.code === o.code);
+      o._unit = _si ? getUnit(resolveType(_si))
+        : (UNIT_VALS.includes(o.unit) ? o.unit
+          : (UNIT_VALS.includes(o.urgency) ? o.urgency : 'กระสอบ'));
+    });
+    trackOrders = raw;
+    trackLoaded = true;
+    populateTrackDropdowns();
+    renderTracking();
+    // update badge count
+    const badge = document.getElementById('track-count-badge');
+    if (raw.length) { badge.textContent = raw.length; badge.style.display = ''; }
+  } catch(e) {
+    document.getElementById('track-tbody').innerHTML =
+      '<tr><td colspan="9" style="text-align:center;color:#dc2626;padding:30px">❌ โหลดไม่ได้: ' + e.message +
+      ' <button onclick="loadTrackingOrders()" style="margin-left:10px;padding:6px 14px;background:#1a3a5c;color:white;border:none;border-radius:6px;cursor:pointer;font-family:Sarabun,sans-serif">🔄 ลองใหม่</button></td></tr>';
+  }
+}
+
+function populateTrackDropdowns() {
+  // grade
+  const grades = ['A','B','C','D',''];
+  const usedGrades = [...new Set(trackOrders.map(o => {
+    const c = CUSTOMERS.find(x => x.name === o.customer);
+    return c ? c.grade : '';
+  }))].filter(g => g && grades.includes(g)).sort();
+  const gMenu = document.getElementById('tddg-m');
+  gMenu.innerHTML = `<div class="tdd-item tdd-sel" onclick="tddPick('tddg','กลุ่ม','')">ทั้งหมด</div>` +
+    usedGrades.map(g => `<div class="tdd-item" onclick="tddPick('tddg','${g}','${g}')">${g}</div>`).join('');
+
+  // customer
+  const custs = [...new Set(trackOrders.map(o => o.customer || ''))].filter(Boolean).sort((a,b) => a.localeCompare(b,'th'));
+  const cMenu = document.getElementById('tddc-m');
+  cMenu.innerHTML = `<div class="tdd-item tdd-sel" onclick="tddPick('tddc','ลูกค้า','')">ทั้งหมด</div>` +
+    custs.map(c => `<div class="tdd-item" onclick="tddPick('tddc',${JSON.stringify(c)},${JSON.stringify(c)})">${c}</div>`).join('');
+
+  // product name
+  const names = [...new Set(trackOrders.map(o => fmtName(o.name) || ''))].filter(Boolean).sort((a,b) => a.localeCompare(b,'th'));
+  const nMenu = document.getElementById('tddn-m');
+  nMenu.innerHTML = `<div class="tdd-item tdd-sel" onclick="tddPick('tddn','ชื่อสินค้า','')">ทั้งหมด</div>` +
+    names.map(n => `<div class="tdd-item" onclick="tddPick('tddn',${JSON.stringify(n)},${JSON.stringify(n)})">${n}</div>`).join('');
+}
+
+function renderTracking() {
+  const tbody = document.getElementById('track-tbody');
+  let orders = trackOrders;
+
+  // apply filters
+  if (trackFilters.grade) {
+    orders = orders.filter(o => {
+      const c = CUSTOMERS.find(x => x.name === o.customer);
+      return c && c.grade === trackFilters.grade;
+    });
+  }
+  if (trackFilters.customer) orders = orders.filter(o => o.customer === trackFilters.customer);
+  if (trackFilters.name) orders = orders.filter(o => fmtName(o.name) === trackFilters.name);
+  if (trackFilters.status) orders = orders.filter(o => o.status === trackFilters.status);
+  if (trackFilters.date) {
+    orders = orders.filter(o => {
+      if (!o.date) return false;
+      // o.date is likely 'DD/MM/YYYY' (Thai) or ISO
+      const d = parseOrderDate(o.date);
+      return d && d === trackFilters.date;
+    });
+  }
+
+  if (!orders.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:30px">ไม่พบรายการ</td></tr>';
+    return;
+  }
+
+  // group by customer
+  const grouped = {};
+  orders.forEach(o => {
+    const key = o.customer || '(ไม่ระบุ)';
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(o);
+  });
+
+  let html = '';
+  Object.entries(grouped).forEach(([cust, items]) => {
+    const custInfo = CUSTOMERS.find(x => x.name === cust);
+    const grade = custInfo ? custInfo.grade : '';
+    const gradeHtml = grade ? `<span class="track-grade tg-${grade}">${grade}</span>` : '';
+    let cSack = 0, cBox = 0;
+
+    items.forEach((o, idx) => {
+      const isBox = o._unit === 'กล่อง';
+      const qty = Number(o.qty) || 0;
+      if (isBox) cBox += qty; else cSack += qty;
+      const statusPill = o.status === 'confirmed'
+        ? '<span class="track-pill-ok">✅ ยืนยันแล้ว</span>'
+        : '<span class="track-pill-wait">⏳ รอยืนยัน</span>';
+      const dateStr = fmtTrackDate(o.date);
+      const rowClass = idx === 0 ? 'track-sep' : '';
+      html += `<tr class="${rowClass}">
+        <td>${idx === 0 ? gradeHtml : ''}</td>
+        <td style="text-align:left;font-weight:${idx===0?'700':'400'};color:${idx===0?'#1a3a5c':'#333'}">${idx === 0 ? cust : ''}</td>
+        <td style="text-align:left">${fmtName(o.name)||''}</td>
+        <td style="font-family:monospace;font-size:11px">${o.code||''}</td>
+        <td style="font-weight:600">${!isBox && qty ? qty : ''}</td>
+        <td style="font-weight:600">${isBox && qty ? qty : ''}</td>
+        <td>${statusPill}</td>
+        <td style="font-size:11px;color:#666">${dateStr}</td>
+        <td style="text-align:left;font-size:11px;color:#666">${o._note||''}</td>
+      </tr>`;
+    });
+
+    html += `<tr class="track-sum">
+      <td colspan="4" style="text-align:right">รวม ${cust}</td>
+      <td style="font-weight:700;color:#1a3a5c">${cSack||'-'}</td>
+      <td style="font-weight:700;color:#7c3aed">${cBox||'-'}</td>
+      <td colspan="3"></td>
+    </tr>`;
+  });
+
+  tbody.innerHTML = html;
+}
+
+function parseOrderDate(dateStr) {
+  if (!dateStr) return '';
+  // handle 'DD/MM/YYYY' Thai format
+  const m = String(dateStr).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) {
+    const year = parseInt(m[3]) > 2500 ? parseInt(m[3]) - 543 : parseInt(m[3]);
+    return `${year}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  }
+  // handle ISO
+  const iso = String(dateStr).slice(0,10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+  return '';
+}
+
+function fmtTrackDate(dateStr) {
+  if (!dateStr) return '';
+  const iso = parseOrderDate(dateStr);
+  if (!iso) return String(dateStr);
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${parseInt(y)+543}`;
+}
+
+// dropdown helpers
+function tddTog(id) {
+  const wasOpen = document.getElementById(id+'-m').classList.contains('open');
+  document.querySelectorAll('.tdd-menu').forEach(m => m.classList.remove('open'));
+  if (!wasOpen) document.getElementById(id+'-m').classList.add('open');
+}
+
+function tddPick(id, label, value) {
+  document.querySelector('#'+id+' .tdd-btn').textContent = label + ' ▾';
+  document.getElementById(id+'-m').classList.remove('open');
+  document.querySelectorAll('#'+id+'-m .tdd-item').forEach(el => el.classList.remove('tdd-sel'));
+  event.target.classList.add('tdd-sel');
+  // map id to filter key
+  const keyMap = { tddg:'grade', tddc:'customer', tddn:'name', tdds:'status' };
+  const key = keyMap[id];
+  if (key) { trackFilters[key] = value; renderTracking(); }
+}
+
+function onTrackDateChange(val) {
+  trackFilters.date = val; // ISO format yyyy-mm-dd
+  const lbl = document.getElementById('track-date-lbl');
+  if (!val) { lbl.textContent = 'วันที่สั่ง ▾'; }
+  else {
+    const [y,m,d] = val.split('-');
+    lbl.textContent = `${d}/${m}/${parseInt(y)+543} ▾`;
+  }
+  renderTracking();
+}
+
+// close dropdowns when clicking outside tracking table
+document.addEventListener('click', e => {
+  if (!e.target.closest('.tdd') && !e.target.closest('.track-date-th'))
+    document.querySelectorAll('.tdd-menu').forEach(m => m.classList.remove('open'));
+});
 
 loadData();
 </script>
