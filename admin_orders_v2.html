@@ -665,6 +665,7 @@ function siAddItem() {
   if (!name) { alert('กรุณาเลือกสินค้า'); return; }
   if (!qty || qty < 1) { alert('กรุณาใส่จำนวน'); return; }
   siItems.push({ code: code||'', name, qty, unit, tankPack, packOutQty, packOutUnit, note });
+  clearWarnToast();
   siRender();
   document.getElementById('si-search').value = '';
   document.getElementById('si-search').dataset.code = '';
@@ -874,7 +875,15 @@ async function siSubmit() {
 
     // บันทึกกระสอบ/กล่องปกติ
     if (normalItems.length) {
-      await fetch(API, { method:'POST', body:JSON.stringify({action:'stockIn',date,recorder,items:normalItems}) });
+      const r = await fetch(API, { method:'POST', body:JSON.stringify({action:'stockIn',date,recorder,items:normalItems}) });
+      const rd = await r.json();
+      if (rd.errors && rd.errors.length) {
+        const failedNames = rd.errors.map(code => {
+          const it = normalItems.find(x => String(x.code) === String(code));
+          return it ? (it.name || code) : code;
+        }).join(', ');
+        showToast('⚠️ ไม่พบรหัสสินค้า: ' + failedNames, 'warn');
+      }
     }
     // บันทึกถังรับเข้า + แปลงเป็นกระสอบถ้ามี
     for (const item of tankItems) {
@@ -1483,11 +1492,22 @@ function renderHistory() {
   tbody.innerHTML = html;
 }
 
-function showToast(msg) {
+function showToast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg;
+  t.style.background = type === 'warn' ? '#b45309' : '';
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  if (type !== 'warn') {
+    setTimeout(() => { t.classList.remove('show'); t.style.background = ''; }, 2500);
+  }
+  // warn stays until cleared by clearWarnToast()
+}
+function clearWarnToast() {
+  const t = document.getElementById('toast');
+  if (t.style.background === 'rgb(180, 83, 9)') { // warn color
+    t.classList.remove('show');
+    t.style.background = '';
+  }
 }
 
 loadAll();
