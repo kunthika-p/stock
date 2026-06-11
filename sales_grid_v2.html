@@ -829,7 +829,7 @@ async function submitAllOrders() {
   if (!customerName) { alert('ไม่พบชื่อลูกค้า'); return; }
   if (!cart.length) { alert('กรุณาเพิ่มสินค้าในตะกร้า'); return; }
   const note = document.getElementById('inputNote').value.trim();
-  const date = new Date().toLocaleDateString('th-TH');
+  const date = new Date().toISOString();
   cart.forEach(item => {
     stagedOrders.push({
       id: Date.now() + Math.random(),
