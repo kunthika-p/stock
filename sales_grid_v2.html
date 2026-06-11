@@ -1006,13 +1006,17 @@ function renderTracking() {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:24px">ไม่พบคำสั่งซื้อ</td></tr>';
     return;
   }
-  const urgBg  = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'};
-  const urgTx  = {'ด่วน':'#991b1b','จอง':'#92400e','ปกติ':'#065f46'};
+  const VALID_URG = new Set(['ด่วน','เร่ง','จอง','ปกติ']);
+  const urgBg  = {'ด่วน':'#fee2e2','จอง':'#fef9c3','เร่ง':'#fef9c3','ปกติ':'#d1fae5'};
+  const urgTx  = {'ด่วน':'#991b1b','จอง':'#92400e','เร่ง':'#92400e','ปกติ':'#065f46'};
+  const VALID_UNITS = new Set(['กระสอบ','กล่อง','ถัง']);
   let html = '';
   orders.forEach(o => {
     const isPending   = String(o.status) === 'pending';
     const isConfirmed = String(o.status) === 'confirmed';
-    const isBox = String(o.unit) === 'กล่อง';
+    // ป้องกัน unit ผิด: ถ้า unit ไม่ใช่ค่าที่รู้จัก ดูจาก qty > 0 แทน
+    const unitVal = String(o.unit || '');
+    const isBox = unitVal === 'กล่อง';
     const custName = resolveCust(o.customer || '');
     const rowBg = isPending ? 'background:#fffbeb;' : '';
     const statusBadge = isPending
@@ -1020,16 +1024,27 @@ function renderTracking() {
       : isConfirmed
         ? '<span style="background:#dcfce7;color:#166534;font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600">✅ ยืนยัน</span>'
         : '<span style="background:#fee2e2;color:#991b1b;font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600">❌ ยกเลิก</span>';
-    const urg = o.urgency || 'ปกติ';
+    // กรอง urgency: แสดงเฉพาะค่าที่ถูกต้อง
+    const urgRaw = String(o.urgency || '');
+    const urgDisplay = VALID_URG.has(urgRaw) ? urgRaw : '—';
+    const urgBadge = urgDisplay !== '—'
+      ? `<span style="background:${urgBg[urgDisplay]};color:${urgTx[urgDisplay]};font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600">${urgDisplay}</span>`
+      : `<span style="color:#aaa;font-size:12px">—</span>`;
+    // กรอง note: ถ้าเป็น urgency value ที่หลุดมา ให้แสดง —
+    const noteRaw = String(o.note || '');
+    const noteDisplay = VALID_URG.has(noteRaw) ? '—' : (noteRaw || '—');
+    // กรอง date: ถ้าไม่ใช่ date format ให้แสดง —
+    const dateRaw = String(o.date || '');
+    const dateDisplay = /\d/.test(dateRaw) ? dateRaw : '—';
     html += `<tr style="${rowBg}border-bottom:1px solid #f0f0f0">
-      <td style="padding:8px 10px;font-size:12px;color:#666;white-space:nowrap">${o.date || '—'}</td>
+      <td style="padding:8px 10px;font-size:12px;color:#666;white-space:nowrap">${dateDisplay}</td>
       <td style="padding:8px 10px;font-size:12px;font-weight:700;color:#1a3a5c">${custName}</td>
       <td style="padding:8px 10px;font-size:13px;color:#222">${o.name || '—'}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:center;font-weight:700;color:#1a3a5c">${!isBox ? o.qty : ''}</td>
       <td style="padding:8px 10px;font-size:13px;text-align:center;font-weight:700;color:#7c3aed">${isBox ? o.qty : ''}</td>
-      <td style="padding:8px 10px;text-align:center"><span style="background:${urgBg[urg]||'#f3f4f6'};color:${urgTx[urg]||'#555'};font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600">${urg}</span></td>
+      <td style="padding:8px 10px;text-align:center">${urgBadge}</td>
       <td style="padding:8px 10px;text-align:center">${statusBadge}</td>
-      <td style="padding:8px 10px;font-size:12px;color:#666">${o.note || '—'}</td>
+      <td style="padding:8px 10px;font-size:12px;color:#666">${noteDisplay}</td>
     </tr>`;
   });
   tbody.innerHTML = html;
