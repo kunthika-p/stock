@@ -494,6 +494,12 @@ function resolveCust(raw) { return CUST_MAP[raw] ? raw : (CUST_CODE_MAP[String(r
 
 let stockMap = {}, allItems = [], historyData = [];
 
+function buildName(item) {
+  const clean = v => { if (!v) return ''; const s = String(v); return /^\d{4}-\d{2}-\d{2}T|GMT/.test(s) ? '' : s; };
+  const size = [clean(item.col), clean(item.row)].filter(Boolean).join(' x ');
+  return fmtName([item.type||'', size].filter(Boolean).join(' '));
+}
+
 function fmtName(n) {
   if (!n) return n;
   let s = String(n);
@@ -510,7 +516,7 @@ function fmtName(n) {
   // ใส่ x ก่อนตัวเลขสุดท้าย (int, mixed fraction, simple fraction)
   // ยกเว้น หัวน็อต ที่ fraction คือขนาด ไม่ใช่ความยาว
   if (!s.startsWith('หัวน็อต')) {
-    s = s.replace(/ (\d[\d./]*)$/, ' x $1');
+    s = s.replace(/(?<!x) (\d[\d./]*)$/, ' x $1');
   }
   if (suffix) s = s + suffix;
   return s;
@@ -564,7 +570,7 @@ async function loadOverview() {
     tbody.innerHTML = filtered.map(i => {
       const s = Number(i.stock)||0;
       const [cls, lbl] = s <= 0 ? ['sb-out','หมด'] : s < 20 ? ['sb-low','ต่ำ'] : ['sb-ok','ปกติ'];
-      const name = fmtName([i.type, i.col, i.row].filter(Boolean).join(' '));
+      const name = buildName(i);
       const code = (i.code !== undefined && i.code !== '' && !isNaN(Number(i.code)))
         ? String(Number(i.code)).padStart(8, '0') : (i.code||'');
       return `<tr>
@@ -603,12 +609,12 @@ function siSearch() {
   siSearchIdx = -1;
   if (!q) { drop.style.display='none'; return; }
   siSearchResults = allItems.filter(i => {
-    const name = [i.type,i.col,i.row].filter(Boolean).join(' ').toLowerCase();
+    const name = buildName(i).toLowerCase();
     return name.includes(q) || String(i.code).includes(q);
   }).slice(0, 12);
   if (!siSearchResults.length) { drop.style.display='none'; return; }
   drop.innerHTML = siSearchResults.map((i,idx) => {
-    const name = fmtName([i.type,i.col,i.row].filter(Boolean).join(' '));
+    const name = buildName(i);
     return `<div style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #f3f4f6;font-size:13px;display:flex;justify-content:space-between"
       onmousedown="siSelectItem(${idx})" data-idx="${idx}">
       <span style="font-weight:600;color:#1a3a5c">${name}</span>
@@ -630,7 +636,7 @@ function siSearchKey(e) {
 function siSelectItem(idx) {
   const item = siSearchResults[idx];
   if (!item) return;
-  const name = fmtName([item.type,item.col,item.row].filter(Boolean).join(' '));
+  const name = buildName(item);
   document.getElementById('si-search').value = name;
   document.getElementById('si-search').dataset.code = item.code;
   document.getElementById('si-search').dataset.name = name;
