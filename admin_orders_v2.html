@@ -124,6 +124,19 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .btn-si-del{background:none;border:none;color:#dc2626;font-size:16px;cursor:pointer;padding:2px 6px}
 .btn-si-submit{width:100%;background:#16a34a;color:white;border:none;border-radius:10px;padding:14px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer;margin-top:8px}
 .btn-si-submit:disabled{background:#9ca3af;cursor:default}
+/* ── ประวัติรับเข้า + feature ใหม่ ── */
+.si-subtab{display:flex;gap:8px;margin-bottom:16px}
+.si-subtab-btn{padding:7px 18px;border-radius:20px;border:1.5px solid #d1d5db;background:white;color:#555;font-size:13px;font-family:'Sarabun',sans-serif;cursor:pointer}
+.si-subtab-btn.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
+.btn-si-edit{background:none;border:none;color:#d97706;font-size:14px;cursor:pointer;padding:2px 5px}
+.si-hist-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.si-hist-filter input{padding:8px 11px;border:1.5px solid #d1d5db;border-radius:7px;font-size:13px;font-family:'Sarabun',sans-serif}
+.si-hist-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:650px}
+.si-hist-tbl th{background:#1a3a5c;color:white;padding:8px 10px;font-weight:600;font-size:12px;text-align:center;border:1px solid #0f2844;white-space:nowrap}
+.si-hist-tbl td{padding:7px 10px;border:1px solid #e5e7eb;text-align:center;vertical-align:middle}
+.si-hist-tbl .td-left{text-align:left}
+.si-hist-tbl tr.date-sep td{border-top:2px solid #2563a8}
+.si-hist-tbl tr:hover td{background:#f8fbff}
 
 /* Stock tab */
 .card{background:white;border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:0 1px 5px rgba(0,0,0,.09)}
@@ -317,6 +330,11 @@ table.list tr:hover td{background:#f8fbff}
   <!-- Tab: รับสินค้าเข้า -->
   <div class="tab-panel" id="tab-stockin">
     <div class="content">
+      <div class="si-subtab">
+        <button class="si-subtab-btn active" id="si-subtab-form" onclick="siShowForm()">📥 รับสินค้า</button>
+        <button class="si-subtab-btn" id="si-subtab-hist" onclick="siShowHistory()">🕐 ประวัติรับเข้า</button>
+      </div>
+      <div id="si-form-wrap">
       <div class="si-wrap">
         <div class="si-card">
           <div class="si-card-title">📋 ข้อมูลการรับสินค้า</div>
@@ -335,8 +353,13 @@ table.list tr:hover td{background:#f8fbff}
               <div id="si-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #2563a8;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
             </div>
             <div class="si-field"><label>จำนวน</label><input type="number" id="si-qty" placeholder="0" min="1" step="1"></div>
-            <div class="si-field"><label>หน่วย</label>
-              <select id="si-unit" onchange="siToggleTankPack()">
+            <div class="si-field">
+              <label>หน่วย</label>
+              <div id="si-unit-display" style="display:flex;align-items:center;gap:6px">
+                <div id="si-unit-badge" style="flex:1;padding:9px 12px;border:1.5px solid #16a34a;border-radius:8px;background:#f0fdf4;color:#15803d;font-size:14px;font-weight:600">✓ กระสอบ</div>
+                <button type="button" onclick="siToggleUnitOverride()" style="padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;background:white;color:#555;font-size:13px;font-family:'Sarabun',sans-serif;cursor:pointer;white-space:nowrap">เปลี่ยน</button>
+              </div>
+              <select id="si-unit" style="display:none" onchange="siOnUnitChange()">
                 <option value="กระสอบ">กระสอบ</option>
                 <option value="กล่อง">กล่อง</option>
                 <option value="ถัง">ถัง</option>
@@ -364,14 +387,45 @@ table.list tr:hover td{background:#f8fbff}
                 <th style="width:80px">ถังรับเข้า</th>
                 <th style="width:80px">ถังบรรจุ</th>
                 <th style="text-align:left">หมายเหตุ</th>
-                <th style="width:50px">ลบ</th>
+                <th style="width:80px">จัดการ</th>
               </tr></thead>
-              <tbody id="si-tbody"><tr><td colspan="8" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr></tbody>
+              <tbody id="si-tbody"><tr><td colspan="9" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr></tbody>
             </table>
           </div>
           <button class="btn-si-submit" id="si-submit-btn" onclick="siSubmit()" disabled>💾 บันทึกรับสินค้าเข้า</button>
         </div>
       </div>
+      </div><!-- /si-form-wrap -->
+
+      <!-- ── History wrap ── -->
+      <div id="si-hist-wrap" style="display:none">
+        <div class="si-card">
+          <div class="si-card-title" style="display:flex;justify-content:space-between;align-items:center">
+            <span>🕐 ประวัติรับสินค้าเข้า</span>
+            <button onclick="loadStockInHistory()" style="background:#e5e7eb;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'Sarabun',sans-serif">🔄 รีเฟรช</button>
+          </div>
+          <div class="si-hist-filter">
+            <input type="text" id="si-hist-q" placeholder="🔍 ค้นหาสินค้า / รหัส..." oninput="renderStockInHistory()">
+            <input type="date" id="si-hist-from" onchange="renderStockInHistory()" title="จากวันที่">
+            <input type="date" id="si-hist-to" onchange="renderStockInHistory()" title="ถึงวันที่">
+          </div>
+          <div class="tbl-wrap">
+            <table class="si-hist-tbl">
+              <thead><tr>
+                <th style="width:110px">วันที่รับ</th>
+                <th style="text-align:left;min-width:180px">ชื่อสินค้า</th>
+                <th style="width:100px">รหัส</th>
+                <th style="width:80px">กระสอบ</th>
+                <th style="width:80px">กล่อง</th>
+                <th style="width:80px">ถังรับเข้า</th>
+                <th style="width:90px">ผู้บันทึก</th>
+                <th style="text-align:left">หมายเหตุ</th>
+              </tr></thead>
+              <tbody id="si-hist-tbody"><tr><td colspan="8" style="text-align:center;padding:24px;color:#aaa">กดรีเฟรชเพื่อโหลดประวัติ</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /si-hist-wrap -->
     </div>
   </div>
 
@@ -537,6 +591,8 @@ function siToggleTankPack() {
   }
 }
 let siItems = [];
+let siEditingIdx = -1;
+let stockInHistory = [];
 let siSearchIdx = -1;
 let siSearchResults = [];
 (function(){ const d=new Date(); setTimeout(()=>{ const el=document.getElementById('si-date'); if(el) el.value=d.toISOString().split('T')[0]; },100); })();
@@ -578,7 +634,15 @@ function siSelectItem(idx) {
   document.getElementById('si-search').value = name;
   document.getElementById('si-search').dataset.code = item.code;
   document.getElementById('si-search').dataset.name = name;
+  document.getElementById('si-search').dataset.type = item.type || '';
   document.getElementById('si-drop').style.display = 'none';
+  // Auto-detect unit from product type
+  const autoUnit = BOX_TYPES.includes(item.type) ? 'กล่อง' : 'กระสอบ';
+  document.getElementById('si-unit').value = autoUnit;
+  siSetUnitBadge(autoUnit);
+  document.getElementById('si-unit-display').style.display = 'flex';
+  document.getElementById('si-unit').style.display = 'none';
+  siToggleTankPack();
   document.getElementById('si-qty').focus();
 }
 document.addEventListener('click', e => {
@@ -611,26 +675,187 @@ function siAddItem() {
   document.getElementById('si-tankpack-wrap').style.display='none';
   document.getElementById('si-packout-wrap').style.display='none';
   document.getElementById('si-unit').value='กระสอบ';
+  siSetUnitBadge('กระสอบ');
+  document.getElementById('si-unit-display').style.display='flex';
+  document.getElementById('si-unit').style.display='none';
+  document.getElementById('si-search').dataset.type = '';
   document.getElementById('si-note').value = '';
   document.getElementById('si-search').focus();
 }
-function siRemove(idx) { siItems.splice(idx,1); siRender(); }
+function siRemove(idx) {
+  if (siEditingIdx === idx) siEditingIdx = -1;
+  else if (siEditingIdx > idx) siEditingIdx--;
+  siItems.splice(idx,1);
+  siRender();
+}
+function siEditItem(idx) { siEditingIdx = idx; siRender(); }
+function siCancelEdit() { siEditingIdx = -1; siRender(); }
+function siSaveEdit() {
+  const idx = siEditingIdx;
+  if (idx < 0 || idx >= siItems.length) return;
+  const code = (document.getElementById('si-edit-code').value||'').trim();
+  const qty = parseInt(document.getElementById('si-edit-qty').value);
+  const note = (document.getElementById('si-edit-note').value||'').trim();
+  if (!qty || qty < 1) { alert('กรุณาใส่จำนวนที่ถูกต้อง'); return; }
+  siItems[idx].code = code;
+  siItems[idx].qty = qty;
+  siItems[idx].note = note;
+  siEditingIdx = -1;
+  siRender();
+}
+// Unit pill helpers (Feature 3)
+function siSetUnitBadge(unit) {
+  const badge = document.getElementById('si-unit-badge');
+  if (!badge) return;
+  if (unit === 'กล่อง') {
+    badge.style.border = '1.5px solid #2563a8';
+    badge.style.background = '#eff6ff';
+    badge.style.color = '#1d4ed8';
+  } else if (unit === 'ถัง') {
+    badge.style.border = '1.5px solid #d97706';
+    badge.style.background = '#fffbeb';
+    badge.style.color = '#92400e';
+  } else {
+    badge.style.border = '1.5px solid #16a34a';
+    badge.style.background = '#f0fdf4';
+    badge.style.color = '#15803d';
+  }
+  badge.textContent = '✓ ' + unit;
+}
+function siToggleUnitOverride() {
+  document.getElementById('si-unit-display').style.display = 'none';
+  const sel = document.getElementById('si-unit');
+  sel.style.display = '';
+  sel.focus();
+}
+function siOnUnitChange() {
+  const unit = document.getElementById('si-unit').value;
+  siSetUnitBadge(unit);
+  document.getElementById('si-unit-display').style.display = 'flex';
+  document.getElementById('si-unit').style.display = 'none';
+  siToggleTankPack();
+}
+// Stock-in history (Feature 1)
+function siShowForm() {
+  document.getElementById('si-form-wrap').style.display = '';
+  document.getElementById('si-hist-wrap').style.display = 'none';
+  document.getElementById('si-subtab-form').classList.add('active');
+  document.getElementById('si-subtab-hist').classList.remove('active');
+}
+function siShowHistory() {
+  document.getElementById('si-form-wrap').style.display = 'none';
+  document.getElementById('si-hist-wrap').style.display = '';
+  document.getElementById('si-subtab-form').classList.remove('active');
+  document.getElementById('si-subtab-hist').classList.add('active');
+  if (!stockInHistory.length) loadStockInHistory();
+}
+async function loadStockInHistory() {
+  const tbody = document.getElementById('si-hist-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:#888">⏳ กำลังโหลด...</td></tr>';
+  try {
+    const res = await fetch(API + '?action=getStockInHistory');
+    const data = await res.json();
+    stockInHistory = data.records || [];
+    renderStockInHistory();
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:#dc2626">❌ โหลดไม่ได้: '+e.message+'</td></tr>';
+  }
+}
+function renderStockInHistory() {
+  const q = (document.getElementById('si-hist-q').value||'').toLowerCase();
+  const from = document.getElementById('si-hist-from').value;
+  const to = document.getElementById('si-hist-to').value;
+  let filtered = stockInHistory.filter(r => {
+    if (q && !(r.name+' '+r.code+' '+(r.recorder||'')).toLowerCase().includes(q)) return false;
+    const rDate = (r.date||'').split('T')[0]; // normalize ISO → YYYY-MM-DD
+    if (from && rDate < from) return false;
+    if (to && rDate > to) return false;
+    return true;
+  });
+  const tbody = document.getElementById('si-hist-tbody');
+  if (!tbody) return;
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:#aaa">ไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  // จัดกลุ่มตาม date+recorder
+  const groups = {};
+  filtered.forEach(r => {
+    const key = (r.date||'') + '__' + (r.recorder||'');
+    if (!groups[key]) groups[key] = { date: r.date, recorder: r.recorder||'', items: [] };
+    groups[key].items.push(r);
+  });
+  let html = '';
+  Object.values(groups)
+    .sort((a,b) => (b.date||'').localeCompare(a.date||''))
+    .forEach(g => {
+      const dateStr = fmtStockInDate(g.date);
+      g.items.forEach((r, idx) => {
+        html += `<tr class="${idx===0?'date-sep':''}">
+          <td style="font-size:11px;white-space:nowrap">${idx===0?dateStr:''}</td>
+          <td class="td-left" style="font-weight:600;color:#1a3a5c">${fmtName(r.name||r.code||'')}</td>
+          <td style="font-family:monospace;font-size:11px">${r.code||''}</td>
+          <td style="font-weight:700;color:#1a3a5c">${r.unit==='กระสอบ'?r.qty:''}</td>
+          <td style="font-weight:700;color:#7c3aed">${r.unit==='กล่อง'?r.qty:''}</td>
+          <td style="font-weight:700;color:#d97706">${r.unit==='ถัง'?r.qty:''}</td>
+          <td style="font-size:12px;color:#555">${idx===0?g.recorder:''}</td>
+          <td class="td-left" style="font-size:11px;color:#666">${r.note||''}</td>
+        </tr>`;
+      });
+    });
+  tbody.innerHTML = html;
+}
+function fmtStockInDate(d) {
+  if (!d) return '-';
+  const dt = new Date(d);
+  if (isNaN(dt)) return String(d);
+  const dd = String(dt.getDate()).padStart(2,'0');
+  const mm = String(dt.getMonth()+1).padStart(2,'0');
+  const yyyy = dt.getFullYear() > 2100 ? dt.getFullYear() : dt.getFullYear() + 543;
+  return `${dd}/${mm}/${yyyy}`;
+}
 function siRender() {
   document.getElementById('si-count').textContent = siItems.length + ' รายการ';
   document.getElementById('si-submit-btn').disabled = siItems.length === 0;
   const tbody = document.getElementById('si-tbody');
   if (!siItems.length) { tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr>'; return; }
-  tbody.innerHTML = siItems.map((item,i) => `<tr>
-    <td>${i+1}</td>
-    <td class="td-left" style="font-weight:600;color:#1a3a5c">${item.name}</td>
-    <td style="font-family:monospace;font-size:12px">${item.code}</td>
-    <td style="font-weight:700;color:#1a3a5c">${item.unit==='กระสอบ'?item.qty:''}</td>
-    <td style="font-weight:700;color:#7c3aed">${item.unit==='กล่อง'?item.qty:''}</td>
-    <td style="font-weight:700;color:#d97706">${item.unit==='ถัง'?item.qty:''}</td>
-    <td style="font-weight:700;color:#16a34a">${item.unit==='ถัง'&&item.tankPack?item.tankPack+' → '+( item.packOutQty||'?' )+' '+( item.packOutUnit||'กระสอบ' ):''}</td>
-    <td class="td-left" style="font-size:12px;color:#666">${item.note||''}</td>
-    <td><button class="btn-si-del" onclick="siRemove(${i})">✕</button></td>
-  </tr>`).join('');
+  tbody.innerHTML = siItems.map((item,i) => {
+    if (i === siEditingIdx) {
+      return `<tr style="background:#fffbeb">
+        <td>${i+1}</td>
+        <td class="td-left" style="font-size:12px;color:#374151">${item.name}</td>
+        <td><input type="text" id="si-edit-code" value="${item.code}" style="width:90px;padding:4px 7px;border:1.5px solid #d97706;border-radius:6px;font-size:12px;font-family:monospace;text-align:center"></td>
+        <td colspan="4" style="text-align:center">
+          <span style="font-size:11px;color:#888;margin-right:4px">${item.unit}</span>
+          <input type="number" id="si-edit-qty" value="${item.qty}" min="1" style="width:65px;padding:4px 7px;border:1.5px solid #d97706;border-radius:6px;font-size:13px;text-align:center">
+        </td>
+        <td><input type="text" id="si-edit-note" value="${item.note||''}" placeholder="หมายเหตุ..." style="width:100%;padding:4px 7px;border:1.5px solid #d97706;border-radius:6px;font-size:12px;font-family:'Sarabun',sans-serif"></td>
+        <td>
+          <div style="display:flex;gap:3px;justify-content:center">
+            <button onclick="siSaveEdit()" style="padding:4px 9px;background:#d97706;color:white;border:none;border-radius:5px;font-size:11px;cursor:pointer;font-family:'Sarabun',sans-serif;white-space:nowrap">บันทึก</button>
+            <button onclick="siCancelEdit()" style="padding:4px 7px;background:white;color:#555;border:1.5px solid #d1d5db;border-radius:5px;font-size:11px;cursor:pointer;font-family:'Sarabun',sans-serif">ยก</button>
+          </div>
+        </td>
+      </tr>`;
+    }
+    return `<tr>
+      <td>${i+1}</td>
+      <td class="td-left" style="font-weight:600;color:#1a3a5c">${item.name}</td>
+      <td style="font-family:monospace;font-size:12px">${item.code}</td>
+      <td style="font-weight:700;color:#1a3a5c">${item.unit==='กระสอบ'?item.qty:''}</td>
+      <td style="font-weight:700;color:#7c3aed">${item.unit==='กล่อง'?item.qty:''}</td>
+      <td style="font-weight:700;color:#d97706">${item.unit==='ถัง'?item.qty:''}</td>
+      <td style="font-weight:700;color:#16a34a">${item.unit==='ถัง'&&item.tankPack?item.tankPack+' → '+(item.packOutQty||'?')+' '+(item.packOutUnit||'กระสอบ'):''}</td>
+      <td class="td-left" style="font-size:12px;color:#666">${item.note||''}</td>
+      <td>
+        <div style="display:flex;gap:4px;justify-content:center">
+          <button class="btn-si-edit" onclick="siEditItem(${i})" title="แก้ไข">✏️</button>
+          <button class="btn-si-del" onclick="siRemove(${i})" title="ลบ">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
 }
 async function siSubmit() {
   const date = document.getElementById('si-date').value;
