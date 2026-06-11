@@ -1103,12 +1103,14 @@ async function bulkConfirm() {
   if (!confirm(`ยืนยัน ${checked.length} รายการ?`)) return;
   const items = checked.map(c => ({row: Number(c.dataset.row), code: c.dataset.code, qty: Number(c.dataset.qty)}));
   try {
-    const res = await fetch(API, {
-      method: 'POST', body: JSON.stringify({action:'bulkConfirm', items})
-    });
-    const data = await res.json();
-    if (data.success) { showToast(`✅ ยืนยัน ${items.length} รายการแล้ว`); loadPending(); loadHistory(); }
-    else alert('เกิดข้อผิดพลาด: ' + (data.error||'unknown'));
+    for (const item of items) {
+      const res = await fetch(API, {
+        method: 'POST', body: JSON.stringify({action:'confirmOrder', row: item.row, code: item.code, qty: item.qty})
+      });
+      const data = await res.json();
+      if (!data.success) { alert('เกิดข้อผิดพลาด: ' + (data.error||'unknown')); return; }
+    }
+    showToast(`✅ ยืนยัน ${items.length} รายการแล้ว`); loadPending(); loadHistory();
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
 }
 
