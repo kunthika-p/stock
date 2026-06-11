@@ -786,19 +786,22 @@ function renderStockInHistory() {
     if (!groups[key]) groups[key] = { date: r.date, recorder: r.recorder||'', items: [] };
     groups[key].items.push(r);
   });
+  // clean name: remove date-like substrings (e.g. "Sun Feb 18 1900 00:00:00 GMT+...")
+  const cleanSiName = n => (n||'').replace(/(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\w+\s+\d+\s+\d{4}[^(]*\([^)]*\)/g,'').replace(/\s{2,}/g,' ').trim();
+
   let html = '';
   Object.values(groups)
     .sort((a,b) => (b.date||'').localeCompare(a.date||''))
     .forEach(g => {
       const dateStr = fmtStockInDate(g.date);
-      g.items.forEach((r, idx) => {
+      g.items.filter(r => r.qty > 0).forEach((r, idx) => {
         html += `<tr class="${idx===0?'date-sep':''}">
           <td style="font-size:11px;white-space:nowrap">${idx===0?dateStr:''}</td>
-          <td class="td-left" style="font-weight:600;color:#1a3a5c">${fmtName(r.name||r.code||'')}</td>
+          <td class="td-left" style="font-weight:600;color:#1a3a5c">${fmtName(cleanSiName(r.name)||r.code||'')}</td>
           <td style="font-family:monospace;font-size:11px">${r.code||''}</td>
-          <td style="font-weight:700;color:#1a3a5c">${r.unit==='กระสอบ'?r.qty:''}</td>
-          <td style="font-weight:700;color:#7c3aed">${r.unit==='กล่อง'?r.qty:''}</td>
-          <td style="font-weight:700;color:#d97706">${r.unit==='ถัง'?r.qty:''}</td>
+          <td style="font-weight:700;color:#1a3a5c">${r.unit==='กระสอบ'&&r.qty?r.qty:''}</td>
+          <td style="font-weight:700;color:#7c3aed">${r.unit==='กล่อง'&&r.qty?r.qty:''}</td>
+          <td style="font-weight:700;color:#d97706">${r.unit==='ถัง'&&r.qty?r.qty:''}</td>
           <td style="font-size:12px;color:#555">${idx===0?g.recorder:''}</td>
           <td class="td-left" style="font-size:11px;color:#666">${r.note||''}</td>
         </tr>`;
