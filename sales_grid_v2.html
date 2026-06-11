@@ -1022,7 +1022,7 @@ function renderTracking() {
     // date: parse เหมือน admin (new Date) แล้ว format
     const _d = o.date || o.timestamp;
     let dateDisplay = '—';
-    if (_d) { const dt = new Date(_d); if (!isNaN(dt)) { dateDisplay = String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+(dt.getFullYear()+543); } else { dateDisplay = '[RAW:'+String(_d).substring(0,30)+']'; } } else { dateDisplay = '[NODATE:'+Object.keys(o).join(',')+']'; }
+    if (_d) { const dt = new Date(_d); if (!isNaN(dt)) { const yr = dt.getFullYear() > 2100 ? dt.getFullYear() : dt.getFullYear()+543; dateDisplay = String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+yr; } else { dateDisplay = '—'; } } else { dateDisplay = '—'; }
     // urgency/note swap detection เหมือน admin
     let _urgency, _note;
     if (VALID_URG.includes(o.urgency)) {
