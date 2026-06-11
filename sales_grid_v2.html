@@ -1006,17 +1006,14 @@ function renderTracking() {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:24px">ไม่พบคำสั่งซื้อ</td></tr>';
     return;
   }
-  const VALID_URG = new Set(['ด่วน','เร่ง','จอง','ปกติ']);
-  const urgBg  = {'ด่วน':'#fee2e2','จอง':'#fef9c3','เร่ง':'#fef9c3','ปกติ':'#d1fae5'};
-  const urgTx  = {'ด่วน':'#991b1b','จอง':'#92400e','เร่ง':'#92400e','ปกติ':'#065f46'};
-  const VALID_UNITS = new Set(['กระสอบ','กล่อง','ถัง']);
+  const VALID_URG  = ['ด่วน','เร่ง','จอง','ปกติ'];
+  const UNIT_VALS  = ['กล่อง','กระสอบ'];
+  const urgBg = {'ด่วน':'#fee2e2','จอง':'#fef9c3','เร่ง':'#fef9c3','ปกติ':'#d1fae5'};
+  const urgTx = {'ด่วน':'#991b1b','จอง':'#92400e','เร่ง':'#92400e','ปกติ':'#065f46'};
   let html = '';
   orders.forEach(o => {
     const isPending   = String(o.status) === 'pending';
     const isConfirmed = String(o.status) === 'confirmed';
-    // ป้องกัน unit ผิด: ถ้า unit ไม่ใช่ค่าที่รู้จัก ดูจาก qty > 0 แทน
-    const unitVal = String(o.unit || '');
-    const isBox = unitVal === 'กล่อง';
     const custName = resolveCust(o.customer || '');
     const rowBg = isPending ? 'background:#fffbeb;' : '';
     const statusBadge = isPending
@@ -1024,18 +1021,31 @@ function renderTracking() {
       : isConfirmed
         ? '<span style="background:#dcfce7;color:#166534;font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600">✅ ยืนยัน</span>'
         : '<span style="background:#fee2e2;color:#991b1b;font-size:11px;padding:2px 7px;border-radius:10px;font-weight:600">❌ ยกเลิก</span>';
-    // กรอง urgency: แสดงเฉพาะค่าที่ถูกต้อง
-    const urgRaw = String(o.urgency || '');
-    const urgDisplay = VALID_URG.has(urgRaw) ? urgRaw : '—';
-    const urgBadge = urgDisplay !== '—'
-      ? `<span style="background:${urgBg[urgDisplay]};color:${urgTx[urgDisplay]};font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600">${urgDisplay}</span>`
+    // date: parse เหมือน admin (new Date) แล้ว format
+    const _d = o.date || o.timestamp;
+    let dateDisplay = '—';
+    if (_d) { const dt = new Date(_d); if (!isNaN(dt)) { dateDisplay = String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+dt.getFullYear(); } }
+    // urgency/note swap detection เหมือน admin
+    let _urgency, _note;
+    if (VALID_URG.includes(o.urgency)) {
+      _urgency = o.urgency;
+      _note = (UNIT_VALS.includes(o.note) || VALID_URG.includes(o.note)) ? '' : (o.note || '');
+    } else if (VALID_URG.includes(o.note)) {
+      _urgency = o.note;
+      _note = '';
+    } else {
+      _urgency = '';
+      _note = (UNIT_VALS.includes(o.note) || VALID_URG.includes(o.note)) ? '' : (o.note || '');
+    }
+    // unit swap detection เหมือน admin
+    const _unit = (o.unit && o.unit !== '') ? o.unit
+      : (UNIT_VALS.includes(o.urgency) ? o.urgency
+      : (UNIT_VALS.includes(o.note) ? o.note : 'กระสอบ'));
+    const isBox = _unit === 'กล่อง';
+    const urgBadge = _urgency
+      ? `<span style="background:${urgBg[_urgency]||'#f3f4f6'};color:${urgTx[_urgency]||'#555'};font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600">${_urgency}</span>`
       : `<span style="color:#aaa;font-size:12px">—</span>`;
-    // กรอง note: ถ้าเป็น urgency value ที่หลุดมา ให้แสดง —
-    const noteRaw = String(o.note || '');
-    const noteDisplay = VALID_URG.has(noteRaw) ? '—' : (noteRaw || '—');
-    // กรอง date: ถ้าไม่ใช่ date format ให้แสดง —
-    const dateRaw = String(o.date || '');
-    const dateDisplay = /\d/.test(dateRaw) ? dateRaw : '—';
+    const noteDisplay = _note || '—';
     html += `<tr style="${rowBg}border-bottom:1px solid #f0f0f0">
       <td style="padding:8px 10px;font-size:12px;color:#666;white-space:nowrap">${dateDisplay}</td>
       <td style="padding:8px 10px;font-size:12px;font-weight:700;color:#1a3a5c">${custName}</td>
