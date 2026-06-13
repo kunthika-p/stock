@@ -649,7 +649,7 @@ function siSearchKey(e) {
   }
   if (e.key==='ArrowDown') { e.preventDefault(); siSearchIdx=Math.min(siSearchIdx+1,items.length-1); }
   else if (e.key==='ArrowUp') { e.preventDefault(); siSearchIdx=Math.max(siSearchIdx-1,0); }
-  else if (e.key==='Enter') { e.preventDefault(); if(siSearchIdx>=0) siSelectItem(siSearchIdx); else siAddItem(); return; }
+  else if (e.key==='Enter') { e.preventDefault(); if(siSearchIdx>=0) siSelectItem(siSearchIdx); else if(siSearchResults.length>0) siSelectItem(0); else siAddItem(); return; }
   else if (e.key==='Escape') { drop.style.display='none'; return; }
   items.forEach((el,i) => el.style.background = i===siSearchIdx ? '#f0f5ff' : '');
 }
