@@ -796,9 +796,23 @@ function renderStockInHistory() {
   const to = document.getElementById('si-hist-to').value;
   let filtered = stockInHistory.filter(r => {
     if (q && !(r.name+' '+r.code+' '+(r.recorder||'')).toLowerCase().includes(q)) return false;
-    const rDate = (r.date||'').split('T')[0]; // normalize ISO → YYYY-MM-DD
-    if (from && rDate < from) return false;
-    if (to && rDate > to) return false;
+    if (from || to) {
+      let rDate = null;
+      if (r.date) {
+        const dt = new Date(r.date);
+        if (!isNaN(dt)) rDate = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+      }
+      if (rDate) {
+        if (from) {
+          const [fy,fm,fd] = from.split('-').map(Number);
+          if (rDate < new Date(fy, fm-1, fd)) return false;
+        }
+        if (to) {
+          const [ty,tm,td] = to.split('-').map(Number);
+          if (rDate > new Date(ty, tm-1, td)) return false;
+        }
+      }
+    }
     return true;
   });
   const tbody = document.getElementById('si-hist-tbody');
