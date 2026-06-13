@@ -352,7 +352,7 @@ table.list tr:hover td{background:#f8fbff}
                 oninput="siSearch()" onkeydown="siSearchKey(event)">
               <div id="si-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #2563a8;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
             </div>
-            <div class="si-field"><label>จำนวน</label><input type="number" id="si-qty" placeholder="0" min="1" step="1"></div>
+            <div class="si-field"><label>จำนวน</label><input type="number" id="si-qty" placeholder="0" min="1" step="1" onkeydown="if(event.key==='Enter'){event.preventDefault();siAddItem();}"></div>
             <div class="si-field">
               <label>หน่วย</label>
               <div id="si-unit-display" style="display:flex;align-items:center;gap:6px">
@@ -669,7 +669,6 @@ function siSelectItem(idx) {
   document.getElementById('si-unit-display').style.display = 'flex';
   document.getElementById('si-unit').style.display = 'none';
   siToggleTankPack();
-  document.getElementById('si-qty').focus();
 }
 document.addEventListener('click', e => {
   const s = document.getElementById('si-search');
