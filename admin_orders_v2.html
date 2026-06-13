@@ -633,7 +633,8 @@ function siSearch() {
 }
 function siSearchKey(e) {
   const drop = document.getElementById('si-drop');
-  const items = drop.querySelectorAll('[data-idx]');
+  const dropVisible = drop.style.display !== 'none';
+  const items = dropVisible ? drop.querySelectorAll('[data-idx]') : [];
   if (!items.length) {
     if (e.key === 'Enter') {
       e.preventDefault();
