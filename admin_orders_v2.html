@@ -219,7 +219,7 @@ table.list tr:hover td{background:#f8fbff}
 .sum-filter-row .sum-btn-print{font-family:'Sarabun',sans-serif;font-size:13px;padding:7px 18px;border-radius:8px;border:none;cursor:pointer;background:#059669;color:white;font-weight:600}
 .sum-stat-badge{font-size:12px;color:#6b7280;padding:4px 10px;background:#f3f4f6;border-radius:20px;white-space:nowrap}
 .sum-cust-row td{background:#dbeafe;color:#1e3a5f;font-weight:700;font-size:12px;padding:4px 8px;border:0.5px solid #93c5fd}
-.sum-tbl thead th{background:#1a3a5c;color:white;padding:5px 8px;font-size:11px;font-weight:600;border:0.5px solid #0f2844;text-align:left}
+.sum-tbl thead th{background:#1a3a5c;color:white;padding:5px 8px;font-size:11px;font-weight:600;border:0.5px solid #0f2844;text-align:center}
 .sum-tbl thead th.num{text-align:right}
 .sum-cust-code{font-size:10px;font-weight:500;background:white;border:1px solid #93c5fd;border-radius:4px;padding:1px 6px;color:#185FA5;margin-left:6px}
 .sum-tbl{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
@@ -243,15 +243,15 @@ table.list tr:hover td{background:#f8fbff}
   #sum-print-hdr .phdr-sub{font-size:7.5pt;color:#444}
   .sum-cust-row td{background:#dbeafe!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;
     padding:2px 4px!important;font-size:6.5pt!important;font-weight:700!important}
-  .sum-tbl thead th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 4px!important;font-size:6pt!important}
+  .sum-tbl thead th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 4px!important;font-size:6pt!important;text-align:center!important}
   .sum-tbl{font-size:6.5pt!important;border-collapse:collapse!important;width:100%!important;table-layout:fixed!important}
   .sum-tbl col:nth-child(1){width:11%!important}
   .sum-tbl col:nth-child(2){width:9%!important}
   .sum-tbl col:nth-child(3){width:35%!important}
   .sum-tbl col:nth-child(4){width:7%!important}
   .sum-tbl col:nth-child(5){width:7%!important}
-  .sum-tbl col:nth-child(6){width:9%!important}
-  .sum-tbl col:nth-child(7){width:13%!important}
+  .sum-tbl col:nth-child(6){width:11%!important}
+  .sum-tbl col:nth-child(7){width:11%!important}
   .sum-tbl col:nth-child(8){width:9%!important}
   .sum-tbl th{padding:2px 4px!important;font-size:6.5pt!important}
   .sum-tbl td{padding:2px 5px!important;line-height:1.2!important;border:0.5px solid #ccc!important}
@@ -1728,7 +1728,7 @@ function renderSummary() {
         <td style="font-size:11px;color:#555">${o.note||''}</td>
       </tr>`;
     });
-    const totalStr = [totalSack?totalSack+' กก.':'', totalBox?totalBox+' กล่อง':''].filter(Boolean).join(' + ');
+    const totalStr = [totalSack?totalSack+' กระสอบ':'', totalBox?totalBox+' กล่อง':''].filter(Boolean).join(' + ');
     html += `<tr class="sub-row"><td colspan="3" style="text-align:right;color:#444;font-size:11px">รวม ${cust}</td><td class="num" colspan="2" style="font-size:11px">${totalStr}</td><td colspan="3"></td></tr>`;
   });
   html += `</tbody></table>`;
@@ -1739,7 +1739,7 @@ function renderSummary() {
     const unit = si ? getUnit(resolveType(si)) : (o.unit||'กก.');
     if (unit === 'กล่อง') grandBox += Number(o.qty)||0; else grandSack += Number(o.qty)||0;
   });
-  const grandStr = [grandSack?grandSack+' กก.':'', grandBox?grandBox+' กล่อง':''].filter(Boolean).join(' + ');
+  const grandStr = [grandSack?grandSack+' กระสอบ':'', grandBox?grandBox+' กล่อง':''].filter(Boolean).join(' + ');
   html += `<div class="sum-grand">รวมทั้งหมด &nbsp; ${grandStr} &nbsp;·&nbsp; ${rows.length} รายการ</div>`;
 
   document.getElementById('sum-body').innerHTML = html;
