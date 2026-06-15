@@ -707,7 +707,7 @@ function getPriceInfo(custCode, itemCode, type) {
 
   if (itemType === 'น็อตเหลี่ยม NF') return {disc_pct: d.nc, net_price: null};
 
-  if (['__NOK_MIL_AENG_M6M12__','__NOK_MIL_AENG_M14M24__'].includes(itemType)) return {disc_pct: d.mb, net_price: null};
+  if (NOK_MIL_AENG_SRC.includes(itemType)) return {disc_pct: d.mb, net_price: null};
 
   // หัวน็อตเกลียว W: 3/16 + 5/8+ → ราคาเน็ต | 1/4–1/2 → %ส่วนลด d.h
   if (itemType === 'หัวน็อตเกลียว W') {
