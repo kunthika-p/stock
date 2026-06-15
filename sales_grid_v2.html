@@ -160,15 +160,17 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
         <thead><tr style="background:#1a3a5c;color:white">
           <th style="padding:9px 10px;text-align:left;min-width:120px">ลูกค้า</th>
           <th style="padding:9px 10px;text-align:left;min-width:160px">ชื่อสินค้า</th>
-          <th style="padding:9px 10px">รหัส</th>
-          <th style="padding:9px 10px">กระสอบ</th>
-          <th style="padding:9px 10px">กล่อง</th>
-          <th style="padding:9px 10px">ความเร่งด่วน</th>
+          <th style="padding:9px 10px;text-align:center">รหัส</th>
+          <th style="padding:9px 10px;text-align:center">กระสอบ</th>
+          <th style="padding:9px 10px;text-align:center">กล่อง</th>
+          <th style="padding:9px 10px;text-align:center">ความเร่งด่วน</th>
+          <th style="padding:9px 10px;text-align:center">%ส่วนลด</th>
+          <th style="padding:9px 10px;text-align:center">ราคาเน็ต</th>
           <th style="padding:9px 10px;text-align:left">หมายเหตุ</th>
           <th style="padding:9px 10px;width:90px">จัดการ</th>
         </tr></thead>
         <tbody id="sales-hist-tbody">
-          <tr><td colspan="8" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>
+          <tr><td colspan="10" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>
         </tbody>
       </table>
     </div>
@@ -987,7 +989,7 @@ function renderSalesHistory() {
   const confirmBtn = document.getElementById('sales-confirm-all-btn');
   if (!tbody) return;
   if (!stagedOrders.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>';
     if (confirmBtn) confirmBtn.disabled = true;
     return;
   }
@@ -1009,10 +1011,12 @@ function renderSalesHistory() {
       html += `<tr${idx===0?' class="group-sep"':''}>
         <td class="td-cust" style="font-weight:700;color:#1a3a5c">${idx===0?cust:''}</td>
         <td class="td-name" style="text-align:left">${o.name}</td>
-        <td style="font-family:monospace;font-size:12px">${o.code}</td>
-        <td style="font-weight:700;color:#1a3a5c">${!isBox?o.qty:''}</td>
-        <td style="font-weight:700;color:#7c3aed">${isBox?o.qty:''}</td>
-        <td><span style="background:${urgColor[o.urgency]||'#f3f4f6'};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600">${urgText[o.urgency]||o.urgency}</span></td>
+        <td style="font-family:monospace;font-size:12px;text-align:center">${o.code}</td>
+        <td style="font-weight:700;color:#1a3a5c;text-align:center">${!isBox?o.qty:''}</td>
+        <td style="font-weight:700;color:#7c3aed;text-align:center">${isBox?o.qty:''}</td>
+        <td style="text-align:center"><span style="background:${urgColor[o.urgency]||'#f3f4f6'};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600">${urgText[o.urgency]||o.urgency}</span></td>
+        <td style="text-align:center;font-weight:600;color:#0369a1">${o.disc_pct!=null?o.disc_pct+'%':''}</td>
+        <td style="text-align:center;font-weight:600;color:#059669">${o.net_price!=null?o.net_price:''}</td>
         <td style="font-size:12px;color:#666">${o.note||''}</td>
         <td>
           <div style="display:flex;gap:4px">
@@ -1023,16 +1027,16 @@ function renderSalesHistory() {
       </tr>`;
     });
     html += `<tr style="background:#f0f5ff"><td colspan="3" style="text-align:right;font-size:12px;color:#555;font-style:italic">รวม ${cust}</td>
-      <td style="font-weight:700;color:#1a3a5c">${cSack||'-'}</td>
-      <td style="font-weight:700;color:#7c3aed">${cBox||'-'}</td>
-      <td colspan="3"></td></tr>`;
+      <td style="font-weight:700;color:#1a3a5c;text-align:center">${cSack||'-'}</td>
+      <td style="font-weight:700;color:#7c3aed;text-align:center">${cBox||'-'}</td>
+      <td colspan="5"></td></tr>`;
     totalSack+=cSack; totalBox+=cBox;
   });
   html += `<tr style="background:#1a3a5c;color:white;font-weight:700">
     <td colspan="3" style="text-align:right;padding:8px 10px">รวมทั้งหมด</td>
-    <td style="padding:8px 10px">${totalSack} กระสอบ</td>
-    <td style="padding:8px 10px">${totalBox} กล่อง</td>
-    <td colspan="3"></td></tr>`;
+    <td style="padding:8px 10px;text-align:center">${totalSack} กระสอบ</td>
+    <td style="padding:8px 10px;text-align:center">${totalBox} กล่อง</td>
+    <td colspan="5"></td></tr>`;
   tbody.innerHTML = html;
   const histBadge = document.getElementById('sales-hist-count');
   if (histBadge) { histBadge.textContent = stagedOrders.length; histBadge.style.display = stagedOrders.length > 0 ? '' : 'none'; }
