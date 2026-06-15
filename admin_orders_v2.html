@@ -309,6 +309,7 @@ table.list tr:hover td{background:#f8fbff}
           <option value="ok">ปกติ</option>
           <option value="low">น้อย</option>
           <option value="out">หมด</option>
+          <option value="low_out" selected>น้อย + หมด</option>
         </select>
       </div>
       <div class="tbl-wrap">
@@ -1231,7 +1232,8 @@ function renderStockList() {
     const s = getStock(x.code).stock;
     if (q && !(x.code+' '+x.type+' '+x.col+' '+x.row).toLowerCase().includes(q)) return false;
     if (ft && !(MERGED_TYPES[ft]||[ft]).includes(x.type)) return false;
-    if (fs && sts(s) !== fs) return false;
+    if (fs === 'low_out' && sts(s) === 'ok') return false;
+    else if (fs && fs !== 'low_out' && sts(s) !== fs) return false;
     return true;
   });
   document.getElementById('stk-list-count').textContent = `(แสดง ${rows.length} จาก ${allItems.length})`;
