@@ -210,26 +210,45 @@ table.list tr:hover td{background:#f8fbff}
 .btn-pack-submit:disabled{background:#9ca3af;cursor:default}
 
 /* ── Summary tab ── */
-.sum-filter-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
-.sum-filter-row input,.sum-filter-row select{font-family:'Sarabun',sans-serif;font-size:13px;padding:6px 10px;border:1px solid #d1d5db;border-radius:8px;color:#333}
-.sum-filter-row button{font-family:'Sarabun',sans-serif;font-size:13px;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;background:#1a3a5c;color:white;font-weight:600}
-.sum-cust-header{background:#dbeafe;color:#1e3a5f;font-weight:700;font-size:13px;padding:6px 8px;border:1px solid #93c5fd;border-bottom:none;margin-top:12px;display:flex;gap:8px;align-items:center}
-.sum-cust-code{font-size:11px;font-weight:400;background:white;border:1px solid #93c5fd;border-radius:4px;padding:1px 6px;color:#1e3a5f}
-.sum-tbl{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
-.sum-tbl th{background:#f0f0f0;padding:5px 6px;text-align:left;font-weight:600;border:1px solid #ccc;font-size:11px}
-.sum-tbl td{padding:5px 6px;border:1px solid #ddd;vertical-align:top}
+.sum-filter-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:18px;padding:14px 16px;background:white;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.sum-filter-row label{font-size:13px;color:#555;font-weight:600;white-space:nowrap}
+.sum-filter-row input,.sum-filter-row select{font-family:'Sarabun',sans-serif;font-size:13px;padding:7px 10px;border:1.5px solid #d1d5db;border-radius:8px;color:#222;background:white}
+.sum-filter-row input[type=date]{min-width:130px}
+.sum-filter-row select{min-width:170px}
+.sum-filter-row .sum-btn-show{font-family:'Sarabun',sans-serif;font-size:13px;padding:7px 18px;border-radius:8px;border:none;cursor:pointer;background:#1a3a5c;color:white;font-weight:600;margin-left:4px}
+.sum-filter-row .sum-btn-print{font-family:'Sarabun',sans-serif;font-size:13px;padding:7px 18px;border-radius:8px;border:none;cursor:pointer;background:#059669;color:white;font-weight:600}
+.sum-stat-badge{font-size:12px;color:#6b7280;padding:4px 10px;background:#f3f4f6;border-radius:20px;white-space:nowrap}
+.sum-cust-row td{background:#dbeafe;color:#1e3a5f;font-weight:700;font-size:12px;padding:4px 8px;border:0.5px solid #93c5fd}
+.sum-tbl thead th{background:#1a3a5c;color:white;padding:5px 8px;font-size:11px;font-weight:600;border:0.5px solid #0f2844;text-align:left}
+.sum-tbl thead th.num{text-align:right}
+.sum-cust-code{font-size:10px;font-weight:500;background:white;border:1px solid #93c5fd;border-radius:4px;padding:1px 6px;color:#185FA5;margin-left:6px}
+.sum-tbl{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+.sum-tbl th{background:#f5f7fa;padding:8px 10px;text-align:left;font-weight:600;border:1px solid #e2e8f0;font-size:12px;color:#374151}
+.sum-tbl td{padding:8px 10px;border:1px solid #e9ecef;vertical-align:middle;line-height:1.4}
+.sum-tbl tr:hover td{background:#f8faff}
 .sum-tbl .num{text-align:right}
-.sum-tbl .sub-row td{background:#f8faff;font-weight:600}
-.sum-grand{text-align:right;font-size:12px;padding-top:8px;border-top:1px solid #aaa;margin-top:10px;font-weight:600}
+.sum-tbl .sub-row td{background:#eef3fb;font-weight:700;color:#1a3a5c;border-color:#c7d8f0}
+.sum-grand{text-align:right;font-size:13px;padding:10px 2px 4px;border-top:2px solid #1a3a5c;margin-top:12px;font-weight:700;color:#1a3a5c}
 #sum-print-hdr{display:none}
 @media print {
+  *{box-sizing:border-box}
+  @page{margin:8mm 10mm}
+  body{font-size:8pt;font-family:'Sarabun',sans-serif}
   .tabs,.header,.sum-filter-row,.toast,#tab-overview,#tab-stock,#tab-stockin,#tab-pending,#tab-history{display:none!important}
   #tab-summary{display:block!important}
+  #tab-summary .content{padding:0!important}
   .sum-print-hide{display:none!important}
-  .sum-print-title{font-size:15pt;font-weight:bold;margin-bottom:4px}
-  .sum-tbl{font-size:10pt}
-  .sum-cust-header{background:#dbeafe!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #sum-print-hdr{display:block!important}
+  #sum-print-hdr{display:block!important;margin-bottom:6px}
+  #sum-print-hdr .phdr-title{font-size:11pt;font-weight:700}
+  #sum-print-hdr .phdr-sub{font-size:7.5pt;color:#444}
+  .sum-cust-row td{background:#dbeafe!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;
+    padding:2px 4px!important;font-size:6.5pt!important;font-weight:700!important}
+  .sum-tbl thead th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 4px!important;font-size:6pt!important}
+  .sum-tbl{font-size:6.5pt!important;border-collapse:collapse!important;width:100%!important;table-layout:fixed!important}
+  .sum-tbl th{padding:2px 4px!important;font-size:6.5pt!important}
+  .sum-tbl td{padding:2px 5px!important;line-height:1.2!important;border:0.5px solid #ccc!important}
+  .sum-tbl .sub-row td{background:#e8eef8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 5px!important}
+  .sum-grand{font-size:8pt!important;padding:4px 0 0!important;margin-top:4px!important;border-top:1px solid #333!important}
 }
 </style>
 </head>
@@ -457,15 +476,15 @@ table.list tr:hover td{background:#f8fbff}
   <div class="tab-panel" id="tab-summary">
     <div class="content">
       <div class="sum-filter-row sum-print-hide">
-        <label style="font-size:13px">ลูกค้า:</label>
-        <select id="sum-cust-filter" style="min-width:160px"><option value="">ทั้งหมด</option></select>
-        <label style="font-size:13px">จาก:</label>
+        <label>ลูกค้า:</label>
+        <select id="sum-cust-filter"><option value="">ทั้งหมด</option></select>
+        <label>จาก:</label>
         <input type="date" id="sum-date-from">
-        <label style="font-size:13px">ถึง:</label>
+        <label>ถึง:</label>
         <input type="date" id="sum-date-to">
-        <button onclick="loadSummary()">🔍 แสดง</button>
-        <button onclick="window.print()" style="background:#059669">🖨️ พิมพ์</button>
-        <span id="sum-stat" style="font-size:12px;color:#666;margin-left:4px"></span>
+        <button class="sum-btn-show" onclick="loadSummary()">🔍 แสดง</button>
+        <button class="sum-btn-print" onclick="window.print()">🖨️ พิมพ์</button>
+        <span id="sum-stat" class="sum-stat-badge" style="display:none"></span>
       </div>
       <div id="sum-body"><p style="color:#aaa;padding:24px;text-align:center">เลือกเงื่อนไขแล้วกด "แสดง"</p></div>
     </div>
@@ -1638,7 +1657,7 @@ function renderSummary() {
 
   if (!rows.length) {
     document.getElementById('sum-body').innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">ไม่มีรายการ</p>';
-    document.getElementById('sum-stat').textContent = '';
+    const statEl2 = document.getElementById('sum-stat'); statEl2.textContent=''; statEl2.style.display='none';
     return;
   }
 
@@ -1656,26 +1675,39 @@ function renderSummary() {
 
   // print header (hidden on screen)
   html += `<div class="sum-print-title" id="sum-print-hdr">
-    <div style="font-size:15pt;font-weight:bold">ใบสรุปออเดอร์</div>
-    <div style="font-size:10pt;color:#555">ออเดอร์ที่ยืนยันแล้ว${dateFrom||dateTo?' · '+(dateFrom||'')+(dateTo?' – '+dateTo:''):''}</div>
-    <div style="font-size:10pt;color:#555;text-align:right;float:right;margin-top:-32px">พิมพ์วันที่: ${printDate} ${printTime} · รวม ${Object.keys(grouped).length} ลูกค้า · ${rows.length} รายการ</div>
-    <div style="clear:both"></div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline">
+      <span class="phdr-title">ใบสรุปออเดอร์${dateFrom||dateTo?' &nbsp;·&nbsp; '+(dateFrom||'')+(dateTo?' – '+dateTo:''):''}</span>
+      <span class="phdr-sub">พิมพ์: ${printDate} ${printTime} &nbsp;·&nbsp; ${Object.keys(grouped).length} ลูกค้า · ${rows.length} รายการ</span>
+    </div>
   </div>`;
 
-  const colW = ['58px','52px','','42px','36px','52px','62px','auto'];
+  const colW = ['52px','46px','170px','36px','32px','44px','54px','46px'];
+  html += `<table class="sum-tbl"><colgroup>${colW.map(w=>`<col style="width:${w}">`).join('')}</colgroup>`;
+  html += `<thead><tr><th>วันที่สั่ง</th><th>รหัส</th><th>ชื่อสินค้า</th><th class="num">จำนวน</th><th>หน่วย</th><th class="num">%ส่วนลด</th><th class="num">ราคาเน็ต</th><th>หมายเหตุ</th></tr></thead><tbody>`;
 
   Object.entries(grouped).forEach(([cust, orders]) => {
     const custInfo = CUST_MAP[cust];
     const custCode = custInfo ? custInfo.code : '';
-    html += `<div class="sum-cust-header"><span>${cust}</span>${custCode?`<span class="sum-cust-code">${custCode}</span>`:''}</div>`;
-    html += `<table class="sum-tbl"><colgroup>${colW.map(w=>`<col${w?` style="width:${w}"`:''}>` ).join('')}</colgroup>`;
-    html += `<tr><th>วันที่สั่ง</th><th>รหัส</th><th>ชื่อสินค้า</th><th class="num">จำนวน</th><th>หน่วย</th><th class="num">%ส่วนลด</th><th class="num">ราคาเน็ต</th><th>หมายเหตุ</th></tr>`;
-    let totalQty = 0;
+    // sort: กระสอบก่อน กล่องทีหลัง แล้วเรียงตาม TYPES index
+    orders.sort((a, b) => {
+      const siA = allItems.find(x => x.code === a.code);
+      const siB = allItems.find(x => x.code === b.code);
+      const unitA = siA ? getUnit(resolveType(siA)) : (a.unit||'กก.');
+      const unitB = siB ? getUnit(resolveType(siB)) : (b.unit||'กก.');
+      const uA = unitA === 'กล่อง' ? 1 : 0;
+      const uB = unitB === 'กล่อง' ? 1 : 0;
+      if (uA !== uB) return uA - uB;
+      const tA = siA ? TYPES.indexOf(resolveType(siA)) : 999;
+      const tB = siB ? TYPES.indexOf(resolveType(siB)) : 999;
+      return tA - tB;
+    });
+    html += `<tr class="sum-cust-row"><td colspan="8">${cust}${custCode?`<span class="sum-cust-code">${custCode}</span>`:''}</td></tr>`;
+    let totalSack = 0, totalBox = 0;
     orders.forEach(o => {
       const si = allItems.find(x => x.code === o.code);
       const unit = si ? getUnit(resolveType(si)) : (o.unit || 'กก.');
       const qty = Number(o.qty) || 0;
-      totalQty += qty;
+      if (unit === 'กล่อง') totalBox += qty; else totalSack += qty;
       const dateStr = getOrderDate(o);
       html += `<tr>
         <td style="white-space:nowrap;font-size:11px">${dateStr}</td>
@@ -1688,18 +1720,25 @@ function renderSummary() {
         <td style="font-size:11px;color:#555">${o.note||''}</td>
       </tr>`;
     });
-    html += `<tr class="sub-row"><td colspan="3" style="text-align:right;color:#444;font-size:11px">รวม ${cust}</td><td class="num">${totalQty}</td><td></td><td colspan="3"></td></tr>`;
-    html += `</table>`;
+    const totalStr = [totalSack?totalSack+' กก.':'', totalBox?totalBox+' กล่อง':''].filter(Boolean).join(' + ');
+    html += `<tr class="sub-row"><td colspan="3" style="text-align:right;color:#444;font-size:11px">รวม ${cust}</td><td class="num" colspan="2" style="font-size:11px">${totalStr}</td><td colspan="3"></td></tr>`;
   });
+  html += `</tbody></table>`;
 
-  const grandTotal = rows.reduce((s,o)=>s+(Number(o.qty)||0),0);
-  html += `<div class="sum-grand">รวมทั้งหมด &nbsp; ${grandTotal} · ${rows.length} รายการ</div>`;
+  let grandSack = 0, grandBox = 0;
+  rows.forEach(o => {
+    const si = allItems.find(x => x.code === o.code);
+    const unit = si ? getUnit(resolveType(si)) : (o.unit||'กก.');
+    if (unit === 'กล่อง') grandBox += Number(o.qty)||0; else grandSack += Number(o.qty)||0;
+  });
+  const grandStr = [grandSack?grandSack+' กก.':'', grandBox?grandBox+' กล่อง':''].filter(Boolean).join(' + ');
+  html += `<div class="sum-grand">รวมทั้งหมด &nbsp; ${grandStr} &nbsp;·&nbsp; ${rows.length} รายการ</div>`;
 
   document.getElementById('sum-body').innerHTML = html;
   // print header: shown via @media print CSS
 
   const totalCusts = Object.keys(grouped).length;
-  document.getElementById('sum-stat').textContent = `${totalCusts} ลูกค้า · ${rows.length} รายการ`;
+  const statEl = document.getElementById('sum-stat'); statEl.textContent = `${totalCusts} ลูกค้า · ${rows.length} รายการ`; statEl.style.display='inline-block';
 
   // populate customer dropdown if empty
   const sel = document.getElementById('sum-cust-filter');
