@@ -152,6 +152,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .c-ok{background:#d1fae5}.c-low{background:#fef9c3}.c-out{background:#fee2e2}.c-blocked{background:#e5e7eb}
 .stk-v{display:block;font-size:16px;font-weight:700;color:#1a3a5c;line-height:1;margin-top:10px}
 .code-v{display:block;font-size:9px;color:#6b7280;margin-top:2px;font-family:monospace;line-height:1}
+.tank-v{position:absolute;top:3px;left:4px;font-size:10px;font-weight:700;color:#d97706;line-height:1}
 .type-nav-wrap{padding-bottom:4px;margin-bottom:12px}
 .type-nav{display:flex;gap:6px;flex-wrap:wrap}
 .type-btn-stk{padding:6px 15px;border:1.5px solid #c8d6e5;border-radius:20px;background:white;cursor:pointer;font-size:13px;font-family:'Sarabun',sans-serif;color:#555;transition:all .12s;white-space:nowrap}
@@ -564,7 +565,7 @@ const CUST_MAP = Object.fromEntries(CUSTOMERS.map(c => [c.name, c]));
 const CUST_CODE_MAP = Object.fromEntries(CUSTOMERS.map(c => [c.code, c]));
 function resolveCust(raw) { return CUST_MAP[raw] ? raw : (CUST_CODE_MAP[String(raw)]?.name || raw); }
 
-let stockMap = {}, allItems = [], historyData = [];
+let stockMap = {}, tankMap = {}, allItems = [], historyData = [];
 
 function buildName(item) {
   const clean = v => { if (!v) return ''; const s = String(v); return /^\d{4}-\d{2}-\d{2}T|GMT/.test(s) ? '' : s; };
@@ -597,6 +598,7 @@ let curEnc = encT(TYPES[0]);
 
 function encT(t){return btoa(encodeURIComponent(t)).replace(/[^a-zA-Z0-9]/g,'');}
 function getStock(code){return stockMap[code]||{stock:0};}
+function getTank(code){return tankMap[code]||0;}
 function sts(s){return s>=20?'ok':s>0?'low':'out';}
 function badge(s){const st=sts(s);return`<span class="badge ${st}">${st==='ok'?'ปกติ':st==='low'?'น้อย':'หมด'}</span>`;}
 const NC_BIG_COLS = ['5/8 NC','3/4 NC','7/8 NC','1 NC'];
@@ -1041,6 +1043,7 @@ async function loadStock() {
     const data = await res.json();
     if (data.items) {
       stockMap = {};
+      tankMap = data.tankMap || {};
       allItems = data.items.map(x => ({ ...x, code: String(x.code).padStart(8,'0') }));
       allItems.forEach(x => { stockMap[x.code] = { stock: Number(x.stock)||0 }; });
       buildStockNav();
@@ -1114,8 +1117,10 @@ function buildTypeTable(t) {
       const it = catItems.find(x => String(x.col)===String(col) && String(x.row)===String(row));
       if (!it) { h += '<td class="stk-cell c-blocked"></td>'; return; }
       const s = getStock(it.code);
+      const tk = getTank(it.code);
       const cls = s.stock>=20?'c-ok':s.stock>0?'c-low':'c-out';
-      h += `<td class="stk-cell ${cls}"><span class="stk-v">${s.stock}</span><span class="code-v">${it.code}</span></td>`;
+      const tkHtml = tk > 0 ? `<span class="tank-v">${tk}</span>` : '';
+      h += `<td class="stk-cell ${cls}">${tkHtml}<span class="stk-v">${s.stock}</span><span class="code-v">${it.code}</span></td>`;
     });
     h += '</tr>';
   });
