@@ -232,7 +232,7 @@ table.list tr:hover td{background:#f8fbff}
 #sum-print-hdr{display:none}
 @media print {
   *{box-sizing:border-box}
-  @page{margin:8mm 10mm}
+  @page{margin:4mm 5mm}
   body{font-size:8pt;font-family:'Sarabun',sans-serif}
   .tabs,.header,.sum-filter-row,.toast,#tab-overview,#tab-stock,#tab-stockin,#tab-pending,#tab-history{display:none!important}
   #tab-summary{display:block!important}
@@ -245,6 +245,14 @@ table.list tr:hover td{background:#f8fbff}
     padding:2px 4px!important;font-size:6.5pt!important;font-weight:700!important}
   .sum-tbl thead th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 4px!important;font-size:6pt!important}
   .sum-tbl{font-size:6.5pt!important;border-collapse:collapse!important;width:100%!important;table-layout:fixed!important}
+  .sum-tbl col:nth-child(1){width:11%!important}
+  .sum-tbl col:nth-child(2){width:9%!important}
+  .sum-tbl col:nth-child(3){width:35%!important}
+  .sum-tbl col:nth-child(4){width:7%!important}
+  .sum-tbl col:nth-child(5){width:7%!important}
+  .sum-tbl col:nth-child(6){width:9%!important}
+  .sum-tbl col:nth-child(7){width:13%!important}
+  .sum-tbl col:nth-child(8){width:9%!important}
   .sum-tbl th{padding:2px 4px!important;font-size:6.5pt!important}
   .sum-tbl td{padding:2px 5px!important;line-height:1.2!important;border:0.5px solid #ccc!important}
   .sum-tbl .sub-row td{background:#e8eef8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 5px!important}
