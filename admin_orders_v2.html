@@ -1692,7 +1692,7 @@ function renderSummary() {
 
   const colW = ['52px','46px','170px','36px','32px','44px','54px','46px'];
   html += `<table class="sum-tbl"><colgroup>${colW.map(w=>`<col style="width:${w}">`).join('')}</colgroup>`;
-  html += `<thead><tr><th>วันที่สั่ง</th><th>รหัส</th><th>ชื่อสินค้า</th><th class="num">จำนวน</th><th>หน่วย</th><th class="num">%ส่วนลด</th><th class="num">ราคาเน็ต</th><th>หมายเหตุ</th></tr></thead><tbody>`;
+  html += `<thead><tr><th>วันที่สั่ง</th><th>รหัส</th><th>ชื่อสินค้า</th><th class="num" style="text-align:center">จำนวน</th><th>หน่วย</th><th class="num" style="text-align:center">%ส่วนลด</th><th class="num" style="text-align:center">ราคาเน็ต</th><th>หมายเหตุ</th></tr></thead><tbody>`;
 
   Object.entries(grouped).forEach(([cust, orders]) => {
     const custInfo = CUST_MAP[cust];
@@ -1722,10 +1722,10 @@ function renderSummary() {
         <td style="white-space:nowrap;font-size:11px">${dateStr}</td>
         <td style="font-size:11px">${o.code||''}</td>
         <td>${fmtName(o.name||o.code)}</td>
-        <td class="num">${qty}</td>
+        <td class="num" style="text-align:center">${qty}</td>
         <td>${unit}</td>
-        <td class="num"></td>
-        <td class="num"></td>
+        <td class="num" style="text-align:center"></td>
+        <td class="num" style="text-align:center"></td>
         <td style="font-size:11px;color:#555">${o.note||''}</td>
       </tr>`;
     });
