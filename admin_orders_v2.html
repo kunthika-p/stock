@@ -227,6 +227,7 @@ table.list tr:hover td{background:#f8fbff}
 .sum-tbl td{padding:8px 10px;border:1px solid #e9ecef;vertical-align:middle;line-height:1.4}
 .sum-tbl tr:hover td{background:#f8faff}
 .sum-tbl .num{text-align:right}
+.sum-tbl tbody td:nth-child(4){text-align:center!important}
 .sum-tbl .sub-row td{background:#eef3fb;font-weight:700;color:#1a3a5c;border-color:#c7d8f0}
 .sum-grand{text-align:right;font-size:13px;padding:10px 2px 4px;border-top:2px solid #1a3a5c;margin-top:12px;font-weight:700;color:#1a3a5c}
 #sum-print-hdr{display:none}
@@ -247,12 +248,12 @@ table.list tr:hover td{background:#f8fbff}
   .sum-tbl{font-size:6.5pt!important;border-collapse:collapse!important;width:100%!important;table-layout:fixed!important}
   .sum-tbl col:nth-child(1){width:11%!important}
   .sum-tbl col:nth-child(2){width:9%!important}
-  .sum-tbl col:nth-child(3){width:35%!important}
+  .sum-tbl col:nth-child(3){width:39%!important}
   .sum-tbl col:nth-child(4){width:7%!important}
   .sum-tbl col:nth-child(5){width:7%!important}
-  .sum-tbl col:nth-child(6){width:11%!important}
-  .sum-tbl col:nth-child(7){width:11%!important}
-  .sum-tbl col:nth-child(8){width:9%!important}
+  .sum-tbl col:nth-child(6){width:8%!important}
+  .sum-tbl col:nth-child(7){width:8%!important}
+  .sum-tbl col:nth-child(8){width:11%!important}
   .sum-tbl th{padding:2px 4px!important;font-size:6.5pt!important}
   .sum-tbl td{padding:2px 5px!important;line-height:1.2!important;border:0.5px solid #ccc!important}
   .sum-tbl .sub-row td{background:#e8eef8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 5px!important}
@@ -1729,7 +1730,7 @@ function renderSummary() {
       </tr>`;
     });
     const totalStr = [totalSack?totalSack+' กระสอบ':'', totalBox?totalBox+' กล่อง':''].filter(Boolean).join(' + ');
-    html += `<tr class="sub-row"><td colspan="3" style="text-align:right;color:#444;font-size:11px">รวม ${cust}</td><td class="num" colspan="2" style="font-size:11px">${totalStr}</td><td colspan="3"></td></tr>`;
+    html += `<tr class="sub-row"><td colspan="3" style="text-align:right;color:#444;font-size:11px">รวม ${cust}</td><td colspan="2" style="font-size:11px;text-align:left;padding-left:6px">${totalStr}</td><td colspan="3"></td></tr>`;
   });
   html += `</tbody></table>`;
 
