@@ -208,6 +208,29 @@ table.list tr:hover td{background:#f8fbff}
 .pack-pval.red{color:#dc2626}.pack-pval.green{color:#16a34a}
 .btn-pack-submit{width:100%;background:#7c3aed;color:white;border:none;border-radius:10px;padding:14px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
 .btn-pack-submit:disabled{background:#9ca3af;cursor:default}
+
+/* ── Summary tab ── */
+.sum-filter-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.sum-filter-row input,.sum-filter-row select{font-family:'Sarabun',sans-serif;font-size:13px;padding:6px 10px;border:1px solid #d1d5db;border-radius:8px;color:#333}
+.sum-filter-row button{font-family:'Sarabun',sans-serif;font-size:13px;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;background:#1a3a5c;color:white;font-weight:600}
+.sum-cust-header{background:#dbeafe;color:#1e3a5f;font-weight:700;font-size:13px;padding:6px 8px;border:1px solid #93c5fd;border-bottom:none;margin-top:12px;display:flex;gap:8px;align-items:center}
+.sum-cust-code{font-size:11px;font-weight:400;background:white;border:1px solid #93c5fd;border-radius:4px;padding:1px 6px;color:#1e3a5f}
+.sum-tbl{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.sum-tbl th{background:#f0f0f0;padding:5px 6px;text-align:left;font-weight:600;border:1px solid #ccc;font-size:11px}
+.sum-tbl td{padding:5px 6px;border:1px solid #ddd;vertical-align:top}
+.sum-tbl .num{text-align:right}
+.sum-tbl .sub-row td{background:#f8faff;font-weight:600}
+.sum-grand{text-align:right;font-size:12px;padding-top:8px;border-top:1px solid #aaa;margin-top:10px;font-weight:600}
+#sum-print-hdr{display:none}
+@media print {
+  .tabs,.header,.sum-filter-row,.toast,#tab-overview,#tab-stock,#tab-stockin,#tab-pending,#tab-history{display:none!important}
+  #tab-summary{display:block!important}
+  .sum-print-hide{display:none!important}
+  .sum-print-title{font-size:15pt;font-weight:bold;margin-bottom:4px}
+  .sum-tbl{font-size:10pt}
+  .sum-cust-header{background:#dbeafe!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #sum-print-hdr{display:block!important}
+}
 </style>
 </head>
 <body>
@@ -226,6 +249,7 @@ table.list tr:hover td{background:#f8fbff}
   <button class="tab-btn" onclick="switchTab('stockin',this)">📥 รับสินค้าเข้า</button>
   <button class="tab-btn" onclick="switchTab('pending',this)">รอยืนยัน <span class="badge-count" id="pendingCount">0</span></button>
   <button class="tab-btn" onclick="switchTab('history',this)">ประวัติ</button>
+  <button class="tab-btn" onclick="switchTab('summary',this)">🖨️ สรุปออเดอร์</button>
 </div>
 
 <div class="content">
@@ -429,6 +453,24 @@ table.list tr:hover td{background:#f8fbff}
     </div>
   </div>
 
+  <!-- Tab: สรุปออเดอร์ -->
+  <div class="tab-panel" id="tab-summary">
+    <div class="content">
+      <div class="sum-filter-row sum-print-hide">
+        <label style="font-size:13px">ลูกค้า:</label>
+        <select id="sum-cust-filter" style="min-width:160px"><option value="">ทั้งหมด</option></select>
+        <label style="font-size:13px">จาก:</label>
+        <input type="date" id="sum-date-from">
+        <label style="font-size:13px">ถึง:</label>
+        <input type="date" id="sum-date-to">
+        <button onclick="loadSummary()">🔍 แสดง</button>
+        <button onclick="window.print()" style="background:#059669">🖨️ พิมพ์</button>
+        <span id="sum-stat" style="font-size:12px;color:#666;margin-left:4px"></span>
+      </div>
+      <div id="sum-body"><p style="color:#aaa;padding:24px;text-align:center">เลือกเงื่อนไขแล้วกด "แสดง"</p></div>
+    </div>
+  </div>
+
 <!-- Edit modal -->
 <div class="edit-modal-bg" id="editModalBg" onclick="if(event.target===this)closeEditModal()">
   <div class="edit-modal">
@@ -544,6 +586,7 @@ function switchTab(name, btn) {
   if (name === 'stock') loadStock();
   if (name === 'pending') { if (!allItems.length) loadStock().then(loadPending); else loadPending(); }
   if (name === 'history') loadHistory();
+  if (name === 'summary') initSummaryTab();
 }
 
 // ── ภาพรวม ────────────────────────────────────────────────────
@@ -1557,6 +1600,115 @@ function clearWarnToast() {
     t.style.background = '';
   }
 }
+
+// ── สรุปออเดอร์ ────────────────────────────────────────────────────
+let summaryData = [];
+
+function initSummaryTab() {
+  if (!summaryData.length) loadSummary();
+  else renderSummary();
+}
+
+async function loadSummary() {
+  const body = document.getElementById('sum-body');
+  body.innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">⏳ กำลังโหลด...</p>';
+  try {
+    const res = await fetch(API + '?action=getOrders&status=all');
+    const data = await res.json();
+    summaryData = (data.orders||[]).filter(o => o.status === 'confirmed');
+    renderSummary();
+  } catch(e) {
+    body.innerHTML = '<p style="color:red;padding:24px">เกิดข้อผิดพลาด: '+e.message+'</p>';
+  }
+}
+
+function renderSummary() {
+  const custFilter = document.getElementById('sum-cust-filter').value;
+  const dateFrom   = document.getElementById('sum-date-from').value;
+  const dateTo     = document.getElementById('sum-date-to').value;
+
+  let rows = summaryData.filter(o => {
+    const cust = resolveCust(o.customer || '(ไม่ระบุ)');
+    if (custFilter && cust !== custFilter) return false;
+    const d = (o.date||o.timestamp||'').split('T')[0];
+    if (dateFrom && d < dateFrom) return false;
+    if (dateTo   && d > dateTo)   return false;
+    return true;
+  });
+
+  if (!rows.length) {
+    document.getElementById('sum-body').innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">ไม่มีรายการ</p>';
+    document.getElementById('sum-stat').textContent = '';
+    return;
+  }
+
+  // group by customer
+  const grouped = {};
+  rows.forEach(o => {
+    const c = resolveCust(o.customer || '(ไม่ระบุ)');
+    if (!grouped[c]) grouped[c] = [];
+    grouped[c].push(o);
+  });
+
+  let html = '';
+  const printDate = new Date().toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const printTime = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+
+  // print header (hidden on screen)
+  html += `<div class="sum-print-title" id="sum-print-hdr">
+    <div style="font-size:15pt;font-weight:bold">ใบสรุปออเดอร์</div>
+    <div style="font-size:10pt;color:#555">ออเดอร์ที่ยืนยันแล้ว${dateFrom||dateTo?' · '+(dateFrom||'')+(dateTo?' – '+dateTo:''):''}</div>
+    <div style="font-size:10pt;color:#555;text-align:right;float:right;margin-top:-32px">พิมพ์วันที่: ${printDate} ${printTime} · รวม ${Object.keys(grouped).length} ลูกค้า · ${rows.length} รายการ</div>
+    <div style="clear:both"></div>
+  </div>`;
+
+  const colW = ['58px','52px','','42px','36px','52px','62px','auto'];
+
+  Object.entries(grouped).forEach(([cust, orders]) => {
+    const custInfo = CUST_MAP[cust];
+    const custCode = custInfo ? custInfo.code : '';
+    html += `<div class="sum-cust-header"><span>${cust}</span>${custCode?`<span class="sum-cust-code">${custCode}</span>`:''}</div>`;
+    html += `<table class="sum-tbl"><colgroup>${colW.map(w=>`<col${w?` style="width:${w}"`:''}>` ).join('')}</colgroup>`;
+    html += `<tr><th>วันที่สั่ง</th><th>รหัส</th><th>ชื่อสินค้า</th><th class="num">จำนวน</th><th>หน่วย</th><th class="num">%ส่วนลด</th><th class="num">ราคาเน็ต</th><th>หมายเหตุ</th></tr>`;
+    let totalQty = 0;
+    orders.forEach(o => {
+      const si = allItems.find(x => x.code === o.code);
+      const unit = si ? getUnit(resolveType(si)) : (o.unit || 'กก.');
+      const qty = Number(o.qty) || 0;
+      totalQty += qty;
+      const dateStr = getOrderDate(o);
+      html += `<tr>
+        <td style="white-space:nowrap;font-size:11px">${dateStr}</td>
+        <td style="font-size:11px">${o.code||''}</td>
+        <td>${fmtName(o.name||o.code)}</td>
+        <td class="num">${qty}</td>
+        <td>${unit}</td>
+        <td class="num"></td>
+        <td class="num"></td>
+        <td style="font-size:11px;color:#555">${o.note||''}</td>
+      </tr>`;
+    });
+    html += `<tr class="sub-row"><td colspan="3" style="text-align:right;color:#444;font-size:11px">รวม ${cust}</td><td class="num">${totalQty}</td><td></td><td colspan="3"></td></tr>`;
+    html += `</table>`;
+  });
+
+  const grandTotal = rows.reduce((s,o)=>s+(Number(o.qty)||0),0);
+  html += `<div class="sum-grand">รวมทั้งหมด &nbsp; ${grandTotal} · ${rows.length} รายการ</div>`;
+
+  document.getElementById('sum-body').innerHTML = html;
+  // print header: shown via @media print CSS
+
+  const totalCusts = Object.keys(grouped).length;
+  document.getElementById('sum-stat').textContent = `${totalCusts} ลูกค้า · ${rows.length} รายการ`;
+
+  // populate customer dropdown if empty
+  const sel = document.getElementById('sum-cust-filter');
+  if (sel.options.length <= 1) {
+    const names = [...new Set(summaryData.map(o=>resolveCust(o.customer||'(ไม่ระบุ)')))].sort((a,b)=>a.localeCompare(b,'th'));
+    names.forEach(n => { const opt=document.createElement('option'); opt.value=n; opt.textContent=n; sel.appendChild(opt); });
+  }
+}
+
 
 loadAll();
 </script>
