@@ -177,7 +177,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
           <th style="padding:9px 10px;width:90px">จัดการ</th>
         </tr></thead>
         <tbody id="sales-hist-tbody">
-          <tr><td colspan="8" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>
+          <tr><td colspan="10" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>
         </tbody>
       </table>
     </div>
@@ -954,8 +954,7 @@ async function submitAllOrders() {
       id: Date.now() + Math.random(),
       customer: customerName, code: item.code, name: item.name,
       qty: item.qty, unit: item.unit, urgency: item.urgency,
-      note: item.note || note || '', date,
-      disc_pct: item.disc_pct, net_price: item.net_price
+      note: item.note || note || '', date
     });
   });
   cart = [];
@@ -977,7 +976,7 @@ function renderSalesHistory() {
   const confirmBtn = document.getElementById('sales-confirm-all-btn');
   if (!tbody) return;
   if (!stagedOrders.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>';
     if (confirmBtn) confirmBtn.disabled = true;
     return;
   }
@@ -1057,8 +1056,7 @@ async function confirmAllToAdmin() {
       await fetch(API, {
         method: 'POST',
         body: JSON.stringify({ action:'newOrder', code:o.code, name:o.name,
-          customer:o.customer, qty:o.qty, unit:o.unit, urgency:o.urgency, note:o.note, date:o.date,
-          disc_pct:o.disc_pct, net_price:o.net_price })
+          customer:o.customer, qty:o.qty, unit:o.unit, urgency:o.urgency, note:o.note, date:o.date })
       });
     }
     const count = stagedOrders.length;
