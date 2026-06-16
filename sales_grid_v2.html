@@ -110,8 +110,8 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .qty-edit-input{width:70px;padding:4px 6px;border:1.5px solid #2563a8;border-radius:6px;font-size:13px;font-family:'Sarabun',sans-serif;text-align:center}
 
 
-#hist-tbl th{border:1px solid rgba(255,255,255,0.25)}
-#hist-tbl td{border:1px solid #d1d5db}
+#hist-tbl th{border:1px solid rgba(255,255,255,0.5)}
+#hist-tbl td{border:1px solid #c0cfe0}
 </style>
 </head>
 <body>
@@ -952,7 +952,8 @@ async function submitAllOrders() {
       id: Date.now() + Math.random(),
       customer: customerName, code: item.code, name: item.name,
       qty: item.qty, unit: item.unit, urgency: item.urgency,
-      note: item.note || note || '', date
+      note: item.note || note || '', date,
+      disc_pct: item.disc_pct, net_price: item.net_price
     });
   });
   cart = [];
@@ -1052,7 +1053,8 @@ async function confirmAllToAdmin() {
       await fetch(API, {
         method: 'POST',
         body: JSON.stringify({ action:'newOrder', code:o.code, name:o.name,
-          customer:o.customer, qty:o.qty, unit:o.unit, urgency:o.urgency, note:o.note, date:o.date })
+          customer:o.customer, qty:o.qty, unit:o.unit, urgency:o.urgency, note:o.note, date:o.date,
+          disc_pct:o.disc_pct, net_price:o.net_price })
       });
     }
     const count = stagedOrders.length;
