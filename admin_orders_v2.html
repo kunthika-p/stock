@@ -244,20 +244,22 @@ table.list tr:hover td{background:#f8fbff}
   #sum-print-hdr .phdr-sub{font-size:7.5pt;color:#444}
   .sum-cust-row td{background:#dbeafe!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;
     padding:2px 4px!important;font-size:6.5pt!important;font-weight:700!important}
-  .sum-tbl thead th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 4px!important;font-size:6pt!important;text-align:center!important}
-  .sum-tbl{font-size:6.5pt!important;border-collapse:collapse!important;width:100%!important;table-layout:fixed!important}
-  .sum-tbl col:nth-child(1){width:11%!important}
-  .sum-tbl col:nth-child(2){width:9%!important}
-  .sum-tbl col:nth-child(3){width:39%!important}
-  .sum-tbl col:nth-child(4){width:7%!important}
-  .sum-tbl col:nth-child(5){width:7%!important}
-  .sum-tbl col:nth-child(6){width:8%!important}
-  .sum-tbl col:nth-child(7){width:8%!important}
-  .sum-tbl col:nth-child(8){width:11%!important}
-  .sum-tbl th{padding:2px 4px!important;font-size:6.5pt!important}
-  .sum-tbl td{padding:2px 5px!important;line-height:1.2!important;border:0.5px solid #ccc!important}
-  .sum-tbl .num{text-align:center!important}
-  .sum-tbl .sub-row td{background:#e8eef8!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 5px!important}
+  .sum-tbl thead th,#tab-summary .hist-tbl thead th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 4px!important;font-size:6pt!important;text-align:center!important}
+  .sum-tbl,#tab-summary .hist-tbl{font-size:6.5pt!important;border-collapse:collapse!important;width:100%!important;table-layout:fixed!important}
+  #tab-summary .hist-tbl col:nth-child(1){width:10%!important}
+  #tab-summary .hist-tbl col:nth-child(2){width:12%!important}
+  #tab-summary .hist-tbl col:nth-child(3){width:30%!important}
+  #tab-summary .hist-tbl col:nth-child(4){width:7%!important}
+  #tab-summary .hist-tbl col:nth-child(5){width:7%!important}
+  #tab-summary .hist-tbl col:nth-child(6){width:8%!important}
+  #tab-summary .hist-tbl col:nth-child(7){width:8%!important}
+  #tab-summary .hist-tbl col:nth-child(8){width:5%!important}
+  #tab-summary .hist-tbl col:nth-child(9){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(10){width:7%!important}
+  .sum-tbl th,#tab-summary .hist-tbl th{padding:2px 4px!important;font-size:6.5pt!important}
+  .sum-tbl td,#tab-summary .hist-tbl td{padding:2px 5px!important;line-height:1.2!important;border:0.5px solid #ccc!important}
+  .sum-tbl .num,#tab-summary .hist-tbl td{text-align:center!important}
+  .sum-tbl .sub-row td,#tab-summary .hist-tbl tr.summary-row td{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 5px!important}
   .sum-grand{font-size:8pt!important;padding:4px 0 0!important;margin-top:4px!important;border-top:1px solid #333!important}
 }
 </style>
@@ -1811,6 +1813,8 @@ async function loadSummary() {
 }
 
 function renderSummary() {
+  const VALID_URG = ['ด่วน','จอง','เร่ง','ปกติ'];
+  const UNIT_VALS = ['กล่อง','กระสอบ'];
   const custFilter = document.getElementById('sum-cust-filter').value;
   const dateFrom   = document.getElementById('sum-date-from').value;
   const dateTo     = document.getElementById('sum-date-to').value;
@@ -1829,6 +1833,20 @@ function renderSummary() {
     const statEl2 = document.getElementById('sum-stat'); statEl2.textContent=''; statEl2.style.display='none';
     return;
   }
+
+  // resolve urgency (same logic as renderHistory)
+  rows.forEach(o => {
+    if (VALID_URG.includes(o.urgency)) {
+      o._urgency = o.urgency;
+      o._note = (UNIT_VALS.includes(o.note)||VALID_URG.includes(o.note)) ? '' : (o.note||'');
+    } else if (VALID_URG.includes(o.note)) {
+      o._urgency = o.note;
+      o._note = '';
+    } else {
+      o._urgency = '';
+      o._note = (UNIT_VALS.includes(o.note)||VALID_URG.includes(o.note)) ? '' : (o.note||'');
+    }
+  });
 
   // group by customer
   const grouped = {};
@@ -1850,14 +1868,26 @@ function renderSummary() {
     </div>
   </div>`;
 
-  const colW = ['52px','46px','170px','36px','32px','44px','54px','46px'];
-  html += `<table class="sum-tbl"><colgroup>${colW.map(w=>`<col style="width:${w}">`).join('')}</colgroup>`;
-  html += `<thead><tr><th>วันที่สั่ง</th><th>รหัส</th><th>ชื่อสินค้า</th><th class="num" style="text-align:center">จำนวน</th><th>หน่วย</th><th class="num" style="text-align:center">%ส่วนลด</th><th class="num" style="text-align:center">ราคาเน็ต</th><th>หมายเหตุ</th></tr></thead><tbody>`;
+  html += `<table class="hist-tbl"><colgroup>
+    <col><col><col><col style="width:80px"><col style="width:80px">
+    <col style="width:100px"><col style="width:80px">
+    <col style="width:55px"><col style="width:65px"><col>
+  </colgroup><thead><tr>
+    <th style="width:120px;font-size:11px">วันที่สั่ง</th>
+    <th style="text-align:left">ลูกค้า</th>
+    <th style="text-align:left;min-width:180px">ชื่อสินค้า</th>
+    <th>กระสอบ</th>
+    <th>กล่อง</th>
+    <th>ความเร่งด่วน</th>
+    <th>สถานะ</th>
+    <th style="text-align:center">%ลด</th>
+    <th style="text-align:center">ราคาเน็ต</th>
+    <th style="text-align:left;min-width:120px">หมายเหตุ</th>
+  </tr></thead><tbody>`;
 
   Object.entries(grouped).forEach(([cust, orders]) => {
     const custInfo = CUST_MAP[cust];
     const custCode = custInfo ? custInfo.code : '';
-    // sort: กระสอบก่อน กล่องทีหลัง แล้วเรียงตาม TYPES index
     orders.sort((a, b) => {
       const siA = allItems.find(x => x.code === a.code);
       const siB = allItems.find(x => x.code === b.code);
@@ -1870,27 +1900,36 @@ function renderSummary() {
       const tB = siB ? TYPES.indexOf(resolveType(siB)) : 999;
       return tA - tB;
     });
-    html += `<tr class="sum-cust-row"><td colspan="8">${cust}${custCode?`<span class="sum-cust-code">${custCode}</span>`:''}</td></tr>`;
     let totalSack = 0, totalBox = 0;
-    orders.forEach(o => {
+    orders.forEach((o, idx) => {
       const si = allItems.find(x => x.code === o.code);
-      const unit = si ? getUnit(resolveType(si)) : (o.unit || 'กก.');
+      const isBox = si ? getUnit(resolveType(si)) === 'กล่อง' : (o.unit === 'กล่อง');
       const qty = Number(o.qty) || 0;
-      if (unit === 'กล่อง') totalBox += qty; else totalSack += qty;
+      if (isBox) totalBox += qty; else totalSack += qty;
       const dateStr = getOrderDate(o);
-      html += `<tr>
-        <td style="white-space:nowrap;font-size:11px">${dateStr}</td>
-        <td style="font-size:11px">${o.code||''}</td>
-        <td>${fmtName(o.name||o.code)}</td>
-        <td class="num" style="text-align:center">${qty}</td>
-        <td>${unit}</td>
-        <td class="num" style="text-align:center"></td>
-        <td class="num" style="text-align:center;font-size:12px">${(()=>{const _p=getNetPrice(custCode,si);return _p!==null?_p:'';})()}</td>
-        <td style="font-size:11px;color:#555">${o.note||''}</td>
+      const urgBg = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'}[o._urgency]||'#f3f4f6';
+      const _dp = computeNetPrice(custCode, o.code);
+      const discVal = (o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined) ? o.disc_pct+'%' : (_dp!==null?_dp+'%':'');
+      const netVal  = (o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined) ? o.net_price : '';
+      html += `<tr class="${idx===0?'group-sep':''}">
+        <td style="font-size:11px;white-space:nowrap">${dateStr}</td>
+        <td class="td-cust">${idx===0?cust+(custCode?` <span class="sum-cust-code">${custCode}</span>`:''):''}</td>
+        <td class="td-name">${fmtName(o.name||o.code)}</td>
+        <td>${!isBox?qty:''}</td>
+        <td>${isBox?qty:''}</td>
+        <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
+        <td>✅ ยืนยัน</td>
+        <td style="text-align:center;font-size:12px">${discVal}</td>
+        <td style="text-align:center;font-size:12px">${netVal}</td>
+        <td style="font-size:11px;color:#555">${o._note}</td>
       </tr>`;
     });
-    const totalStr = [totalSack?totalSack+' กระสอบ':'', totalBox?totalBox+' กล่อง':''].filter(Boolean).join(' + ');
-    html += `<tr class="sub-row"><td colspan="3" style="text-align:right;color:#444;font-size:11px">รวม ${cust}</td><td colspan="5" style="font-size:11px;text-align:left">${totalStr}</td></tr>`;
+    html += `<tr class="summary-row">
+      <td colspan="3" style="text-align:right">รวม ${cust}</td>
+      <td>${totalSack||'-'}</td>
+      <td>${totalBox||'-'}</td>
+      <td colspan="5"></td>
+    </tr>`;
   });
   html += `</tbody></table>`;
 
@@ -1904,7 +1943,6 @@ function renderSummary() {
   html += `<div class="sum-grand">รวมทั้งหมด &nbsp; ${grandStr} &nbsp;·&nbsp; ${rows.length} รายการ</div>`;
 
   document.getElementById('sum-body').innerHTML = html;
-  // print header: shown via @media print CSS
 
   const totalCusts = Object.keys(grouped).length;
   const statEl = document.getElementById('sum-stat'); statEl.textContent = `${totalCusts} ลูกค้า · ${rows.length} รายการ`; statEl.style.display='inline-block';
