@@ -348,10 +348,10 @@ table.list tr:hover td{background:#f8fbff}
           <th style="text-align:left;min-width:180px">ชื่อ / ขนาดสินค้า</th>
           <th style="width:80px">กระสอบ</th>
           <th style="width:80px">กล่อง</th>
+          <th style="width:55px;text-align:center">%ส่วนลด</th>
+          <th style="width:65px;text-align:center">ราคาเน็ต</th>
           <th style="width:100px">ความเร่งด่วน</th>
           <th style="width:80px">สถานะ</th>
-          <th style="width:55px;text-align:center">%ลด</th>
-          <th style="width:65px;text-align:center">ราคาเน็ต</th>
           <th style="text-align:left;min-width:120px">หมายเหตุ</th>
         </tr></thead>
         <tbody id="historyTbody"></tbody>
@@ -1513,9 +1513,9 @@ function renderPendingTable() {
         <td style="font-family:monospace;font-size:11px">${o.code}</td>
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?qty:''}</td>
-        <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
         <td style="text-align:center;font-size:12px">${(()=>{if(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)return o.disc_pct;const _dp=computeNetPrice(cust,o.code);return _dp!==null?_dp:'';})()}</td>
         <td style="text-align:center;font-size:12px">${o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined?o.net_price:''}</td>
+        <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
         <td style="font-size:11px;color:#666">${o._note}</td>
         <td>
           <div class="pend-actions">
@@ -1568,9 +1568,9 @@ function renderPendingTable() {
             <th style="width:90px">รหัส</th>
             <th style="width:70px">กระสอบ</th>
             <th style="width:70px">กล่อง</th>
-            <th style="width:95px">ความเร่งด่วน</th>
-            <th style="width:55px;text-align:center">%ลด</th>
+            <th style="width:55px;text-align:center">%ส่วนลด</th>
             <th style="width:65px;text-align:center">ราคาเน็ต</th>
+            <th style="width:95px">ความเร่งด่วน</th>
             <th style="text-align:left;min-width:90px">หมายเหตุ</th>
             <th style="width:90px">จัดการ</th>
           </tr></thead>
@@ -1756,10 +1756,10 @@ function renderHistory() {
         <td class="td-name">${fmtName(o.name||o.code)}</td>
         <td>${!isBox?qty:''}</td>
         <td>${isBox?qty:''}</td>
+        <td style="text-align:center;font-size:12px">${o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined?o.disc_pct:''}</td>
+        <td style="text-align:center;font-size:12px">${o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined?o.net_price:''}</td>
         <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
         <td class="${o.status==='confirmed'?'status-done':'status-rejected'}">${o.status==='confirmed'?'✅ ยืนยัน':'❌ ปฏิเสธ'}</td>
-        <td style="text-align:center;font-size:12px">${o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined?o.disc_pct+'%':''}</td>
-        <td style="text-align:center;font-size:12px">${o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined?o.net_price:''}</td>
         <td style="font-size:11px;color:#666">${o._note}</td>
       </tr>`;
     });
@@ -1878,10 +1878,10 @@ function renderSummary() {
     <th style="text-align:left;min-width:180px">ชื่อสินค้า</th>
     <th>กระสอบ</th>
     <th>กล่อง</th>
+    <th style="text-align:center">%ส่วนลด</th>
+    <th style="text-align:center">ราคาเน็ต</th>
     <th>ความเร่งด่วน</th>
     <th>สถานะ</th>
-    <th style="text-align:center">%ลด</th>
-    <th style="text-align:center">ราคาเน็ต</th>
     <th style="text-align:left;min-width:120px">หมายเหตุ</th>
   </tr></thead><tbody>`;
 
@@ -1909,7 +1909,7 @@ function renderSummary() {
       const dateStr = getOrderDate(o);
       const urgBg = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'}[o._urgency]||'#f3f4f6';
       const _dp = computeNetPrice(custCode, o.code);
-      const discVal = (o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined) ? o.disc_pct+'%' : (_dp!==null?_dp+'%':'');
+      const discVal = (o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined) ? o.disc_pct : (_dp!==null?_dp:'');
       const netVal  = (o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined) ? o.net_price : '';
       html += `<tr class="${idx===0?'group-sep':''}">
         <td style="font-size:11px;white-space:nowrap">${dateStr}</td>
@@ -1917,10 +1917,10 @@ function renderSummary() {
         <td class="td-name">${fmtName(o.name||o.code)}</td>
         <td>${!isBox?qty:''}</td>
         <td>${isBox?qty:''}</td>
-        <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
-        <td>✅ ยืนยัน</td>
         <td style="text-align:center;font-size:12px">${discVal}</td>
         <td style="text-align:center;font-size:12px">${netVal}</td>
+        <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
+        <td>✅ ยืนยัน</td>
         <td style="font-size:11px;color:#555">${o._note}</td>
       </tr>`;
     });
