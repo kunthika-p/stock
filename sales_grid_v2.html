@@ -109,6 +109,9 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 /* Inline qty edit */
 .qty-edit-input{width:70px;padding:4px 6px;border:1.5px solid #2563a8;border-radius:6px;font-size:13px;font-family:'Sarabun',sans-serif;text-align:center}
 
+
+#hist-tbl th{border:1px solid rgba(255,255,255,0.25)}
+#hist-tbl td{border:1px solid #d1d5db}
 </style>
 </head>
 <body>
@@ -160,7 +163,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
       <span id="sales-hist-count2" style="font-size:13px;font-weight:400;color:#888"></span>
     </div>
     <div style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:700px">
+      <table id="hist-tbl" style="width:100%;border-collapse:collapse;font-size:13px;min-width:700px">
         <thead><tr style="background:#1a3a5c;color:white">
           <th style="padding:9px 10px;text-align:left;min-width:120px">ลูกค้า</th>
           <th style="padding:9px 10px;text-align:left;min-width:160px">ชื่อสินค้า</th>
