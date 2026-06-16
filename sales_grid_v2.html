@@ -80,6 +80,9 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .urgency-opt.sel-urgent{background:#fee2e2;border-color:#dc2626;color:#991b1b}
 .urgency-opt:not(.selected){opacity:.5}
 .modal-actions{display:flex;gap:10px;margin-top:18px}
+.price-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-auto input{background:var(--color-bg-auto,#f0f7ff);font-weight:500}
+.field-hint{font-size:11px;color:#999;margin:3px 0 0}
 .btn-cancel{flex:1;padding:13px;border:1.5px solid #d1d5db;border-radius:8px;background:white;font-size:15px;font-family:'Sarabun',sans-serif;cursor:pointer;color:#555}
 .btn-confirm{flex:2;padding:13px;border:none;border-radius:8px;background:#2563a8;color:white;font-size:15px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
 
@@ -186,7 +189,6 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
   <div class="modal">
     <div class="modal-title" id="modalName"></div>
     <div class="modal-code" id="modalCode"></div>
-    <div id="modalPriceInfo" style="display:none;margin-bottom:12px;padding:8px 12px;background:#f0f7ff;border-radius:8px;font-size:13px;color:#1a3a5c;font-family:Sarabun,sans-serif"></div>
     <div class="field">
       <label id="qtyLabel">จำนวน *</label>
       <input type="number" id="inputQty" placeholder="0" min="1" step="1">
@@ -197,6 +199,18 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
         <div class="urgency-opt sel-normal selected" onclick="selectItemUrgency('ปกติ',this)">🟢 ปกติ</div>
         <div class="urgency-opt sel-medium" onclick="selectItemUrgency('จอง',this)">🟡 จอง</div>
         <div class="urgency-opt sel-urgent" onclick="selectItemUrgency('ด่วน',this)">🔴 ด่วน</div>
+      </div>
+    </div>
+    <div class="price-row">
+      <div class="field" id="fieldDiscPct">
+        <label>% ส่วนลด</label>
+        <input type="number" id="inputDiscPct" placeholder="—" min="0" max="100" step="0.1">
+        <p class="field-hint" id="hintDiscPct"></p>
+      </div>
+      <div class="field" id="fieldNetPrice">
+        <label>ราคา Net (฿/กก.)</label>
+        <input type="number" id="inputNetPrice" placeholder="—" min="0" step="0.01">
+        <p class="field-hint" id="hintNetPrice"></p>
       </div>
     </div>
     <div class="field">
@@ -737,21 +751,37 @@ function openModal(code, name, type) {
   const urgencyMap = {'ปกติ':'sel-normal','จอง':'sel-medium','ด่วน':'sel-urgent'};
   document.querySelector('#itemUrgencyOpts .' + (urgencyMap[selectedItemUrgency]||'sel-normal')).classList.add('selected');
 
-  // แสดงราคา/ส่วนลด
-  const priceDiv = document.getElementById('modalPriceInfo');
+  // populate % ส่วนลด และ ราคา Net จาก CUST_PRICES
+  const discInput = document.getElementById('inputDiscPct');
+  const netInput = document.getElementById('inputNetPrice');
+  const hintDisc = document.getElementById('hintDiscPct');
+  const hintNet = document.getElementById('hintNetPrice');
+  const fieldDisc = document.getElementById('fieldDiscPct');
+  const fieldNet = document.getElementById('fieldNetPrice');
+
+  discInput.value = '';
+  netInput.value = '';
+  hintDisc.textContent = '';
+  hintNet.textContent = '';
+  fieldDisc.classList.remove('field-auto');
+  fieldNet.classList.remove('field-auto');
+
   if (customerCode) {
     const pi = getPriceInfo(customerCode, code, type);
     if (pi.disc_pct !== null) {
-      priceDiv.style.display = '';
-      priceDiv.innerHTML = '💰 ส่วนลด: <strong>' + pi.disc_pct + '%</strong>';
-    } else if (pi.net_price !== null) {
-      priceDiv.style.display = '';
-      priceDiv.innerHTML = '💰 ราคา Net: <strong>' + pi.net_price + ' บาท/กก.</strong>';
+      discInput.value = pi.disc_pct;
+      hintDisc.textContent = 'ดึงอัตโนมัติ แก้ได้';
+      fieldDisc.classList.add('field-auto');
     } else {
-      priceDiv.style.display = 'none';
+      hintDisc.textContent = 'ไม่มีข้อมูล';
     }
-  } else {
-    priceDiv.style.display = 'none';
+    if (pi.net_price !== null) {
+      netInput.value = pi.net_price;
+      hintNet.textContent = 'ดึงอัตโนมัติ แก้ได้';
+      fieldNet.classList.add('field-auto');
+    } else {
+      hintNet.textContent = 'ไม่มีข้อมูล';
+    }
   }
 
   document.getElementById('modalBg').classList.add('open');
@@ -775,13 +805,19 @@ function addToCart() {
   if (!qty || qty <= 0) { alert('กรุณากรอกจำนวน'); return; }
   const unit = getUnit(selectedType);
   const note = document.getElementById('inputItemNote').value.trim();
+  const discVal = document.getElementById('inputDiscPct').value;
+  const netVal = document.getElementById('inputNetPrice').value;
+  const disc_pct = discVal !== '' ? parseFloat(discVal) : null;
+  const net_price = netVal !== '' ? parseFloat(netVal) : null;
   const existing = cart.find(i => i.code === selectedCode);
   if (existing) {
     existing.qty = qty;
     existing.urgency = selectedItemUrgency;
     existing.note = note;
+    existing.disc_pct = disc_pct;
+    existing.net_price = net_price;
   } else {
-    cart.push({ code: selectedCode, name: fmtName(selectedName), type: selectedType, qty, unit, urgency: selectedItemUrgency, note });
+    cart.push({ code: selectedCode, name: fmtName(selectedName), type: selectedType, qty, unit, urgency: selectedItemUrgency, note, disc_pct, net_price });
   }
   closeModalDirect();
   updateCartBar();
