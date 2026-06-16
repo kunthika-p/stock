@@ -186,6 +186,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
   <div class="modal">
     <div class="modal-title" id="modalName"></div>
     <div class="modal-code" id="modalCode"></div>
+    <div id="modalPriceInfo" style="display:none;margin-bottom:12px;padding:8px 12px;background:#f0f7ff;border-radius:8px;font-size:13px;color:#1a3a5c;font-family:Sarabun,sans-serif"></div>
     <div class="field">
       <label id="qtyLabel">จำนวน *</label>
       <input type="number" id="inputQty" placeholder="0" min="1" step="1">
@@ -361,6 +362,7 @@ let selectedType = '';
 let selectedItemUrgency = 'ปกติ';
 let cart = [];
 let customerName = '';
+let customerCode = '';
 let editingCartIndex = null;
 
 function fmtName(n) {
@@ -432,6 +434,7 @@ function onCustomerKey(e) {
 function selectCustomer(name, code) {
   document.getElementById('customerInput').value = name;
   document.getElementById('acDrop').classList.remove('open');
+  customerCode = code;
   confirmCustomer();
 }
 
@@ -451,6 +454,7 @@ function confirmCustomer() {
 
 function changeName() {
   customerName = '';
+  customerCode = '';
   document.getElementById('customerInput').style.display = '';
   document.getElementById('customerInput').value = '';
   document.getElementById('acDrop').classList.remove('open');
@@ -732,6 +736,23 @@ function openModal(code, name, type) {
   document.querySelectorAll('#itemUrgencyOpts .urgency-opt').forEach(e => e.classList.remove('selected'));
   const urgencyMap = {'ปกติ':'sel-normal','จอง':'sel-medium','ด่วน':'sel-urgent'};
   document.querySelector('#itemUrgencyOpts .' + (urgencyMap[selectedItemUrgency]||'sel-normal')).classList.add('selected');
+
+  // แสดงราคา/ส่วนลด
+  const priceDiv = document.getElementById('modalPriceInfo');
+  if (customerCode) {
+    const pi = getPriceInfo(customerCode, code, type);
+    if (pi.disc_pct !== null) {
+      priceDiv.style.display = '';
+      priceDiv.innerHTML = '💰 ส่วนลด: <strong>' + pi.disc_pct + '%</strong>';
+    } else if (pi.net_price !== null) {
+      priceDiv.style.display = '';
+      priceDiv.innerHTML = '💰 ราคา Net: <strong>' + pi.net_price + ' บาท/กก.</strong>';
+    } else {
+      priceDiv.style.display = 'none';
+    }
+  } else {
+    priceDiv.style.display = 'none';
+  }
 
   document.getElementById('modalBg').classList.add('open');
 }
