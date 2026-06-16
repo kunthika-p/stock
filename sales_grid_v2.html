@@ -954,7 +954,8 @@ async function submitAllOrders() {
       id: Date.now() + Math.random(),
       customer: customerName, code: item.code, name: item.name,
       qty: item.qty, unit: item.unit, urgency: item.urgency,
-      note: item.note || note || '', date
+      note: item.note || note || '', date,
+      disc_pct: item.disc_pct, net_price: item.net_price
     });
   });
   cart = [];
