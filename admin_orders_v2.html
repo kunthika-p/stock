@@ -1512,8 +1512,8 @@ function renderPendingTable() {
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?qty:''}</td>
         <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
-        <td style="text-align:center;font-size:12px">${o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined?o.disc_pct+'%':''}</td>
-        <td style="text-align:center;font-size:12px">${(()=>{if(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)return o.net_price;const _np=computeNetPrice(cust,o.code);return _np!==null?_np:'';})()}</td>
+        <td style="text-align:center;font-size:12px">${(()=>{if(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)return o.disc_pct+'%';const _dp=computeNetPrice(cust,o.code);return _dp!==null?_dp+'%':'';})()}</td>
+        <td style="text-align:center;font-size:12px">${o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined?o.net_price:''}</td>
         <td style="font-size:11px;color:#666">${o._note}</td>
         <td>
           <div class="pend-actions">
