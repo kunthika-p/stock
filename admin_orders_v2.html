@@ -707,7 +707,7 @@ function getDiscountCol(si) {
   if (type==='สกรูมิลขาว') return 'milKhao';
   if (type==='น็อตเหลี่ยม NC (ใหญ่)') return ['7/8 NC','1 NC'].includes(col)?'nokKiloBig_NCNF_78_1':'nokKiloBig_NCNF_58_34';
   if (type==='น็อตเหลี่ยม NC'||type==='น็อตเหลี่ยม NF') return 'NCNF';
-  if (type==='__NOK_MIL_AENG_M6M12__'||type==='__NOK_MIL_AENG_M14M24__') return 'milDam';
+  if (type==='__NOK_MIL_AENG_M6M12__'||type==='__NOK_MIL_AENG_M14M24__'||type.startsWith('น็อตแข็ง')) return 'milDam';
   if (['น็อตเหลี่ยมเกลียว W','น็อตหัวกลมเกลียว W','น็อตเหลี่ยม W ไม่ควบหัว','สกรูเกลียวปล่อย'].includes(type))
     return W_BIG_COLS.includes(col)?'nokKiloBig_W':'nokKilo_W';
   return null;
