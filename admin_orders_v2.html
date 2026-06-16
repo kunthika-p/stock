@@ -608,6 +608,137 @@ function resolveType(item){
   return item.type;
 }
 function getUnit(type){return BOX_TYPES.includes(type)?'กล่อง':'กระสอบ';}
+// ============================================================
+// DISCOUNT DATA - ราคาเน็ต/กก. ตามประเภทสินค้าและรหัสลูกค้า
+// Source: ปรับส่วนลด5-1-69 Rev3.xlsx (79 customers)
+// ============================================================
+const DISCOUNT_DATA = {
+  "00100":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "00203":{nokKilo_W:55.0,nokKiloBig_W:45.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:55.0,NCNF:31.0,milDam:48.0,huaNut:55.0},
+  "00204":{nokKilo_W:55.0,nokKiloBig_W:45.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:55.0,NCNF:31.0,milDam:48.0,huaNut:55.0},
+  "00205":{nokKilo_W:55.0,nokKiloBig_W:45.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:55.0,NCNF:31.0,milDam:48.0,huaNut:55.0},
+  "00300":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "00303":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "00500":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "00802":{nokKilo_W:53.0,nokKiloBig_W:44.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:53.0,NCNF:31.0,milDam:50.0,huaNut:53.0},
+  "00900":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "01002":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "01101":{nokKilo_W:52.0,nokKiloBig_W:43.0,nokKiloBig_NCNF_58_34:39.0,nokKiloBig_NCNF_78_1:37.0,milKhao:51.0,NCNF:31.0,milDam:47.0,huaNut:51.0},
+  "01200":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "01300":{nokKilo_W:55.0,nokKiloBig_W:45.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:55.0,NCNF:31.0,milDam:50.0,huaNut:55.0},
+  "01400":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "01500":{nokKilo_W:57.0,nokKiloBig_W:45.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:53.0,NCNF:31.0,milDam:48.0,huaNut:55.0},
+  "01501":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "01600":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "01700":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "02000":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "02300":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "02800":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "02900":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "03000":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "03300":{nokKilo_W:55.0,nokKiloBig_W:45.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:55.0,NCNF:31.0,milDam:48.0,huaNut:55.0},
+  "03301":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "04000":{nokKilo_W:50.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:37.0,milKhao:50.0,NCNF:28.0,milDam:46.0,huaNut:50.0},
+  "04101":{nokKilo_W:50.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:37.0,milKhao:50.0,NCNF:28.0,milDam:46.0,huaNut:50.0},
+  "04200":{nokKilo_W:29.0,nokKiloBig_W:23.0,nokKiloBig_NCNF_58_34:19.0,nokKiloBig_NCNF_78_1:17.0,milKhao:36.0,NCNF:23.0,milDam:36.0,huaNut:34.0},
+  "04900":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "05000":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "05100":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "05200":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "05402":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "05700":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "05900":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "06000":{nokKilo_W:55.0,nokKiloBig_W:45.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:55.0,NCNF:31.0,milDam:48.0,huaNut:55.0},
+  "06001":{nokKilo_W:55.0,nokKiloBig_W:45.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:55.0,NCNF:31.0,milDam:48.0,huaNut:55.0},
+  "06002":{nokKilo_W:55.0,nokKiloBig_W:45.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:55.0,NCNF:31.0,milDam:48.0,huaNut:55.0},
+  "06600":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "06900":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "07400":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "08600":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "08900":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "09000":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "09100":{nokKilo_W:53.0,nokKiloBig_W:44.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:52.0,NCNF:31.0,milDam:48.0,huaNut:53.0},
+  "09700":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "11001":{nokKilo_W:49.0,nokKiloBig_W:41.0,nokKiloBig_NCNF_58_34:39.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:28.0,milDam:45.0,huaNut:49.0},
+  "11200":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "12215":{nokKilo_W:52.0,nokKiloBig_W:43.0,nokKiloBig_NCNF_58_34:39.0,nokKiloBig_NCNF_78_1:37.0,milKhao:51.0,NCNF:31.0,milDam:47.0,huaNut:51.0},
+  "12801":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "13600":{nokKilo_W:53.0,nokKiloBig_W:44.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:52.0,NCNF:31.0,milDam:48.0,huaNut:53.0},
+  "13700":{nokKilo_W:55.0,nokKiloBig_W:45.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:55.0,NCNF:31.0,milDam:50.0,huaNut:55.0},
+  "13800":{nokKilo_W:50.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:37.0,milKhao:50.0,NCNF:28.0,milDam:46.0,huaNut:50.0},
+  "14104":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "16402":{nokKilo_W:51.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:36.0,milKhao:49.0,NCNF:31.0,milDam:46.0,huaNut:51.0},
+  "16498":{nokKilo_W:52.0,nokKiloBig_W:43.0,nokKiloBig_NCNF_58_34:39.0,nokKiloBig_NCNF_78_1:37.0,milKhao:51.0,NCNF:31.0,milDam:47.0,huaNut:51.0},
+  "16499":{nokKilo_W:52.0,nokKiloBig_W:43.0,nokKiloBig_NCNF_58_34:39.0,nokKiloBig_NCNF_78_1:37.0,milKhao:51.0,NCNF:31.0,milDam:47.0,huaNut:51.0},
+  "17400":{nokKilo_W:null,nokKiloBig_W:null,nokKiloBig_NCNF_58_34:null,nokKiloBig_NCNF_78_1:null,milKhao:48.0,NCNF:null,milDam:null,huaNut:48.0},
+  "30800":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "31000":{nokKilo_W:null,nokKiloBig_W:null,nokKiloBig_NCNF_58_34:null,nokKiloBig_NCNF_78_1:null,milKhao:null,NCNF:null,milDam:44.0,huaNut:null},
+  "34400":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "36300":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "38300":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "50600":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "51400":{nokKilo_W:null,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:null,NCNF:null,milDam:null,huaNut:null},
+  "56900":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "57100":{nokKilo_W:55.0,nokKiloBig_W:45.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:52.0,NCNF:31.0,milDam:48.0,huaNut:55.0},
+  "57900":{nokKilo_W:53.0,nokKiloBig_W:44.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:38.0,milKhao:52.0,NCNF:31.0,milDam:48.0,huaNut:53.0},
+  "58700":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "60500":{nokKilo_W:50.0,nokKiloBig_W:42.0,nokKiloBig_NCNF_58_34:40.0,nokKiloBig_NCNF_78_1:37.0,milKhao:50.0,NCNF:28.0,milDam:46.0,huaNut:50.0},
+  "61000":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "61500":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "61600":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0},
+  "62400":{nokKilo_W:48.0,nokKiloBig_W:40.0,nokKiloBig_NCNF_58_34:38.0,nokKiloBig_NCNF_78_1:35.0,milKhao:48.0,NCNF:28.0,milDam:44.0,huaNut:48.0}
+};
+
+// รหัสลูกค้าในระบบ → รหัสในไฟล์ส่วนลด (เมื่อรหัสไม่ตรงกัน)
+const CUST_DISCOUNT_REF = {"00103":"00100","00106":"00100","00304":"00303","01003":"01002","01103":"01101","02001":"02000","02801":"02800","04102":"04101","11000":"11001","11002":"11001","11003":"11001","11004":"11001","13801":"13800","13802":"13800","16900":"50600","52700":"05700","56900":"56900","57101":"57100","57102":"57100","61600":"61600","61800":"61500"};
+
+// ลูกค้าที่ยกเลิกแล้ว - ไม่แสดงราคาเน็ต
+const CANCELLED_CUSTS = new Set(["00301","01102","06302","06700","11800","29600","32200","32900","33700","34100","34501","36500","38000","52300","53500","53800","54200","54700","57200","57400","57601","58500","59400","59500","60100","60300","61300","61400","62200","62600"]);
+
+// ขนาด W ใหญ่ (5/8" ขึ้นไป)
+const W_BIG_COLS = ['5/8 W','3/4 W','7/8 W','1 W','1-1/8 W','1-1/4 W'];
+
+/** แปลงประเภทสินค้า → คอลัมน์ใน DISCOUNT_DATA */
+function getDiscountCol(si) {
+  if (!si) return null;
+  const type = resolveType(si);
+  const col = si.col || '';
+  if (HUA_NUT.includes(type) || type==='หัวน็อตมิลแข็ง เกรด8' || type==='หัวน็อตมิลแข็ง OVERSIZE') return 'huaNut';
+  if (type==='สกรูมิลขาว') return 'milKhao';
+  if (type==='น็อตเหลี่ยม NC (ใหญ่)') return ['7/8 NC','1 NC'].includes(col)?'nokKiloBig_NCNF_78_1':'nokKiloBig_NCNF_58_34';
+  if (type==='น็อตเหลี่ยม NC'||type==='น็อตเหลี่ยม NF') return 'NCNF';
+  if (type==='__NOK_MIL_AENG_M6M12__'||type==='__NOK_MIL_AENG_M14M24__') return 'milDam';
+  if (['น็อตเหลี่ยมเกลียว W','น็อตหัวกลมเกลียว W','น็อตเหลี่ยม W ไม่ควบหัว','สกรูเกลียวปล่อย'].includes(type))
+    return W_BIG_COLS.includes(col)?'nokKiloBig_W':'nokKilo_W';
+  return null;
+}
+
+/**
+ * ราคาเน็ต/กก. สำหรับลูกค้า + สินค้า
+ * Rule 1: CANCELLED_CUSTS → null
+ * Rule 2: ไม่พบใน DISCOUNT_DATA → null
+ * Rule 3: CUST_DISCOUNT_REF[code] → ใช้รหัสที่แมปแทน
+ */
+function getNetPrice(custCode, si) {
+  if (!custCode||!si) return null;
+  const code = String(custCode).trim();
+  if (CANCELLED_CUSTS.has(code)) return null;
+  const lookupCode = CUST_DISCOUNT_REF[code]||code;
+  const row = DISCOUNT_DATA[lookupCode];
+  if (!row) return null;
+  const col = getDiscountCol(si);
+  if (!col) return null;
+  const v = row[col];
+  return (v!==null&&v!==undefined)?v:null;
+}
+
+/** lookup by customer name + item code (ใช้ inline ใน template) */
+function computeNetPrice(custName, itemCode) {
+  const ci = CUST_MAP[custName]; if (!ci) return null;
+  const si = allItems.find(x=>x.code===itemCode);
+  return getNetPrice(ci.code, si);
+}
+
 
 // ---- Tab switching ----
 function switchTab(name, btn) {
@@ -1383,7 +1514,7 @@ function renderPendingTable() {
         <td style="font-size:11px;white-space:nowrap">${getOrderDate(o)}</td>
         <td style="font-size:11px;color:#666">${o._note}</td>
         <td style="text-align:center;font-size:12px">${o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined?o.disc_pct+'%':''}</td>
-        <td style="text-align:center;font-size:12px">${o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined?o.net_price:''}</td>
+        <td style="text-align:center;font-size:12px">${(()=>{if(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)return o.net_price;const _np=computeNetPrice(cust,o.code);return _np!==null?_np:'';})()}</td>
         <td>
           <div class="pend-actions">
             <button class="btn-confirm" onclick="confirmOrder(${o.row},'${o.code}',${qty})">✅</button>
@@ -1740,7 +1871,7 @@ function renderSummary() {
         <td class="num" style="text-align:center">${qty}</td>
         <td>${unit}</td>
         <td class="num" style="text-align:center"></td>
-        <td class="num" style="text-align:center"></td>
+        <td class="num" style="text-align:center;font-size:12px">${(()=>{const _p=getNetPrice(custCode,si);return _p!==null?_p:'';})()}</td>
         <td style="font-size:11px;color:#555">${o.note||''}</td>
       </tr>`;
     });
