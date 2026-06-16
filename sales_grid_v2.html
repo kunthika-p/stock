@@ -952,8 +952,7 @@ async function submitAllOrders() {
       id: Date.now() + Math.random(),
       customer: customerName, code: item.code, name: item.name,
       qty: item.qty, unit: item.unit, urgency: item.urgency,
-      note: item.note || note || '', date,
-      disc_pct: item.disc_pct, net_price: item.net_price
+      note: item.note || note || '', date
     });
   });
   cart = [];
@@ -1053,8 +1052,7 @@ async function confirmAllToAdmin() {
       await fetch(API, {
         method: 'POST',
         body: JSON.stringify({ action:'newOrder', code:o.code, name:o.name,
-          customer:o.customer, qty:o.qty, unit:o.unit, urgency:o.urgency, note:o.note, date:o.date,
-          disc_pct:o.disc_pct, net_price:o.net_price })
+          customer:o.customer, qty:o.qty, unit:o.unit, urgency:o.urgency, note:o.note, date:o.date })
       });
     }
     const count = stagedOrders.length;
