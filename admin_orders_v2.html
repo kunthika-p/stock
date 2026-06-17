@@ -1434,7 +1434,7 @@ function buildTypeTable(t) {
   h += '</tr></thead><tbody>';
   m.rows.forEach(row => {
     const isKhrueng = row.endsWith(' ค.');
-    const rowStyle = isKhrueng ? ' style="color:#d97706;font-weight:700"' : '';
+    const rowStyle = isKhrueng ? ' style="color:#c2410c;font-weight:700"' : '';
     h += `<tr><td class="td-row"${rowStyle}>${row}</td>`;
     m.cols.forEach(col => {
       const it = catItems.find(x => String(x.col)===String(col) && String(x.row)===String(row));
@@ -1443,8 +1443,8 @@ function buildTypeTable(t) {
       const tk = getTank(it.code);
       const cls = s.stock>=20?'c-ok':s.stock>0?'c-low':'c-out';
       const tkHtml = tk > 0 ? `<span class="tank-v">${tk}</span>` : '';
-      const cellStyle = isKhrueng ? ' style="outline:2px solid #fcd34d;outline-offset:-2px"' : '';
-      h += `<td class="stk-cell ${cls}"${cellStyle}>${tkHtml}<span class="stk-v">${s.stock}</span><span class="code-v">${it.code}</span></td>`;
+      const stkStyle = isKhrueng ? ' style="color:#c2410c"' : '';
+      h += `<td class="stk-cell ${cls}">${tkHtml}<span class="stk-v"${stkStyle}>${s.stock}</span><span class="code-v">${it.code}</span></td>`;
     });
     h += '</tr>';
   });
