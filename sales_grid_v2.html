@@ -545,14 +545,14 @@ function buildTypeNav() {
   const nav = document.getElementById('typeNav');
   nav.innerHTML = TYPES.map((t, i) => {
     if (t === '__HUA_NUT__') {
-      return `<button class="type-btn" onclick="scrollToType('__HUA_NUT__',this)">🔩 หัวน็อต</button>`;
+      return `<button class="type-btn" onclick="scrollToType('__HUA_NUT__',this)">หัวน็อต</button>`;
     }
     if (t === '__OTHER__') {
-      return `<button class="type-btn" onclick="scrollToType('__OTHER__',this)">📦 อื่นๆ</button>`;
+      return `<button class="type-btn" onclick="scrollToType('__OTHER__',this)">อื่นๆ</button>`;
     }
     const nmTab = NOK_MIL_AENG_TABS.find(td => td.key === t);
     if (nmTab) {
-      return `<button class="type-btn" onclick="scrollToType('${t}',this)">📦 ${nmTab.name}</button>`;
+      return `<button class="type-btn" onclick="scrollToType('${t}',this)">${nmTab.name}</button>`;
     }
     return `<button class="type-btn ${i===0?'active':''}" onclick="scrollToType('${t.replace(/'/g,"\\'")}',this)">${t}</button>`;
   }).join('');
