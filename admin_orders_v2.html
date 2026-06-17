@@ -137,6 +137,33 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .si-hist-tbl .td-left{text-align:left}
 .si-hist-tbl tr.date-sep td{border-top:2px solid #2563a8}
 .si-hist-tbl tr:hover td{background:#f8fbff}
+.si-hist-tbl tr.si-corr-row td{background:#fffbeb;font-size:11px;color:#92400e;border-top:1px dashed #fcd34d}
+.si-hist-tbl tr.si-void-row td{background:#fff1f2;font-size:11px;color:#991b1b;border-top:1px dashed #fca5a5}
+.si-hist-tbl tr.si-note-row td{background:#f0fdf4;font-size:11px;color:#166534;border-top:1px dashed #86efac}
+.si-hist-tbl tr.si-voided td{opacity:0.4}
+.si-hist-tbl tr.si-voided .td-left{text-decoration:line-through}
+.si-corr-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9000;align-items:center;justify-content:center}
+.si-corr-modal-bg.open{display:flex}
+.si-corr-modal{background:white;border-radius:12px;padding:22px 24px;width:420px;max-width:95vw;max-height:90vh;overflow-y:auto;font-family:'Sarabun',sans-serif}
+.si-corr-tabs{display:flex;gap:6px;margin-bottom:16px}
+.si-corr-tab{font-size:12px;padding:5px 13px;border-radius:6px;border:1px solid #d1d5db;cursor:pointer;background:none;font-family:'Sarabun',sans-serif;color:#555}
+.si-corr-tab.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
+.si-corr-tab.danger{color:#dc2626;border-color:#fca5a5}
+.si-corr-field label{display:block;font-size:11px;color:#666;margin-bottom:4px}
+.si-corr-field{margin-bottom:12px}
+.si-corr-field input,.si-corr-field textarea{width:100%;box-sizing:border-box;padding:7px 10px;border:1.5px solid #d1d5db;border-radius:7px;font-size:13px;font-family:'Sarabun',sans-serif}
+.si-corr-field textarea{resize:vertical;min-height:58px}
+.si-corr-info{background:#f8fbff;border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:12px}
+.si-corr-info div{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #e5e7eb}
+.si-corr-info div:last-child{border-bottom:none}
+.si-corr-info span:first-child{color:#888}
+.si-corr-info span:last-child{font-weight:600;color:#1a3a5c}
+.si-corr-warn{background:#fee2e2;border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:12px;color:#991b1b}
+.si-corr-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.si-corr-footer button{padding:7px 16px;border-radius:7px;font-size:13px;font-family:'Sarabun',sans-serif;cursor:pointer}
+.si-btn-cancel-modal{background:none;border:1px solid #d1d5db;color:#555}
+.si-btn-save{background:#1a3a5c;color:white;border:none}
+.si-btn-void-confirm{background:#dc2626;color:white;border:none}
 
 /* Stock tab */
 .card{background:white;border-radius:10px;padding:18px;margin-bottom:16px;box-shadow:0 1px 5px rgba(0,0,0,.09)}
@@ -478,12 +505,76 @@ table.list tr:hover td{background:#f8fbff}
                 <th style="width:80px">ถังรับเข้า</th>
                 <th style="width:90px">ผู้บันทึก</th>
                 <th style="text-align:left">หมายเหตุ</th>
+                <th style="width:80px;background:#2c5282">จัดการ</th>
               </tr></thead>
-              <tbody id="si-hist-tbody"><tr><td colspan="8" style="text-align:center;padding:24px;color:#aaa">กดรีเฟรชเพื่อโหลดประวัติ</td></tr></tbody>
+              <tbody id="si-hist-tbody"><tr><td colspan="9" style="text-align:center;padding:24px;color:#aaa">กดรีเฟรชเพื่อโหลดประวัติ</td></tr></tbody>
             </table>
           </div>
         </div>
       </div><!-- /si-hist-wrap -->
+
+  <!-- ── Correction modal ── -->
+  <div class="si-corr-modal-bg" id="si-corr-bg">
+    <div class="si-corr-modal">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <strong id="si-corr-title" style="font-size:15px;color:#1a3a5c">แก้ไข entry</strong>
+        <button onclick="siCorrectClose()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#888">✕</button>
+      </div>
+      <div id="si-corr-sub" style="font-size:12px;color:#888;margin-bottom:14px"></div>
+
+      <!-- tabs -->
+      <div class="si-corr-tabs">
+        <button class="si-corr-tab active" onclick="siCorrectTab('qty',this)">แก้จำนวน</button>
+        <button class="si-corr-tab" onclick="siCorrectTab('note',this)">แก้หมายเหตุ</button>
+        <button class="si-corr-tab danger" onclick="siCorrectTab('void',this)">ยกเลิก entry</button>
+      </div>
+
+      <!-- info box -->
+      <div class="si-corr-info" id="si-corr-info"></div>
+
+      <!-- panel qty -->
+      <div id="si-panel-qty">
+        <div class="si-corr-field">
+          <label>จำนวนที่ถูกต้อง (<span id="si-corr-unit">กระสอบ</span>)</label>
+          <input type="number" id="si-corr-newqty" min="0" step="1">
+        </div>
+        <div class="si-corr-field">
+          <label>เหตุผลที่แก้ไข</label>
+          <textarea id="si-corr-reason-qty" placeholder="ระบุเหตุผล..."></textarea>
+        </div>
+        <div id="si-corr-delta-msg" style="font-size:11px;color:#888;margin-bottom:6px"></div>
+        <div class="si-corr-footer">
+          <button class="si-btn-cancel-modal" onclick="siCorrectClose()">ยกเลิก</button>
+          <button class="si-btn-save" onclick="siCorrectSave('qty')">💾 บันทึก</button>
+        </div>
+      </div>
+
+      <!-- panel note -->
+      <div id="si-panel-note" style="display:none">
+        <div class="si-corr-field">
+          <label>หมายเหตุใหม่</label>
+          <textarea id="si-corr-newnote" placeholder="ระบุหมายเหตุ..."></textarea>
+        </div>
+        <div class="si-corr-footer">
+          <button class="si-btn-cancel-modal" onclick="siCorrectClose()">ยกเลิก</button>
+          <button class="si-btn-save" onclick="siCorrectSave('note')">💾 บันทึก</button>
+        </div>
+      </div>
+
+      <!-- panel void -->
+      <div id="si-panel-void" style="display:none">
+        <div class="si-corr-warn">⚠️ การยกเลิก entry จะ<strong>ลดสต็อค</strong>ตามจำนวนเดิม บันทึก audit ลบไม่ได้</div>
+        <div class="si-corr-field">
+          <label>เหตุผลที่ยกเลิก</label>
+          <textarea id="si-corr-reason-void" placeholder="ระบุเหตุผล..."></textarea>
+        </div>
+        <div class="si-corr-footer">
+          <button class="si-btn-cancel-modal" onclick="siCorrectClose()">ยกเลิก</button>
+          <button class="si-btn-void-confirm" onclick="siCorrectSave('void')">✕ ยืนยันยกเลิก</button>
+        </div>
+      </div>
+    </div>
+  </div>
     </div>
   </div>
 
@@ -1004,22 +1095,16 @@ function renderStockInHistory() {
   const from = document.getElementById('si-hist-from').value;
   const to = document.getElementById('si-hist-to').value;
   let filtered = stockInHistory.filter(r => {
-    if (q && !(r.name+' '+r.code+' '+(r.recorder||'')).toLowerCase().includes(q)) return false;
-    if (from || to) {
+    const dir = r.direction||'in';
+    const isAudit = ['correction','void','note-edit'].includes(dir);
+    const matchQ = q ? (r.name+' '+r.code+' '+(r.recorder||'')+(r.note||'')).toLowerCase().includes(q) : true;
+    if (!matchQ) return false;
+    if ((from||to) && !isAudit) {
       let rDate = null;
-      if (r.date) {
-        const dt = new Date(r.date);
-        if (!isNaN(dt)) rDate = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
-      }
+      if (r.date) { const dt=new Date(r.date); if (!isNaN(dt)) rDate=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()); }
       if (rDate) {
-        if (from) {
-          const [fy,fm,fd] = from.split('-').map(Number);
-          if (rDate < new Date(fy, fm-1, fd)) return false;
-        }
-        if (to) {
-          const [ty,tm,td] = to.split('-').map(Number);
-          if (rDate > new Date(ty, tm-1, td)) return false;
-        }
+        if (from) { const [fy,fm,fd]=from.split('-').map(Number); if (rDate<new Date(fy,fm-1,fd)) return false; }
+        if (to)   { const [ty,tm,td]=to.split('-').map(Number);   if (rDate>new Date(ty,tm-1,td)) return false; }
       }
     }
     return true;
@@ -1027,26 +1112,37 @@ function renderStockInHistory() {
   const tbody = document.getElementById('si-hist-tbody');
   if (!tbody) return;
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:#aaa">ไม่มีข้อมูล</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:#aaa">ไม่มีข้อมูล</td></tr>';
     return;
   }
-  // จัดกลุ่มตาม date+recorder
+  const cleanSiName = n => (n||'').replace(/(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\w+\s+\d+\s+\d{4}[^(]*\([^)]*\)/g,'').replace(/\s{2,}/g,' ').trim();
+
+  // แยก in/in-tank กับ audit records
+  const inRecs    = filtered.filter(r => ['in','in-tank'].includes(r.direction||'in'));
+  const auditRecs = filtered.filter(r => ['correction','void','note-edit'].includes(r.direction||''));
+
+  // หา void row indices (sheetRowIdx ที่ถูก void)
+  const voidedRows = new Set(auditRecs.filter(r=>r.direction==='void').map(r=>r.origRowIdx));
+
+  // จัดกลุ่มตาม date+recorder เฉพาะ in rows
   const groups = {};
-  filtered.forEach(r => {
-    const key = (r.date||'') + '__' + (r.recorder||'');
-    if (!groups[key]) groups[key] = { date: r.date, recorder: r.recorder||'', items: [] };
+  inRecs.forEach(r => {
+    const key = (r.date||'')+'__'+(r.recorder||'');
+    if (!groups[key]) groups[key] = { date:r.date, recorder:r.recorder||'', items:[] };
     groups[key].items.push(r);
   });
-  // clean name: remove date-like substrings (e.g. "Sun Feb 18 1900 00:00:00 GMT+...")
-  const cleanSiName = n => (n||'').replace(/(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\w+\s+\d+\s+\d{4}[^(]*\([^)]*\)/g,'').replace(/\s{2,}/g,' ').trim();
 
   let html = '';
   Object.values(groups)
     .sort((a,b) => (b.date||'').localeCompare(a.date||''))
     .forEach(g => {
       const dateStr = fmtStockInDate(g.date);
-      g.items.filter(r => r.qty > 0).forEach((r, idx) => {
-        html += `<tr class="${idx===0?'date-sep':''}">
+      g.items.forEach((r, idx) => {
+        const isVoided = voidedRows.has(r.sheetRowIdx);
+        // audit rows ที่เป็นของ entry นี้
+        const myAudits = auditRecs.filter(a => a.origRowIdx === r.sheetRowIdx);
+        const trClass = (idx===0?'date-sep ':'') + (isVoided?'si-voided':'');
+        html += `<tr class="${trClass.trim()}">
           <td style="font-size:11px;white-space:nowrap">${idx===0?dateStr:''}</td>
           <td class="td-left" style="font-weight:600;color:#1a3a5c">${fmtName(cleanSiName(r.name)||r.code||'')}</td>
           <td style="font-family:monospace;font-size:11px">${r.code||''}</td>
@@ -1055,7 +1151,18 @@ function renderStockInHistory() {
           <td style="font-weight:700;color:#d97706">${r.unit==='ถัง'&&r.qty?r.qty:''}</td>
           <td style="font-size:12px;color:#555">${idx===0?g.recorder:''}</td>
           <td class="td-left" style="font-size:11px;color:#666">${r.note||''}</td>
+          <td>${isVoided?'<span style="font-size:10px;color:#991b1b;background:#fee2e2;border-radius:4px;padding:2px 6px">ยกเลิกแล้ว</span>':'<button onclick=\'siEditEntry('+JSON.stringify(r)+')\' style="background:none;border:1px solid #d97706;color:#d97706;border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif">✏️ แก้ไข</button>'}</td>
         </tr>`;
+        // audit rows
+        myAudits.forEach(a => {
+          const dir = a.direction||'';
+          const cls = dir==='correction'?'si-corr-row':dir==='void'?'si-void-row':'si-note-row';
+          const badge = dir==='correction'?'🔧 แก้ไข':dir==='void'?'✕ ยกเลิก':'📝 แก้หมายเหตุ';
+          html += `<tr class="${cls}"><td colspan="9" style="padding:4px 14px;text-align:left">
+            <span style="font-weight:600">${badge}</span> — ${a.note||''}
+            <span style="color:#aaa;margin-left:8px">${fmtStockInDate(a.timestamp||a.date)}</span>
+          </td></tr>`;
+        });
       });
     });
   tbody.innerHTML = html;
@@ -1068,6 +1175,86 @@ function fmtStockInDate(d) {
   const mm = String(dt.getMonth()+1).padStart(2,'0');
   const yyyy = dt.getFullYear() > 2100 ? dt.getFullYear() : dt.getFullYear() + 543;
   return `${dd}/${mm}/${yyyy}`;
+}
+// ── Correction modal functions ─────────────────────────────────
+let _siCorrEntry = null;
+function siEditEntry(r) {
+  _siCorrEntry = r;
+  document.getElementById('si-corr-bg').classList.add('open');
+  document.getElementById('si-corr-title').textContent = 'แก้ไข entry';
+  document.getElementById('si-corr-sub').textContent =
+    (r.name||r.code) + ' · รหัส ' + (r.code||'') + ' · ' + fmtStockInDate(r.date);
+  document.getElementById('si-corr-unit').textContent = r.unit||'กระสอบ';
+  document.getElementById('si-corr-newqty').value = r.qty||0;
+  document.getElementById('si-corr-newnote').value = r.note||'';
+  document.getElementById('si-corr-reason-qty').value = '';
+  document.getElementById('si-corr-reason-void').value = '';
+  const infoHtml = `<div><span>ชื่อสินค้า</span><span>${r.name||r.code}</span></div>
+    <div><span>รหัส</span><span>${r.code||''}</span></div>
+    <div><span>จำนวนเดิม</span><span>${r.qty||0} ${r.unit||'กระสอบ'}</span></div>
+    <div><span>บันทึกโดย</span><span>${r.recorder||''}</span></div>
+    <div><span>วันที่รับ</span><span>${fmtStockInDate(r.date)}</span></div>`;
+  document.getElementById('si-corr-info').innerHTML = infoHtml;
+  document.getElementById('si-corr-newqty').oninput = () => {
+    const delta = (Number(document.getElementById('si-corr-newqty').value)||0) - (r.qty||0);
+    const el = document.getElementById('si-corr-delta-msg');
+    if (el) el.textContent = delta===0?'ไม่มีการเปลี่ยนแปลง':(delta>0?'สต็อคจะเพิ่ม +'+delta:('สต็อคจะลด '+delta))+' '+( r.unit||'กระสอบ');
+  };
+  siCorrectTab('qty', document.querySelector('.si-corr-tab'));
+}
+function siCorrectClose() {
+  document.getElementById('si-corr-bg').classList.remove('open');
+  _siCorrEntry = null;
+}
+function siCorrectTab(type, btn) {
+  document.querySelectorAll('.si-corr-tab').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('si-panel-qty').style.display  = type==='qty'  ? '' : 'none';
+  document.getElementById('si-panel-note').style.display = type==='note' ? '' : 'none';
+  document.getElementById('si-panel-void').style.display = type==='void' ? '' : 'none';
+}
+async function siCorrectSave(type) {
+  if (!_siCorrEntry) return;
+  const r = _siCorrEntry;
+  const recorder = document.getElementById('si-recorder')?.value || 'admin';
+  let payload = {
+    action: 'correctStockIn',
+    type,
+    code: r.code,
+    name: r.name||'',
+    unit: r.unit||'กระสอบ',
+    sheetRowIdx: r.sheetRowIdx,
+    originalQty: r.qty||0,
+    originalDate: fmtStockInDate(r.date),
+    originalNote: r.note||'',
+    recorder
+  };
+  if (type==='qty') {
+    const nq = Number(document.getElementById('si-corr-newqty').value)||0;
+    if (nq === (r.qty||0)) { alert('จำนวนไม่เปลี่ยน'); return; }
+    payload.newQty = nq;
+    payload.reason = document.getElementById('si-corr-reason-qty').value.trim();
+  } else if (type==='note') {
+    payload.newNote = document.getElementById('si-corr-newnote').value.trim();
+  } else if (type==='void') {
+    payload.reason = document.getElementById('si-corr-reason-void').value.trim();
+    if (!payload.reason) { alert('กรุณาระบุเหตุผลที่ยกเลิก'); return; }
+    if (!confirm('ยืนยันยกเลิก entry นี้? สต็อคจะลด '+( r.qty||0)+' '+(r.unit||'กระสอบ'))) return;
+  }
+  const btn = type==='void'
+    ? document.querySelector('.si-btn-void-confirm')
+    : document.querySelector('.si-btn-save');
+  if (btn) { btn.disabled=true; btn.textContent='⏳ กำลังบันทึก...'; }
+  try {
+    const res = await fetch(API, { method:'POST', body: JSON.stringify(payload) });
+    const js = await res.json();
+    if (js.error) throw new Error(js.error);
+    siCorrectClose();
+    await loadStockInHistory();
+  } catch(e) {
+    alert('เกิดข้อผิดพลาด: '+e.message);
+    if (btn) { btn.disabled=false; btn.textContent=(type==='void'?'✕ ยืนยันยกเลิก':'💾 บันทึก'); }
+  }
 }
 function siRender() {
   document.getElementById('si-count').textContent = siItems.length + ' รายการ';
