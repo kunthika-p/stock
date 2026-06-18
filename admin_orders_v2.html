@@ -477,10 +477,10 @@ table.list tr:hover td{background:#f8fbff}
                 oninput="siSearch()" onkeydown="siSearchKey(event)">
               <div id="si-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #2563a8;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
             </div>
-            <div class="si-field"><label>จำนวน</label><input type="number" id="si-qty" placeholder="0" min="1" step="1" onkeydown="if(event.key==='Enter'){event.preventDefault();siAddItem();}"></div>
+            <div class="si-field"><label>จำนวน</label><input type="number" id="si-qty" placeholder="0" min="1" step="1" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('si-unit').focus();}"></div>
             <div class="si-field">
               <label>หน่วย</label>
-              <select id="si-unit" onchange="siToggleTankPack()">
+              <select id="si-unit" onchange="siToggleTankPack()" onkeydown="if(event.key==='Enter'){event.preventDefault();siAddItem();}">
                 <option value="กระสอบ">กระสอบ</option>
                 <option value="กล่อง">กล่อง</option>
                 <option value="ถัง">ถัง</option>
