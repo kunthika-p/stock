@@ -328,6 +328,25 @@ table.list tr:hover td{background:#f8fbff}
 .an-low-val{font-weight:700}
 .an-loading{text-align:center;padding:40px;color:#64748b;font-size:13px}
 .an-info{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;font-size:11px;color:#92400e;margin-top:4px}
+.an-feat-section{margin-top:20px}
+.an-feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.an-feat-card{background:white;border-radius:10px;padding:16px;border:1.5px solid #e2e8f0}
+.an-feat-title{font-size:13px;font-weight:700;color:#1e293b;margin-bottom:10px}
+.an-no-data{font-size:12px;color:#94a3b8;padding:8px 0;text-align:center}
+.an-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.an-tbl th{background:#f8fafc;color:#64748b;font-weight:600;padding:6px 8px;text-align:left;border-bottom:1px solid #e2e8f0}
+.an-tbl td{padding:5px 8px;border-bottom:1px solid #f1f5f9;color:#1e293b}
+.grade-a{display:inline-block;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:700;background:#dcfce7;color:#16a34a}
+.grade-b{display:inline-block;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:700;background:#fef9c3;color:#a16207}
+.grade-c{display:inline-block;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:700;background:#f1f5f9;color:#64748b}
+.an-alert-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:12px}
+.an-alert-name{color:#1e293b;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px}
+.an-alert-val{font-weight:700;white-space:nowrap;margin-left:8px}
+.an-month-bar{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px}
+.an-month-lbl{width:48px;color:#64748b;text-align:right;flex-shrink:0}
+.an-month-track{flex:1;background:#f1f5f9;border-radius:4px;height:16px;overflow:hidden}
+.an-month-fill{height:100%;background:#3b82f6;border-radius:4px;display:flex;align-items:center;padding-left:6px;font-size:11px;color:white;font-weight:600}
+
 </style>
 </head>
 <body>
@@ -703,6 +722,43 @@ table.list tr:hover td{background:#f8fbff}
         </div>
       </div>
       <div class="an-info">💡 ข้อมูลดึงจาก Google Sheet real-time ทุกครั้งที่เปิด tab</div>
+      <!-- 6 Analytics Features -->
+      <div class="an-feat-section">
+        <div class="an-section" style="margin-top:16px">วิเคราะห์เชิงลึก (จากออเดอร์ที่ยืนยันแล้ว)</div>
+        <div id="an-orders-loading" style="text-align:center;padding:16px;font-size:12px;color:#94a3b8">⏳ กำลังโหลดข้อมูลออเดอร์...</div>
+        <div id="an-features" style="display:none">
+          <div class="an-feat-grid">
+            <div class="an-feat-card">
+              <div class="an-feat-title">⚡ Velocity สินค้า — กลุ่ม A-B-C</div>
+              <div id="an-velocity"></div>
+            </div>
+            <div class="an-feat-card">
+              <div class="an-feat-title">🔔 Reorder point — ควรสั่งซื้อเพิ่ม</div>
+              <div id="an-reorder"></div>
+            </div>
+          </div>
+          <div class="an-feat-grid">
+            <div class="an-feat-card">
+              <div class="an-feat-title">☠️ Dead stock — ค้างสต็อคนาน</div>
+              <div id="an-dead"></div>
+            </div>
+            <div class="an-feat-card">
+              <div class="an-feat-title">🚨 Stockout alert — คาดการณ์วันหมด</div>
+              <div id="an-stockout"></div>
+            </div>
+          </div>
+          <div class="an-feat-grid">
+            <div class="an-feat-card">
+              <div class="an-feat-title">📅 Seasonal pattern — ยอดขายรายเดือน</div>
+              <div id="an-seasonal"></div>
+            </div>
+            <div class="an-feat-card">
+              <div class="an-feat-title">🔄 Stock turnover — อัตราหมุนเวียนต่อประเภท</div>
+              <div id="an-turnover"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2287,10 +2343,162 @@ async function anLoadData() {
     const hData = await hRes.json();
     document.getElementById('an-h30e').textContent = hData.last30?.entries ?? '—';
     document.getElementById('an-h7e').textContent  = hData.last7?.entries  ?? '—';
+    // --- Fetch confirmed orders for deep analytics ---
+    const oRes = await fetch(API + '?action=getOrders');
+    const oData = await oRes.json();
+    const orders = (oData.orders || []).filter(o => String(o.status) === 'confirmed');
+    document.getElementById('an-orders-loading').style.display = 'none';
+    document.getElementById('an-features').style.display = 'block';
+    // Build salesMap: code -> {name, type, totalQty, lastDate}
+    const salesMap = {};
+    orders.forEach(o => {
+      const code = String(o.code || '').padStart(8,'0');
+      const qty = Number(o.qty) || 0;
+      if (!salesMap[code]) salesMap[code] = {name: o.name||'', type: o.type||'', totalQty: 0, orderCount: 0, lastDate: null};
+      salesMap[code].totalQty += qty;
+      salesMap[code].orderCount++;
+      const d = o.date ? new Date(o.date) : null;
+      if (d && !isNaN(d) && (!salesMap[code].lastDate || d > salesMap[code].lastDate)) salesMap[code].lastDate = d;
+    });
+    const allDates = orders.map(o => o.date ? new Date(o.date) : null).filter(d => d && !isNaN(d));
+    const oldestDate = allDates.length ? new Date(Math.min(...allDates.map(d=>d.getTime()))) : new Date();
+    const daysPeriod = Math.max(1, Math.round((Date.now() - oldestDate.getTime()) / 86400000));
+    anRenderVelocity(salesMap, orders.length);
+    anRenderReorder(salesMap, items, daysPeriod);
+    anRenderDeadStock(items, salesMap);
+    anRenderSeasonal(orders);
+    anRenderTurnover(salesMap, items, daysPeriod);
+    anRenderStockout(items, salesMap, daysPeriod);
   } catch(e) {
     console.error('Analytics error:', e);
   }
 }
+function anNoData(el, msg) {
+  document.getElementById(el).innerHTML = '<div class="an-no-data">' + (msg || 'ยังไม่มีข้อมูลออเดอร์ที่ยืนยันแล้ว') + '</div>';
+}
+function anRenderVelocity(salesMap, totalOrders) {
+  const el = document.getElementById('an-velocity');
+  const rows = Object.entries(salesMap).sort((a,b) => b[1].totalQty - a[1].totalQty);
+  if (rows.length === 0) { anNoData('an-velocity'); return; }
+  const n = rows.length;
+  const gradeOf = (i) => i < Math.ceil(n*0.2) ? 'A' : i < Math.ceil(n*0.5) ? 'B' : 'C';
+  const top10 = rows.slice(0,10);
+  el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">แสดง top 10 จาก ' + n + ' รายการ (ช่วง ' + (salesMap[rows[0][0]]?.lastDate ? Math.round((Date.now()-new Date(rows[0][1].lastDate).getTime())/86400000) + ' วันที่ผ่านมา' : '—') + ')</div>' +
+    '<table class="an-tbl"><thead><tr><th>รหัส</th><th>ชื่อ</th><th style="text-align:right">กระสอบ</th><th>กลุ่ม</th></tr></thead><tbody>' +
+    top10.map(([code, v], i) => {
+      const g = gradeOf(i);
+      return '<tr><td style="font-family:monospace">' + code + '</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + v.name + '">' + v.name + '</td><td style="text-align:right;font-weight:600">' + v.totalQty.toLocaleString() + '</td><td><span class="grade-' + g.toLowerCase() + '">' + g + '</span></td></tr>';
+    }).join('') + '</tbody></table>';
+}
+function anRenderReorder(salesMap, items, daysPeriod) {
+  const LEAD_DAYS = 14;
+  const alerts = [];
+  items.forEach(item => {
+    const code = String(item.code||'').padStart(8,'0');
+    const stock = Number(item.stock) || 0;
+    const sold = salesMap[code] ? salesMap[code].totalQty : 0;
+    const avgDaily = sold / daysPeriod;
+    const reorderPt = Math.round(avgDaily * LEAD_DAYS);
+    if (reorderPt > 0 && stock <= reorderPt) {
+      alerts.push({code, name: item.name||'', col: item.col||'', row: item.row||'', stock, reorderPt, avgDaily});
+    }
+  });
+  const el = document.getElementById('an-reorder');
+  if (alerts.length === 0) { el.innerHTML = '<div class="an-no-data">✅ ไม่มีสินค้าต่ำกว่า reorder point (ใช้ lead time 14 วัน)</div>'; return; }
+  alerts.sort((a,b) => (a.stock/Math.max(a.reorderPt,1)) - (b.stock/Math.max(b.reorderPt,1)));
+  const top = alerts.slice(0,8);
+  el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">lead time 14 วัน | ' + alerts.length + ' รายการต่ำกว่าจุดสั่ง</div>' +
+    '<table class="an-tbl"><thead><tr><th>สินค้า</th><th style="text-align:right">สต็อค</th><th style="text-align:right">ควรสั่งเมื่อ≤</th></tr></thead><tbody>' +
+    top.map(a => '<tr><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + a.name + ' ' + a.col + ' x ' + a.row + '">' + [a.name, a.col, a.row].filter(Boolean).join(' ').trim() + '</td><td style="text-align:right;color:' + (a.stock===0?'#dc2626':'#d97706') + ';font-weight:600">' + a.stock + '</td><td style="text-align:right;color:#64748b">' + a.reorderPt + '</td></tr>').join('') +
+    '</tbody></table>';
+}
+function anRenderDeadStock(items, salesMap) {
+  const DEAD_DAYS = 90;
+  const cutoff = new Date(Date.now() - DEAD_DAYS*86400000);
+  const dead = items.filter(item => {
+    const code = String(item.code||'').padStart(8,'0');
+    const stock = Number(item.stock) || 0;
+    if (stock === 0) return false;
+    const s = salesMap[code];
+    if (!s) return true;
+    return !s.lastDate || new Date(s.lastDate) < cutoff;
+  });
+  const el = document.getElementById('an-dead');
+  if (dead.length === 0) { el.innerHTML = '<div class="an-no-data">✅ ไม่มีสินค้าค้างเกิน 90 วัน</div>'; return; }
+  dead.sort((a,b) => Number(b.stock)-Number(a.stock));
+  const top = dead.slice(0,8);
+  el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">ไม่มีออเดอร์ใน 90 วัน | ' + dead.length + ' รายการ</div>' +
+    '<table class="an-tbl"><thead><tr><th>สินค้า</th><th style="text-align:right">สต็อค</th></tr></thead><tbody>' +
+    top.map(x => '<tr><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + [x.name||'', x.col||'', x.row||''].filter(Boolean).join(' ').trim() + '</td><td style="text-align:right;font-weight:600;color:#f59e0b">' + Number(x.stock).toLocaleString() + '</td></tr>').join('') +
+    '</tbody></table>';
+}
+function anRenderSeasonal(orders) {
+  const el = document.getElementById('an-seasonal');
+  if (orders.length === 0) { anNoData('an-seasonal'); return; }
+  const monthMap = {};
+  const MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  orders.forEach(o => {
+    const d = o.date ? new Date(o.date) : null;
+    if (!d || isNaN(d)) return;
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    const lbl = MONTHS[d.getMonth()] + ' ' + (d.getFullYear()+543-2500);
+    if (!monthMap[key]) monthMap[key] = {lbl, qty: 0, count: 0};
+    monthMap[key].qty += Number(o.qty)||0;
+    monthMap[key].count++;
+  });
+  const sorted = Object.entries(monthMap).sort((a,b) => a[0].localeCompare(b[0])).slice(-12);
+  if (sorted.length === 0) { anNoData('an-seasonal'); return; }
+  const maxQty = Math.max(...sorted.map(m=>m[1].qty)) || 1;
+  el.innerHTML = sorted.map(([,v]) =>
+    '<div class="an-month-bar"><div class="an-month-lbl">' + v.lbl + '</div><div class="an-month-track"><div class="an-month-fill" style="width:' + Math.max(8,Math.round(v.qty/maxQty*100)) + '%">' + (v.qty>0?v.qty.toLocaleString():'') + '</div></div></div>'
+  ).join('');
+}
+function anRenderTurnover(salesMap, items, daysPeriod) {
+  const el = document.getElementById('an-turnover');
+  const typeMap = {};
+  items.forEach(item => {
+    const code = String(item.code||'').padStart(8,'0');
+    const type = item.type||'อื่นๆ';
+    const stock = Number(item.stock)||0;
+    const sold = salesMap[code]?.totalQty||0;
+    if (!typeMap[type]) typeMap[type] = {stock:0, sold:0};
+    typeMap[type].stock += stock;
+    typeMap[type].sold += sold;
+  });
+  const rows = Object.entries(typeMap).map(([type,v]) => {
+    const annualRate = daysPeriod > 0 ? v.sold * (365/daysPeriod) : 0;
+    const turnover = v.stock > 0 ? annualRate / v.stock : 0;
+    return {type, stock: v.stock, sold: v.sold, turnover};
+  }).filter(r => r.sold > 0 || r.stock > 0).sort((a,b) => b.turnover-a.turnover);
+  if (rows.length === 0) { anNoData('an-turnover'); return; }
+  const maxT = Math.max(...rows.map(r=>r.turnover)) || 1;
+  el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">turnover = ยอดขายต่อปี ÷ สต็อค (annualized)</div>' +
+    rows.map(r => '<div class="an-month-bar"><div class="an-month-lbl" style="width:90px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + r.type + '">' + r.type.substring(0,10) + '</div><div class="an-month-track"><div class="an-month-fill" style="width:' + (r.turnover>0?Math.max(6,Math.round(r.turnover/maxT*100)):6) + '%;background:' + (r.turnover>=2?'#16a34a':r.turnover>=1?'#d97706':'#ef4444') + '">' + (r.turnover>0?r.turnover.toFixed(1):'0') + 'x</div></div></div>').join('');
+}
+function anRenderStockout(items, salesMap, daysPeriod) {
+  const alerts = [];
+  items.forEach(item => {
+    const code = String(item.code||'').padStart(8,'0');
+    const stock = Number(item.stock)||0;
+    if (stock === 0) return;
+    const sold = salesMap[code]?.totalQty||0;
+    if (sold === 0) return;
+    const avgDaily = sold / daysPeriod;
+    const daysLeft = Math.round(stock / avgDaily);
+    if (daysLeft <= 60) alerts.push({code, name: item.name||'', col: item.col||'', row: item.row||'', stock, daysLeft, avgDaily});
+  });
+  const el = document.getElementById('an-stockout');
+  if (alerts.length === 0) { el.innerHTML = '<div class="an-no-data">✅ ไม่มีสินค้าที่คาดว่าจะหมดใน 60 วัน</div>'; return; }
+  alerts.sort((a,b) => a.daysLeft-b.daysLeft);
+  const top = alerts.slice(0,8);
+  el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">คาดการณ์จากอัตราขายเฉลี่ย | ' + alerts.length + ' รายการ</div>' +
+    top.map(a => {
+      const col = a.daysLeft <= 14 ? '#dc2626' : a.daysLeft <= 30 ? '#d97706' : '#2563eb';
+      const label = [a.name, a.col, a.row].filter(Boolean).join(' ').trim();
+      return '<div class="an-alert-row"><div class="an-alert-name" title="' + label + '">' + label + '</div><div class="an-alert-val" style="color:' + col + '">~' + a.daysLeft + ' วัน</div></div>';
+    }).join('');
+}
+
 function anToggleChart(mode, btn) {
   document.querySelectorAll('.an-toggle-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
