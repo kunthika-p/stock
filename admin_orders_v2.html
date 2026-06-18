@@ -480,11 +480,7 @@ table.list tr:hover td{background:#f8fbff}
             <div class="si-field"><label>จำนวน</label><input type="number" id="si-qty" placeholder="0" min="1" step="1" onkeydown="if(event.key==='Enter'){event.preventDefault();siAddItem();}"></div>
             <div class="si-field">
               <label>หน่วย</label>
-              <div id="si-unit-display" style="display:flex;align-items:center;gap:6px">
-                <div id="si-unit-badge" style="flex:1;padding:9px 12px;border:1.5px solid #16a34a;border-radius:8px;background:#f0fdf4;color:#15803d;font-size:14px;font-weight:600">✓ กระสอบ</div>
-                <button type="button" onclick="siToggleUnitOverride()" style="padding:9px 12px;border:1.5px solid #d1d5db;border-radius:8px;background:white;color:#555;font-size:13px;font-family:'Sarabun',sans-serif;cursor:pointer;white-space:nowrap">เปลี่ยน</button>
-              </div>
-              <select id="si-unit" style="display:none" onchange="siOnUnitChange()">
+              <select id="si-unit" onchange="siToggleTankPack()">
                 <option value="กระสอบ">กระสอบ</option>
                 <option value="กล่อง">กล่อง</option>
                 <option value="ถัง">ถัง</option>
@@ -492,7 +488,7 @@ table.list tr:hover td{background:#f8fbff}
             </div>
             <div class="si-field" id="si-tankpack-wrap" style="display:none"><label>ถังที่บรรจุแล้ว</label><input type="number" id="si-tankpack" placeholder="0" min="0" step="1"></div>
             <div class="si-field" id="si-packout-wrap" style="display:none"><label>ได้ (กระสอบ/กล่อง)</label><div style="display:flex;gap:6px"><input type="number" id="si-packout-qty" placeholder="0" min="0" step="1" style="flex:1"><select id="si-packout-unit" style="padding:9px 8px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:'Sarabun',sans-serif"><option value="กระสอบ">กระสอบ</option><option value="กล่อง">กล่อง</option></select></div></div>
-            <div class="si-field"><label>หมายเหตุ</label><input type="text" id="si-note" placeholder="(ไม่บังคับ)"></div>
+            <div class="si-field"><label>หมายเหตุ</label><input type="text" id="si-note" placeholder="(ไม่บังคับ)" onkeydown="if(event.key==='Enter'){event.preventDefault();siAddItem();}"></div>
             <button class="btn-si-add" onclick="siAddItem()">+ เพิ่ม</button>
           </div>
         </div>
@@ -1053,9 +1049,6 @@ function siSelectItem(idx) {
   // Auto-detect unit from product type
   const autoUnit = BOX_TYPES.includes(item.type) ? 'กล่อง' : 'กระสอบ';
   document.getElementById('si-unit').value = autoUnit;
-  siSetUnitBadge(autoUnit);
-  document.getElementById('si-unit-display').style.display = 'flex';
-  document.getElementById('si-unit').style.display = 'none';
   siToggleTankPack();
 }
 document.addEventListener('click', e => {
@@ -1090,9 +1083,6 @@ function siAddItem() {
   document.getElementById('si-tankpack-wrap').style.display='none';
   document.getElementById('si-packout-wrap').style.display='none';
   document.getElementById('si-unit').value='กระสอบ';
-  siSetUnitBadge('กระสอบ');
-  document.getElementById('si-unit-display').style.display='flex';
-  document.getElementById('si-unit').style.display='none';
   document.getElementById('si-search').dataset.type = '';
   document.getElementById('si-note').value = '';
   document.getElementById('si-search').focus();
@@ -1117,38 +1107,6 @@ function siSaveEdit() {
   siItems[idx].note = note;
   siEditingIdx = -1;
   siRender();
-}
-// Unit pill helpers (Feature 3)
-function siSetUnitBadge(unit) {
-  const badge = document.getElementById('si-unit-badge');
-  if (!badge) return;
-  if (unit === 'กล่อง') {
-    badge.style.border = '1.5px solid #2563a8';
-    badge.style.background = '#eff6ff';
-    badge.style.color = '#1d4ed8';
-  } else if (unit === 'ถัง') {
-    badge.style.border = '1.5px solid #d97706';
-    badge.style.background = '#fffbeb';
-    badge.style.color = '#92400e';
-  } else {
-    badge.style.border = '1.5px solid #16a34a';
-    badge.style.background = '#f0fdf4';
-    badge.style.color = '#15803d';
-  }
-  badge.textContent = '✓ ' + unit;
-}
-function siToggleUnitOverride() {
-  document.getElementById('si-unit-display').style.display = 'none';
-  const sel = document.getElementById('si-unit');
-  sel.style.display = '';
-  sel.focus();
-}
-function siOnUnitChange() {
-  const unit = document.getElementById('si-unit').value;
-  siSetUnitBadge(unit);
-  document.getElementById('si-unit-display').style.display = 'flex';
-  document.getElementById('si-unit').style.display = 'none';
-  siToggleTankPack();
 }
 // Stock-in history (Feature 1)
 function siShowForm() {
