@@ -2429,7 +2429,7 @@ function anRenderDeadStock(items, salesMap) {
   const top = dead.slice(0,8);
   el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">ไม่มีออเดอร์ใน 90 วัน | ' + dead.length + ' รายการ</div>' +
     '<table class="an-tbl"><thead><tr><th>สินค้า</th><th style="text-align:right">สต็อค</th></tr></thead><tbody>' +
-    top.map(x => '<tr><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + [x.type||'', x.col||'', x.row||''].filter(Boolean).join(' ').trim() + '</td><td style="text-align:right;font-weight:600;color:#f59e0b">' + Number(x.stock).toLocaleString() + '</td></tr>').join('') +
+    top.map(x => '<tr><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (x.type||'') + (x.col ? ' ' + x.col : '') + (x.row ? ' × ' + x.row : '') + '</td><td style="text-align:right;font-weight:600;color:#f59e0b">' + Number(x.stock).toLocaleString() + '</td></tr>').join('') +
     '</tbody></table>';
 }
 function anRenderSeasonal(orders) {
