@@ -1330,6 +1330,7 @@ async function siCorrectSave(type) {
     unit: r.unit||'กระสอบ',
     sheetRowIdx: r.sheetRowIdx,
     originalQty: r.qty||0,
+    originalDirection: r.direction||'in',
     originalDate: fmtStockInDate(r.date),
     originalNote: r.note||'',
     recorder
