@@ -1571,8 +1571,10 @@ function buildNokMilAengAdminTable(tabDef, suffix) {
       const it = allItems.find(x => x.type === srcType && String(x.col) === String(col) && String(x.row) === String(row));
       if (!it) { h += '<td class="stk-cell c-blocked"></td>'; return; }
       const s = getStock(it.code);
+      const tk = getTank(it.code);
       const cls = s.stock >= 20 ? 'c-ok' : s.stock > 0 ? 'c-low' : 'c-out';
-      h += `<td class="stk-cell ${cls}"><span class="stk-v">${s.stock}</span><span class="code-v">${it.code}</span></td>`;
+      const tkHtml = tk > 0 ? `<span class="tank-v">${tk}</span>` : '';
+      h += `<td class="stk-cell ${cls}">${tkHtml}<span class="stk-v">${s.stock}</span><span class="code-v">${it.code}</span></td>`;
     });
     h += '</tr>';
   });
