@@ -433,7 +433,7 @@ function fmtName(n) {
   s = s.replace(/(M\d+)\s+(P[\d.]+)/g, '$1 x $2');
   s = s.trim().replace(/\s{2,}/g, ' ');
   if (!s.startsWith('หัวน็อต')) {
-    s = s.replace(/ (\d[\d./]*)$/, ' x $1');
+    s = s.replace(/(?<! x) (\d[\d./]*)$/, ' x $1');
   }
   if (suffix) s = s + suffix;
   return s;
