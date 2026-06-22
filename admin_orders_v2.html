@@ -2403,7 +2403,7 @@ function anRenderReorder(salesMap, items, daysPeriod) {
     const avgDaily = sold / daysPeriod;
     const reorderPt = Math.round(avgDaily * LEAD_DAYS);
     if (reorderPt > 0 && stock <= reorderPt) {
-      alerts.push({code, name: item.name||'', col: item.col||'', row: item.row||'', stock, reorderPt, avgDaily});
+      alerts.push({code, name: buildName(item), col: '', row: '', stock, reorderPt, avgDaily});
     }
   });
   const el = document.getElementById('an-reorder');
@@ -2432,7 +2432,7 @@ function anRenderDeadStock(items, salesMap) {
   const top = dead.slice(0,8);
   el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">ไม่มีออเดอร์ใน 90 วัน | ' + dead.length + ' รายการ</div>' +
     '<table class="an-tbl"><thead><tr><th>สินค้า</th><th style="text-align:right">สต็อค</th></tr></thead><tbody>' +
-    top.map(x => '<tr><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (x.type||'') + (x.col ? ' ' + x.col : '') + (x.row ? ' × ' + x.row : '') + '</td><td style="text-align:right;font-weight:600;color:#f59e0b">' + Number(x.stock).toLocaleString() + '</td></tr>').join('') +
+    top.map(x => '<tr><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + buildName(x) + '</td><td style="text-align:right;font-weight:600;color:#f59e0b">' + Number(x.stock).toLocaleString() + '</td></tr>').join('') +
     '</tbody></table>';
 }
 function anRenderSeasonal(orders) {
@@ -2488,7 +2488,7 @@ function anRenderStockout(items, salesMap, daysPeriod) {
     if (sold === 0) return;
     const avgDaily = sold / daysPeriod;
     const daysLeft = Math.round(stock / avgDaily);
-    if (daysLeft <= 60) alerts.push({code, name: item.name||'', col: item.col||'', row: item.row||'', stock, daysLeft, avgDaily});
+    if (daysLeft <= 60) alerts.push({code, name: buildName(item), col: '', row: '', stock, daysLeft, avgDaily});
   });
   const el = document.getElementById('an-stockout');
   if (alerts.length === 0) { el.innerHTML = '<div class="an-no-data">✅ ไม่มีสินค้าที่คาดว่าจะหมดใน 60 วัน</div>'; return; }
