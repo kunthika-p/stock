@@ -2476,7 +2476,7 @@ function anRenderTurnover(salesMap, items, daysPeriod) {
   if (rows.length === 0) { anNoData('an-turnover'); return; }
   const maxT = Math.max(...rows.map(r=>r.turnover)) || 1;
   el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">turnover = ยอดขายต่อปี ÷ สต็อค (annualized)</div>' +
-    rows.map(r => '<div class="an-month-bar"><div class="an-month-lbl" style="width:90px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + r.type + '">' + r.type.substring(0,10) + '</div><div class="an-month-track"><div class="an-month-fill" style="width:' + (r.turnover>0?Math.max(6,Math.round(r.turnover/maxT*100)):6) + '%;background:' + (r.turnover>=2?'#16a34a':r.turnover>=1?'#d97706':'#ef4444') + '">' + (r.turnover>0?r.turnover.toFixed(1):'0') + 'x</div></div></div>').join('');
+    rows.map(r => '<div class="an-month-bar"><div class="an-month-lbl" style="width:160px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + r.type + '">' + fmtName(r.type) + '</div><div class="an-month-track"><div class="an-month-fill" style="width:' + (r.turnover>0?Math.max(6,Math.round(r.turnover/maxT*100)):6) + '%;background:' + (r.turnover>=2?'#16a34a':r.turnover>=1?'#d97706':'#ef4444') + '">' + (r.turnover>0?r.turnover.toFixed(1):'0') + 'x</div></div></div>').join('');
 }
 function anRenderStockout(items, salesMap, daysPeriod) {
   const alerts = [];
