@@ -1262,20 +1262,16 @@ function renderTracking() {
         <td>${isBox?qty:''}</td>
         <td style="text-align:center;font-size:12px">${discVal}</td>
         <td style="text-align:center;font-size:12px">${netVal!==''&&netVal!==null&&netVal!==undefined ? Number(netVal).toFixed(2) : ''}</td>
-        <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgLbl[o._urgency]||o._urgency||'-'}</span></td>
-        <td><span style="background:${statBg[o.status]||'#f3f4f6'};color:${statTxt[o.status]||'#555'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${statLbl[o.status]||o.status||'-'}</span></td>
-        <td style="font-size:11px;color:#555;text-align:left">${o._note}</td>
+        <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;color:#333">${urgLbl[o._urgency]||o._urgency||'ปกติ'}</span></td>
+        <td><span style="background:${statBg[o.status]||'#f3f4f6'};color:${statTxt[o.status]||'#555'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${statLbl[o.status]||o.status||''}</span></td>
+        <td style="font-size:11px;color:#666">${o._note||''}</td>
       </tr>`;
     });
   });
   html += '</tbody></table>';
-
-  const nPend = rows.filter(r=>r.status==='pending').length;
-  const nConf = rows.filter(r=>r.status==='confirmed').length;
-  const nRej  = rows.filter(r=>r.status==='rejected').length;
   bodyEl.innerHTML = html;
-  statEl.textContent = rows.length+' รายการ · รอ '+nPend+' · ยืนยัน '+nConf+' · ยกเลิก '+nRej;
-  statEl.style.display = 'inline-block';
+  statEl.textContent = rows.length + ' รายการ';
+  statEl.style.display = '';
 }
 
 function showToast(msg) {
