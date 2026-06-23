@@ -543,30 +543,47 @@ table.list tr:hover td{background:#f8fbff}
         <div style="flex:1;border-top:1px dashed #d1d5db"></div>
       </div>
       <div class="si-card">
-        <div class="si-card-title">🔄 แปลงบรรจุภัณฑ์ (ถัง → กระสอบ/กล่อง)</div>
-        <div style="font-size:12px;color:#6b7280;margin-bottom:12px">ตัดถังออกจากสต็อค และเพิ่มกระสอบ/กล่องที่ได้ในครั้งเดียว</div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
-          <span style="background:#FAEEDA;color:#633806;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500">ถัง ลดลง</span>
-          <span style="color:#9ca3af;font-size:16px">→</span>
-          <span style="background:#EAF3DE;color:#27500A;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500">กระสอบ/กล่อง เพิ่มขึ้น</span>
+        <div class="si-card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <span>🔄 แปลงบรรจุภัณฑ์ (ถัง → กระสอบ/กล่อง)</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="background:#FAEEDA;color:#633806;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500">ถัง ลดลง</span>
+            <span style="color:#9ca3af">→</span>
+            <span style="background:#EAF3DE;color:#27500A;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500">กระสอบ/กล่อง เพิ่มขึ้น</span>
+          </div>
         </div>
-        <div class="si-row">
+        <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:end;margin-bottom:8px">
           <div class="si-field" style="position:relative">
             <label>ค้นหาสินค้า (ชื่อ / รหัส)</label>
             <input type="text" id="cv-search" placeholder="พิมพ์ชื่อหรือรหัส..." autocomplete="off"
               oninput="cvSearch()" onkeydown="cvSearchKey(event)">
             <div id="cv-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #2563a8;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
           </div>
-          <div class="si-field"><label>จำนวนถังที่แปลง</label><input type="number" id="cv-tanks" placeholder="0" min="1" step="1"></div>
-          <div class="si-field"><label>ได้ (กระสอบ/กล่อง)</label><input type="number" id="cv-outqty" placeholder="0" min="1" step="1"></div>
-          <div class="si-field"><label>หน่วย</label><select id="cv-outunit"><option value="กระสอบ">กระสอบ</option><option value="กล่อง">กล่อง</option></select></div>
-          <div class="si-field"><label>หมายเหตุ</label><input type="text" id="cv-note" placeholder="(ไม่บังคับ)"></div>
+          <div class="si-field"><label>จำนวนถังที่แปลง</label><input type="number" id="cv-tanks" placeholder="0" min="1" step="1" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('cv-outqty').focus();}"></div>
+          <div class="si-field"><label>ได้ (กระสอบ/กล่อง)</label><input type="number" id="cv-outqty" placeholder="0" min="1" step="1" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('cv-outunit').focus();}"></div>
+          <div class="si-field"><label>หน่วย</label><select id="cv-outunit" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('cv-note').focus();}"><option value="กระสอบ">กระสอบ</option><option value="กล่อง">กล่อง</option></select></div>
+          <div class="si-field"><label>หมายเหตุ</label><input type="text" id="cv-note" placeholder="(ไม่บังคับ)" onkeydown="if(event.key==='Enter'){event.preventDefault();cvAddItem();}"></div>
+          <button class="btn-si-add" onclick="cvAddItem()">+ เพิ่ม</button>
         </div>
-        <div id="cv-stock-hint" style="display:none;font-size:12px;color:#6b7280;background:#f9fafb;border-radius:8px;padding:6px 12px;border:1px solid #e5e7eb;margin:8px 0 12px">
+        <div id="cv-stock-hint" style="display:none;font-size:12px;color:#6b7280;background:#f9fafb;border-radius:8px;padding:6px 12px;border:1px solid #e5e7eb;margin-bottom:10px">
           สต็อคถัง: <b id="cv-hint-tank" style="color:#1a3a5c">—</b> ถัง &nbsp;|&nbsp; สต็อคกระสอบ: <b id="cv-hint-stock" style="color:#1a3a5c">—</b>
         </div>
         <input type="hidden" id="cv-code">
-        <button class="btn-si-submit" id="cv-submit-btn" onclick="cvSubmit()" style="background:#1D9E75">🔄 บันทึกการแปลง</button>
+        <div class="tbl-wrap">
+          <table class="si-grid-tbl">
+            <thead><tr>
+              <th style="width:36px">#</th>
+              <th style="text-align:left">ชื่อสินค้า</th>
+              <th style="width:110px">รหัส</th>
+              <th style="width:90px">ถังที่แปลง</th>
+              <th style="width:80px">ได้</th>
+              <th style="width:80px">หน่วย</th>
+              <th style="text-align:left">หมายเหตุ</th>
+              <th style="width:80px">จัดการ</th>
+            </tr></thead>
+            <tbody id="cv-tbody"><tr><td colspan="8" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr></tbody>
+          </table>
+        </div>
+        <button class="btn-si-submit" id="cv-submit-btn" onclick="cvSubmit()" disabled style="background:#2563eb">💾 บันทึกการแปลง</button>
       </div>
       </div><!-- /si-form-wrap -->
 
@@ -1593,7 +1610,7 @@ async function siSubmit() {
 
 
 // ── แปลงบรรจุภัณฑ์ ──────────────────────────────────────────────
-let cvResults = [], cvIdx = -1;
+let cvResults = [], cvIdx = -1, cvItems = [];
 
 function cvSearch() {
   const q = document.getElementById('cv-search').value.trim().toLowerCase();
@@ -1650,52 +1667,99 @@ function cvSelectItem(i) {
   document.getElementById('cv-tanks').focus();
 }
 
-async function cvSubmit() {
+function cvAddItem() {
   const code = document.getElementById('cv-code').value;
+  const nameVal = document.getElementById('cv-search').value.trim();
   const tanks = parseInt(document.getElementById('cv-tanks').value) || 0;
   const outQty = parseInt(document.getElementById('cv-outqty').value) || 0;
   const outUnit = document.getElementById('cv-outunit').value;
-  const note = document.getElementById('cv-note').value;
-  const date = document.getElementById('si-date').value || new Date().toISOString().split('T')[0];
-  const recorder = document.getElementById('si-recorder').value.trim();
-  if (!code) { alert('กรุณาเลือกสินค้า'); return; }
-  if (tanks < 1) { alert('กรุณาใส่จำนวนถังที่แปลง'); return; }
-  if (outQty < 1) { alert('กรุณาใส่จำนวนที่ได้'); return; }
+  const note = document.getElementById('cv-note').value.trim();
+  if (!code) { showToast('⚠️ กรุณาเลือกสินค้าก่อน', 'warn'); return; }
+  if (tanks < 1) { showToast('⚠️ กรุณาใส่จำนวนถังที่แปลง', 'warn'); return; }
+  if (outQty < 1) { showToast('⚠️ กรุณาใส่จำนวนที่ได้', 'warn'); return; }
   const currentTank = getTank(code);
-  if (tanks > currentTank) {
-    showToast('⚠️ ถังไม่พอ: มี ' + currentTank + ' ถัง แต่ต้องการแปลง ' + tanks, 'warn');
+  const alreadyUsed = cvItems.filter(x => x.code === code).reduce((s, x) => s + x.tanks, 0);
+  if (tanks + alreadyUsed > currentTank) {
+    showToast('⚠️ ถังไม่พอ: มี ' + currentTank + ' ถัง ใช้ไปแล้ว ' + alreadyUsed + ' ถัง', 'warn');
     return;
   }
+  cvItems.push({ code, name: nameVal, tanks, outQty, outUnit, note });
+  cvRender();
+  document.getElementById('cv-search').value = '';
+  document.getElementById('cv-code').value = '';
+  document.getElementById('cv-tanks').value = '';
+  document.getElementById('cv-outqty').value = '';
+  document.getElementById('cv-note').value = '';
+  document.getElementById('cv-stock-hint').style.display = 'none';
+  document.getElementById('cv-search').focus();
+  document.getElementById('cv-submit-btn').disabled = false;
+}
+
+function cvRender() {
+  const tbody = document.getElementById('cv-tbody');
+  if (!cvItems.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr>';
+    document.getElementById('cv-submit-btn').disabled = true;
+    return;
+  }
+  tbody.innerHTML = cvItems.map((it, i) => `
+    <tr>
+      <td style="text-align:center">${i+1}</td>
+      <td>${it.name}</td>
+      <td style="text-align:center">${it.code}</td>
+      <td style="text-align:center">${it.tanks} ถัง</td>
+      <td style="text-align:center">${it.outQty}</td>
+      <td style="text-align:center">${it.outUnit}</td>
+      <td>${it.note || '—'}</td>
+      <td style="text-align:center"><button onclick="cvRemove(${i})" style="background:#fee2e2;color:#dc2626;border:none;border-radius:5px;padding:3px 10px;cursor:pointer;font-size:12px;font-family:inherit">ลบ</button></td>
+    </tr>`).join('');
+}
+
+function cvRemove(i) {
+  cvItems.splice(i, 1);
+  cvRender();
+}
+
+async function cvSubmit() {
+  if (!cvItems.length) return;
+  const date = document.getElementById('si-date').value || new Date().toISOString().split('T')[0];
+  const recorder = document.getElementById('si-recorder').value.trim();
   const btn = document.getElementById('cv-submit-btn');
   btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
-  try {
-    const res = await fetch(API, { method: 'POST', body: JSON.stringify({
-      action: 'packItems',
-      code: code,
-      name: document.getElementById('cv-search').value,
-      tankUsed: tanks,
-      outQty: outQty,
-      outUnit: outUnit,
-      date: date,
-      recorder: recorder,
-      note: note
-    })});
-    const data = await res.json();
-    if (data.success) {
-      showToast('✅ แปลงบรรจุภัณฑ์แล้ว');
-      document.getElementById('cv-search').value = '';
-      document.getElementById('cv-code').value = '';
-      document.getElementById('cv-tanks').value = '';
-      document.getElementById('cv-outqty').value = '';
-      document.getElementById('cv-note').value = '';
-      document.getElementById('cv-stock-hint').style.display = 'none';
-      loadStock();
-    } else {
-      showToast('⚠️ ' + (data.error || 'เกิดข้อผิดพลาด'), 'warn');
+  let allOk = true;
+  for (const it of cvItems) {
+    try {
+      const res = await fetch(API, { method: 'POST', body: JSON.stringify({
+        action: 'packItems',
+        code: it.code,
+        name: it.name,
+        tankUsed: it.tanks,
+        outQty: it.outQty,
+        outUnit: it.outUnit,
+        date: date,
+        recorder: recorder,
+        note: it.note
+      })});
+      const data = await res.json();
+      if (!data.success) {
+        showToast('⚠️ ' + it.name + ': ' + (data.error || 'เกิดข้อผิดพลาด'), 'warn');
+        allOk = false;
+      }
+    } catch(e) {
+      showToast('⚠️ ' + it.name + ': ' + e.message, 'warn');
+      allOk = false;
     }
-  } catch(e) { showToast('⚠️ ' + e.message, 'warn'); }
-  btn.disabled = false; btn.textContent = '🔄 บันทึกการแปลง';
+  }
+  btn.disabled = !allOk;
+  btn.textContent = '💾 บันทึกการแปลง';
+  if (allOk) {
+    showToast('✅ บันทึกการแปลงบรรจุภัณฑ์แล้ว ' + cvItems.length + ' รายการ');
+    cvItems = [];
+    cvRender();
+    loadStock();
+  }
 }
+
 
 async function loadAll() {
   await loadStock();
