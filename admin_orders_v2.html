@@ -124,6 +124,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .btn-si-del{background:none;border:none;color:#dc2626;font-size:16px;cursor:pointer;padding:2px 6px}
 .btn-si-submit{width:100%;background:#16a34a;color:white;border:none;border-radius:10px;padding:14px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer;margin-top:8px}
 .btn-si-submit:disabled{background:#9ca3af;cursor:default}
+#cv-submit-btn:not(:disabled){background:#2563eb}
 /* ── ประวัติรับเข้า + feature ใหม่ ── */
 .si-subtab{display:flex;gap:8px;margin-bottom:16px}
 .si-subtab-btn{padding:7px 18px;border-radius:20px;border:1.5px solid #d1d5db;background:white;color:#555;font-size:13px;font-family:'Sarabun',sans-serif;cursor:pointer}
@@ -583,7 +584,7 @@ table.list tr:hover td{background:#f8fbff}
             <tbody id="cv-tbody"><tr><td colspan="8" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr></tbody>
           </table>
         </div>
-        <button class="btn-si-submit" id="cv-submit-btn" onclick="cvSubmit()" disabled style="background:#2563eb">💾 บันทึกการแปลง</button>
+        <button class="btn-si-submit" id="cv-submit-btn" onclick="cvSubmit()" disabled>💾 บันทึกการแปลง</button>
       </div>
       </div><!-- /si-form-wrap -->
 
