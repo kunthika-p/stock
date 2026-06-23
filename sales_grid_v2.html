@@ -309,7 +309,7 @@ function getPriceInfo(custCode, itemCode, type) {
   const item = allItems.find(i => i.code === itemCode);
   const itemCol = item ? String(item.col || '') : '';
   const itemRow = item ? String(item.row || '') : '';
-  const itemType = item ? item.type : type;
+  const itemType = item ? resolveType(item) : type;
 
   const BIG_W_COLS = ['5/8 W','3/4 W'];
 
@@ -324,11 +324,17 @@ function getPriceInfo(custCode, itemCode, type) {
     return {disc_pct: null, net_price: hw[k] !== undefined ? hw[k] : null};
   }
 
-  // น็อตหัวกลมเกลียว W — ราคาเน็ต
+  // น็อตหัวกลมเกลียว W — 3/8 row≥3" และ 1/2 row≥4" → ราคาเน็ต | อื่นๆ → sw%
   if (itemType === 'น็อตหัวกลมเกลียว W') {
-    const RK = {'3/8': 'round_3/8 x 3" - 12"', '1/2': 'round_1/2 x 4" - 12"'};
-    const rk = RK[itemCol];
-    return {disc_pct: null, net_price: rk && hw[rk] !== undefined ? hw[rk] : null};
+    const SHORT_38 = ['1','1.1/4','1.1/2','2 ค.','2.1/2'];
+    const SHORT_12 = ['1','1.1/4','1.1/2','2 ค.','2.1/2','3','3.1/2'];
+    if (itemCol === '3/8' && !SHORT_38.includes(itemRow)) {
+      return {disc_pct: null, net_price: hw['round_3/8 x 3" - 12"'] ?? null};
+    }
+    if (itemCol === '1/2' && !SHORT_12.includes(itemRow)) {
+      return {disc_pct: null, net_price: hw['round_1/2 x 4" - 12"'] ?? null};
+    }
+    return {disc_pct: d.sw, net_price: null};
   }
 
   if (itemType === 'สกรูมิลขาว') return {disc_pct: d.mw, net_price: null};
