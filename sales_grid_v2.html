@@ -1261,7 +1261,7 @@ function renderTracking() {
         <td>${!isBox?qty:''}</td>
         <td>${isBox?qty:''}</td>
         <td style="text-align:center;font-size:12px">${discVal}</td>
-        <td style="text-align:center;font-size:12px">${netVal}</td>
+        <td style="text-align:center;font-size:12px">${netVal!==''&&netVal!==null&&netVal!==undefined ? Number(netVal).toFixed(2) : ''}</td>
         <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgLbl[o._urgency]||o._urgency||'-'}</span></td>
         <td><span style="background:${statBg[o.status]||'#f3f4f6'};color:${statTxt[o.status]||'#555'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${statLbl[o.status]||o.status||'-'}</span></td>
         <td style="font-size:11px;color:#555;text-align:left">${o._note}</td>
