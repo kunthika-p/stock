@@ -1225,12 +1225,15 @@ function renderTracking() {
     <th style="text-align:left;min-width:160px">ชื่อสินค้า</th>
     <th style="width:60px">กระสอบ</th>
     <th style="width:60px">กล่อง</th>
+    <th style="width:55px;text-align:center">%ส่วนลด</th>
+    <th style="width:65px;text-align:center">ราคาเน็ต</th>
     <th style="width:95px">ความเร่งด่วน</th>
     <th style="width:105px">สถานะ</th>
     <th style="text-align:left">หมายเหตุ</th>
   </tr></thead><tbody>`;
 
   Object.entries(grouped).forEach(([cust, orders]) => {
+    const custCode = CUSTOMERS.find(c => c.name === cust)?.code || '';
     orders.forEach((o, idx) => {
       const si = allItems.find(x => x.code === o.code);
       const isBox = si ? getUnit(resolveType(si)) === 'กล่อง' : (o.unit === 'กล่อง');
@@ -1238,12 +1241,17 @@ function renderTracking() {
       const isPending = o.status === 'pending';
       const rowStyle = isPending ? 'background:#fffbeb' : '';
       const urgBg = urgBgMap[o._urgency] || '#f3f4f6';
+      const pi = si ? getPriceInfo(custCode, o.code, resolveType(si)) : {disc_pct:null, net_price:null};
+      const discVal = (o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined) ? o.disc_pct : (pi.disc_pct!==null ? pi.disc_pct : '');
+      const netVal  = (o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined) ? o.net_price : (pi.net_price!==null ? pi.net_price : '');
       html += `<tr style="${rowStyle}" class="${idx===0?'group-sep':''}">
         <td style="font-size:11px;white-space:nowrap">${fmtDate(o.date||o.timestamp)}</td>
         <td class="td-cust">${idx===0?cust:''}</td>
         <td class="td-name">${fmtName(o.name||o.code)}</td>
         <td>${!isBox?qty:''}</td>
         <td>${isBox?qty:''}</td>
+        <td style="text-align:center;font-size:12px">${discVal}</td>
+        <td style="text-align:center;font-size:12px">${netVal}</td>
         <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgLbl[o._urgency]||o._urgency||'-'}</span></td>
         <td><span style="background:${statBg[o.status]||'#f3f4f6'};color:${statTxt[o.status]||'#555'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${statLbl[o.status]||o.status||'-'}</span></td>
         <td style="font-size:11px;color:#555;text-align:left">${o._note}</td>
