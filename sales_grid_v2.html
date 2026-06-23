@@ -1251,9 +1251,9 @@ function renderTracking() {
       const isPending = o.status === 'pending';
       const rowStyle = isPending ? 'background:#fffbeb' : '';
       const urgBg = urgBgMap[o._urgency] || '#f3f4f6';
-      const pi = si ? getPriceInfo(custCode, o.code, resolveType(si)) : {disc_pct:null, net_price:null};
-      const discVal = (o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined) ? o.disc_pct : (pi.disc_pct!==null ? pi.disc_pct : '');
-      const netVal  = (o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined) ? o.net_price : (pi.net_price!==null ? pi.net_price : '');
+      const pi = getPriceInfo(custCode, o.code, '');
+      const discVal = pi.disc_pct !== null ? pi.disc_pct : ((o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined) ? o.disc_pct : '');
+      const netVal  = pi.net_price !== null ? pi.net_price : ((o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined) ? o.net_price : '');
       html += `<tr style="${rowStyle}" class="${idx===0?'group-sep':''}">
         <td style="font-size:11px;white-space:nowrap">${fmtDate(o.date||o.timestamp)}</td>
         <td class="td-cust">${idx===0?cust:''}</td>
