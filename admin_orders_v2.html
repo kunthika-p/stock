@@ -535,6 +535,39 @@ table.list tr:hover td{background:#f8fbff}
           <button class="btn-si-submit" id="si-submit-btn" onclick="siSubmit()" disabled>💾 บันทึกรับสินค้าเข้า</button>
         </div>
       </div>
+
+      <!-- ── แปลงบรรจุภัณฑ์ ── -->
+      <div style="display:flex;align-items:center;gap:10px;margin:20px 0 16px">
+        <div style="flex:1;border-top:1px dashed #d1d5db"></div>
+        <span style="font-size:12px;color:#9ca3af;white-space:nowrap">แปลงบรรจุภัณฑ์</span>
+        <div style="flex:1;border-top:1px dashed #d1d5db"></div>
+      </div>
+      <div class="si-card">
+        <div class="si-card-title">🔄 แปลงบรรจุภัณฑ์ (ถัง → กระสอบ/กล่อง)</div>
+        <div style="font-size:12px;color:#6b7280;margin-bottom:12px">ตัดถังออกจากสต็อค และเพิ่มกระสอบ/กล่องที่ได้ในครั้งเดียว</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+          <span style="background:#FAEEDA;color:#633806;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500">ถัง ลดลง</span>
+          <span style="color:#9ca3af;font-size:16px">→</span>
+          <span style="background:#EAF3DE;color:#27500A;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500">กระสอบ/กล่อง เพิ่มขึ้น</span>
+        </div>
+        <div class="si-row">
+          <div class="si-field" style="position:relative">
+            <label>ค้นหาสินค้า (ชื่อ / รหัส)</label>
+            <input type="text" id="cv-search" placeholder="พิมพ์ชื่อหรือรหัส..." autocomplete="off"
+              oninput="cvSearch()" onkeydown="cvSearchKey(event)">
+            <div id="cv-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #2563a8;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
+          </div>
+          <div class="si-field"><label>จำนวนถังที่แปลง</label><input type="number" id="cv-tanks" placeholder="0" min="1" step="1"></div>
+          <div class="si-field"><label>ได้ (กระสอบ/กล่อง)</label><input type="number" id="cv-outqty" placeholder="0" min="1" step="1"></div>
+          <div class="si-field"><label>หน่วย</label><select id="cv-outunit"><option value="กระสอบ">กระสอบ</option><option value="กล่อง">กล่อง</option></select></div>
+          <div class="si-field"><label>หมายเหตุ</label><input type="text" id="cv-note" placeholder="(ไม่บังคับ)"></div>
+        </div>
+        <div id="cv-stock-hint" style="display:none;font-size:12px;color:#6b7280;background:#f9fafb;border-radius:8px;padding:6px 12px;border:1px solid #e5e7eb;margin:8px 0 12px">
+          สต็อคถัง: <b id="cv-hint-tank" style="color:#1a3a5c">—</b> ถัง &nbsp;|&nbsp; สต็อคกระสอบ: <b id="cv-hint-stock" style="color:#1a3a5c">—</b>
+        </div>
+        <input type="hidden" id="cv-code">
+        <button class="btn-si-submit" id="cv-submit-btn" onclick="cvSubmit()" style="background:#1D9E75">🔄 บันทึกการแปลง</button>
+      </div>
       </div><!-- /si-form-wrap -->
 
       <!-- ── History wrap ── -->
@@ -1556,6 +1589,112 @@ async function siSubmit() {
     loadStock();
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
   btn.textContent = '💾 บันทึกรับสินค้าเข้า'; btn.disabled = false;
+}
+
+
+// ── แปลงบรรจุภัณฑ์ ──────────────────────────────────────────────
+let cvResults = [], cvIdx = -1;
+
+function cvSearch() {
+  const q = document.getElementById('cv-search').value.trim().toLowerCase();
+  const drop = document.getElementById('cv-drop');
+  document.getElementById('cv-code').value = '';
+  document.getElementById('cv-stock-hint').style.display = 'none';
+  if (!q) { drop.style.display = 'none'; return; }
+  cvResults = allItems.filter(it => {
+    const name = ((it.type||'') + ' ' + (it.col||'') + ' ' + (it.row||'')).toLowerCase();
+    return name.includes(q) || String(it.code).includes(q);
+  }).slice(0, 20);
+  if (!cvResults.length) { drop.style.display = 'none'; return; }
+  drop.innerHTML = cvResults.map((it, i) => {
+    const col = it.col || ''; const row = it.row || '';
+    const size = col && row ? col + ' x ' + row : (col || row || '');
+    const name = [it.type, size].filter(Boolean).join(' ');
+    return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6" ' +
+      'onmousedown="cvSelectItem(' + i + ')" onmouseover="cvHover(' + i + ')">' +
+      name + '<span style="float:right;color:#9ca3af;font-size:12px">' + it.code + '</span></div>';
+  }).join('');
+  cvIdx = -1;
+  drop.style.display = 'block';
+}
+
+function cvHover(i) { cvIdx = i; }
+
+function cvSearchKey(e) {
+  if (e.key === 'ArrowDown') { cvIdx = Math.min(cvIdx+1, cvResults.length-1); cvHighlight(); }
+  else if (e.key === 'ArrowUp') { cvIdx = Math.max(cvIdx-1, 0); cvHighlight(); }
+  else if (e.key === 'Enter') { e.preventDefault(); if (cvIdx >= 0) cvSelectItem(cvIdx); else if (cvResults.length) cvSelectItem(0); }
+  else if (e.key === 'Escape') { document.getElementById('cv-drop').style.display = 'none'; }
+}
+
+function cvHighlight() {
+  const drop = document.getElementById('cv-drop');
+  [...drop.children].forEach((el, i) => { el.style.background = i === cvIdx ? '#eff6ff' : ''; });
+}
+
+function cvSelectItem(i) {
+  const it = cvResults[i];
+  if (!it) return;
+  const col = it.col || ''; const row = it.row || '';
+  const size = col && row ? col + ' x ' + row : (col || row || '');
+  const name = [it.type, size].filter(Boolean).join(' ');
+  document.getElementById('cv-search').value = name;
+  document.getElementById('cv-code').value = it.code;
+  document.getElementById('cv-drop').style.display = 'none';
+  const tank = getTank(it.code);
+  const stk = stockMap[String(it.code)];
+  const stkDisplay = stk !== undefined ? stk : '—';
+  document.getElementById('cv-hint-tank').textContent = tank;
+  document.getElementById('cv-hint-stock').textContent = stkDisplay;
+  document.getElementById('cv-stock-hint').style.display = 'block';
+  document.getElementById('cv-tanks').focus();
+}
+
+async function cvSubmit() {
+  const code = document.getElementById('cv-code').value;
+  const tanks = parseInt(document.getElementById('cv-tanks').value) || 0;
+  const outQty = parseInt(document.getElementById('cv-outqty').value) || 0;
+  const outUnit = document.getElementById('cv-outunit').value;
+  const note = document.getElementById('cv-note').value;
+  const date = document.getElementById('si-date').value || new Date().toISOString().split('T')[0];
+  const recorder = document.getElementById('si-recorder').value.trim();
+  if (!code) { alert('กรุณาเลือกสินค้า'); return; }
+  if (tanks < 1) { alert('กรุณาใส่จำนวนถังที่แปลง'); return; }
+  if (outQty < 1) { alert('กรุณาใส่จำนวนที่ได้'); return; }
+  const currentTank = getTank(code);
+  if (tanks > currentTank) {
+    showToast('⚠️ ถังไม่พอ: มี ' + currentTank + ' ถัง แต่ต้องการแปลง ' + tanks, 'warn');
+    return;
+  }
+  const btn = document.getElementById('cv-submit-btn');
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+  try {
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify({
+      action: 'packItems',
+      code: code,
+      name: document.getElementById('cv-search').value,
+      tankUsed: tanks,
+      outQty: outQty,
+      outUnit: outUnit,
+      date: date,
+      recorder: recorder,
+      note: note
+    })});
+    const data = await res.json();
+    if (data.success) {
+      showToast('✅ แปลงบรรจุภัณฑ์แล้ว');
+      document.getElementById('cv-search').value = '';
+      document.getElementById('cv-code').value = '';
+      document.getElementById('cv-tanks').value = '';
+      document.getElementById('cv-outqty').value = '';
+      document.getElementById('cv-note').value = '';
+      document.getElementById('cv-stock-hint').style.display = 'none';
+      loadStock();
+    } else {
+      showToast('⚠️ ' + (data.error || 'เกิดข้อผิดพลาด'), 'warn');
+    }
+  } catch(e) { showToast('⚠️ ' + e.message, 'warn'); }
+  btn.disabled = false; btn.textContent = '🔄 บันทึกการแปลง';
 }
 
 async function loadAll() {
