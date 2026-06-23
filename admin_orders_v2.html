@@ -2010,7 +2010,7 @@ async function bulkConfirm() {
         method: 'POST', body: JSON.stringify({action:'confirmOrder', row: item.row, code: item.code, qty: item.qty})
       });
       const data = await res.json();
-      if (!data.success) { alert('เกิดข้อผิดพลาด: ' + (data.error||'unknown')); return; }
+      if (!data.success) { showToast('⚠️ ' + (data.error||'เกิดข้อผิดพลาด'), 'warn'); return; }
     }
     showToast(`✅ ยืนยัน ${items.length} รายการแล้ว`); loadPending(); loadHistory();
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
@@ -2030,7 +2030,9 @@ async function confirmOrder(row, code, qty) {
       if (pendingOrders.length) renderPendingTable();
       else document.getElementById('pendingList').innerHTML = '<div class="empty">✅ ไม่มีคำสั่งซื้อรอยืนยัน</div>';
       loadHistory();
-    } else alert('เกิดข้อผิดพลาด: '+(data.error||'unknown'));
+    } else {
+      showToast('⚠️ ' + (data.error||'เกิดข้อผิดพลาด'), 'warn');
+    }
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
 }
 
