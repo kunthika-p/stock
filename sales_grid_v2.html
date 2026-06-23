@@ -309,7 +309,11 @@ function getPriceInfo(custCode, itemCode, type) {
   const item = allItems.find(i => i.code === itemCode);
   const itemCol = item ? String(item.col || '') : '';
   const itemRow = item ? String(item.row || '') : '';
-  const itemType = item ? resolveType(item) : type;
+  const rawType = item ? item.type : type;
+  let itemType = rawType;
+  for (const [canonical, aliases] of Object.entries(MERGED_TYPES)) {
+    if (aliases.includes(rawType)) { itemType = canonical; break; }
+  }
 
   const BIG_W_COLS = ['5/8 W','3/4 W'];
 
