@@ -1604,14 +1604,12 @@ function cvSearch() {
   document.getElementById('cv-stock-hint').style.display = 'none';
   if (!q) { drop.style.display = 'none'; return; }
   cvResults = allItems.filter(it => {
-    const name = ((it.type||'') + ' ' + (it.col||'') + ' ' + (it.row||'')).toLowerCase();
+    const name = buildName(it).toLowerCase();
     return name.includes(q) || String(it.code).includes(q);
   }).slice(0, 20);
   if (!cvResults.length) { drop.style.display = 'none'; return; }
   drop.innerHTML = cvResults.map((it, i) => {
-    const col = it.col || ''; const row = it.row || '';
-    const size = col && row ? col + ' x ' + row : (col || row || '');
-    const name = [it.type, size].filter(Boolean).join(' ');
+    const name = buildName(it);
     return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6" ' +
       'onmousedown="cvSelectItem(' + i + ')" onmouseover="cvHover(' + i + ')">' +
       name + '<span style="float:right;color:#9ca3af;font-size:12px">' + it.code + '</span></div>';
@@ -1637,9 +1635,7 @@ function cvHighlight() {
 function cvSelectItem(i) {
   const it = cvResults[i];
   if (!it) return;
-  const col = it.col || ''; const row = it.row || '';
-  const size = col && row ? col + ' x ' + row : (col || row || '');
-  const name = [it.type, size].filter(Boolean).join(' ');
+  const name = buildName(it);
   document.getElementById('cv-search').value = name;
   document.getElementById('cv-code').value = it.code;
   document.getElementById('cv-drop').style.display = 'none';
@@ -2587,7 +2583,7 @@ async function anLoadData() {
     } else {
       lowEl.innerHTML = lowItems.map(x => {
         const col = Number(x.stock) <= 2 ? '#dc2626' : '#d97706';
-        return `<div class="an-low-row"><div>${x.type||''} ${x.col||''} × ${x.row||''}</div>` +
+        return `<div class="an-low-row"><div>${buildName(x)}</div>` +
                `<div class="an-low-val" style="color:${col}">${x.stock} กระสอบ</div></div>`;
       }).join('');
     }
