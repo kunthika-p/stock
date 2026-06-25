@@ -843,6 +843,8 @@ function fmtName(n) {
   let s = String(n);
   s = s.replace(/\bSTOCK\b\s*/g, '');
   s = s.replace(/\s*\((ยาว|ใหญ่)\)/g, '');  // alias cleanup
+  // Fix old combined col×row format stored in name: "1/2x6 x 1" → "1/2 x 6"
+  s = s.replace(/([\/\d]+)x(\d[\d.\/]*)\s+(?:x\s+)?\d[\d.\/]*(?:\s*ค\.)?$/, '$1 x $2');
   s = s.replace(/หัวน็อตเกลียวหยาบ\s*/g, 'หัวน็อต ');
   s = s.replace(/หัวน็อตเกลียว\s*/g, 'หัวน็อต ');
   s = s.replace(/น็อตแข็งเกลียวมิล/g, 'น็อตมิลแข็ง');
