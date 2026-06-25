@@ -388,26 +388,7 @@ table.list tr:hover td{background:#f8fbff}
       <div class="type-nav-wrap"><div class="type-nav" id="stk-type-nav"></div></div>
       <div id="stk-matrix-panels"><div class="loading">⏳ กำลังโหลดสต็อค...</div></div>
     </div>
-    <div class="card">
-      <div class="card-title">รายการสินค้าทั้งหมด <span style="font-size:13px;font-weight:400;color:#888" id="stk-list-count"></span></div>
-      <div class="search-row">
-        <input id="stk-q" type="text" placeholder="🔍 ค้นหารหัส / ประเภท / ขนาด..." oninput="renderStockList()">
-        <select id="stk-ftype" onchange="renderStockList()"><option value="">ทุกประเภท</option></select>
-        <select id="stk-fstat" onchange="renderStockList()">
-          <option value="">ทุกสถานะ</option>
-          <option value="ok">ปกติ</option>
-          <option value="low">น้อย</option>
-          <option value="out">หมด</option>
-          <option value="low_out" selected>น้อย + หมด</option>
-        </select>
-      </div>
-      <div class="tbl-wrap">
-        <table class="list"><thead><tr>
-          <th>รหัสสินค้า</th><th>ประเภท</th><th>ขนาด</th><th>ยาว</th>
-          <th style="text-align:right">สต็อค</th><th>หน่วย</th><th>สถานะ</th>
-        </tr></thead><tbody id="stk-list-tbody"></tbody></table>
-      </div>
-    </div>
+
   </div>
 
   <!-- Tab: รอยืนยัน -->
@@ -1782,8 +1763,7 @@ async function loadStock() {
       buildStockNav();
       buildMatrix();
       populateTypeFilter();
-      renderStockList();
-    }
+        }
   } catch(e) {
     document.getElementById('stk-matrix-panels').innerHTML = '<div class="empty">❌ โหลดไม่ได้: '+e.message+'</div>';
   }
@@ -1961,31 +1941,7 @@ function populateTypeFilter() {
   });
 }
 
-function renderStockList() {
-  const q = document.getElementById('stk-q').value.toLowerCase();
-  const ft = document.getElementById('stk-ftype').value;
-  const fs = document.getElementById('stk-fstat').value;
-  const rows = allItems.filter(x => {
-    const s = getStock(x.code).stock;
-    if (q && !(x.code+' '+x.type+' '+x.col+' '+x.row).toLowerCase().includes(q)) return false;
-    if (ft && !(MERGED_TYPES[ft]||[ft]).includes(x.type)) return false;
-    if (fs === 'low_out' && sts(s) === 'ok') return false;
-    else if (fs && fs !== 'low_out' && sts(s) !== fs) return false;
-    return true;
-  });
-  document.getElementById('stk-list-count').textContent = `(แสดง ${rows.length} จาก ${allItems.length})`;
-  const tbody = document.getElementById('stk-list-tbody');
-  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty">ไม่พบรายการ</div></td></tr>'; return; }
-  tbody.innerHTML = rows.map(x => {
-    const s = getStock(x.code); const unit = getUnit(resolveType(x));
-    return `<tr>
-      <td style="font-family:monospace;font-size:13px;font-weight:700;color:#1a3a5c">${x.code}</td>
-      <td style="font-size:13px">${x.type}</td><td>${x.col}</td><td>${x.row}</td>
-      <td style="text-align:right;font-weight:700;font-size:15px">${s.stock}</td>
-      <td><span style="font-size:12px;background:#f3f4f6;padding:2px 8px;border-radius:6px">${unit}</span></td>
-      <td>${badge(s.stock)}</td></tr>`;
-  }).join('');
-}
+
 
 // ---- Pending tab ----
 const urgColor2 = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'};
