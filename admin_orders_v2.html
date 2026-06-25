@@ -842,6 +842,7 @@ function fmtName(n) {
   if (!n) return n;
   let s = String(n);
   s = s.replace(/\bSTOCK\b\s*/g, '');
+  s = s.replace(/\s*\((ยาว|ใหญ่)\)/g, '');  // alias cleanup
   s = s.replace(/หัวน็อตเกลียวหยาบ\s*/g, 'หัวน็อต ');
   s = s.replace(/หัวน็อตเกลียว\s*/g, 'หัวน็อต ');
   s = s.replace(/น็อตแข็งเกลียวมิล/g, 'น็อตมิลแข็ง');
