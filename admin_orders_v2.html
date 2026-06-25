@@ -833,7 +833,7 @@ function resolveCust(raw) { return CUST_MAP[raw] ? raw : (CUST_CODE_MAP[String(r
 let stockMap = {}, tankMap = {}, allItems = [], historyData = [];
 
 function buildName(item) {
-  const clean = v => { if (!v) return ''; const s = String(v); return /^\d{4}-\d{2}-\d{2}T|GMT/.test(s) ? '' : s; };
+  const clean = v => { if (!v) return ''; const s = String(v); if (/^\d{4}-\d{2}-\d{2}T|GMT/.test(s) || s === 'STOCK') return ''; return s; };
   const size = [clean(item.col), clean(item.row)].filter(Boolean).join(' x ');
   return fmtName([item.type||'', size].filter(Boolean).join(' '));
 }
