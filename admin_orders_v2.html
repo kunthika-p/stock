@@ -125,6 +125,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .btn-si-submit{width:100%;background:#16a34a;color:white;border:none;border-radius:10px;padding:14px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer;margin-top:8px}
 .btn-si-submit:disabled{background:#9ca3af;cursor:default}
 #cv-submit-btn:not(:disabled){background:#2563eb}
+#dt-submit-btn:not(:disabled){background:#dc2626}
 /* ── ประวัติรับเข้า + feature ใหม่ ── */
 .si-subtab{display:flex;gap:8px;margin-bottom:16px}
 .si-subtab-btn{padding:7px 18px;border-radius:20px;border:1.5px solid #d1d5db;background:white;color:#555;font-size:13px;font-family:'Sarabun',sans-serif;cursor:pointer}
@@ -565,6 +566,44 @@ table.list tr:hover td{background:#f8fbff}
         <button class="btn-si-submit" id="cv-submit-btn" onclick="cvSubmit()" disabled>💾 บันทึกการแปลง</button>
       </div>
       </div><!-- /si-form-wrap -->
+
+      <!-- ── ตัดสต็อคถัง ── -->
+      <div style="display:flex;align-items:center;gap:10px;margin:20px 0 16px">
+        <span style="font-weight:600;font-size:15px">🗑 ตัดสต็อคถัง</span>
+        <span style="background:#FCEBEB;color:#A32D2D;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500">ถัง ลดลง</span>
+        <span style="color:#888;font-size:12px">ไม่แปลงหน่วย</span>
+      </div>
+      <div id="dt-form-wrap" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:2fr 1fr 2fr auto;gap:10px;align-items:end;margin-bottom:10px">
+          <div class="si-field" style="position:relative">
+            <label>ค้นหาสินค้า (ชื่อ / รหัส)</label>
+            <input type="text" id="dt-search" placeholder="พิมพ์ชื่อหรือรหัส..." autocomplete="off"
+              oninput="dtSearch()" onkeydown="dtSearchKey(event)">
+            <input type="hidden" id="dt-code">
+            <div id="dt-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #d1d5db;border-radius:8px;z-index:100;max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1)"></div>
+          </div>
+          <div class="si-field"><label>จำนวนถังที่ตัด</label><input type="number" id="dt-qty" placeholder="0" min="1" step="1" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('dt-note').focus();}"></div>
+          <div class="si-field"><label>หมายเหตุ</label><input type="text" id="dt-note" value="ควบหัว" onkeydown="if(event.key==='Enter'){event.preventDefault();dtAddItem();}"></div>
+          <button class="btn-si-add" onclick="dtAddItem()">+ เพิ่ม</button>
+        </div>
+        <div id="dt-stock-hint" style="display:none;font-size:13px;color:#555;margin-bottom:10px;padding:6px 10px;background:#fff7ed;border-radius:8px;border:1px solid #fed7aa">
+          สต็อคถังปัจจุบัน: <b id="dt-hint-tank" style="color:#c2410c">—</b> ถัง
+        </div>
+        <div style="overflow-x:auto;margin-bottom:10px">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr>
+              <th style="width:36px;background:#7f1d1d;color:#fff;padding:6px">#</th>
+              <th style="text-align:left;background:#7f1d1d;color:#fff;padding:6px">ชื่อสินค้า</th>
+              <th style="width:110px;background:#7f1d1d;color:#fff;padding:6px">รหัส</th>
+              <th style="width:100px;background:#7f1d1d;color:#fff;padding:6px">ถังที่ตัด</th>
+              <th style="text-align:left;background:#7f1d1d;color:#fff;padding:6px">หมายเหตุ</th>
+              <th style="width:70px;background:#7f1d1d;color:#fff;padding:6px">จัดการ</th>
+            </tr></thead>
+            <tbody id="dt-tbody"><tr><td colspan="6" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr></tbody>
+          </table>
+        </div>
+        <button class="btn-si-submit" id="dt-submit-btn" onclick="dtSubmit()" disabled>🗑 บันทึกตัดสต็อคถัง</button>
+      </div>
 
       <!-- ── History wrap ── -->
       <div id="si-hist-wrap" style="display:none">
@@ -1375,7 +1414,7 @@ function renderStockInHistory() {
   const cleanSiName = n => (n||'').replace(/(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+\w+\s+\d+\s+\d{4}[^(]*\([^)]*\)/g,'').replace(/\s{2,}/g,' ').trim();
 
   // แยก in/in-tank กับ audit records
-  const inRecs    = filtered.filter(r => ['in','in-tank','pack'].includes(r.direction||'in'));
+  const inRecs    = filtered.filter(r => ['in','in-tank','pack','out-tank'].includes(r.direction||'in'));
   const auditRecs = filtered.filter(r => ['correction','void','note-edit','void-pack','correction-pack'].includes(r.direction||''));
 
   // หา void row indices (sheetRowIdx ที่ถูก void)
@@ -1619,6 +1658,14 @@ function cvSearch() {
     return name.includes(q) || String(it.code).includes(q);
   }).slice(0, 20);
   if (!cvResults.length) { drop.style.display = 'none'; return; }
+  // Auto-select if typed value exactly matches a single item's code
+  if (cvResults.length === 1) {
+    const code = String(cvResults[0].code).trim().padStart(8,'0').toLowerCase();
+    if (q === code || q.padStart(8,'0') === code) {
+      cvSelectItem(0);
+      return;
+    }
+  }
   drop.innerHTML = cvResults.map((it, i) => {
     const name = buildName(it);
     return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6" ' +
@@ -2876,6 +2923,124 @@ function anToggleChart(mode, btn) {
   document.getElementById('an-chart-qty').style.display = mode==='qty'?'block':'none';
   document.getElementById('an-chart-sku').style.display = mode==='sku'?'block':'none';
 }
+// ── ตัดสต็อคถัง (dt) ───────────────────────────────
+let dtResults = [], dtIdx = -1, dtItems = [];
+
+function dtSearch() {
+  const q = document.getElementById('dt-search').value.trim().toLowerCase();
+  const drop = document.getElementById('dt-drop');
+  document.getElementById('dt-code').value = '';
+  document.getElementById('dt-stock-hint').style.display = 'none';
+  if (!q) { drop.style.display = 'none'; return; }
+  dtResults = allItems.filter(it => {
+    const name = buildName(it).toLowerCase();
+    return name.includes(q) || String(it.code).includes(q);
+  }).slice(0, 20);
+  if (!dtResults.length) { drop.style.display = 'none'; return; }
+  if (dtResults.length === 1) {
+    const code = String(dtResults[0].code).trim().padStart(8,'0').toLowerCase();
+    if (q === code || q.padStart(8,'0') === code) { dtSelectItem(0); return; }
+  }
+  drop.innerHTML = dtResults.map((it, i) => {
+    const name = buildName(it);
+    return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f3f4f6" ' +
+      'onmousedown="dtSelectItem(' + i + ')" onmouseover="dtHover(' + i + ')">' +
+      name + '<span style="float:right;color:#9ca3af;font-size:12px">' + it.code + '</span></div>';
+  }).join('');
+  dtIdx = -1;
+  drop.style.display = 'block';
+}
+
+function dtHover(i) { dtIdx = i; }
+
+function dtSearchKey(e) {
+  if (e.key === 'ArrowDown') { dtIdx = Math.min(dtIdx+1, dtResults.length-1); }
+  else if (e.key === 'ArrowUp') { dtIdx = Math.max(dtIdx-1, 0); }
+  else if (e.key === 'Enter') { e.preventDefault(); if (dtIdx >= 0) dtSelectItem(dtIdx); else if (dtResults.length) dtSelectItem(0); }
+  else if (e.key === 'Escape') { document.getElementById('dt-drop').style.display = 'none'; }
+}
+
+function dtSelectItem(i) {
+  const it = dtResults[i];
+  if (!it) return;
+  document.getElementById('dt-search').value = buildName(it);
+  document.getElementById('dt-code').value = it.code;
+  document.getElementById('dt-drop').style.display = 'none';
+  const tank = getTank(it.code);
+  document.getElementById('dt-hint-tank').textContent = tank;
+  document.getElementById('dt-stock-hint').style.display = 'block';
+  document.getElementById('dt-qty').focus();
+}
+
+function dtAddItem() {
+  const code = document.getElementById('dt-code').value;
+  const nameVal = document.getElementById('dt-search').value.trim();
+  const qty = parseInt(document.getElementById('dt-qty').value) || 0;
+  const note = document.getElementById('dt-note').value.trim();
+  if (!code) { showToast('⚠️ กรุณาเลือกสินค้าก่อน', 'warn'); return; }
+  if (qty < 1) { showToast('⚠️ กรุณาใส่จำนวนถังที่ตัด', 'warn'); return; }
+  const currentTank = getTank(code);
+  const alreadyUsed = dtItems.filter(x => x.code === code).reduce((s, x) => s + x.qty, 0);
+  if (alreadyUsed + qty > currentTank) {
+    showToast('⚠️ ถังไม่พอ: มี ' + currentTank + ' ถัง ใช้ไปแล้ว ' + alreadyUsed + ' ถัง', 'warn'); return;
+  }
+  dtItems.push({ code, name: nameVal, qty, note });
+  document.getElementById('dt-search').value = '';
+  document.getElementById('dt-code').value = '';
+  document.getElementById('dt-qty').value = '';
+  document.getElementById('dt-note').value = 'ควบหัว';
+  document.getElementById('dt-stock-hint').style.display = 'none';
+  dtRender();
+  document.getElementById('dt-search').focus();
+}
+
+function dtRender() {
+  const tbody = document.getElementById('dt-tbody');
+  const btn = document.getElementById('dt-submit-btn');
+  if (!dtItems.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr>';
+    btn.disabled = true; return;
+  }
+  tbody.innerHTML = dtItems.map((it, i) => `
+    <tr>
+      <td style="text-align:center">${i+1}</td>
+      <td style="text-align:left;font-weight:600;color:#1a3a5c">${it.name}</td>
+      <td style="text-align:center;font-family:monospace;font-size:12px">${it.code}</td>
+      <td style="text-align:center;font-weight:700;color:#c2410c">${it.qty} ถัง</td>
+      <td style="text-align:left;color:#555">${it.note}</td>
+      <td style="text-align:center"><span style="color:#ef4444;cursor:pointer;font-size:16px" onclick="dtRemove(${i})">✕</span></td>
+    </tr>`).join('');
+  btn.disabled = false;
+}
+
+function dtRemove(i) { dtItems.splice(i, 1); dtRender(); }
+
+async function dtSubmit() {
+  if (!dtItems.length) return;
+  const btn = document.getElementById('dt-submit-btn');
+  btn.textContent = '⏳ กำลังบันทึก...'; btn.disabled = true;
+  const date = document.getElementById('si-date').value;
+  const recorder = document.getElementById('si-recorder').value.trim();
+  try {
+    for (const it of dtItems) {
+      const res = await fetch(API, { method:'POST', body:JSON.stringify({
+        action:'deductTank', date, recorder,
+        code:it.code, name:it.name, qty:it.qty, note:it.note
+      })});
+      const d = await res.json();
+      if (d.error) throw new Error(d.error);
+    }
+    showToast('✅ ตัดสต็อคถังแล้ว ' + dtItems.length + ' รายการ');
+    dtItems = [];
+    dtRender();
+    loadStock();
+  } catch(err) {
+    showToast('❌ ' + err.message, 'warn');
+  }
+  btn.textContent = '🗑 บันทึกตัดสต็อคถัง';
+  btn.disabled = dtItems.length === 0;
+}
+
 </script>
 </body>
 </html>
