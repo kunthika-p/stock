@@ -1551,7 +1551,7 @@ async function siCorrectSave(type) {
   }
 }
 function siRender() {
-  document.getElementById('si-count').textContent = siItems.length + ' รายการ';
+  const siCountEl = document.getElementById('si-count'); if(siCountEl) siCountEl.textContent = siItems.length + ' รายการ';
   document.getElementById('si-submit-btn').disabled = siItems.length === 0;
   const tbody = document.getElementById('si-tbody');
   if (!siItems.length) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:#aaa">ยังไม่มีรายการ</td></tr>'; return; }
