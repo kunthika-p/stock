@@ -3090,6 +3090,7 @@ async function dtSubmit() {
 function anRenderSalesCharts(orders, items) {
   const el = document.getElementById('an-sales-body');
   if (!el) return;
+
   const COLORS = ['#1A3A5C','#2980B9','#5DADE2','#6C3483','#A569BD','#D2B4DE'];
   const THAI_M  = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const THAI_MF = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
@@ -3262,6 +3263,14 @@ function anRenderSalesCharts(orders, items) {
 
   const badge=document.getElementById('an-sales-mock-badge');
   if(badge)badge.remove();
+  // === TEMP DEBUG (append after render) ===
+  const _now=new Date();
+  const _dbg=orders.slice(0,3).map(o=>'date='+JSON.stringify(o.date)+' qty='+o.qty+' code='+o.code).join('<br>');
+  const _div=document.createElement('div');
+  _div.style.cssText='background:#fef3c7;padding:8px;font-size:11px;border-radius:6px;margin-bottom:8px';
+  _div.innerHTML='🔍 '+orders.length+' orders | now='+_now.getFullYear()+'/'+(_now.getMonth()+1)+'/'+_now.getDate()+'<br>'+_dbg;
+  el.insertAdjacentElement('afterbegin',_div);
+  // === END DEBUG ===
 }
 
 </script>
