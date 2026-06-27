@@ -353,6 +353,49 @@ table.list tr:hover td{background:#f8fbff}
 .an-month-track{flex:1;background:#f1f5f9;border-radius:4px;height:16px;overflow:hidden}
 .an-month-fill{height:100%;background:#3b82f6;border-radius:4px;display:flex;align-items:center;padding-left:6px;font-size:11px;color:white;font-weight:600}
 
+/* ===== Sales Analytics Mock ===== */
+.an-sales-section{margin-top:24px;border-top:2px solid #e2e8f0;padding-top:20px}
+.an-sales-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.an-sales-kpi{background:white;border-radius:10px;padding:13px 15px;border:1.5px solid #e2e8f0}
+.an-sales-kpi .ask-lbl{font-size:10px;color:#64748b;margin-bottom:3px}
+.an-sales-kpi .ask-val{font-size:22px;font-weight:800;line-height:1.1}
+.an-sales-kpi .ask-sub{font-size:10px;color:#94a3b8;margin-top:3px}
+.ask-up{display:inline-flex;align-items:center;gap:2px;font-size:10px;padding:1px 6px;border-radius:10px;background:#dcfce7;color:#15803d}
+.ask-dn{display:inline-flex;align-items:center;gap:2px;font-size:10px;padding:1px 6px;border-radius:10px;background:#fee2e2;color:#dc2626}
+.an-cal-btn{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;background:white;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;font-size:13px;color:#334155;font-weight:600;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.an-cal-popup{background:white;border:1.5px solid #e2e8f0;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.1);padding:12px;width:238px;margin-bottom:12px;display:none}
+.an-cal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.an-cal-nav{background:none;border:none;cursor:pointer;color:#64748b;font-size:15px;padding:2px 6px;border-radius:4px}
+.an-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.an-cal-dow{text-align:center;font-size:9px;color:#94a3b8;font-weight:600;padding:2px 0}
+.an-cal-day{text-align:center;font-size:11px;padding:5px 2px;border-radius:6px;cursor:pointer;color:#334155;line-height:1}
+.an-cal-day:hover{background:#f1f5f9}
+.an-cal-day.acd-has::after{content:'';display:block;width:4px;height:4px;border-radius:50%;background:#1A3A5C;margin:1px auto 0}
+.an-cal-day.acd-sel{background:#1a3a5c;color:white;font-weight:700}
+.an-cal-day.acd-sel::after{background:#93c5fd}
+.an-cal-day.acd-today{border:1px solid #93c5fd;color:#1d4ed8;font-weight:600}
+.an-cal-day.acd-other,.an-cal-day.acd-none{color:#cbd5e1;cursor:default}
+.an-sales-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+/* bar chart */
+.anb-group{display:flex;align-items:flex-end;gap:7px;height:100px;padding:0 2px}
+.anb-wrap{display:flex;flex-direction:column;align-items:center;flex:1;gap:3px}
+.anb-bar{width:100%;border-radius:4px 4px 0 0}
+.anb-lbl{font-size:9px;color:#64748b;text-align:center;line-height:1.2}
+.anb-val{font-size:9px;font-weight:600;color:#475569}
+/* stacked bar */
+.anb-stack{width:100%;border-radius:4px 4px 0 0;display:flex;flex-direction:column-reverse;overflow:hidden}
+.anb-seg{width:100%}
+/* donut */
+.an-donut-wrap{display:flex;gap:14px;align-items:center}
+.an-donut-leg{display:flex;flex-direction:column;gap:6px}
+.an-donut-row{display:flex;align-items:center;gap:6px;font-size:11px;color:#475569}
+.an-donut-box{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+/* legend */
+.an-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.an-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b}
+.an-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.an-mock-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:#fef9c3;color:#92400e;margin-left:8px}
+
 </style>
 </head>
 <body>
@@ -856,6 +899,14 @@ table.list tr:hover td{background:#f8fbff}
             </div>
           </div>
         </div>
+
+      <!-- ===== SALES ANALYTICS (DYNAMIC) ===== -->
+      <div class="an-sales-section">
+        <div class="an-section">ยอดขายสินค้า <span class="an-mock-badge" id="an-sales-mock-badge">⏳ กำลังโหลด...</span></div>
+
+        <div id="an-sales-body"><div style="text-align:center;padding:24px;font-size:12px;color:#94a3b8">⏳ กำลังโหลดข้อมูลยอดขาย...</div></div>
+      </div>
+      <!-- ===== END SALES ANALYTICS ===== -->
       </div>
     </div>
   </div>
@@ -2780,6 +2831,7 @@ async function anLoadData() {
     anRenderSeasonal(orders);
     anRenderTurnover(salesMap, items, daysPeriod);
     anRenderStockout(items, salesMap, daysPeriod);
+    anRenderSalesCharts(orders, items);
   } catch(e) {
     console.error('Analytics error:', e);
   }
@@ -3032,6 +3084,184 @@ async function dtSubmit() {
   }
   btn.textContent = '🗑 บันทึกตัดสต็อคถัง';
   btn.disabled = dtItems.length === 0;
+}
+
+
+function anRenderSalesCharts(orders, items) {
+  const el = document.getElementById('an-sales-body');
+  if (!el) return;
+  const COLORS = ['#1A3A5C','#2980B9','#5DADE2','#6C3483','#A569BD','#D2B4DE'];
+  const THAI_M  = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const THAI_MF = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+  // code -> type lookup
+  const ctMap = {};
+  items.forEach(it => { ctMap[String(it.code||'').padStart(8,'0')] = it.type||''; });
+
+  // Simplify type to display group
+  function dType(t) {
+    if (!t) return 'อื่นๆ';
+    if (/น็อตเหลี่ยมเกลียว W|น็อตหัวกลมเกลียว W|น็อตเหลี่ยม W ไม่/.test(t)) return 'น็อตเหลี่ยม W';
+    if (/สกรูมิลขาว|สกรูเกลียวปล่อย/.test(t)) return 'สกรูมิล';
+    if (/น็อตแข็ง|หัวน็อตมิลแข็ง/.test(t)) return 'น็อตมิลแข็ง';
+    if (/หัวน็อตมิล[^แ]|หัวน็อตเกลียวหยาบ|หัวน็อตเกลียว W/.test(t)) return 'หัวน็อต';
+    if (/น็อตเหลี่ยม NC|น็อตเหลี่ยม NF/.test(t)) return 'น็อต NC/NF';
+    if (/Spring Washer/.test(t)) return 'Spring Washer';
+    return t;
+  }
+
+  // Parse order date (Thai string or ISO)
+  function pDate(o) {
+    if (!o.date) return null;
+    const s = String(o.date);
+    if (s.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(s)) { const d=new Date(s); return isNaN(d)?null:d; }
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) { let y=parseInt(m[3]); if(y>2500)y-=543; return new Date(y,parseInt(m[2])-1,parseInt(m[1])); }
+    return null;
+  }
+
+  const now   = new Date();
+  const thisY = now.getFullYear();
+  const thisM = now.getMonth();
+  const yest  = new Date(now); yest.setDate(now.getDate()-1);
+  const prevMStart = new Date(thisY, thisM-1, 1);
+
+  let ytd=0, mon=0, tod=0, prevMon=0, yestQ=0;
+  const typeCur = {};    // type -> qty this month
+  const typeMon = {};    // type -> mKey -> qty
+  const calDays = new Set();
+
+  // Build last-6-months keys
+  const last6 = [];
+  for (let i=5;i>=0;i--) { const d=new Date(thisY,thisM-i,1); last6.push({key:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),lbl:THAI_M[d.getMonth()]}); }
+  const l6Set = new Set(last6.map(x=>x.key));
+
+  orders.forEach(o => {
+    const d = pDate(o); if (!d) return;
+    const qty = Number(o.qty)||0;
+    const t   = dType(ctMap[String(o.code||'').padStart(8,'0')]);
+    const dY=d.getFullYear(), dM=d.getMonth(), dd=d.getDate();
+    const mKey = dY+'-'+String(dM+1).padStart(2,'0');
+
+    if (dY===thisY) ytd+=qty;
+    if (dY===thisY&&dM===thisM) {
+      mon+=qty;
+      typeCur[t]=(typeCur[t]||0)+qty;
+      calDays.add(dd);
+    }
+    if (dY===prevMStart.getFullYear()&&dM===prevMStart.getMonth()) prevMon+=qty;
+    if (dY===now.getFullYear()&&dM===now.getMonth()&&dd===now.getDate()) tod+=qty;
+    if (dY===yest.getFullYear()&&dM===yest.getMonth()&&dd===yest.getDate()) yestQ+=qty;
+    if (l6Set.has(mKey)) {
+      if (!typeMon[t]) typeMon[t]={};
+      typeMon[t][mKey]=(typeMon[t][mKey]||0)+qty;
+    }
+  });
+
+  // Top types
+  const allTypes = Object.entries(typeCur).sort((a,b)=>b[1]-a[1]);
+  const topN = allTypes.slice(0,5).map(e=>e[0]);
+  const rest = allTypes.slice(5).map(e=>e[0]);
+  const dispT = [...topN];
+  if (rest.length) {
+    dispT.push('อื่นๆ');
+    typeCur['อื่นๆ']=(typeCur['อื่นๆ']||0)+rest.reduce((s,t)=>s+(typeCur[t]||0),0);
+    rest.forEach(t => { if(typeMon[t]){ if(!typeMon['อื่นๆ'])typeMon['อื่นๆ']={}; Object.entries(typeMon[t]).forEach(([k,v])=>{typeMon['อื่นๆ'][k]=(typeMon['อื่นๆ'][k]||0)+v;}); } });
+  }
+  const N = Math.min(dispT.length, COLORS.length);
+  const types = dispT.slice(0,N);
+
+  // Pct badge
+  function pBadge(cur,prev) {
+    if(!prev)return '';
+    const p=Math.round((cur-prev)/prev*100);
+    return '<span class="'+(p>=0?'ask-up':'ask-dn')+'">'+(p>=0?'↑':'↓')+' '+Math.abs(p)+'%</span>';
+  }
+
+  // Calendar
+  function buildCal() {
+    const DOW=['อา','จ','อ','พ','พฤ','ศ','ส'];
+    const first=new Date(thisY,thisM,1).getDay();
+    const days=new Date(thisY,thisM+1,0).getDate();
+    const shift=first===0?6:first-1;
+    let h='<div class="an-cal-popup" id="an-cal-popup" style="display:none"><div class="an-cal-hdr"><div style="font-size:13px;font-weight:700">'+THAI_MF[thisM]+' '+(thisY+543)+'</div></div><div class="an-cal-grid">';
+    DOW.forEach(d=>{h+='<div class="an-cal-dow">'+d+'</div>';});
+    for(let i=0;i<shift;i++) h+='<div class="an-cal-day acd-other"></div>';
+    for(let d=1;d<=days;d++){
+      const isTd=d===now.getDate();
+      const hasO=calDays.has(d);
+      let cls='an-cal-day'+(isTd?' acd-sel acd-today':hasO?' acd-has':' acd-none');
+      h+='<div class="'+cls+'">'+d+'</div>';
+    }
+    h+='</div><div style="margin-top:8px;display:flex;gap:12px;font-size:10px;color:#64748b"><span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2980B9;margin-right:3px"></span>มีออเดอร์</span></div></div>';
+    return h;
+  }
+
+  // Bar chart
+  function buildBar() {
+    const mx=Math.max(...types.map(t=>typeCur[t]||0),1);
+    let h='<div class="an-card"><div class="an-card-title">ยอดขายแต่ละประเภท <span style="font-size:10px;color:#94a3b8;font-weight:400">เดือนนี้ · กระสอบ</span></div><div class="anb-group">';
+    types.forEach((t,i)=>{
+      const q=typeCur[t]||0, barH=Math.max(4,Math.round(q/mx*100));
+      const lbl=q>=1000?Math.round(q/1000)+'k':q;
+      h+='<div class="anb-wrap"><div class="anb-val">'+lbl+'</div><div class="anb-bar" style="height:'+barH+'px;background:'+COLORS[i]+'"></div><div class="anb-lbl">'+t+'</div></div>';
+    });
+    return h+'</div></div>';
+  }
+
+  // Donut
+  function buildDonut() {
+    const tot=types.reduce((s,t)=>s+(typeCur[t]||0),0)||1;
+    const circ=2*Math.PI*38;
+    let off=0,segs='',leg='';
+    types.forEach((t,i)=>{
+      const q=typeCur[t]||0, pct=q/tot;
+      const dash=(pct*circ).toFixed(1);
+      segs+='<circle cx="54" cy="54" r="38" fill="none" stroke="'+COLORS[i]+'" stroke-width="18" stroke-dasharray="'+dash+' '+circ.toFixed(1)+'" stroke-dashoffset="'+(-off).toFixed(1)+'" transform="rotate(-90 54 54)"/>';
+      off+=pct*circ;
+      leg+='<div class="an-donut-row"><div class="an-donut-box" style="background:'+COLORS[i]+'"></div>'+t+' — '+Math.round(pct*100)+'%</div>';
+    });
+    const lbl=tot>=1000?Math.round(tot/1000)+'k':tot;
+    return '<div class="an-card"><div class="an-card-title">สัดส่วนยอดขาย <span style="font-size:10px;color:#94a3b8;font-weight:400">เดือนนี้</span></div><div class="an-donut-wrap"><svg width="108" height="108" viewBox="0 0 108 108"><circle cx="54" cy="54" r="38" fill="none" stroke="#e2e8f0" stroke-width="18"/>'+segs+'<text x="54" y="51" text-anchor="middle" font-size="12" font-weight="800" fill="#1e293b">'+lbl+'</text><text x="54" y="62" text-anchor="middle" font-size="9" fill="#64748b">กระสอบ</text></svg><div class="an-donut-leg">'+leg+'</div></div></div>';
+  }
+
+  // Stacked bar
+  function buildStack() {
+    const mxH=110;
+    const mTots=last6.map(({key})=>types.reduce((s,t)=>(typeMon[t]&&typeMon[t][key]||0)+s,0));
+    const mxT=Math.max(...mTots,1);
+    let h='<div class="an-card"><div class="an-card-title" style="display:flex;justify-content:space-between;align-items:center">ยอดขายรายเดือน แยกตามประเภท <span style="font-size:10px;color:#94a3b8;font-weight:400">6 เดือน · กระสอบ</span></div><div class="anb-group" style="height:'+mxH+'px">';
+    last6.forEach(({key,lbl},mi)=>{
+      const tot=mTots[mi];
+      const bH=Math.max(4,Math.round(tot/mxT*mxH));
+      h+='<div class="anb-wrap"><div class="anb-stack" style="height:'+bH+'px">';
+      // column-reverse: first in DOM = bottom, so put types[0] first
+      types.forEach((t,i)=>{
+        const q=typeMon[t]&&typeMon[t][key]||0;
+        const pct=tot>0?(q/tot*100).toFixed(1):'0';
+        h+='<div class="anb-seg" style="height:'+pct+'%;background:'+COLORS[i]+'"></div>';
+      });
+      h+='</div><div class="anb-lbl">'+lbl+'</div></div>';
+    });
+    h+='</div><div class="an-legend">';
+    types.forEach((t,i)=>{ h+='<div class="an-legend-item"><div class="an-legend-dot" style="background:'+COLORS[i]+'"></div>'+t+'</div>'; });
+    return h+'</div></div>';
+  }
+
+  const BY=thisY+543;
+  el.innerHTML=
+    '<button class="an-cal-btn" onclick="var p=document.getElementById(\'an-cal-popup\');p.style.display=p.style.display===\'block\'?\'none\':\'block\'">📅 <span>'+THAI_MF[thisM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
+    buildCal()+
+    '<div class="an-sales-kpi-row">'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">'+ytd.toLocaleString()+' กระสอบ</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+THAI_M[thisM]+'. '+BY+'</div></div>'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายเดือนนี้</div><div class="ask-val" style="color:#1A3A5C">'+mon.toLocaleString()+' กระสอบ</div><div class="ask-sub">'+(pBadge(mon,prevMon)||'—')+' vs เดือนที่แล้ว</div></div>'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายวันนี้ ('+now.getDate()+' '+THAI_M[thisM]+'.)</div><div class="ask-val" style="color:#1A3A5C">'+tod.toLocaleString()+' กระสอบ</div><div class="ask-sub">'+(pBadge(tod,yestQ)||'—')+' vs เมื่อวาน</div></div>'+
+    '</div>'+
+    '<div class="an-sales-2col">'+buildBar()+buildDonut()+'</div>'+
+    buildStack();
+
+  const badge=document.getElementById('an-sales-mock-badge');
+  if(badge)badge.remove();
 }
 
 </script>
