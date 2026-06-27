@@ -3111,13 +3111,25 @@ function anRenderSalesCharts(orders, items) {
     return t;
   }
 
-  // Parse order date (Thai string or ISO)
+  // Parse order date — robust: ISO / D/M/Y Buddhist / M/D/Y CE / any separator
   function pDate(o) {
     if (!o.date) return null;
-    const s = String(o.date);
-    if (s.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(s)) { const d=new Date(s); return isNaN(d)?null:d; }
-    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (m) { let y=parseInt(m[3]); if(y>2500)y-=543; return new Date(y,parseInt(m[2])-1,parseInt(m[1])); }
+    const s = String(o.date).trim();
+    if (s.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(s)) {
+      const d=new Date(s); return isNaN(d)?null:d;
+    }
+    const pts = s.match(/(\d+)/g);
+    if (pts && pts.length >= 3) {
+      let p0=parseInt(pts[0]),p1=parseInt(pts[1]),p2=parseInt(pts[2]);
+      let yr,mo,dy;
+      if (p0 >= 100) { yr=p0; mo=p1; dy=p2; }
+      else if (p2 >= 100) { dy=p0; mo=p1; yr=p2; }
+      else return null;
+      if (yr > 2500) yr -= 543;
+      if (mo<1||mo>12) { const tmp=mo; mo=dy; dy=tmp; }
+      if (mo<1||mo>12||dy<1||dy>31) return null;
+      const d=new Date(yr,mo-1,dy); return isNaN(d)?null:d;
+    }
     return null;
   }
 
@@ -3254,7 +3266,7 @@ function anRenderSalesCharts(orders, items) {
     '<button class="an-cal-btn" onclick="var p=document.getElementById(\'an-cal-popup\');p.style.display=p.style.display===\'block\'?\'none\':\'block\'">📅 <span>'+THAI_MF[thisM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
     buildCal()+
     '<div class="an-sales-kpi-row">'+
-      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">'+ytd.toLocaleString()+' กระสอบ</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+THAI_M[thisM]+'. '+BY+'</div></div>'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">'+ytd.toLocaleString()+' กระสอบ</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+THAI_M[thisM]+'. '+BY+' | raw:'+JSON.stringify((orders[0]||{}).date)+'</div></div>'+
       '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายเดือนนี้</div><div class="ask-val" style="color:#1A3A5C">'+mon.toLocaleString()+' กระสอบ</div><div class="ask-sub">'+(pBadge(mon,prevMon)||'—')+' vs เดือนที่แล้ว</div></div>'+
       '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายวันนี้ ('+now.getDate()+' '+THAI_M[thisM]+'.)</div><div class="ask-val" style="color:#1A3A5C">'+tod.toLocaleString()+' กระสอบ</div><div class="ask-sub">'+(pBadge(tod,yestQ)||'—')+' vs เมื่อวาน</div></div>'+
     '</div>'+
@@ -3263,14 +3275,6 @@ function anRenderSalesCharts(orders, items) {
 
   const badge=document.getElementById('an-sales-mock-badge');
   if(badge)badge.remove();
-  // === TEMP DEBUG (append after render) ===
-  const _now=new Date();
-  const _dbg=orders.slice(0,3).map(o=>'date='+JSON.stringify(o.date)+' qty='+o.qty+' code='+o.code).join('<br>');
-  const _div=document.createElement('div');
-  _div.style.cssText='background:#fef3c7;padding:8px;font-size:11px;border-radius:6px;margin-bottom:8px';
-  _div.innerHTML='🔍 '+orders.length+' orders | now='+_now.getFullYear()+'/'+(_now.getMonth()+1)+'/'+_now.getDate()+'<br>'+_dbg;
-  el.insertAdjacentElement('afterbegin',_div);
-  // === END DEBUG ===
 }
 
 </script>
