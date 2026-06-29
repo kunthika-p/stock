@@ -111,7 +111,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 
 
 #hist-tbl th{border:1px solid rgba(255,255,255,0.5)}
-#hist-tbl td{border:1px solid #c0cfe0}
+#hist-tbl td{border:1px solid #c0cfe0;padding:5px 7px}
 
 /* สรุปออเดอร์ tab */
 .sum-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}
@@ -175,18 +175,18 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
       <span id="sales-hist-count2" style="font-size:13px;font-weight:400;color:#888"></span>
     </div>
     <div style="overflow-x:auto">
-      <table id="hist-tbl" style="width:100%;border-collapse:collapse;font-size:13px;min-width:700px">
+      <table id="hist-tbl" style="width:100%;border-collapse:collapse;font-size:12px;min-width:850px">
         <thead><tr style="background:#1a3a5c;color:white">
-          <th style="padding:9px 10px;text-align:left;min-width:120px">ลูกค้า</th>
-          <th style="padding:9px 10px;text-align:left;min-width:160px">ชื่อสินค้า</th>
-          <th style="padding:9px 10px;text-align:center">รหัส</th>
-          <th style="padding:9px 10px;text-align:center">กระสอบ</th>
-          <th style="padding:9px 10px;text-align:center">กล่อง</th>
-          <th style="padding:9px 10px;text-align:center">ความเร่งด่วน</th>
-          <th style="padding:9px 10px;text-align:center">%ส่วนลด</th>
-          <th style="padding:9px 10px;text-align:center">ราคาเน็ต</th>
-          <th style="padding:9px 10px;text-align:left">หมายเหตุ</th>
-          <th style="padding:9px 10px;width:90px">จัดการ</th>
+          <th style="padding:5px 7px;text-align:left;min-width:120px">ลูกค้า</th>
+          <th style="padding:5px 7px;text-align:left;min-width:160px">ชื่อสินค้า</th>
+          <th style="padding:5px 7px;text-align:center">รหัส</th>
+          <th style="padding:5px 7px;text-align:center">กระสอบ</th>
+          <th style="padding:5px 7px;text-align:center">กล่อง</th>
+          <th style="padding:5px 7px;text-align:center">ความเร่งด่วน</th>
+          <th style="padding:5px 7px;text-align:center">%ส่วนลด</th>
+          <th style="padding:5px 7px;text-align:center">ราคาเน็ต</th>
+          <th style="padding:5px 7px;text-align:left">หมายเหตุ</th>
+          <th style="padding:5px 7px;width:90px">จัดการ</th>
         </tr></thead>
         <tbody id="sales-hist-tbody">
           <tr><td colspan="10" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>
@@ -261,6 +261,28 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
     <div class="field">
       <label>หมายเหตุ (ถ้ามี)</label>
       <input type="text" id="inputItemNote" placeholder="">
+    </div>
+  </div>
+</div>
+
+<!-- Edit Order Modal -->
+<div id="editOrderBg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center" onclick="closeEditOrder(event)">
+  <div style="background:#fff;border-radius:14px;padding:24px 20px;width:90%;max-width:380px;font-family:'Sarabun',sans-serif" onclick="event.stopPropagation()">
+    <div id="editOrderName" style="font-size:15px;font-weight:700;color:#1a3a5c;margin-bottom:4px"></div>
+    <div id="editOrderCode" style="font-size:12px;color:#888;margin-bottom:16px"></div>
+    <div style="margin-bottom:12px">
+      <label id="editOrderQtyLabel" style="font-size:13px;color:#374151;display:block;margin-bottom:6px">จำนวน *</label>
+      <input id="editOrderQty" type="number" min="1" step="1"
+        style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:15px;font-family:'Sarabun',sans-serif">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:13px;color:#374151;display:block;margin-bottom:6px">หมายเหตุ (ถ้ามี)</label>
+      <input id="editOrderNote" type="text"
+        style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:'Sarabun',sans-serif">
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="closeEditOrderDirect()" style="flex:1;padding:13px;border:1.5px solid #d1d5db;border-radius:8px;background:white;font-size:15px;font-family:'Sarabun',sans-serif;cursor:pointer">ยกเลิก</button>
+      <button onclick="saveEditOrder()" style="flex:2;padding:13px;border:none;border-radius:8px;background:#2563eb;color:white;font-size:15px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer">💾 บันทึก</button>
     </div>
   </div>
 </div>
@@ -1085,14 +1107,32 @@ function salesDeleteOrder(id) {
   renderSalesHistory();
 }
 
+let _editOrderId = null;
+
 function salesEditOrder(id) {
   const o = stagedOrders.find(x => String(x.id) === String(id));
   if (!o) return;
-  const newQty = prompt('แก้ไขจำนวน (' + o.unit + ') สำหรับ ' + o.name + ':', o.qty);
-  if (newQty === null) return;
-  const q = parseInt(newQty);
-  if (!q || q < 1) { alert('จำนวนไม่ถูกต้อง'); return; }
+  _editOrderId = id;
+  document.getElementById('editOrderName').textContent = o.name;
+  document.getElementById('editOrderCode').textContent = 'รหัส: ' + o.code;
+  document.getElementById('editOrderQtyLabel').textContent = 'จำนวน (' + o.unit + ') *';
+  document.getElementById('editOrderQty').value = o.qty;
+  document.getElementById('editOrderNote').value = o.note || '';
+  const bg = document.getElementById('editOrderBg');
+  bg.style.display = 'flex';
+  setTimeout(() => document.getElementById('editOrderQty').focus(), 50);
+}
+function closeEditOrder(e) { if (e.target === document.getElementById('editOrderBg')) closeEditOrderDirect(); }
+function closeEditOrderDirect() { document.getElementById('editOrderBg').style.display = 'none'; _editOrderId = null; }
+function saveEditOrder() {
+  if (!_editOrderId) return;
+  const o = stagedOrders.find(x => String(x.id) === String(_editOrderId));
+  if (!o) return;
+  const q = parseInt(document.getElementById('editOrderQty').value);
+  if (!q || q < 1) { showToast('จำนวนไม่ถูกต้อง','warn'); return; }
   o.qty = q;
+  o.note = document.getElementById('editOrderNote').value.trim();
+  closeEditOrderDirect();
   renderSalesHistory();
 }
 
