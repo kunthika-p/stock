@@ -2459,6 +2459,16 @@ async function saveEdit() {
 
 // ---- History tab ----
 async function loadHistory() {
+  if (!allItems.length) {
+    try {
+      const sr = await fetch(API + '?action=getStock');
+      const sd = await sr.json();
+      if (sd.items) {
+        allItems = sd.items.map(x => ({ ...x, code: String(x.code).padStart(8,'0') }));
+        allItems.forEach(x => { stockMap[x.code] = { stock: Number(x.stock)||0 }; });
+      }
+    } catch(e) {}
+  }
   try {
     const res = await fetch(API + '?action=getOrders&status=all');
     const data = await res.json();
@@ -2560,6 +2570,16 @@ function initSummaryTab() {
 }
 
 async function loadSummary() {
+  if (!allItems.length) {
+    try {
+      const sr = await fetch(API + '?action=getStock');
+      const sd = await sr.json();
+      if (sd.items) {
+        allItems = sd.items.map(x => ({ ...x, code: String(x.code).padStart(8,'0') }));
+        allItems.forEach(x => { stockMap[x.code] = { stock: Number(x.stock)||0 }; });
+      }
+    } catch(e) {}
+  }
   const body = document.getElementById('sum-body');
   body.innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">⏳ กำลังโหลด...</p>';
   try {
