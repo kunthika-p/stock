@@ -128,7 +128,8 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .btn-si-del{background:none;border:none;color:#dc2626;font-size:16px;cursor:pointer;padding:2px 6px}
 .btn-si-submit{width:100%;background:#16a34a;color:white;border:none;border-radius:10px;padding:14px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer;margin-top:8px}
 .btn-si-submit:disabled{background:#9ca3af;cursor:default}
-#cv-submit-btn:not(:disabled){background:#2563eb}
+#si-submit-btn:not(:disabled){background:#1a3a5c}
+#cv-submit-btn:not(:disabled){background:#3d6b61}
 #dt-submit-btn:not(:disabled){background:#6b1528}
 /* ── ประวัติรับเข้า + feature ใหม่ ── */
 .si-subtab{display:flex;gap:8px;margin-bottom:16px}
@@ -560,7 +561,7 @@ table.list tr:hover td{background:#f8fbff}
       </div>
 
 
-      <div class="si-card">
+      <div class="si-card" style="margin-top:28px">
         <div class="si-card-title hdr-yellow" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
           <span>🔄 แปลงบรรจุภัณฑ์ (ถัง → กระสอบ/กล่อง)</span>
           <div style="display:flex;gap:6px;align-items:center">
@@ -606,7 +607,7 @@ table.list tr:hover td{background:#f8fbff}
       </div><!-- /si-form-wrap -->
 
       <!-- ── ตัดสต็อคถัง ── -->
-      <div id="dt-form-wrap" style="background:white;border-radius:10px;padding:18px;margin-bottom:16px">
+      <div id="dt-form-wrap" style="margin-top:28px;background:white;border-radius:10px;padding:18px;margin-bottom:16px">
         <div class="si-card-title hdr-pink" style="display:flex;justify-content:space-between;align-items:center"><span>🗑 ตัดสต็อคถัง</span><span style="font-size:11px;font-weight:500;background:#c07f91;color:#4a0e1c;padding:2px 10px;border-radius:20px">ถัง ลดลง — ไม่แปลงหน่วย</span></div>
         <div style="display:grid;grid-template-columns:2fr 1fr 2fr auto;gap:10px;align-items:end;margin-bottom:10px">
           <div class="si-field" style="position:relative">
@@ -2808,7 +2809,16 @@ async function anLoadData() {
     // --- Fetch confirmed orders for deep analytics ---
     const oRes = await fetch(API + '?action=getOrders');
     const oData = await oRes.json();
-    const orders = (oData.orders || []).filter(o => String(o.status) === 'confirmed');
+    const allOrders = oData.orders || [];
+    const orders = allOrders.filter(o => String(o.status) === 'confirmed');
+    console.log('[Analytics] total orders:', allOrders.length, '| confirmed:', orders.length);
+    if (orders.length > 0) {
+      console.log('[Analytics] sample order:', JSON.stringify(orders[0]));
+      console.log('[Analytics] last order date raw:', orders[orders.length-1].date);
+    } else if (allOrders.length > 0) {
+      console.log('[Analytics] statuses found:', [...new Set(allOrders.map(o=>o.status))]);
+      console.log('[Analytics] sample order:', JSON.stringify(allOrders[0]));
+    }
     document.getElementById('an-orders-loading').style.display = 'none';
     document.getElementById('an-features').style.display = 'block';
     // Build salesMap: code -> {name, type, totalQty, lastDate}
@@ -3266,7 +3276,7 @@ function anRenderSalesCharts(orders, items) {
     '<button class="an-cal-btn" onclick="var p=document.getElementById(\'an-cal-popup\');p.style.display=p.style.display===\'block\'?\'none\':\'block\'">📅 <span>'+THAI_MF[thisM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
     buildCal()+
     '<div class="an-sales-kpi-row">'+
-      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">'+ytd.toLocaleString()+' กระสอบ</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+THAI_M[thisM]+'. '+BY+' | raw:'+JSON.stringify((orders[0]||{}).date)+'</div></div>'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">'+ytd.toLocaleString()+' กระสอบ</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+THAI_M[thisM]+'. '+BY+'</div></div>'+
       '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายเดือนนี้</div><div class="ask-val" style="color:#1A3A5C">'+mon.toLocaleString()+' กระสอบ</div><div class="ask-sub">'+(pBadge(mon,prevMon)||'—')+' vs เดือนที่แล้ว</div></div>'+
       '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายวันนี้ ('+now.getDate()+' '+THAI_M[thisM]+'.)</div><div class="ask-val" style="color:#1A3A5C">'+tod.toLocaleString()+' กระสอบ</div><div class="ask-sub">'+(pBadge(tod,yestQ)||'—')+' vs เมื่อวาน</div></div>'+
     '</div>'+
