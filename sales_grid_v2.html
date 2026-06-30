@@ -545,6 +545,7 @@ function changeName() {
   customerCode = '';
   document.getElementById('customerInput').style.display = '';
   document.getElementById('customerInput').value = '';
+  document.getElementById('inputNote').value = '';
   document.getElementById('acDrop').classList.remove('open');
   document.querySelector('.customer-bar .btn-confirm').style.display = '';
   document.querySelector('.customer-bar label').textContent = '👤 ชื่อลูกค้า:';
@@ -1032,6 +1033,7 @@ async function submitAllOrders() {
   });
   cart = [];
   editingCartIndex = null;
+  document.getElementById('inputNote').value = '';
   updateCartBar();
   closeCartModalDirect();
   showToast('✅ เพิ่มใน ประวัติ แล้ว กรุณายืนยันก่อนส่ง Admin');
