@@ -1500,7 +1500,7 @@ function renderStockInHistory() {
           <td style="font-weight:700;color:#1a3a5c">${r.unit==='กระสอบ'&&r.qty?r.qty:''}</td>
           <td style="font-weight:700;color:#7c3aed">${r.unit==='กล่อง'&&r.qty?r.qty:''}</td>
           <td style="font-weight:700;color:#1a3a5c">${r.unit==='ถัง'&&r.qty&&r.direction!=='out-tank'?r.qty:''}</td>
-          <td style="font-weight:700;color:#dc2626">${r.direction==='out-tank'&&r.unit==='ถัง'&&r.qty?r.qty:r.direction==='pack'?(r.tankUsed||(r.note&&r.note.match(/บรรจุจาก\s*(\d+)\s*ถัง/)?.[1])||''):''}</td>
+          <td style="font-weight:700;color:#dc2626">${r.direction==='out-tank'&&r.unit==='ถัง'&&r.qty?r.qty:r.direction==='pack'?(r.tankUsed||((r.note&&r.note.match(/บรรจุจาก\s*(\d+)\s*ถัง/)||[])[1])||''):''}</td>
           <td style="font-size:12px;color:#555">${idx===0?g.recorder:''}</td>
           <td class="td-left" style="font-size:11px;color:#666">${r.note||''}</td>
           <td>${isVoided?'<span style="font-size:10px;color:#991b1b;background:#fee2e2;border-radius:4px;padding:2px 6px">ยกเลิกแล้ว</span>':r.direction==="out-tank"?'<span style="font-size:10px;color:#991b1b;background:#fee2e2;border-radius:4px;padding:2px 6px">ตัดออก</span>':r.direction==="pack"?'<button onclick=\'packEditOpen('+JSON.stringify(r)+')\'    style="background:none;border:1px solid #d97706;color:#d97706;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif;margin-right:3px">✏️ แก้</button><button onclick=\'packVoidOpen('+JSON.stringify(r)+')\'  style="background:none;border:1px solid #dc2626;color:#dc2626;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif">✕ ยกเลิก</button>':'<button onclick=\'siEditEntry('+JSON.stringify(r)+')\' style="background:none;border:1px solid #d97706;color:#d97706;border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif">✏️ แก้ไข</button>'}</td>
@@ -1756,7 +1756,7 @@ function cvSelectItem(i) {
   document.getElementById('cv-drop').style.display = 'none';
   const tank = getTank(it.code);
   const stk = stockMap[String(it.code)];
-  const stkDisplay = stk !== undefined ? stk : '—';
+  const stkDisplay = stk !== undefined ? (typeof stk === 'object' ? stk.stock : stk) : '—';
   document.getElementById('cv-hint-tank').textContent = tank;
   document.getElementById('cv-hint-stock').textContent = stkDisplay;
   document.getElementById('cv-stock-hint').style.display = 'block';
@@ -2185,6 +2185,7 @@ async function loadPending() {
       if (sd.items) {
         allItems = sd.items.map(x => ({ ...x, code: String(x.code).padStart(8,'0') }));
         allItems.forEach(x => { stockMap[x.code] = { stock: Number(x.stock)||0 }; });
+        if (sd.tankMap) tankMap = sd.tankMap;
       }
     } catch(e) {}
   }
@@ -2514,6 +2515,7 @@ async function loadHistory() {
       if (sd.items) {
         allItems = sd.items.map(x => ({ ...x, code: String(x.code).padStart(8,'0') }));
         allItems.forEach(x => { stockMap[x.code] = { stock: Number(x.stock)||0 }; });
+        if (sd.tankMap) tankMap = sd.tankMap;
       }
     } catch(e) {}
   }
@@ -2625,6 +2627,7 @@ async function loadSummary() {
       if (sd.items) {
         allItems = sd.items.map(x => ({ ...x, code: String(x.code).padStart(8,'0') }));
         allItems.forEach(x => { stockMap[x.code] = { stock: Number(x.stock)||0 }; });
+        if (sd.tankMap) tankMap = sd.tankMap;
       }
     } catch(e) {}
   }
