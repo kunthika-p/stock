@@ -2371,17 +2371,20 @@ async function bulkConfirm() {
   if (!checked.length) return;
   if (!confirm(`ยืนยัน ${checked.length} รายการ?`)) return;
   const items = checked.map(c => ({row: Number(c.dataset.row), code: c.dataset.code, qty: Number(c.dataset.qty)}));
+  showToast('⏳ กำลังยืนยัน 0/' + items.length + ' รายการ...');
   try {
     const errors = [];
-    for (const item of items) {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      showToast('⏳ กำลังยืนยัน ' + (i+1) + '/' + items.length + ' รายการ...');
       try {
         const res = await fetch(API, {
           method: 'POST', body: JSON.stringify({action:'confirmOrder', row: item.row, code: item.code, qty: item.qty})
         });
         const data = await res.json();
-        console.log('confirm result:', item.row, item.code, JSON.stringify(data));
         if (!data.success) errors.push(item.code + ': ' + (data.error||'fail'));
       } catch(e2) { errors.push(item.code + ': ' + e2.message); }
+      if (i < items.length - 1) await new Promise(r => setTimeout(r, 300));
     }
     if (errors.length) {
       showToast('⚠️ ยืนยัน ' + (items.length - errors.length) + '/' + items.length + ' รายการ (fail: ' + errors.length + ')', 'warn');
@@ -2640,8 +2643,7 @@ function renderSummary() {
     if (dateTo   && d > dateTo)   return false;
     return true;
   });
-  console.log('DEBUG renderSummary: rows='+rows.length+' dateFrom='+dateFrom+' dateTo='+dateTo+' sample_d='+(summaryData[0]?(() => { const r=String(summaryData[0].timestamp||summaryData[0].date||''); const m2=r.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(m2){const y=Number(m2[3])>2500?Number(m2[3])-543:Number(m2[3]);return y+'-'+String(m2[2]).padStart(2,'0')+'-'+String(m2[1]).padStart(2,'0');} const i=r.split('T')[0]; const p=i.split('-'); return(p.length===3&&Number(p[0])>2100)?(Number(p[0])-543)+'-'+p[1]+'-'+p[2]:i; })():'none')+' raw='+(summaryData[0]?String(summaryData[0].timestamp||summaryData[0].date||''):'none'));
-
+  
   if (!rows.length) {
     document.getElementById('sum-body').innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">ไม่มีรายการ</p>';
     const statEl2 = document.getElementById('sum-stat'); statEl2.textContent=''; statEl2.style.display='none';
