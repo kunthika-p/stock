@@ -2184,7 +2184,6 @@ async function loadPending() {
     const res = await fetch(API + '?action=getOrders&status=pending');
     const data = await res.json();
     pendingOrders = data.orders || [];
-    if(pendingOrders.length) console.log('DBG_PEND:', JSON.stringify(pendingOrders[0]));
     document.getElementById('pendingCount').textContent = pendingOrders.length;
     if (!pendingOrders.length) {
       document.getElementById('pendingList').innerHTML = '<div class="empty">✅ ไม่มีคำสั่งซื้อรอยืนยัน</div>';
@@ -2209,11 +2208,17 @@ function renderPendingTable() {
     const VALID_URG = ['ด่วน','จอง','เร่ง','ปกติ']; // เร่ง ไว้รองรับ orders เก่า
     const UNIT_VALS = ['กล่อง','กระสอบ'];
     // ตรวจว่า urgency/note สลับกัน (orders เก่าที่เก็บ unit ไว้ใน urgency field)
-    if (VALID_URG.includes(o.urgency)) {
+    // Sheet mismatch: unit column หายไป → o.urgency=unit, o.note=urgency, o.date=note จริง
+    const _isShifted = UNIT_VALS.includes(o.urgency);
+    if (_isShifted) {
+      o._urgency = VALID_URG.includes(o.note) ? o.note : '';
+      const _nd = String(o.date||'');
+      o._note = (!_nd || /^\d{1,2}\/\d{1,2}\/\d{4}/.test(_nd) || /^\d{4}-\d{2}/.test(_nd)) ? '' : _nd;
+    } else if (VALID_URG.includes(o.urgency)) {
       o._urgency = o.urgency;
       o._note = (UNIT_VALS.includes(o.note)||VALID_URG.includes(o.note)) ? '' : (o.note||'');
     } else if (VALID_URG.includes(o.note)) {
-      o._urgency = o.note;   // urgency เก็บผิด field
+      o._urgency = o.note;
       o._note = '';
     } else {
       o._urgency = '';
