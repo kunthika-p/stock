@@ -816,6 +816,14 @@ table.list tr:hover td{background:#f8fbff}
       <label>หมายเหตุ</label>
       <input type="text" id="editNoteInput" placeholder="(ไม่บังคับ)">
     </div>
+    <div class="edit-field">
+      <label>%ส่วนลด <span style="font-size:11px;color:#888">(ว่าง = ไม่เปลี่ยน)</span></label>
+      <input type="number" id="editDiscInput" min="0" max="100" step="0.1" placeholder="เช่น 25">
+    </div>
+    <div class="edit-field">
+      <label>ราคา Net (บาท/กก.) <span style="font-size:11px;color:#888">(ว่าง = ไม่เปลี่ยน)</span></label>
+      <input type="number" id="editNetInput" min="0" step="0.01" placeholder="เช่น 85.50">
+    </div>
     <div class="edit-actions">
       <button class="btn-cancel-edit" onclick="closeEditModal()">ยกเลิก</button>
       <button class="btn-save" onclick="saveEdit()">💾 บันทึก</button>
@@ -1492,7 +1500,7 @@ function renderStockInHistory() {
           <td style="font-weight:700;color:#1a3a5c">${r.unit==='กระสอบ'&&r.qty?r.qty:''}</td>
           <td style="font-weight:700;color:#7c3aed">${r.unit==='กล่อง'&&r.qty?r.qty:''}</td>
           <td style="font-weight:700;color:#1a3a5c">${r.unit==='ถัง'&&r.qty&&r.direction!=='out-tank'?r.qty:''}</td>
-          <td style="font-weight:700;color:#dc2626">${r.direction==='out-tank'&&r.unit==='ถัง'&&r.qty?r.qty:r.direction==='pack'&&r.tankUsed?r.tankUsed:''}</td>
+          <td style="font-weight:700;color:#dc2626">${r.direction==='out-tank'&&r.unit==='ถัง'&&r.qty?r.qty:r.direction==='pack'?(r.tankUsed||(r.note&&r.note.match(/บรรจุจาก\s*(\d+)\s*ถัง/)?.[1])||''):''}</td>
           <td style="font-size:12px;color:#555">${idx===0?g.recorder:''}</td>
           <td class="td-left" style="font-size:11px;color:#666">${r.note||''}</td>
           <td>${isVoided?'<span style="font-size:10px;color:#991b1b;background:#fee2e2;border-radius:4px;padding:2px 6px">ยกเลิกแล้ว</span>':r.direction==="out-tank"?'<span style="font-size:10px;color:#991b1b;background:#fee2e2;border-radius:4px;padding:2px 6px">ตัดออก</span>':r.direction==="pack"?'<button onclick=\'packEditOpen('+JSON.stringify(r)+')\'    style="background:none;border:1px solid #d97706;color:#d97706;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif;margin-right:3px">✏️ แก้</button><button onclick=\'packVoidOpen('+JSON.stringify(r)+')\'  style="background:none;border:1px solid #dc2626;color:#dc2626;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif">✕ ยกเลิก</button>':'<button onclick=\'siEditEntry('+JSON.stringify(r)+')\' style="background:none;border:1px solid #d97706;color:#d97706;border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif">✏️ แก้ไข</button>'}</td>
@@ -2450,6 +2458,8 @@ function openEditModalByRow(row) {
   document.getElementById('editQtyLabel').textContent = `จำนวน (${o._unit||'กระสอบ'})`;
   document.getElementById('editQtyInput').value = o.qty;
   document.getElementById('editNoteInput').value = o._note || '';
+  document.getElementById('editDiscInput').value = (o.disc_pct !== '' && o.disc_pct !== null && o.disc_pct !== undefined) ? o.disc_pct : '';
+  document.getElementById('editNetInput').value = (o.net_price !== '' && o.net_price !== null && o.net_price !== undefined) ? o.net_price : '';
   setEditUrg(o._urgency || 'ปกติ');
   document.getElementById('editModalBg').classList.add('open');
 }
@@ -2471,15 +2481,23 @@ async function saveEdit() {
   const note = document.getElementById('editNoteInput').value.trim();
   const urgBtn = document.querySelector('.edit-urg-btn.active');
   const urgency = urgBtn ? urgBtn.dataset.urg : 'ปกติ';
+  const _discRaw = document.getElementById('editDiscInput').value.trim();
+  const _netRaw  = document.getElementById('editNetInput').value.trim();
+  const disc_pct  = _discRaw !== '' ? Number(_discRaw)  : null;
+  const net_price = _netRaw  !== '' ? Number(_netRaw)   : null;
   if (!qty || qty < 1) { alert('กรุณาใส่จำนวนที่ถูกต้อง'); return; }
   try {
     const res = await fetch(API, {
-      method: 'POST', body: JSON.stringify({action:'editOrder', row: editingRow, qty, urgency, note})
+      method: 'POST', body: JSON.stringify({action:'editOrder', row: editingRow, qty, urgency, note, disc_pct, net_price})
     });
     const data = await res.json();
     if (data.success) {
       const o = pendingOrders.find(x => x.row === editingRow);
-      if (o) { o.qty = qty; o._urgency = urgency; o.urgency = urgency; o._note = note; o.note = note; }
+      if (o) {
+        o.qty = qty; o._urgency = urgency; o.urgency = urgency; o._note = note; o.note = note;
+        if (disc_pct  !== null) o.disc_pct  = disc_pct;
+        if (net_price !== null) o.net_price = net_price;
+      }
       closeEditModal();
       renderPendingTable();
       showToast('✅ บันทึกแล้ว');
