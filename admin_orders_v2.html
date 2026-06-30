@@ -2631,6 +2631,7 @@ function renderSummary() {
     if (dateTo   && d > dateTo)   return false;
     return true;
   });
+  console.log('DEBUG renderSummary: rows='+rows.length+' dateFrom='+dateFrom+' dateTo='+dateTo+' sample_d='+(summaryData[0]?(() => { const r=String(summaryData[0].timestamp||summaryData[0].date||''); const m2=r.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(m2){const y=Number(m2[3])>2500?Number(m2[3])-543:Number(m2[3]);return y+'-'+String(m2[2]).padStart(2,'0')+'-'+String(m2[1]).padStart(2,'0');} const i=r.split('T')[0]; const p=i.split('-'); return(p.length===3&&Number(p[0])>2100)?(Number(p[0])-543)+'-'+p[1]+'-'+p[2]:i; })():'none')+' raw='+(summaryData[0]?String(summaryData[0].timestamp||summaryData[0].date||''):'none'));
 
   if (!rows.length) {
     document.getElementById('sum-body').innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">ไม่มีรายการ</p>';
