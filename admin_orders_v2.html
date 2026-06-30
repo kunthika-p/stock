@@ -2366,7 +2366,7 @@ function updateBulkCount() {
   }
 }
 
-async async function bulkConfirm() {
+async function bulkConfirm() {
   const checked = [...document.querySelectorAll('.pend-chk:checked')];
   if (!checked.length) return;
   if (!confirm(`ยืนยัน ${checked.length} รายการ?`)) return;
