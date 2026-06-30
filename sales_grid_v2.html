@@ -1232,7 +1232,15 @@ function renderTracking() {
       const yr = Number(m[3]) > 2500 ? Number(m[3]) - 543 : Number(m[3]);
       return yr+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
     }
-    return s.split('T')[0]; // ISO หรือ format อื่น
+    // ISO string อาจมีปี BE (>2100) เช่น '2569-06-21T...'
+    const isoDate = s.split('T')[0];
+    const pts = isoDate.split('-');
+    if (pts.length === 3) {
+      const yr = Number(pts[0]);
+      const ceYr = yr > 2100 ? yr - 543 : yr;
+      return ceYr + '-' + pts[1] + '-' + pts[2];
+    }
+    return isoDate;
   };
   let rows = trackingData.filter(o => {
     const cust = CUST_NAME_MAP[o.customer] || o.customer || '(ไม่ระบุ)';
@@ -1245,10 +1253,7 @@ function renderTracking() {
   });
 
   if (!rows.length) {
-    const _o0 = trackingData[0]||{};
-    const _keys = Object.keys(_o0).join(', ');
-    const _samp = trackingData.slice(0,3).map(o=>JSON.stringify({date:o.date,timestamp:o.timestamp,วันที่:o['วันที่']})).join('<br>');
-    bodyEl.innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">ไม่มีรายการ</p><p style="font-size:11px;color:#999;padding:8px">KEYS: '+_keys+'<br><br>SAMPLES:<br>'+_samp+'<br><br>dateFrom='+dateFrom+' dateTo='+dateTo+'</p>';
+    bodyEl.innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">ไม่มีรายการ</p>';
     statEl.textContent=''; statEl.style.display='none';
     return;
   }
