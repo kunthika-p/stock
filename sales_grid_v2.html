@@ -1245,7 +1245,8 @@ function renderTracking() {
   });
 
   if (!rows.length) {
-    bodyEl.innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">ไม่มีรายการ</p>';
+    const _sampleDates = trackingData.slice(0,5).map(o=>'['+JSON.stringify(o.date)+']').join(', ');
+    bodyEl.innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">ไม่มีรายการ</p><p style="font-size:11px;color:#999;padding:8px">DEBUG o.date samples: '+_sampleDates+'<br>dateFrom='+dateFrom+' dateTo='+dateTo+'</p>';
     statEl.textContent=''; statEl.style.display='none';
     return;
   }
