@@ -2372,14 +2372,22 @@ async function bulkConfirm() {
   if (!confirm(`ยืนยัน ${checked.length} รายการ?`)) return;
   const items = checked.map(c => ({row: Number(c.dataset.row), code: c.dataset.code, qty: Number(c.dataset.qty)}));
   try {
+    const errors = [];
     for (const item of items) {
-      const res = await fetch(API, {
-        method: 'POST', body: JSON.stringify({action:'confirmOrder', row: item.row, code: item.code, qty: item.qty})
-      });
-      const data = await res.json();
-      if (!data.success) { showToast('⚠️ ' + (data.error||'เกิดข้อผิดพลาด'), 'warn'); loadPending(); return; }
+      try {
+        const res = await fetch(API, {
+          method: 'POST', body: JSON.stringify({action:'confirmOrder', row: item.row, code: item.code, qty: item.qty})
+        });
+        const data = await res.json();
+        if (!data.success) errors.push(item.code + ': ' + (data.error||'fail'));
+      } catch(e2) { errors.push(item.code + ': ' + e2.message); }
     }
-    showToast(`✅ ยืนยัน ${items.length} รายการแล้ว`); loadPending(); loadHistory();
+    if (errors.length) {
+      showToast('⚠️ ยืนยัน ' + (items.length - errors.length) + '/' + items.length + ' รายการ (fail: ' + errors.length + ')', 'warn');
+    } else {
+      showToast('✅ ยืนยัน ' + items.length + ' รายการแล้ว');
+    }
+    loadPending(); loadHistory();
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
 }
 
