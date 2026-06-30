@@ -1,1 +1,1355 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>สั่งสินค้า — STIC</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15px}
 
+.header{background:linear-gradient(135deg,#1a3a5c,#2563a8);color:white;padding:14px 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.header h1{font-size:18px;font-weight:700}
+.header p{font-size:12px;opacity:.8;margin-top:2px}
+
+/* Customer name bar */
+.customer-bar{background:#fff8e1;border-bottom:2px solid #f59e0b;padding:10px 14px;position:sticky;top:58px;z-index:100;display:flex;align-items:center;gap:10px}
+.customer-bar label{font-size:13px;font-weight:700;color:#92400e;white-space:nowrap}
+.customer-bar input{flex:1;padding:8px 12px;border:1.5px solid #f59e0b;border-radius:8px;font-size:14px;font-family:'Sarabun',sans-serif;outline:none;background:white}
+.customer-bar input:focus{border-color:#d97706}
+.customer-bar .name-tag{background:#1a3a5c;color:white;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:700;white-space:nowrap;display:none}
+.customer-bar .btn-change{background:none;border:1px solid #92400e;color:#92400e;border-radius:6px;padding:4px 10px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer;white-space:nowrap}
+/* Autocomplete dropdown */
+.ac-wrap{position:relative;flex:1}
+.ac-wrap input{width:100%}
+.ac-drop{display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #f59e0b;border-top:none;border-radius:0 0 10px 10px;max-height:240px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.ac-drop.open{display:block}
+.ac-item{padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f3f4f6;font-size:14px}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover,.ac-item.focused{background:#fff8e1}
+.ac-item .ac-name{font-weight:600;color:#1a3a5c}
+.ac-item .ac-meta{font-size:12px;color:#888;font-family:monospace}
+.ac-grade{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;font-weight:700;margin-left:6px}
+.grade-A{background:#d1fae5;color:#065f46}.grade-B{background:#dbeafe;color:#1e40af}
+.grade-C{background:#fef9c3;color:#92400e}.grade-D{background:#fee2e2;color:#991b1b}
+
+.type-nav-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;background:white;border-bottom:1px solid #e0e0e0;position:sticky;top:106px;z-index:99}
+.type-btn{display:inline-block;padding:6px 14px;border:1.5px solid #d1d5db;border-radius:20px;font-size:13px;font-family:'Sarabun',sans-serif;background:white;color:#555;cursor:pointer}
+.type-btn.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
+
+.content{padding:12px}
+.tbl-wrap{overflow-x:auto;margin-bottom:20px;background:white;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.09);padding:12px}
+.type-title{font-size:15px;font-weight:700;color:#1a3a5c;margin-bottom:10px}
+
+table.stk{border-collapse:collapse;font-size:12px}
+table.stk th,table.stk td{border:1px solid #c8d6e5}
+.th-corner{background:#1a3a5c;color:white;padding:6px 10px;font-weight:700;font-size:11px;text-align:center;white-space:nowrap;min-width:80px}
+.th-col{background:#1a3a5c;color:white;padding:4px 2px;font-size:12px;text-align:center;white-space:nowrap;width:70px}
+.td-row{background:#f0f5ff;font-weight:700;padding:0 8px;text-align:center;color:#1a3a5c;border-right:2px solid #c8d6e5;white-space:nowrap;font-size:12px;min-width:80px}
+.stk-cell{width:70px;height:50px;text-align:center;vertical-align:middle;padding:0;overflow:hidden}
+.stk-cell.has{background:#d1fae5;cursor:pointer}
+.stk-cell.has:hover{background:#a7f3d0}
+.stk-cell.has.locked{background:#d1fae5;cursor:not-allowed;opacity:.6}
+.stk-cell.out{background:#fee2e2;cursor:default}
+.stk-cell.blocked{background:#e5e7eb}
+.cell-tick{font-size:20px;display:block}
+.cell-code{font-size:9px;color:#666;font-family:'Courier New',monospace;letter-spacing:0.5px}
+
+.loading{text-align:center;color:#888;padding:40px}
+.empty{text-align:center;color:#aaa;padding:20px}
+
+/* Legend */
+.legend{display:flex;gap:14px;padding:8px 12px;background:white;border-bottom:1px solid #e0e0e0;font-size:12px;color:#555}
+.ld{display:inline-block;width:14px;height:14px;border-radius:3px;margin-right:4px;vertical-align:middle}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end}
+.modal-bg.open{display:flex}
+.modal{background:white;border-radius:16px 16px 0 0;padding:20px 16px 32px;width:100%;max-height:85vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:700;color:#1a3a5c;margin-bottom:4px}
+.modal-code{font-size:12px;color:#888;font-family:monospace;margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:14px;font-weight:600;color:#374151;margin-bottom:6px}
+.field input,.field select{width:100%;padding:11px 13px;border:1.5px solid #d1d5db;border-radius:8px;font-size:15px;font-family:'Sarabun',sans-serif;outline:none}
+.field input:focus{border-color:#2563a8}
+.urgency-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.urgency-opt{padding:10px 6px;border:1.5px solid #d1d5db;border-radius:8px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
+.urgency-opt.sel-normal{background:#d1fae5;border-color:#16a34a;color:#065f46}
+.urgency-opt.sel-medium{background:#fef9c3;border-color:#d97706;color:#92400e}
+.urgency-opt.sel-urgent{background:#fee2e2;border-color:#dc2626;color:#991b1b}
+.urgency-opt:not(.selected){opacity:.5}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.price-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-auto input{background:var(--color-bg-auto,#f0f7ff);font-weight:500}
+.field-hint{font-size:11px;color:#999;margin:3px 0 0}
+.btn-cancel{flex:1;padding:13px;border:1.5px solid #d1d5db;border-radius:8px;background:white;font-size:15px;font-family:'Sarabun',sans-serif;cursor:pointer;color:#555}
+.btn-confirm{flex:2;padding:13px;border:none;border-radius:8px;background:#2563a8;color:white;font-size:15px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
+
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a3a5c;color:white;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;z-index:999;display:none;white-space:nowrap}
+.toast.show{display:block}
+
+/* Cart */
+.cart-bar{position:fixed;bottom:0;left:0;right:0;background:#1a3a5c;color:white;padding:12px 16px;z-index:150;display:none;align-items:center;justify-content:space-between;gap:10px}
+.cart-bar.show{display:flex}
+.cart-bar .cart-info{font-size:14px;font-weight:600}
+.cart-bar .btn-cart{background:#16a34a;color:white;border:none;border-radius:8px;padding:10px 18px;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
+.cart-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end}
+.cart-modal.open{display:flex}
+.cart-modal .modal{max-height:90vh}
+
+/* Cart items */
+.cart-type-header{font-size:12px;font-weight:700;color:#2563a8;background:#f0f5ff;padding:4px 8px;margin:8px -4px 4px;border-radius:4px}
+.cart-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;gap:8px}
+.cart-item-name{font-size:13px;color:#1a3a5c;font-weight:600;flex:1}
+.cart-item-qty{font-size:13px;color:#2563a8;font-weight:700;cursor:pointer;text-decoration:underline dotted;min-width:60px;text-align:right}
+.cart-item-qty:hover{color:#1a3a5c}
+.cart-item-del{background:none;border:none;color:#dc2626;font-size:18px;cursor:pointer;padding:0 4px}
+
+/* Inline qty edit */
+.qty-edit-input{width:70px;padding:4px 6px;border:1.5px solid #2563a8;border-radius:6px;font-size:13px;font-family:'Sarabun',sans-serif;text-align:center}
+
+
+#hist-tbl th{border:1px solid rgba(255,255,255,0.5)}
+#hist-tbl td{border:1px solid #c0cfe0;padding:5px 7px}
+
+/* สรุปออเดอร์ tab */
+.sum-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}
+.sum-tbl thead th{background:#1a3a5c;color:white;padding:9px 10px;font-weight:600;font-size:12px;text-align:center;border:1px solid #0f2844;white-space:nowrap}
+.sum-tbl td{padding:8px 10px;border:1px solid #e5e7eb;vertical-align:middle;text-align:center}
+.sum-tbl tr.group-sep td{border-top:2px solid #2563a8}
+.sum-tbl .td-cust{font-weight:700;color:#1a3a5c;text-align:left}
+.sum-tbl .td-name{text-align:left;color:#374151}
+.sum-tbl tr:hover td{background:#f8fbff}
+.sum-tbl tr.summary-row td{background:#1a3a5c;color:white;font-weight:700;border:1px solid #0f2844}
+.sum-tbl tr.summary-row:hover td{background:#1a3a5c}
+</style>
+</head>
+<body>
+
+</div>
+
+<div class="header">
+  <h1>🛒 สั่งสินค้า STIC</h1>
+  <p>กรอกชื่อลูกค้าก่อน แล้วกดช่อง ✅ เพื่อเพิ่มในตะกร้า</p>
+</div>
+
+<!-- Customer name bar -->
+<div class="customer-bar" id="customerBar">
+  <label>👤 ชื่อลูกค้า:</label>
+  <div class="ac-wrap" id="acWrap">
+    <input type="text" id="customerInput" placeholder="พิมพ์ชื่อหรือรหัสลูกค้า..." autocomplete="off"
+      oninput="onCustomerInput()" onkeydown="onCustomerKey(event)">
+    <div class="ac-drop" id="acDrop"></div>
+  </div>
+  <button class="btn-confirm" style="padding:8px 14px;font-size:13px;border-radius:8px;white-space:nowrap" onclick="confirmCustomer()">ตกลง</button>
+  <span class="name-tag" id="customerTag"></span>
+  <button class="btn-change" id="btnChangeName" style="display:none" onclick="changeName()">เปลี่ยน</button>
+</div>
+
+<!-- Tab nav -->
+<div style="display:flex;background:white;border-bottom:2px solid #e0e0e0;overflow-x:auto">
+  <button id="tab-btn-order" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:700;color:#1a3a5c;border-bottom:3px solid #1a3a5c;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('order',this)">🛒 สั่งสินค้า</button>
+  <button id="tab-btn-history" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:500;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('history',this)">📋 ประวัติ <span id="sales-hist-count" style="background:#dc2626;color:white;border-radius:10px;font-size:11px;padding:1px 6px;margin-left:3px;display:none"></span></button>
+  <button id="tab-btn-tracking" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:500;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('tracking',this)">📦 ติดตามออเดอร์</button>
+</div>
+
+<!-- Tab: สั่งสินค้า -->
+<div id="sales-tab-order">
+<div class="legend">
+  <span><span class="ld" style="background:#d1fae5;border:1px solid #ccc"></span>✅ มีสินค้า (กดสั่งได้)</span>
+  <span><span class="ld" style="background:#fee2e2;border:1px solid #ccc"></span>❌ หมด</span>
+  <span><span class="ld" style="background:#e5e7eb;border:1px solid #ccc"></span>— ไม่มีรายการ</span>
+</div>
+<div class="type-nav-wrap" id="typeNav"></div>
+<div class="content" id="content">
+  <div class="loading">⏳ กำลังโหลดข้อมูล...</div>
+</div>
+</div>
+
+<!-- Tab: ประวัติ -->
+<div id="sales-tab-history" style="display:none;padding:16px;max-width:1400px;margin:0 auto">
+  <div style="background:white;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.09);overflow:hidden;margin-bottom:16px">
+    <div style="padding:14px 16px;font-size:15px;font-weight:700;color:#1a3a5c;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
+      <span>📋 คำสั่งซื้อที่รอส่ง Admin</span>
+      <span id="sales-hist-count2" style="font-size:13px;font-weight:400;color:#888"></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table id="hist-tbl" style="width:100%;border-collapse:collapse;font-size:12px;min-width:850px">
+        <thead><tr style="background:#1a3a5c;color:white">
+          <th style="padding:5px 7px;text-align:center;min-width:72px">วันที่</th>
+          <th style="padding:5px 7px;text-align:left;min-width:120px">ลูกค้า</th>
+          <th style="padding:5px 7px;text-align:left;min-width:160px">ชื่อสินค้า</th>
+          <th style="padding:5px 7px;text-align:center">รหัส</th>
+          <th style="padding:5px 7px;text-align:center">กระสอบ</th>
+          <th style="padding:5px 7px;text-align:center">กล่อง</th>
+          <th style="padding:5px 7px;text-align:center">ความเร่งด่วน</th>
+          <th style="padding:5px 7px;text-align:center">%ส่วนลด</th>
+          <th style="padding:5px 7px;text-align:center">ราคาเน็ต</th>
+          <th style="padding:5px 7px;text-align:left">หมายเหตุ</th>
+          <th style="padding:5px 7px;width:90px">จัดการ</th>
+        </tr></thead>
+        <tbody id="sales-hist-tbody">
+          <tr><td colspan="11" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <button id="sales-confirm-all-btn" onclick="confirmAllToAdmin()" disabled
+    style="width:100%;background:#16a34a;color:white;border:none;border-radius:12px;padding:16px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer;opacity:.6">
+    ✅ ยืนยันส่งทั้งหมดไปที่ Admin
+  </button>
+  <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:8px">กดปุ่มนี้เมื่อต้องการส่งคำสั่งซื้อทั้งหมดให้ Admin ดำเนินการ</p>
+</div>
+
+<!-- Tab: ติดตามออเดอร์ -->
+<div id="sales-tab-tracking" style="display:none;padding:16px;max-width:1400px;margin:0 auto">
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;background:white;padding:12px 16px;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.09)">
+    <select id="trk-cust-filter" style="padding:7px 10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:'Sarabun',sans-serif">
+      <option value="">ทุกลูกค้า</option>
+    </select>
+    <select id="trk-stat-filter" style="padding:7px 10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:'Sarabun',sans-serif">
+      <option value="">ทุกสถานะ</option>
+      <option value="pending">⏳ รอยืนยัน</option>
+      <option value="confirmed">✅ ยืนยันแล้ว</option>
+      <option value="rejected">❌ ยกเลิก</option>
+    </select>
+    <label style="font-size:13px;color:#555">จาก:</label>
+    <input type="date" id="trk-date-from" style="padding:6px 10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:'Sarabun',sans-serif">
+    <label style="font-size:13px;color:#555">ถึง:</label>
+    <input type="date" id="trk-date-to" style="padding:6px 10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:'Sarabun',sans-serif">
+    <button onclick="renderTracking()" style="padding:7px 16px;background:#1a3a5c;color:white;border:none;border-radius:8px;font-size:13px;font-family:'Sarabun',sans-serif;font-weight:600;cursor:pointer">🔍 แสดง</button>
+    <span id="trk-stat" style="font-size:12px;color:#555;display:none;margin-left:4px"></span>
+  </div>
+  <div style="overflow-x:auto">
+    <div id="trk-body"></div>
+  </div>
+</div>
+
+<!-- Modal เพิ่มสินค้า -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-title" id="modalName"></div>
+    <div class="modal-code" id="modalCode"></div>
+    <div class="field">
+      <label id="qtyLabel">จำนวน *</label>
+      <input type="number" id="inputQty" placeholder="0" min="1" step="1">
+    </div>
+    <div class="field">
+      <label>ความเร่งด่วน *</label>
+      <div class="urgency-opts" id="itemUrgencyOpts" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="urgency-opt sel-normal selected" onclick="selectItemUrgency('ปกติ',this)">🟢 ปกติ</div>
+        <div class="urgency-opt sel-medium" onclick="selectItemUrgency('จอง',this)">🟡 จอง</div>
+        <div class="urgency-opt sel-urgent" onclick="selectItemUrgency('ด่วน',this)">🔴 ด่วน</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModalDirect()">ยกเลิก</button>
+      <button class="btn-confirm" id="btnAddCart" onclick="addToCart()">🛒 เพิ่มในตะกร้า</button>
+    </div>
+    <div class="price-row" style="margin-top:14px">
+      <div class="field" id="fieldDiscPct">
+        <label>% ส่วนลด</label>
+        <input type="number" id="inputDiscPct" placeholder="—" min="0" max="100" step="0.1">
+        <p class="field-hint" id="hintDiscPct"></p>
+      </div>
+      <div class="field" id="fieldNetPrice">
+        <label>ราคา Net (บาท/หน่วย)</label>
+        <input type="number" id="inputNetPrice" placeholder="—" min="0" step="0.01">
+        <p class="field-hint" id="hintNetPrice"></p>
+      </div>
+    </div>
+    <div class="field">
+      <label>หมายเหตุ (ถ้ามี)</label>
+      <input type="text" id="inputItemNote" placeholder="">
+    </div>
+  </div>
+</div>
+
+<!-- Edit Order Modal -->
+<div id="editOrderBg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;align-items:center;justify-content:center" onclick="closeEditOrder(event)">
+  <div style="background:#fff;border-radius:14px;padding:24px 20px;width:90%;max-width:380px;font-family:'Sarabun',sans-serif" onclick="event.stopPropagation()">
+    <div id="editOrderName" style="font-size:15px;font-weight:700;color:#1a3a5c;margin-bottom:4px"></div>
+    <div id="editOrderCode" style="font-size:12px;color:#888;margin-bottom:16px"></div>
+    <div style="margin-bottom:12px">
+      <label id="editOrderQtyLabel" style="font-size:13px;color:#374151;display:block;margin-bottom:6px">จำนวน *</label>
+      <input id="editOrderQty" type="number" min="1" step="1"
+        style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:15px;font-family:'Sarabun',sans-serif">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:13px;color:#374151;display:block;margin-bottom:6px">หมายเหตุ (ถ้ามี)</label>
+      <input id="editOrderNote" type="text"
+        style="width:100%;box-sizing:border-box;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-family:'Sarabun',sans-serif">
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="closeEditOrderDirect()" style="flex:1;padding:13px;border:1.5px solid #d1d5db;border-radius:8px;background:white;font-size:15px;font-family:'Sarabun',sans-serif;cursor:pointer">ยกเลิก</button>
+      <button onclick="saveEditOrder()" style="flex:2;padding:13px;border:none;border-radius:8px;background:#2563eb;color:white;font-size:15px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cart bar -->
+<div class="cart-bar" id="cartBar">
+  <div class="cart-info" id="cartInfo">🛒 0 รายการ</div>
+  <button class="btn-cart" onclick="openCartModal()">ดูตะกร้า & สั่งซื้อ</button>
+</div>
+
+<!-- Cart modal -->
+<div class="cart-modal" id="cartModal" onclick="closeCartModal(event)">
+  <div class="modal">
+    <div class="modal-title">🛒 ตะกร้าสินค้า</div>
+    <div style="font-size:13px;color:#555;margin:4px 0 12px">
+      👤 <strong id="cartCustomerName"></strong>
+    </div>
+    <div id="cartItems" style="margin:12px 0;max-height:45vh;overflow-y:auto"></div>
+    <div class="field">
+      <label>หมายเหตุ (ถ้ามี)</label>
+      <input type="text" id="inputNote" placeholder="">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeCartModalDirect()">ปิด</button>
+      <button class="btn-confirm" onclick="submitAllOrders()">✅ ยืนยันสั่งทั้งหมด</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+const API = "https://script.google.com/macros/s/AKfycbxZR82Tn7lBL23y7pL1YF5VtmFwhrx0hsomoM_Oq4ThanbOcOQayP1Vf4-1BD_UfVk/exec";
+
+const CUST_PRICES = {"13700":{"n":"ประวิทย์สลักภัณฑ์","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":50,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"01300":{"n":"ช.กิจเจริญ","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":50,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"00205":{"n":"กิ้มง้วน ฟาสเทรนเนอร์","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"00204":{"n":"โง้วกิ้มง้วน 2535","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"00203":{"n":"โง้วสลักภัณฑ์","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"06000":{"n":"อิ้วเลี้ยนวิจิตร","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"06001":{"n":"อิ้วเลี้ยนค้าน็อต","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"06002":{"n":"อิ้วเลี้ยนสลักภัณฑ์","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"03300":{"n":"จิระบุญ","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"บังคับใช้":{"n":"ร้าน","d":{},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"26 พ.ค. 69":{"n":"กิ้มฟาสฯ,โง้วกิ้มง้วน,โง้วสลักฯ","d":{},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"1 มิ.ย. 69":{"n":"ประวิทย์,ช.กิจ,อิ้วเลี้ยน 3 เจ้า","d":{},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"01500":{"n":"ง่วนฮงพาณิชย์","d":{"sw":57,"bw":45,"nc_s":40,"nc_l":38,"mw":53,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"00802":{"n":"ที.เอส.เอช. อิมปอร์ต","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":53,"nc":31,"mb":50,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"57100":{"n":"ลิ้มเฮง","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"57101":{"n":"ลิ้มเฮง (เทพารักษ์)","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"57102":{"n":"ลิ้มเฮง สกรูน็อตอิมพอร็ท","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"13600":{"n":"ศรีประชายนต์","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"09100":{"n":"มงคลชัยกลการ","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"57900":{"n":"เอส.บี.โบลท์","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"01101":{"n":"ซุ่นไถ่จั่น - LST - ลี้ซุ่นไถ่ไทยแลนด์","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"12215":{"n":"ยู.พี.โลหะภัณฑ์","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"16498":{"n":"เจ.เอส.สลักภัณฑ์","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"16499":{"n":"เอสสลักภัณฑ์","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"00900":{"n":"เตียเซียมฮงสลักภัณฑ์","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"05402":{"n":"เจริญชัยสลักภัณฑ์ (1996)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"04900":{"n":"ทิเม้งสกรู","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"12801":{"n":"อ.บุญถาวร (เอี้ยง)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"02300":{"n":"นามทอง","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"02000":{"n":"เด่นชัย","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"01501":{"n":"ง่วนฮงโลหะกิจ","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"16402":{"n":"อาณาจักรสลักภัณฑ์","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"00500":{"n":"เตียลั้งเฮง อินเตอร์","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"03301":{"n":"ส.จิระอิมปอร์ต","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"14104":{"n":"ชัยเสรีกลการ","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"02800":{"n":"ช.ศรีพงศ์-สินทวีพลัส","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"00100":{"n":"กิ้มฮวด-กิ้มฮวดพาณิชย์ (ลาซาล)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"04000":{"n":"ณรงค์ฤทธ์-ชินเกษม","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"13800":{"n":"เค.แอล.สลักภัณฑ์","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"04101":{"n":"กรุงเทพสกรูไทย","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"60500":{"n":"เอส เจ สกรูไทย","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11001":{"n":"อ.บุญประเสริฐ - แอปปอน","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05700":{"n":"โลหะกิจกลการ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01002":{"n":"เจริญกิจชัยพาณิชย์ - วี เจ แบริ่งเวิล์ด","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01200":{"n":"ช.เจริญโลหะกิจ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01700":{"n":"จารุรังสี","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"38300":{"n":"เจ.อาร์.เอส","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"06900":{"n":"ศรีเมืองโลหะกิจ ซัพพลาย","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"56900":{"n":"เอ็ม เอ็ม แกรนด์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"58700":{"n":"ทรัพย์วิษณุ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"04200":{"n":"บางกอกสลักภัณฑ์","d":{"sw":29,"bw":23,"nc_s":19,"nc_l":17,"mw":36,"nc":23,"mb":36,"h":34},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"08600":{"n":"ศรีทองโลหะกิจ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"61500":{"n":"ประสิทธิผลอุตสาหกรรม","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"06600":{"n":"สงวนโลหะกิจ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"09700":{"n":"ดำรงไทย","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"00300":{"n":"เตียวเล่งฮวด-SJP","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"34400":{"n":"อี.เอ็น.บี.ซัพพลาย","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"00303":{"n":"เอ็ม.จี.อาร์ - สยามเนยิ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"30800":{"n":"เอส.เอ็น.ที.พี.","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"08900":{"n":"ย้งเจริญการค้า","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"51400":{"n":"เอเซียคอนกรีต (1989)  , (1993)","d":{"sw":"-","bw":40,"nc_s":38,"nc_l":35,"mw":"-","nc":"-","mb":"-","h":"-"},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"17400":{"n":"จิระวัฒนา","d":{"sw":"-","bw":"-","nc_s":"-","nc_l":"-","mw":48,"nc":"-","mb":"-","h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"31000":{"n":"เอ็กโก้","d":{"sw":"-","bw":"-","nc_s":"-","nc_l":"-","mw":"-","nc":"-","mb":44,"h":"-"},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"62400":{"n":"เค.เอส.พี.สลักภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"03000":{"n":"บุญประสิทธิ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05200":{"n":"แพร่พิพัฒน์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01400":{"n":"ส.สถาพร","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11200":{"n":"ธนาวิวัฒน์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"50600":{"n":"เอส.วี.โลหะภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01600":{"n":"มงคลโลหะ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05100":{"n":"พิศาลภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"02900":{"n":"ชุนย้ง - บรรจงพาณิชย์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05900":{"n":"อ.โลหะภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"61000":{"n":"เอสเอฟซี ฟาสเทนเนอร์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"36300":{"n":"บี. พี. กรุ๊ป","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"61600":{"n":"กิจยืนยง","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05000":{"n":"ไทยไพศาลสลักภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"09000":{"n":"เม่งฮงเส็ง","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"07400":{"n":"แหลมทองสปริง","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"04102":{"n":"กรุงเทพสกรูไทย","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"00103":{"n":"กิ้มฮวดพาณิชย์ (ลาซาล)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"02001":{"n":"ดีซีน็อต (เด่นชัย)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"01103":{"n":"ลี้ซุ่นไถ่ (ไทยแลนด์)","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"01003":{"n":"วี เจ แบริ่ง (เจริญกิจชัย)","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"02801":{"n":"สินทวีพลัส","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"11000":{"n":"อ.บุญประเสริฐ (ป้อมปราบ)","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11004":{"n":"อ.บุญประเสริฐ (สี่พระยา)","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11002":{"n":"แอปปอน (คลองถม)","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11003":{"n":"แอปปอน (สาทร)","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"13801":{"n":"เค แอล เครื่องเหล็ก","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"61800":{"n":"ประสิทธิผลอุตสาหกรรม","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}}};
+
+const CUST_PRICE_REF = {"00103": "00100", "00106": "00100", "00304": "00303", "01003": "01002", "01103": "01101", "02001": "02000", "02801": "02800", "04102": "04101", "11000": "11001", "11002": "11001", "11003": "11001", "11004": "11001", "13801": "13800", "13802": "13800", "16900": "50600", "52700": "05700", "56900": "56900", "57101": "57100", "57102": "57100", "61600": "61600", "61800": "61500","59600":"56900"};
+
+function getPriceInfo(custCode, itemCode, type) {
+  const cp = CUST_PRICES[CUST_PRICE_REF[custCode] || custCode];
+  if (!cp) return {disc_pct: null, net_price: null};
+  const d = cp.d;
+  const hw = cp.hw || {};
+  const item = allItems.find(i => i.code === itemCode);
+  const itemCol = item ? String(item.col || '') : '';
+  const itemRow = item ? String(item.row || '') : '';
+  const rawType = item ? item.type : type;
+  let itemType = rawType;
+  for (const [canonical, aliases] of Object.entries(MERGED_TYPES)) {
+    if (aliases.includes(rawType)) { itemType = canonical; break; }
+  }
+
+  const BIG_W_COLS = ['5/8 W','3/4 W'];
+
+  // น็อตเหลี่ยม — %ส่วนลด sw/bw ตาม col
+  if (['น็อตเหลี่ยมเกลียว W','น็อตเหลี่ยม W ไม่ควบหัว'].includes(itemType)) {
+    return {disc_pct: BIG_W_COLS.includes(itemCol) ? d.bw : d.sw, net_price: null};
+  }
+
+  // สกรูเกลียวปล่อย — ราคาเน็ต
+  if (itemType === 'สกรูเกลียวปล่อย') {
+    const k = 'screw_' + itemCol + '"';
+    return {disc_pct: null, net_price: hw[k] !== undefined ? hw[k] : null};
+  }
+
+  // น็อตหัวกลมเกลียว W — 3/8 row≥3" และ 1/2 row≥4" → ราคาเน็ต | อื่นๆ → sw%
+  if (itemType === 'น็อตหัวกลมเกลียว W') {
+    const SHORT_38 = ['1','1.1/4','1.1/2','2 ค.','2.1/2'];
+    const SHORT_12 = ['1','1.1/4','1.1/2','2 ค.','2.1/2','3','3.1/2'];
+    if (itemCol === '3/8' && !SHORT_38.includes(itemRow)) {
+      return {disc_pct: null, net_price: hw['round_3/8 x 3" - 12"'] ?? null};
+    }
+    if (itemCol === '1/2' && !SHORT_12.includes(itemRow)) {
+      return {disc_pct: null, net_price: hw['round_1/2 x 4" - 12"'] ?? null};
+    }
+    return {disc_pct: d.sw, net_price: null};
+  }
+
+  if (itemType === 'สกรูมิลขาว') return {disc_pct: d.mw, net_price: null};
+
+  if (itemType === 'น็อตเหลี่ยม NC') {
+    const NC_L = ['7/8 NC','1 NC'];
+    const NC_S = ['5/8 NC','3/4 NC'];
+    const disc = NC_L.includes(itemCol) ? d.nc_l : NC_S.includes(itemCol) ? d.nc_s : d.nc;
+    return {disc_pct: disc, net_price: null};
+  }
+
+  if (itemType === 'น็อตเหลี่ยม NF') return {disc_pct: d.nc, net_price: null};
+
+  if (NOK_MIL_AENG_SRC.includes(itemType) || itemType === '__NOK_MIL_AENG_M6M12__' || itemType === '__NOK_MIL_AENG_M14M24__') return {disc_pct: d.mb, net_price: null};
+
+  // หัวน็อตเกลียว W: 3/16 + 5/8+ → ราคาเน็ต | 1/4–1/2 → %ส่วนลด d.h
+  if (itemType === 'หัวน็อตเกลียว W') {
+    const baseRow = itemRow.split(' ')[0];
+    const HEAD_W_DISC = ['1/4','5/16','3/8','7/16','1/2'];
+    if (HEAD_W_DISC.includes(baseRow)) return {disc_pct: d.h, net_price: null};
+    const hwKey = baseRow + '"W';
+    return {disc_pct: null, net_price: hw[hwKey] !== undefined ? hw[hwKey] : null};
+  }
+
+  // หัวน็อตมิล — ราคาเน็ต
+  if (itemType === 'หัวน็อตมิล') {
+    const m = itemRow.match(/^M(\d+)/);
+    if (m) {
+      const hwKey = 'M.' + m[1];
+      if (hw[hwKey] !== undefined) return {disc_pct: null, net_price: hw[hwKey]};
+    }
+    return {disc_pct: d.h, net_price: null};
+  }
+
+  // หัวน็อตเกลียวหยาบ NC: ≤1/2 → %ส่วนลด d.h | 5/8+ → ราคาเน็ต
+  if (itemType === 'หัวน็อตเกลียวหยาบ NC') {
+    const baseRow = itemRow.split(' ')[0];
+    const HEAD_NC_DISC = ['1/4','5/16','3/8','7/16','1/2','9/16'];
+    if (HEAD_NC_DISC.includes(baseRow)) return {disc_pct: d.h, net_price: null};
+    const NC_NET = {'5/8': '5/8"NC,NF', '3/4': '3/4"NC,NF', '7/8': '7/8"NC', '1': '1"NC'};
+    const nk = NC_NET[baseRow];
+    return {disc_pct: null, net_price: nk && hw[nk] !== undefined ? hw[nk] : null};
+  }
+
+  // หัวน็อตเกลียวหยาบ NF: ≤1/2 → %ส่วนลด d.h | 5/8–3/4 → ราคาเน็ต
+  if (itemType === 'หัวน็อตเกลียวหยาบ NF') {
+    const baseRow = itemRow.split(' ')[0];
+    const HEAD_NF_DISC = ['1/4','5/16','3/8','7/16','1/2','9/16'];
+    if (HEAD_NF_DISC.includes(baseRow)) return {disc_pct: d.h, net_price: null};
+    const NF_NET = {'5/8': '5/8"NC,NF', '3/4': '3/4"NC,NF'};
+    const nk = NF_NET[baseRow];
+    return {disc_pct: null, net_price: nk && hw[nk] !== undefined ? hw[nk] : null};
+  }
+
+  // เกรด8, Spring Washer, OVERSIZE → sales กรอกเอง
+  return {disc_pct: null, net_price: null};
+}
+
+const MATRICES = {"น็อตเหลี่ยมเกลียว W": {"cols": ["1/4", "5/16", "3/8", "7/16", "1/2", "5/8 W", "3/4 W"], "rows": ["1/2", "5/8", "3/4", "1", "1.1/4", "1.1/2", "1.3/4", "2", "2.1/2", "3", "3.1/2", "4", "4.1/2", "5", "6", "3.1/2 ค."]}, "น็อตหัวกลมเกลียว W": {"cols": ["1/4", "5/16", "3/8", "1/2"], "rows": ["1", "1.1/4", "1.1/2", "2 ค.", "2.1/2", "3", "3.1/2", "4", "4.1/2", "5", "5.1/2", "6", "6.1/2", "7", "7.1/2", "8", "8.1/2", "9", "10", "11", "12"]}, "สกรูเกลียวปล่อย": {"cols": ["1/4", "5/16", "3/8"], "rows": ["1.1/2", "2", "2.1/2", "3", "3.1/2", "4"]}, "หัวน็อตมิล": {"cols": ["ขาว", "ดำ"], "rows": ["M3", "M4", "M5", "M6 (p1.0 ขอบ10)", "M8 (p1.25 ขอบ12)", "M8 (p1.25 ขอบ13)", "M10 (p1.25 ขอบ14)", "M10 (p1.5 ขอบ14)", "M10 (p1.25 ขอบ17)", "M10 (p1.5 ขอบ17)", "M12 (p1.25 ขอบ17)", "M12 (p1.5 ขอบ17)", "M12 (p1.75 ขอบ19", "M14 (p1.5 ขอบ22)", "M14 (p2.0 ขอบ22)", "M16 (p1.5 ขอบ24)", "M16 (p2.0 ขอบ24)", "M18 (p1.5 ขอบ27)", "M18 (p2.5 ขอบ27)", "M20 (p2.5 ขอบ30)", "M22 (p2.5 ขอบ32)", "M24"]}, "หัวน็อตเกลียวหยาบ NC": {"cols": ["STOCK"], "rows": ["1/4", "5/16", "3/8", "7/16", "1/2", "9/16", "5/8", "3/4", "7/8", "1"]}, "หัวน็อตเกลียวหยาบ NF": {"cols": ["STOCK"], "rows": ["1/4", "5/16", "3/8", "7/16", "1/2", "9/16", "5/8", "3/4"]}, "หัวน็อตเกลียว W": {"cols": ["STOCK"], "rows": ["3/16", "1/4 (ขอบ10)", "1/4 (ขอบ11)", "5/16 (ขอบ12.5)", "5/16 (ขอบ14)", "3/8", "7/16", "1/2", "5/8", "3/4", "7/8", "1"]}, "สกรูมิลขาว": {"cols": ["M5", "M6", "M8", "M10", "M12"], "rows": ["10", "12", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70", "75", "80", "90", "100"]}, "น็อตเหลี่ยม NC": {"cols": ["1/4", "5/16", "3/8", "7/16", "1/2", "9/16", "5/8 NC", "3/4 NC", "7/8 NC", "1 NC"], "rows": ["1/2", "5/8", "3/4", "1", "1.1/4", "1.1/2", "2", "2.1/2", "3", "3.1/2", "4", "4.1/2", "5", "5.1/2", "6", "6.1/2", "7", "8"]}, "น็อตเหลี่ยม NF": {"cols": ["1/4", "5/16", "3/8", "7/16", "1/2", "9/16"], "rows": ["1/2", "5/8", "3/4", "1", "1.1/4", "1.1/2", "2", "2.1/2", "3", "3.1/2", "4"]}, "น็อตแข็ง M6-M16 (ตลอด)": {"cols": ["M6 P1.0", "M8 P1.25", "M10 P1.5", "M12 P1.75", "M14 P2.0", "M16 P2.0"], "rows": ["10", "12", "16", "20", "25", "30", "35", "40", "45", "50"]}, "น็อตแข็ง M6-M16 (ครึ่ง)": {"cols": ["M6 P1.0", "M8 P1.25", "M10 P1.5", "M12 P1.75", "M14 P2.0", "M16 P2.0"], "rows": ["40", "45", "50", "55", "60", "65", "70", "75", "80", "85", "90", "100", "110", "120", "130", "140", "150"]}, "น็อตแข็ง M18-M30 (ตลอด)": {"cols": ["M18 P2.5", "M20 P2.5", "M22 P2.5", "M24 P3.0", "M12 P1.5"], "rows": ["40", "45", "50", "60", "55", "65", "25", "30", "35"]}, "น็อตแข็ง M18-M30 (ครึ่ง)": {"cols": ["M18 P2.5", "M20 P2.5", "M22 P2.5", "M24 P3.0", "M30 P3.5", "M12 P1.5"], "rows": ["55", "60", "65", "70", "75", "80", "90", "100", "85", "110", "120", "130", "140", "150", "45", "50"]}, "น็อตแข็งเกลียวมิล (ตลอด)": {"cols": ["M10 P1.25", "M12 P1.25", "M14 P1.5", "M16 P1.5", "M18 P1.5"], "rows": ["20", "25", "30", "35", "40", "45", "50", "55", "60"]}, "น็อตแข็งเกลียวมิล (ครึ่ง)": {"cols": ["M10 P1.25", "M12 P1.25", "M14 P1.5", "M16 P1.5", "M18 P1.5"], "rows": ["45", "50", "55", "60", "65", "70", "75", "80", "90", "100", "40", "120"]}, "หัวน็อตมิลแข็ง เกรด8": {"cols": ["STOCK"], "rows": ["M6", "M8", "M10", "M12", "M14", "M16", "M18", "M20", "M22", "M24"]}, "Spring Washer": {"cols": ["STOCK"], "rows": ["M3", "M4", "M5", "M6", "M8", "M10", "M12", "M14", "M16", "M18", "M20", "M24"]}, "หัวน็อตมิลแข็ง OVERSIZE": {"cols": ["STOCK"], "rows": ["M6", "M8", "M10", "M12", "M14", "M16", "M18", "M20", "M22", "M24"]}, "น็อตเหลี่ยม W ไม่ควบหัว": {"cols": ["1/4", "5/16", "3/8", "7/16", "1/2"], "rows": ["1/2", "5/8", "3/4", "1", "1.1/4", "1.1/2", "1.3/4", "2"]}};
+const TYPES = ["น็อตเหลี่ยมเกลียว W", "น็อตหัวกลมเกลียว W", "สกรูเกลียวปล่อย", "__HUA_NUT__", "สกรูมิลขาว", "น็อตเหลี่ยม NC", "น็อตเหลี่ยม NF", "__NOK_MIL_AENG_M6M12__", "__NOK_MIL_AENG_M14M24__", "น็อตเหลี่ยม W ไม่ควบหัว", "__OTHER__"];
+const MERGED_TYPES = {"น็อตเหลี่ยมเกลียว W":["น็อตเหลี่ยมเกลียว W","น็อตเหลี่ยม W (ใหญ่)","น็อตเหลี่ยมเกลียว W 7/16x3 1/2 ครึ่ง"],"น็อตเหลี่ยม NC":["น็อตเหลี่ยม NC","น็อตเหลี่ยม NC (ใหญ่)"]};
+const HUA_NUT = ["หัวน็อตมิล","หัวน็อตเกลียว W","หัวน็อตเกลียวหยาบ NC","หัวน็อตเกลียวหยาบ NF"];
+const OTHER_TYPES = ["หัวน็อตมิลแข็ง เกรด8","Spring Washer","หัวน็อตมิลแข็ง OVERSIZE"];
+const BOX_TYPES = ["สกรูมิลขาว","น็อตเหลี่ยม NC","น็อตเหลี่ยม NF","น็อตแข็ง M6-M16 (ตลอด)","น็อตแข็ง M6-M16 (ครึ่ง)","น็อตแข็ง M18-M30 (ตลอด)","น็อตแข็ง M18-M30 (ครึ่ง)","น็อตแข็งเกลียวมิล (ตลอด)","น็อตแข็งเกลียวมิล (ครึ่ง)","Spring Washer","หัวน็อตมิลแข็ง OVERSIZE"];
+const NOK_MIL_AENG_TABS = [
+  {key:'__NOK_MIL_AENG_M6M12__', name:'น็อตมิลแข็ง M6-M12',
+   cols:["M6 P1.0","M8 P1.25","M10 P1.25","M10 P1.5","M12 P1.25","M12 P1.5","M12 P1.75"],
+   talotRows:["10","12","16","20","25","30","35","40","45","50"],
+   khruengRows:["40","45","50","55","60","65","70","75","80","85","90","100","110","120","130","140","150"],
+   colSrc:{"M6 P1.0":"น็อตแข็ง M6-M16","M8 P1.25":"น็อตแข็ง M6-M16","M10 P1.25":"น็อตแข็งเกลียวมิล","M10 P1.5":"น็อตแข็ง M6-M16","M12 P1.25":"น็อตแข็งเกลียวมิล","M12 P1.5":"น็อตแข็ง M18-M30","M12 P1.75":"น็อตแข็ง M6-M16"}},
+  {key:'__NOK_MIL_AENG_M14M24__', name:'น็อตมิลแข็ง M14-M24',
+   cols:["M14 P1.5","M14 P2.0","M16 P1.5","M16 P2.0","M18 P1.5","M18 P2.5","M20 P2.5","M22 P2.5","M24 P3.0"],
+   talotRows:["25","30","35","40","45","50","55","60","65"],
+   khruengRows:["40","45","50","55","60","65","70","75","80","85","90","100","110","120","130","140","150"],
+   colSrc:{"M14 P1.5":"น็อตแข็งเกลียวมิล","M14 P2.0":"น็อตแข็ง M6-M16","M16 P1.5":"น็อตแข็งเกลียวมิล","M16 P2.0":"น็อตแข็ง M6-M16","M18 P1.5":"น็อตแข็งเกลียวมิล","M18 P2.5":"น็อตแข็ง M18-M30","M20 P2.5":"น็อตแข็ง M18-M30","M22 P2.5":"น็อตแข็ง M18-M30","M24 P3.0":"น็อตแข็ง M18-M30"}}
+];
+const NOK_MIL_AENG_SRC = ["น็อตแข็ง M6-M16 (ตลอด)","น็อตแข็ง M6-M16 (ครึ่ง)","น็อตแข็ง M18-M30 (ตลอด)","น็อตแข็ง M18-M30 (ครึ่ง)","น็อตแข็งเกลียวมิล (ตลอด)","น็อตแข็งเกลียวมิล (ครึ่ง)"];
+
+// ── ข้อมูลลูกค้า ─────────────────────────────────────────────
+const CUSTOMERS = [{"name":"กรุงเทพสกรูไทย","code":"04102","grade":"A"},{"name":"กังชิน","code":"13802","grade":"A"},{"name":"กิจยืนยง","code":"60200","grade":"A"},{"name":"กิจเจริญโลหะ","code":"14400","grade":"A"},{"name":"กิ้มง้วนฟาสเทนเนอร์","code":"00205","grade":"A"},{"name":"กิ้มฮวดจั๊ว 251/12","code":"00100","grade":"C"},{"name":"กิ้มฮวดพาณิชย์ (ลาซาล)","code":"00103","grade":"C"},{"name":"ชัยเสรีกลการ","code":"14104","grade":"A"},{"name":"ง่วนฮงพาณิชย์","code":"01500","grade":"C"},{"name":"ง่วนฮงโลหะกิจ","code":"01501","grade":"A"},{"name":"จารุรังสีพาณิชย์","code":"01700","grade":"B"},{"name":"จิระบุญ","code":"03300","grade":"C"},{"name":"จิระวัฒนากลการ","code":"17400","grade":"C"},{"name":"ช.กิจเจริญโลหะภัณฑ์","code":"01300","grade":"C"},{"name":"ช.ศรีพงศ์โลหะกิจ","code":"02800","grade":"B"},{"name":"ช.เจริญโลหะกิจ","code":"01200","grade":"C"},{"name":"ชินเกษม","code":"04000","grade":"D"},{"name":"ซุ่นไถ่จั่นอิมปอร์ต","code":"01101","grade":"B"},{"name":"ดำรงค์ไทยโลหะกิจ","code":"09700","grade":"A"},{"name":"ดีซีน็อต (เด่นชัย)","code":"02001","grade":"A"},{"name":"ทิเม้งสกรู","code":"04900","grade":"B"},{"name":"ที.เอส.เอช. อิมปอร์ต","code":"00802","grade":"B"},{"name":"ธนาวิวัฒน์","code":"11200","grade":""},{"name":"นวภัทร","code":"58300","grade":"D"},{"name":"นามทองโลหะกิจ","code":"02300","grade":"C"},{"name":"นำทวีรุ่ง","code":"61700","grade":"D"},{"name":"บรรจงพาณิชย์","code":"02900","grade":"C"},{"name":"บางกอกสลักภัณฑ์","code":"04200","grade":"B"},{"name":"บี-เฟิร์ส (สหกรุงธน)","code":"55201","grade":"A"},{"name":"บี.ที.แอล","code":"17401","grade":"A"},{"name":"บี.พี. กรุ๊ป","code":"36300","grade":"A"},{"name":"บี.เจ.พี สตีล","code":"02900","grade":"C"},{"name":"บุญประสิทธิ์กลการ (2006)","code":"03000","grade":"B"},{"name":"บูมอิมปอร์ต","code":"52700","grade":"A"},{"name":"ประวิทย์สลักภัณฑ์","code":"13700","grade":"A"},{"name":"ประสิทธิผลอุตสาหกรรม","code":"61800","grade":"A"},{"name":"พิศาลภัณฑ์","code":"05100","grade":"C"},{"name":"มงคลชัย","code":"09100","grade":"B"},{"name":"ยู.พี โลหะภัณฑ์","code":"12215","grade":"A"},{"name":"ยูเฮงซัพพลาย","code":"56400","grade":"A"},{"name":"ย้งเจริญการค้า","code":"08900","grade":"C"},{"name":"ลิ้มเฮง (เทพารักษ์)","code":"57101","grade":"D"},{"name":"ลิ้มเฮง สกรูน็อตอิมพอร์ท","code":"57102","grade":"A"},{"name":"ลี้ซุ่นไถ่ (ไทยแลนด์)","code":"01103","grade":"A"},{"name":"วี เจ แบริ่ง (เจริญกิจชัย)","code":"01003","grade":""},{"name":"ศรีทอง","code":"08600","grade":"B"},{"name":"ศรีประชายนต์","code":"13600","grade":"D"},{"name":"ศรีเมือง โลหะกิจซัพพลาย","code":"06900","grade":"A"},{"name":"ส.จิระอิมปอร์ต","code":"03301","grade":"C"},{"name":"ส.บุญมีฤทธิ์","code":"01201","grade":"C"},{"name":"ส.สถาพร","code":"01400","grade":"B"},{"name":"สงวนโลหะกิจ","code":"06600","grade":"C"},{"name":"สตรองวิศวะกรรมการประปา","code":"00106","grade":"C"},{"name":"สยามเนยิ","code":"00304","grade":"D"},{"name":"สินทวีพลัส","code":"02801","grade":"B"},{"name":"อ.บุญถาวร (เอี้ยง)","code":"12801","grade":"C"},{"name":"อ.บุญประเสริฐ (ป้อมปราบ)","code":"11000","grade":"B"},{"name":"อ.บุญประเสริฐ (สี่พระยา)","code":"11004","grade":"C"},{"name":"อาณาจักรสลักภัณฑ์","code":"16402","grade":"D"},{"name":"อิ้วเลี้ยนค้าน็อต","code":"06001","grade":"A"},{"name":"อิ้วเลี้ยนวิจิตร","code":"06000","grade":"A"},{"name":"อิ้วเลี้ยนสลักภัณฑ์","code":"06002","grade":"A"},{"name":"อี.เอ็น.บี ซัพพลาย","code":"34400","grade":"B"},{"name":"เค เอส พี สลักภัณฑ์","code":"62400","grade":"A"},{"name":"เค แอล สลักภัณฑ์","code":"13800","grade":"A"},{"name":"เค แอล เครื่องเหล็ก","code":"13801","grade":"A"},{"name":"เจ.อาร์.เอส กรุปณ์ (1994)","code":"38300","grade":"A"},{"name":"เจ.เค ซัพพลาย","code":"59300","grade":"A"},{"name":"เจ.เอส สลักภัณฑ์","code":"16498","grade":"B"},{"name":"เจริญกิจชัยพาณิชย์","code":"01002","grade":"A"},{"name":"เจริญชัยสลักภัณฑ์ (1996)","code":"05402","grade":"B"},{"name":"เด่นชัย","code":"02000","grade":"A"},{"name":"เตียลั้งเฮง","code":"00500","grade":"B"},{"name":"เตียเซียมฮงสลักภัณฑ์","code":"00900","grade":"B"},{"name":"เตี่ยวเลงฮวด","code":"00300","grade":"B"},{"name":"เม่งฮงเส็งฮาร์ดแวร์ซัพพลาย","code":"09000","grade":"B"},{"name":"เหล็กหมุนเวียน","code":"38400","grade":""},{"name":"เอ.บราเดอร์","code":"59600","grade":"D"},{"name":"เอ.เอ็ม.เค กลการ (อมรกิจ)","code":"08300","grade":""},{"name":"เอส สลักภัณฑ์","code":"16499","grade":"C"},{"name":"เอส.บี ซีร่า","code":"55600","grade":"A"},{"name":"เอส.บี โบลท์","code":"57900","grade":"D"},{"name":"เอส.วี เอ็นจิเนียริ่ง","code":"16900","grade":"C"},{"name":"เอส.วี โลหะภัณฑ์","code":"50600","grade":"C"},{"name":"เอส.เจ.สกรูไทย","code":"60500","grade":"A"},{"name":"เอส.เอฟ.ซี ฟาสเทนเนอร์","code":"61000","grade":"A"},{"name":"เอส.เอ็น.ที.พี","code":"30800","grade":"A"},{"name":"เอเซียผลิตภัณฑ์คอนกรีต 1993","code":"51400","grade":"A"},{"name":"เอ็กโก้ ฟอร็จจิ้ง โปรดักส์","code":"31000","grade":"A"},{"name":"เอ็น.ทู.บี","code":"34401","grade":"B"},{"name":"เอ็ม เอ็ม แกรนด์","code":"59600","grade":""},{"name":"เอ็ม.จี.อาร์ เอ็นเตอร์ไพรส์","code":"00303","grade":"D"},{"name":"แพร่พิพัฒน์","code":"05200","grade":"C"},{"name":"แหลมทองสกรู","code":"58800","grade":""},{"name":"แหลมทองสปริง","code":"07400","grade":"A"},{"name":"แอปปอน (คลองถม)","code":"11002","grade":"B"},{"name":"แอปปอน (สาทร)","code":"11003","grade":"B"},{"name":"แอปปอน (สี่พระยา)","code":"11001","grade":"C"},{"name":"แอล.แอล.เอส","code":"05801","grade":""},{"name":"โง้วกิ้มง้วน 2535","code":"00204","grade":"A"},{"name":"โง้วสลักภัณฑ์","code":"00203","grade":"A"},{"name":"โบล์ทดี อินดัสตรี","code":"62500","grade":"D"},{"name":"โลหะกิจกลการ อิมปอร์ต","code":"05700","grade":"C"},{"name":"ไทยไพศาลสลักภัณฑ์","code":"05000","grade":"B"},{"name":"ไพศาลชนะกิจ","code":"55000","grade":""},{"name":"ไอ ที เอส ฟาสเทนเนอร์ส","code":"61900","grade":"C"}];
+
+let allItems = [];
+let selectedCode = '';
+let selectedName = '';
+let selectedType = '';
+let selectedItemUrgency = 'ปกติ';
+let cart = [];
+let customerName = '';
+let customerCode = '';
+let editingCartIndex = null;
+
+function fmtName(n) {
+  if (!n) return n;
+  let s = String(n);
+  s = s.replace(/\bSTOCK\b\s*/g, '');
+  s = s.replace(/หัวน็อตเกลียวหยาบ\s*/g, 'หัวน็อต ');
+  s = s.replace(/หัวน็อตเกลียว\s*/g, 'หัวน็อต ');
+  s = s.replace(/น็อตแข็งเกลียวมิล/g, 'น็อตมิลแข็ง');
+  s = s.replace(/น็อตแข็ง/g, 'น็อตมิลแข็ง');
+  let suffix = '';
+  s = s.replace(/M\d+[-–]M\d+\s*(\([^)]+\))\s*/g, (_, p1) => { suffix = ' ' + p1; return ''; });
+  s = s.replace(/(M\d+)\s+(P[\d.]+)/g, '$1 x $2');
+  s = s.trim().replace(/\s{2,}/g, ' ');
+  if (!s.startsWith('หัวน็อต')) {
+    s = s.replace(/(?<! x) (\d[\d./]*)$/, ' x $1');
+  }
+  if (suffix) s = s + suffix;
+  return s;
+}
+
+// ---- Customer Autocomplete ----
+let acIndex = -1;
+
+function onCustomerInput() {
+  const q = document.getElementById('customerInput').value.trim().toLowerCase();
+  const drop = document.getElementById('acDrop');
+  acIndex = -1;
+  if (!q) { drop.classList.remove('open'); drop.innerHTML = ''; return; }
+
+  const results = CUSTOMERS.filter(c =>
+    c.name.toLowerCase().includes(q) || c.code.includes(q)
+  ).slice(0, 10);
+
+  if (!results.length) { drop.classList.remove('open'); drop.innerHTML = ''; return; }
+
+  drop.innerHTML = results.map((c, i) => `
+    <div class="ac-item" data-idx="${i}" onmousedown="selectCustomer('${c.name.replace(/'/g,"\\'")}','${c.code}')">
+      <span class="ac-name">${c.name}</span>
+      <span class="ac-meta">${c.code}${c.grade ? `<span class="ac-grade grade-${c.grade}">${c.grade}</span>` : ''}</span>
+    </div>`).join('');
+  drop._results = results;
+  drop.classList.add('open');
+}
+
+function onCustomerKey(e) {
+  const drop = document.getElementById('acDrop');
+  const items = drop.querySelectorAll('.ac-item');
+  if (!items.length) { if (e.key === 'Enter') confirmCustomer(); return; }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acIndex = Math.min(acIndex + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acIndex = Math.max(acIndex - 1, 0);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (acIndex >= 0 && drop._results) {
+      const c = drop._results[acIndex];
+      selectCustomer(c.name, c.code);
+    } else { confirmCustomer(); }
+    return;
+  } else if (e.key === 'Escape') {
+    drop.classList.remove('open'); acIndex = -1; return;
+  }
+  items.forEach((el, i) => el.classList.toggle('focused', i === acIndex));
+}
+
+function selectCustomer(name, code) {
+  document.getElementById('customerInput').value = name;
+  document.getElementById('acDrop').classList.remove('open');
+  customerCode = code;
+  confirmCustomer();
+}
+
+function confirmCustomer() {
+  const val = document.getElementById('customerInput').value.trim();
+  if (!val) { alert('กรุณากรอกชื่อลูกค้า'); return; }
+  document.getElementById('acDrop').classList.remove('open');
+  customerName = val;
+  document.getElementById('customerInput').style.display = 'none';
+  document.querySelector('.customer-bar .btn-confirm').style.display = 'none';
+  document.querySelector('.customer-bar label').textContent = '👤 ลูกค้า:';
+  const tag = document.getElementById('customerTag');
+  tag.textContent = customerName;
+  tag.style.display = 'inline-block';
+  document.getElementById('btnChangeName').style.display = 'inline-block';
+}
+
+function changeName() {
+  customerName = '';
+  customerCode = '';
+  document.getElementById('customerInput').style.display = '';
+  document.getElementById('customerInput').value = '';
+  document.getElementById('acDrop').classList.remove('open');
+  document.querySelector('.customer-bar .btn-confirm').style.display = '';
+  document.querySelector('.customer-bar label').textContent = '👤 ชื่อลูกค้า:';
+  document.getElementById('customerTag').style.display = 'none';
+  document.getElementById('btnChangeName').style.display = 'none';
+  cart = [];
+  updateCartBar();
+}
+
+// ปิด dropdown เมื่อคลิกที่อื่น
+document.addEventListener('click', e => {
+  if (!document.getElementById('acWrap').contains(e.target))
+    document.getElementById('acDrop').classList.remove('open');
+});
+
+// ---- Data ----
+async function loadData() {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const res = await fetch(API + '?action=getStock', {credentials:'omit', signal: ctrl.signal});
+    clearTimeout(timer);
+    const data = await res.json();
+    if (!data.items) throw new Error('no items');
+    allItems = data.items.map(p => ({ ...p, code: String(p.code).padStart(8, '0') }));
+    buildTypeNav();
+    renderAll();
+  } catch(e) {
+    clearTimeout(timer);
+    document.getElementById('content').innerHTML =
+      '<div class="loading">❌ โหลดไม่ได้: ' + e.message + '<br><button onclick="loadData()" style="margin-top:12px;padding:10px 20px;background:#1a3a5c;color:white;border:none;border-radius:8px;cursor:pointer;font-family:Sarabun,sans-serif">🔄 ลองใหม่</button></div>';
+  }
+}
+
+function buildTypeNav() {
+  const nav = document.getElementById('typeNav');
+  nav.innerHTML = TYPES.map((t, i) => {
+    if (t === '__HUA_NUT__') {
+      return `<button class="type-btn" onclick="scrollToType('__HUA_NUT__',this)">หัวน็อต</button>`;
+    }
+    if (t === '__OTHER__') {
+      return `<button class="type-btn" onclick="scrollToType('__OTHER__',this)">อื่นๆ</button>`;
+    }
+    const nmTab = NOK_MIL_AENG_TABS.find(td => td.key === t);
+    if (nmTab) {
+      return `<button class="type-btn" onclick="scrollToType('${t}',this)">${nmTab.name}</button>`;
+    }
+    return `<button class="type-btn ${i===0?'active':''}" onclick="scrollToType('${t.replace(/'/g,"\\'")}',this)">${t}</button>`;
+  }).join('');
+}
+
+function scrollToType(type, btn) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const lookupType = type === '__HUA_NUT__' ? HUA_NUT[0] : type === '__OTHER__' ? OTHER_TYPES[0] : type;
+  const el = document.getElementById('type-' + lookupType.replace(/[\s()\/]/g,'_'));
+  if (el) {
+    const navWrap = document.getElementById('typeNav');
+    const navBottom = navWrap ? navWrap.getBoundingClientRect().bottom : 160;
+    const elTop = el.getBoundingClientRect().top;
+    window.scrollBy({top: elTop - navBottom - 8, behavior:'instant'});
+  }
+}
+
+function buildNokMilAengSalesTable(tabDef, suffix) {
+  const rows = suffix === '(ตลอด)' ? tabDef.talotRows : tabDef.khruengRows;
+  const cols = tabDef.cols;
+  let html = '<div style="overflow-x:auto"><table class="stk"><thead><tr>';
+  html += `<th class="th-corner">ยาว \\ ขนาด</th>`;
+  cols.forEach(c => html += `<th class="th-col">${c}</th>`);
+  html += '</tr></thead><tbody>';
+  rows.forEach(row => {
+    html += `<tr><td class="td-row">${row}</td>`;
+    cols.forEach(col => {
+      const srcType = tabDef.colSrc[col] + ' ' + suffix;
+      const item = allItems.find(p => p.type === srcType && String(p.col) === String(col) && String(p.row) === String(row));
+      if (!item) { html += `<td class="stk-cell blocked"></td>`; return; }
+      const hasStock = Number(item.stock) > 0;
+      const cls = hasStock ? 'has' : 'out';
+      const tick = hasStock ? '✅' : '❌';
+      const nm = (srcType + ' ' + col + ' ' + row).replace(/'/g,"\\'");
+      const tp = srcType.replace(/'/g,"\\'");
+      const onclk = hasStock ? `onclick="openModal('${item.code}','${nm}','${tp}')"` : '';
+      html += `<td class="stk-cell ${cls}" ${onclk}><span class="cell-tick">${tick}</span><span class="cell-code">${item.code}</span></td>`;
+    });
+    html += '</tr>';
+  });
+  return html + '</tbody></table></div>';
+}
+
+function renderAll() {
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+  TYPES.forEach(type => {
+    if (type === '__HUA_NUT__') {
+      const wrap = document.createElement('div');
+      wrap.className = 'tbl-wrap';
+      const huaRow = document.createElement('div');
+      huaRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start';
+      HUA_NUT.forEach(ht => {
+        const subwrap = document.createElement('div');
+        subwrap.id = 'type-' + ht.replace(/[\s()\\/]/g,'_');
+        const htItems = allItems.filter(p => p.type === ht);
+        const m2 = MATRICES[ht];
+        if (!m2) return;
+        let html2 = `<div class="type-title">${ht}</div>`;
+        const cols2 = m2.cols, rows2 = m2.rows;
+        html2 += '<div style="overflow-x:auto"><table class="stk"><thead><tr>';
+        html2 += `<th class="th-corner">ขนาด / น้ำหนัก</th>`;
+        cols2.forEach(c => html2 += `<th class="th-col">${c}</th>`);
+        html2 += '</tr></thead><tbody>';
+        rows2.forEach(r => {
+          html2 += `<tr><td class="td-row">${r}</td>`;
+          cols2.forEach(col => {
+            const item = htItems.find(p => String(p.col)===String(col) && String(p.row)===String(r));
+            if (!item) { html2 += `<td class="stk-cell blocked"></td>`; return; }
+            const hasStock = Number(item.stock) > 0;
+            const cls = hasStock ? 'has' : 'out';
+            const tick = hasStock ? '✅' : '❌';
+            const nm = (ht+' '+col+' '+r).replace(/'/g,"\\'");
+            const t2 = ht.replace(/'/g,"\\'");
+            const onclick2 = hasStock ? `onclick="openModal('${item.code}','${nm}','${t2}')"` : '';
+            html2 += `<td class="stk-cell ${cls}" ${onclick2}><span class="cell-tick">${tick}</span><span class="cell-code">${item.code}</span></td>`;
+          });
+          html2 += '</tr>';
+        });
+        html2 += '</tbody></table></div>';
+        subwrap.innerHTML = html2;
+        huaRow.appendChild(subwrap);
+      });
+      wrap.appendChild(huaRow);
+      content.appendChild(wrap);
+      return;
+    }
+    const nmTabDef = NOK_MIL_AENG_TABS.find(td => td.key === type);
+    if (nmTabDef) {
+      const wrap = document.createElement('div');
+      wrap.className = 'tbl-wrap';
+      wrap.id = 'type-' + type;
+      let hmNm = `<div class="type-title">${nmTabDef.name}</div>`;
+      hmNm += `<div style="font-size:13px;font-weight:700;color:#1a3a5c;margin:8px 0 4px;padding:3px 8px;background:#f0f5ff;border-radius:4px;display:inline-block">ตลอด</div>`;
+      hmNm += buildNokMilAengSalesTable(nmTabDef, '(ตลอด)');
+      hmNm += `<div style="font-size:13px;font-weight:700;color:#1a3a5c;margin:16px 0 4px;padding:3px 8px;background:#f0f5ff;border-radius:4px;display:inline-block">ครึ่ง</div>`;
+      hmNm += buildNokMilAengSalesTable(nmTabDef, '(ครึ่ง)');
+      wrap.innerHTML = hmNm;
+      content.appendChild(wrap);
+      return;
+    }
+    if (type === '__OTHER__') {
+      const wrap = document.createElement('div');
+      wrap.className = 'tbl-wrap';
+      const otherRow = document.createElement('div');
+      otherRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start';
+      OTHER_TYPES.forEach(ot => {
+        const subwrap = document.createElement('div');
+        subwrap.id = 'type-' + ot.replace(/[\s()\\/]/g,'_');
+        const otItems = allItems.filter(p => p.type === ot);
+        const m3 = MATRICES[ot];
+        if (!m3) return;
+        let html3 = `<div class="type-title">${ot}</div>`;
+        const cols3 = m3.cols, rows3 = m3.rows;
+        html3 += '<div style="overflow-x:auto"><table class="stk"><thead><tr>';
+        html3 += `<th class="th-corner">ขนาด / น้ำหนัก</th>`;
+        cols3.forEach(c => html3 += `<th class="th-col">${c}</th>`);
+        html3 += '</tr></thead><tbody>';
+        rows3.forEach(r3 => {
+          html3 += `<tr><td class="td-row">${r3}</td>`;
+          cols3.forEach(col => {
+            const item = otItems.find(p => String(p.col)===String(col) && String(p.row)===String(r3));
+            if (!item) { html3 += `<td class="stk-cell blocked"></td>`; return; }
+            const hasStock = Number(item.stock) > 0;
+            const cls = hasStock ? 'has' : 'out';
+            const tick = hasStock ? '✅' : '❌';
+            const nm3 = (ot+' '+col+' '+r3).replace(/'/g,"\\'");
+            const t3 = ot.replace(/'/g,"\\'");
+            const onclick3 = hasStock ? `onclick="openModal('${item.code}','${nm3}','${t3}')"` : '';
+            html3 += `<td class="stk-cell ${cls}" ${onclick3}><span class="cell-tick">${tick}</span><span class="cell-code">${item.code}</span></td>`;
+          });
+          html3 += '</tr>';
+        });
+        html3 += '</tbody></table></div>';
+        subwrap.innerHTML = html3;
+        otherRow.appendChild(subwrap);
+      });
+      wrap.appendChild(otherRow);
+      content.appendChild(wrap);
+      return;
+    }
+    const typeAliases = MERGED_TYPES[type] || [type];
+    const items = allItems.filter(p => typeAliases.includes(p.type));
+    const m = MATRICES[type];
+    const wrap = document.createElement('div');
+    wrap.className = 'tbl-wrap';
+    wrap.id = 'type-' + type.replace(/[\s()\/]/g,'_');
+    let html = `<div class="type-title">${type}</div>`;
+    if (m) {
+      const cols = m.cols, rows = m.rows;
+      html += '<div style="overflow-x:auto"><table class="stk"><thead><tr>';
+      html += `<th class="th-corner">ขนาด / น้ำหนัก</th>`;
+      cols.forEach(c => html += `<th class="th-col">${c}</th>`);
+      html += '</tr></thead><tbody>';
+      rows.forEach(row => {
+        const isKhrueng = row.endsWith(' ค.');
+        const rowStyle = isKhrueng ? ' style="color:#c2410c;font-weight:700"' : '';
+        const codeStyle = isKhrueng ? ' style="color:#c2410c"' : '';
+        html += `<tr><td class="td-row"${rowStyle}>${row}</td>`;
+        cols.forEach(col => {
+          const item = items.find(p => String(p.col) === String(col) && String(p.row) === String(row));
+          if (!item) {
+            html += `<td class="stk-cell blocked"></td>`;
+          } else {
+            const hasStock = Number(item.stock) > 0;
+            const cls = hasStock ? 'has' : 'out';
+            const tick = hasStock ? '✅' : '❌';
+            const name = (type+' '+col+' '+row).replace(/'/g,"\'");
+            const _rtype = resolveType(item);
+            const onclick = hasStock ? `onclick="openModal('${item.code}','${name}','${_rtype}')"` : '';
+            html += `<td class="stk-cell ${cls}" ${onclick}>
+              <span class="cell-tick">${tick}</span>
+              <span class="cell-code"${codeStyle}>${item.code}</span>
+            </td>`;
+          }
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+    } else {
+      html += items.map(item => {
+        const hasStock = Number(item.stock) > 0;
+        const tick = hasStock ? '✅' : '❌';
+        const _rtype = resolveType(item);
+        const onclick = hasStock ? `onclick="openModal('${item.code}','${item.type}','${_rtype}')"` : '';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0" ${onclick}>
+          <span style="font-size:13px;color:#1a3a5c;font-weight:600">${item.code}</span>
+          <span style="font-size:20px">${tick}</span>
+        </div>`;
+      }).join('');
+    }
+    wrap.innerHTML = html;
+    content.appendChild(wrap);
+  });
+}
+
+const NC_BIG_COLS = ['5/8 NC','3/4 NC','7/8 NC','1 NC'];
+function resolveType(item) {
+  if (item.type === 'น็อตเหลี่ยม NC' && NC_BIG_COLS.includes(item.col)) return 'น็อตเหลี่ยม NC (ใหญ่)';
+  return item.type;
+}
+function getUnit(type) {
+  return BOX_TYPES.includes(type) ? 'กล่อง' : 'กระสอบ';
+}
+
+// ---- Modal ----
+function openModal(code, name, type) {
+  if (!customerName) {
+    alert('กรุณากรอกชื่อลูกค้าก่อนนะคะ 👆');
+    document.getElementById('customerInput').focus();
+    return;
+  }
+  selectedCode = code;
+  selectedName = name;
+  selectedType = type;
+  selectedItemUrgency = 'ปกติ';
+  const unit = getUnit(type);
+  document.getElementById('modalName').textContent = fmtName(name);
+  document.getElementById('modalCode').textContent = 'รหัส: ' + code;
+  document.getElementById('qtyLabel').textContent = 'จำนวน (' + unit + ') *';
+
+  // ถ้ามีในตะกร้าแล้ว ให้แสดงจำนวนเดิม
+  const existing = cart.find(i => i.code === code);
+  document.getElementById('inputQty').value = existing ? existing.qty : '';
+  document.getElementById('inputItemNote').value = existing ? (existing.note||'') : '';
+  if (existing) {
+    document.getElementById('btnAddCart').textContent = '✏️ อัปเดตจำนวน';
+    selectedItemUrgency = existing.urgency;
+  } else {
+    document.getElementById('btnAddCart').textContent = '🛒 เพิ่มในตะกร้า';
+  }
+
+  document.querySelectorAll('#itemUrgencyOpts .urgency-opt').forEach(e => e.classList.remove('selected'));
+  const urgencyMap = {'ปกติ':'sel-normal','จอง':'sel-medium','ด่วน':'sel-urgent'};
+  document.querySelector('#itemUrgencyOpts .' + (urgencyMap[selectedItemUrgency]||'sel-normal')).classList.add('selected');
+
+  // populate % ส่วนลด และ ราคา Net จาก CUST_PRICES
+  const discInput = document.getElementById('inputDiscPct');
+  const netInput = document.getElementById('inputNetPrice');
+  const hintDisc = document.getElementById('hintDiscPct');
+  const hintNet = document.getElementById('hintNetPrice');
+  const fieldDisc = document.getElementById('fieldDiscPct');
+  const fieldNet = document.getElementById('fieldNetPrice');
+
+  discInput.value = '';
+  netInput.value = '';
+  hintDisc.textContent = '';
+  hintNet.textContent = '';
+  fieldDisc.classList.remove('field-auto');
+  fieldNet.classList.remove('field-auto');
+
+  if (customerCode) {
+    const pi = getPriceInfo(customerCode, code, type);
+    if (pi.disc_pct !== null) {
+      discInput.value = pi.disc_pct;
+      hintDisc.textContent = 'ดึงอัตโนมัติ แก้ได้';
+      fieldDisc.classList.add('field-auto');
+    } else {
+      hintDisc.textContent = 'ไม่มีข้อมูล';
+    }
+    if (pi.net_price !== null) {
+      netInput.value = pi.net_price;
+      hintNet.textContent = 'ดึงอัตโนมัติ แก้ได้';
+      fieldNet.classList.add('field-auto');
+    } else {
+      hintNet.textContent = 'ไม่มีข้อมูล';
+    }
+  }
+
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function selectItemUrgency(val, el) {
+  selectedItemUrgency = val;
+  document.querySelectorAll('#itemUrgencyOpts .urgency-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalBg')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modalBg').classList.remove('open');
+}
+
+function addToCart() {
+  const qty = parseFloat(document.getElementById('inputQty').value);
+  if (!qty || qty <= 0) { alert('กรุณากรอกจำนวน'); return; }
+  const unit = getUnit(selectedType);
+  const note = document.getElementById('inputItemNote').value.trim();
+  const discVal = document.getElementById('inputDiscPct').value;
+  const netVal = document.getElementById('inputNetPrice').value;
+  const disc_pct = discVal !== '' ? parseFloat(discVal) : null;
+  const net_price = netVal !== '' ? parseFloat(netVal) : null;
+  const existing = cart.find(i => i.code === selectedCode);
+  if (existing) {
+    existing.qty = qty;
+    existing.urgency = selectedItemUrgency;
+    existing.note = note;
+    existing.disc_pct = disc_pct;
+    existing.net_price = net_price;
+  } else {
+    cart.push({ code: selectedCode, name: fmtName(selectedName), type: selectedType, qty, unit, urgency: selectedItemUrgency, note, disc_pct, net_price });
+  }
+  closeModalDirect();
+  updateCartBar();
+  showToast('✅ ' + (existing ? 'อัปเดตแล้ว' : 'เพิ่มในตะกร้าแล้ว'));
+}
+
+// ---- Cart ----
+function updateCartBar() {
+  const bar = document.getElementById('cartBar');
+  const info = document.getElementById('cartInfo');
+  if (cart.length === 0) {
+    bar.classList.remove('show');
+  } else {
+    bar.classList.add('show');
+    info.textContent = '🛒 ' + cart.length + ' รายการ' + (customerName ? ' · ' + customerName : '');
+  }
+}
+
+function openCartModal() {
+  document.getElementById('cartCustomerName').textContent = customerName;
+  renderCartItems();
+  document.getElementById('cartModal').classList.add('open');
+}
+function closeCartModal(e) {
+  if (e.target === document.getElementById('cartModal')) closeCartModalDirect();
+}
+function closeCartModalDirect() {
+  document.getElementById('cartModal').classList.remove('open');
+  editingCartIndex = null;
+}
+
+function renderCartItems() {
+  const el = document.getElementById('cartItems');
+  if (!cart.length) { el.innerHTML = '<div style="text-align:center;color:#aaa;padding:16px">ตะกร้าว่าง</div>'; return; }
+
+  // เรียงตาม TYPES order
+  const sortedCart = [...cart].sort((a, b) => {
+    const getCartKey = (t) => {
+      if (HUA_NUT.includes(t)) return '__HUA_NUT__';
+      if (OTHER_TYPES.includes(t)) return '__OTHER__';
+      if (NOK_MIL_AENG_SRC.includes(t)) return '__NOK_MIL_AENG_M6M12__';
+      return t;
+    };
+    const aKey = getCartKey(a.type);
+    const bKey = getCartKey(b.type);
+    const ai = TYPES.indexOf(aKey), bi = TYPES.indexOf(bKey);
+    return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+  });
+
+  const urgencyColor = {'ปกติ':'#16a34a','จอง':'#d97706','ด่วน':'#dc2626'};
+  let html = '';
+  let lastType = null;
+
+  sortedCart.forEach((item) => {
+    const origIdx = cart.indexOf(item);
+    if (item.type !== lastType) {
+      html += `<div class="cart-type-header">${item.type}</div>`;
+      lastType = item.type;
+    }
+    if (editingCartIndex === origIdx) {
+      html += `
+        <div class="cart-item">
+          <div class="cart-item-name">${item.name}<br>
+            <span style="font-size:11px;color:#888;font-family:'Courier New',monospace">${item.code}</span>
+            <span style="font-size:11px;font-weight:700;color:${urgencyColor[item.urgency]||'#555'};margin-left:6px">${item.urgency}</span>
+            ${item.note?`<br><span style="font-size:11px;color:#888">📝 ${item.note}</span>`:''}
+          </div>
+          <input class="qty-edit-input" id="inlineQtyInput" type="number" value="${item.qty}" min="1" step="1">
+          <button class="btn-confirm" style="padding:5px 10px;font-size:12px;border-radius:6px;margin-left:4px" onclick="saveInlineQty(${origIdx})">บันทึก</button>
+          <button class="cart-item-del" onclick="cancelInlineEdit()">✕</button>
+        </div>`;
+    } else {
+      html += `
+        <div class="cart-item">
+          <div class="cart-item-name">${item.name}<br>
+            <span style="font-size:11px;color:#888;font-family:'Courier New',monospace">${item.code}</span>
+            <span style="font-size:11px;font-weight:700;color:${urgencyColor[item.urgency]||'#555'};margin-left:6px">${item.urgency}</span>
+            ${item.note?`<br><span style="font-size:11px;color:#888">📝 ${item.note}</span>`:''}
+          </div>
+          <div class="cart-item-qty" onclick="startInlineEdit(${origIdx})" title="กดเพื่อแก้ไขจำนวน">${item.qty} ${item.unit} ✏️</div>
+          <button class="cart-item-del" onclick="removeFromCart(${origIdx})">✕</button>
+        </div>`;
+    }
+  });
+
+  el.innerHTML = html;
+  if (editingCartIndex !== null) {
+    const inp = document.getElementById('inlineQtyInput');
+    if (inp) { inp.focus(); inp.select(); }
+  }
+}
+
+function startInlineEdit(i) {
+  editingCartIndex = i;
+  renderCartItems();
+}
+
+function saveInlineQty(i) {
+  const val = parseFloat(document.getElementById('inlineQtyInput').value);
+  if (!val || val <= 0) { alert('กรุณากรอกจำนวน'); return; }
+  cart[i].qty = val;
+  editingCartIndex = null;
+  renderCartItems();
+  updateCartBar();
+}
+
+function cancelInlineEdit() {
+  editingCartIndex = null;
+  renderCartItems();
+}
+
+function removeFromCart(i) {
+  cart.splice(i, 1);
+  editingCartIndex = null;
+  renderCartItems();
+  updateCartBar();
+}
+
+// staged orders รอ confirm ทั้งหมด
+let stagedOrders = [];
+
+async function submitAllOrders() {
+  if (!customerName) { alert('ไม่พบชื่อลูกค้า'); return; }
+  if (!cart.length) { alert('กรุณาเพิ่มสินค้าในตะกร้า'); return; }
+  const note = document.getElementById('inputNote').value.trim();
+  const date = new Date().toLocaleDateString('th-TH');
+  cart.forEach(item => {
+    stagedOrders.push({
+      id: Date.now() + Math.random(),
+      customer: customerName, code: item.code, name: item.name,
+      qty: item.qty, unit: item.unit, urgency: item.urgency,
+      note: item.note || note || '', date,
+      disc_pct: item.disc_pct, net_price: item.net_price
+    });
+  });
+  cart = [];
+  editingCartIndex = null;
+  updateCartBar();
+  closeCartModalDirect();
+  showToast('✅ เพิ่มใน ประวัติ แล้ว กรุณายืนยันก่อนส่ง Admin');
+  // เปิด tab ประวัติ
+  setTimeout(() => {
+    const btn = document.getElementById('tab-btn-history');
+    if (btn) { btn.click(); }
+  }, 300);
+  renderSalesHistory();
+}
+
+// render tab ประวัติ
+function renderSalesHistory() {
+  const tbody = document.getElementById('sales-hist-tbody');
+  const confirmBtn = document.getElementById('sales-confirm-all-btn');
+  if (!tbody) return;
+  if (!stagedOrders.length) {
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>';
+    if (confirmBtn) confirmBtn.disabled = true;
+    return;
+  }
+  if (confirmBtn) confirmBtn.disabled = false;
+  const urgColor = {'ปกติ':'#d1fae5','จอง':'#fef9c3','ด่วน':'#fee2e2'};
+  const urgText = {'ปกติ':'🟢 ปกติ','จอง':'🟡 จอง','ด่วน':'🔴 ด่วน'};
+  const grouped = {};
+  stagedOrders.forEach(o => {
+    if (!grouped[o.customer]) grouped[o.customer] = [];
+    grouped[o.customer].push(o);
+  });
+  let html = '', totalSack=0, totalBox=0;
+  Object.entries(grouped).forEach(([cust, orders], gi) => {
+    let cSack=0, cBox=0;
+    orders.forEach((o, idx) => {
+      const isBox = o.unit==='กล่อง';
+      if (isBox) cBox+=o.qty; else cSack+=o.qty;
+      html += `<tr${idx===0?' class="group-sep"':''}>
+        <td style="text-align:center;font-size:11px;color:#555;white-space:nowrap">${idx===0?o.date||'':''}</td>
+        <td class="td-cust" style="font-weight:700;color:#1a3a5c">${idx===0?cust:''}</td>
+        <td class="td-name" style="text-align:left">${o.name}</td>
+        <td style="font-family:monospace;font-size:12px;text-align:center">${o.code}</td>
+        <td style="font-weight:700;color:#1a3a5c;text-align:center">${!isBox?o.qty:''}</td>
+        <td style="font-weight:700;color:#7c3aed;text-align:center">${isBox?o.qty:''}</td>
+        <td style="text-align:center"><span style="background:${urgColor[o.urgency]||'#f3f4f6'};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600">${urgText[o.urgency]||o.urgency}</span></td>
+        <td style="text-align:center;font-size:12px">${o.disc_pct!==null&&o.disc_pct!==undefined&&o.disc_pct!==''?o.disc_pct+'%':''}</td>
+        <td style="text-align:center;font-size:12px">${o.net_price!==null&&o.net_price!==undefined?o.net_price:''}</td>
+        <td style="font-size:12px;color:#666">${o.note||''}</td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <button onclick="salesEditOrder('${o.id}')" style="background:white;border:1.5px solid #d97706;color:#d97706;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✏️</button>
+            <button onclick="salesDeleteOrder('${o.id}')" style="background:white;border:1.5px solid #dc2626;color:#dc2626;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✕</button>
+          </div>
+        </td>
+      </tr>`;
+    });
+    html += `<tr style="background:#f0f5ff"><td></td><td colspan="3" style="text-align:right;font-size:12px;color:#555">รวม ${cust}</td>
+      <td style="font-weight:700;color:#1a3a5c;text-align:center">${cSack||'-'}</td>
+      <td style="font-weight:700;color:#7c3aed;text-align:center">${cBox||'-'}</td>
+      <td colspan="5"></td></tr>`;
+    totalSack+=cSack; totalBox+=cBox;
+  });
+  html += `<tr style="background:#1a3a5c;color:white;font-weight:700">
+    <td></td><td colspan="3" style="text-align:right;padding:8px 10px">รวมทั้งหมด</td>
+    <td style="padding:8px 10px;text-align:center">${totalSack} กระสอบ</td>
+    <td style="padding:8px 10px;text-align:center">${totalBox} กล่อง</td>
+    <td colspan="5"></td></tr>`;
+  tbody.innerHTML = html;
+  document.getElementById('sales-hist-count').textContent = stagedOrders.length;
+  document.getElementById('sales-hist-count2').textContent = stagedOrders.length + ' รายการ';
+  const btn = document.getElementById('sales-confirm-all-btn');
+  if (btn) btn.style.opacity = stagedOrders.length ? '1' : '.6';
+}
+
+function salesDeleteOrder(id) {
+  stagedOrders = stagedOrders.filter(o => String(o.id) !== String(id));
+  renderSalesHistory();
+}
+
+let _editOrderId = null;
+
+function salesEditOrder(id) {
+  const o = stagedOrders.find(x => String(x.id) === String(id));
+  if (!o) return;
+  _editOrderId = id;
+  document.getElementById('editOrderName').textContent = o.name;
+  document.getElementById('editOrderCode').textContent = 'รหัส: ' + o.code;
+  document.getElementById('editOrderQtyLabel').textContent = 'จำนวน (' + o.unit + ') *';
+  document.getElementById('editOrderQty').value = o.qty;
+  document.getElementById('editOrderNote').value = o.note || '';
+  const bg = document.getElementById('editOrderBg');
+  bg.style.display = 'flex';
+  setTimeout(() => document.getElementById('editOrderQty').focus(), 50);
+}
+function closeEditOrder(e) { if (e.target === document.getElementById('editOrderBg')) closeEditOrderDirect(); }
+function closeEditOrderDirect() { document.getElementById('editOrderBg').style.display = 'none'; _editOrderId = null; }
+function saveEditOrder() {
+  if (!_editOrderId) return;
+  const o = stagedOrders.find(x => String(x.id) === String(_editOrderId));
+  if (!o) return;
+  const q = parseInt(document.getElementById('editOrderQty').value);
+  if (!q || q < 1) { showToast('จำนวนไม่ถูกต้อง','warn'); return; }
+  o.qty = q;
+  o.note = document.getElementById('editOrderNote').value.trim();
+  closeEditOrderDirect();
+  renderSalesHistory();
+}
+
+async function confirmAllToAdmin() {
+  if (!stagedOrders.length) { alert('ไม่มีคำสั่งซื้อ'); return; }
+  if (!confirm('ยืนยันส่งคำสั่งซื้อ ' + stagedOrders.length + ' รายการไปที่ Admin?')) return;
+  const btn = document.getElementById('sales-confirm-all-btn');
+  btn.textContent = '⏳ กำลังส่ง...'; btn.disabled = true;
+  try {
+    for (const o of stagedOrders) {
+      const res = await fetch(API, {
+        method: 'POST',
+        body: JSON.stringify({ action:'newOrder', code:o.code, name:o.name,
+          customer:o.customer, qty:o.qty, unit:o.unit, urgency:o.urgency, note:o.note, date:o.date })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error('สินค้า ' + o.code + ': ' + data.error);
+    }
+    const count = stagedOrders.length;
+    stagedOrders = [];
+    document.getElementById('inputNote').value = '';
+    renderSalesHistory();
+    showToast('✅ ส่งคำสั่งซื้อ ' + count + ' รายการไปที่ Admin แล้ว');
+  } catch(e) { alert('เกิดข้อผิดพลาด: ' + e.message + '\nกรุณาลองใหม่'); }
+  btn.textContent = '✅ ยืนยันส่งทั้งหมดไปที่ Admin'; btn.disabled = false;
+}
+
+function showSalesTab(tab, btn) {
+  document.getElementById('sales-tab-order').style.display = tab==='order' ? '' : 'none';
+  document.getElementById('sales-tab-history').style.display = tab==='history' ? '' : 'none';
+  document.getElementById('sales-tab-tracking').style.display = tab==='tracking' ? '' : 'none';
+  document.querySelectorAll('[id^="tab-btn-"]').forEach(b => {
+    b.style.borderBottomColor = 'transparent';
+    b.style.color = '#666';
+    b.style.fontWeight = '500';
+  });
+  btn.style.borderBottomColor = '#1a3a5c';
+  btn.style.color = '#1a3a5c';
+  btn.style.fontWeight = '700';
+  if (tab==='history') renderSalesHistory();
+  if (tab==='tracking') loadTracking();
+}
+
+
+let trackingData = [];
+let trackingLoaded = false;
+
+async function loadTracking() {
+  const bodyEl = document.getElementById('trk-body');
+  if (!trackingLoaded) {
+    bodyEl.innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">⏳ กำลังโหลด...</p>';
+    try {
+      const res = await fetch(API + '?action=getOrders&status=all', {credentials:'omit'});
+      const data = await res.json();
+      trackingData = data.orders || [];
+      trackingLoaded = true;
+      const CUST_NAME_MAP = {};
+      CUSTOMERS.forEach(cv => { CUST_NAME_MAP[cv.code] = cv.name; });
+      const names = [...new Set(trackingData.map(o => CUST_NAME_MAP[o.customer] || o.customer || '(ไม่ระบุ)'))].sort((a,b)=>String(a).localeCompare(String(b),'th'));
+      const sel = document.getElementById('trk-cust-filter');
+      if (sel.options.length <= 1) {
+        names.forEach(n => { const opt=document.createElement('option'); opt.value=n; opt.textContent=n; sel.appendChild(opt); });
+      }
+    } catch(e) {
+      bodyEl.innerHTML = '<p style="color:#dc2626;padding:24px;text-align:center">❌ โหลดไม่ได้: '+e.message+'</p>';
+      return;
+    }
+  }
+  renderTracking();
+}
+
+function renderTracking() {
+  const VALID_URG = ['ด่วน','จอง','เร่ง','ปกติ'];
+  const UNIT_VALS = ['กล่อง','กระสอบ'];
+  const urgBgMap = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'};
+  const urgLbl   = {'ด่วน':'🔴 ด่วน','จอง':'🟡 จอง','ปกติ':'🟢 ปกติ'};
+  const statBg   = {'pending':'#fef3c7','confirmed':'#d1fae5','rejected':'#fee2e2'};
+  const statLbl  = {'pending':'⏳ รอยืนยัน','confirmed':'✅ ยืนยัน','rejected':'❌ ยกเลิก'};
+  const statTxt  = {'pending':'#92400e','confirmed':'#14532d','rejected':'#991b1b'};
+  const CUST_NAME_MAP = {};
+  CUSTOMERS.forEach(cv => { CUST_NAME_MAP[cv.code] = cv.name; });
+  const custFilter = document.getElementById('trk-cust-filter').value;
+  const statFilter = document.getElementById('trk-stat-filter').value;
+  const dateFrom   = document.getElementById('trk-date-from').value;
+  const dateTo     = document.getElementById('trk-date-to').value;
+  const bodyEl     = document.getElementById('trk-body');
+  const statEl     = document.getElementById('trk-stat');
+
+  // แปลง date เป็น CE ISO สำหรับเปรียบเทียบ filter
+  const toISOLocal = d => {
+    if (!d) return '';
+    const s = String(d);
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); // Thai dd/mm/yyyy
+    if (m) {
+      const yr = Number(m[3]) > 2500 ? Number(m[3]) - 543 : Number(m[3]);
+      return yr+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+    }
+    // ISO string อาจมีปี BE (>2100) เช่น '2569-06-21T...'
+    const isoDate = s.split('T')[0];
+    const pts = isoDate.split('-');
+    if (pts.length === 3) {
+      const yr = Number(pts[0]);
+      const ceYr = yr > 2100 ? yr - 543 : yr;
+      return ceYr + '-' + pts[1] + '-' + pts[2];
+    }
+    return isoDate;
+  };
+  let rows = trackingData.filter(o => {
+    const cust = CUST_NAME_MAP[o.customer] || o.customer || '(ไม่ระบุ)';
+    if (custFilter && cust !== custFilter) return false;
+    if (statFilter && o.status !== statFilter) return false;
+    const d = toISOLocal(o.timestamp||o.date||'');
+    if (dateFrom && d < dateFrom) return false;
+    if (dateTo   && d > dateTo)   return false;
+    return true;
+  });
+
+  if (!rows.length) {
+    bodyEl.innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">ไม่มีรายการ</p>';
+    statEl.textContent=''; statEl.style.display='none';
+    return;
+  }
+
+  rows.forEach(o => {
+    if (VALID_URG.includes(o.urgency)) {
+      o._urgency = o.urgency;
+      o._note = (UNIT_VALS.includes(o.note)||VALID_URG.includes(o.note)) ? '' : (o.note||'');
+    } else if (VALID_URG.includes(o.note)) {
+      o._urgency = o.note; o._note = '';
+    } else {
+      o._urgency = ''; o._note = (UNIT_VALS.includes(o.note)||VALID_URG.includes(o.note)) ? '' : (o.note||'');
+    }
+  });
+
+  // sort: pending ขึ้นก่อน → date ล่าสุด
+  const sPrio = {pending:0, confirmed:1, rejected:2};
+  rows.sort((a,b) => {
+    const p = (sPrio[a.status]??1) - (sPrio[b.status]??1);
+    if (p !== 0) return p;
+    return String(b.date||b.timestamp||'').localeCompare(String(a.date||a.timestamp||''));
+  });
+
+  // group by customer
+  const grouped = {};
+  rows.forEach(o => {
+    const c = CUST_NAME_MAP[o.customer] || o.customer || '(ไม่ระบุ)';
+    if (!grouped[c]) grouped[c] = [];
+    grouped[c].push(o);
+  });
+
+  const fmtDate = d => {
+    if (!d) return '—';
+    const s = String(d);
+    // ถ้าเป็น Thai format "dd/mm/yyyy" (BE) อยู่แล้ว — แสดงตรง ไม่ต้องแปลง
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) return s;
+    // ISO หรือ format อื่น — แปลงผ่าน Date object
+    const dt = new Date(d);
+    if (isNaN(dt)) return '—';
+    const yr = dt.getFullYear() > 2100 ? dt.getFullYear() : dt.getFullYear() + 543;
+    return String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+yr;
+  };
+
+  let html = `<table class="sum-tbl"><thead><tr>
+    <th style="width:90px">วันที่สั่ง</th>
+    <th style="text-align:left">ลูกค้า</th>
+    <th style="text-align:left;min-width:160px">ชื่อสินค้า</th>
+    <th style="width:60px">กระสอบ</th>
+    <th style="width:60px">กล่อง</th>
+    <th style="width:55px;text-align:center">%ส่วนลด</th>
+    <th style="width:65px;text-align:center">ราคาเน็ต</th>
+    <th style="width:95px">ความเร่งด่วน</th>
+    <th style="width:105px">สถานะ</th>
+    <th style="text-align:left">หมายเหตุ</th>
+  </tr></thead><tbody>`;
+
+  Object.entries(grouped).forEach(([cust, orders]) => {
+    const custCode = CUSTOMERS.find(c => c.name === cust)?.code || '';
+    orders.forEach((o, idx) => {
+      const si = allItems.find(x => x.code === o.code);
+      const isBox = si ? getUnit(resolveType(si)) === 'กล่อง' : (o.unit === 'กล่อง');
+      const qty = Number(o.qty) || 0;
+      const isPending = o.status === 'pending';
+      const rowStyle = isPending ? 'background:#fffbeb' : '';
+      const urgBg = urgBgMap[o._urgency] || '#f3f4f6';
+      const pi = getPriceInfo(custCode, o.code, '');
+      const discVal = pi.disc_pct !== null ? pi.disc_pct : ((o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined) ? o.disc_pct : '');
+      const netVal  = pi.net_price !== null ? pi.net_price : ((o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined) ? o.net_price : '');
+      html += `<tr style="${rowStyle}" class="${idx===0?'group-sep':''}">
+        <td style="font-size:11px;white-space:nowrap">${fmtDate(o.timestamp||o.date)}</td>
+        <td class="td-cust">${idx===0?cust:''}</td>
+        <td class="td-name">${fmtName(o.name||o.code)}</td>
+        <td>${!isBox?qty:''}</td>
+        <td>${isBox?qty:''}</td>
+        <td style="text-align:center;font-size:12px">${discVal!==''&&discVal!==null?discVal+'%':''}</td>
+        <td style="text-align:center;font-size:12px">${netVal!==''&&netVal!==null&&netVal!==undefined ? Number(netVal).toFixed(2) : ''}</td>
+        <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;color:#333">${urgLbl[o._urgency]||o._urgency||'ปกติ'}</span></td>
+        <td><span style="background:${statBg[o.status]||'#f3f4f6'};color:${statTxt[o.status]||'#555'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${statLbl[o.status]||o.status||''}</span></td>
+        <td style="font-size:11px;color:#666">${o._note||''}</td>
+      </tr>`;
+    });
+  });
+  html += '</tbody></table>';
+  bodyEl.innerHTML = html;
+  statEl.textContent = rows.length + ' รายการ';
+  statEl.style.display = '';
+}
+
+function showToast(msg) {
+ const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+loadData();
+</script>
+</body>
+</html>
