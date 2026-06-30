@@ -2251,8 +2251,8 @@ function renderPendingTable() {
     });
   } else if (pendingSort === 'date') {
     sortedCusts.sort((a,b) => {
-      const da = Math.max(...grouped[a].map(o => new Date(o.date||0).getTime()));
-      const db = Math.max(...grouped[b].map(o => new Date(o.date||0).getTime()));
+      const da = Math.max(...grouped[a].map(o => new Date(o.timestamp||o.date||0).getTime()));
+      const db = Math.max(...grouped[b].map(o => new Date(o.timestamp||o.date||0).getTime()));
       return db - da;
     });
   }
@@ -2366,7 +2366,7 @@ function updateBulkCount() {
   }
 }
 
-async function bulkConfirm() {
+async async function bulkConfirm() {
   const checked = [...document.querySelectorAll('.pend-chk:checked')];
   if (!checked.length) return;
   if (!confirm(`ยืนยัน ${checked.length} รายการ?`)) return;
