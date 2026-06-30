@@ -1227,7 +1227,7 @@ function renderTracking() {
   const toISOLocal = d => {
     if (!d) return '';
     const s = String(d);
-    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); // Thai dd/mm/yyyy
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); // Thai dd/mm/yyyy
     if (m) {
       const yr = Number(m[3]) > 2500 ? Number(m[3]) - 543 : Number(m[3]);
       return yr+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');

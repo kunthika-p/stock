@@ -2615,9 +2615,17 @@ function renderSummary() {
     const cust = resolveCust(o.customer || '(ไม่ระบุ)');
     if (custFilter && cust !== custFilter) return false;
     const d = (() => {
-      const _raw = (o.timestamp||o.date||'').split('T')[0];
-      const _p = _raw.split('-');
-      return (_p.length===3 && Number(_p[0])>2100) ? (Number(_p[0])-543)+'-'+_p[1]+'-'+_p[2] : _raw;
+      const _raw = String(o.timestamp||o.date||'');
+      // Thai dd/mm/yyyy: "30/6/2569" หรือ "30/6/2569 17:00:00"
+      const _m = _raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (_m) {
+        const _yr = Number(_m[3]) > 2500 ? Number(_m[3]) - 543 : Number(_m[3]);
+        return _yr + '-' + String(_m[2]).padStart(2,'0') + '-' + String(_m[1]).padStart(2,'0');
+      }
+      // ISO: "2569-06-30T..." or "2026-06-30T..."
+      const _iso = _raw.split('T')[0];
+      const _p = _iso.split('-');
+      return (_p.length===3 && Number(_p[0])>2100) ? (Number(_p[0])-543)+'-'+_p[1]+'-'+_p[2] : _iso;
     })();
     if (dateFrom && d < dateFrom) return false;
     if (dateTo   && d > dateTo)   return false;
