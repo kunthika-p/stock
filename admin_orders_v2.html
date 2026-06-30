@@ -1600,6 +1600,7 @@ async function siCorrectSave(type) {
     if (js.error) throw new Error(js.error);
     siCorrectClose();
     await loadStockInHistory();
+    if (type === 'void' || type === 'qty') loadStock();
   } catch(e) {
     alert('เกิดข้อผิดพลาด: '+e.message);
     if (btn) { btn.disabled=false; btn.textContent=(type==='void'?'✕ ยืนยันยกเลิก':'💾 บันทึก'); }
@@ -2368,7 +2369,7 @@ async function bulkConfirm() {
         method: 'POST', body: JSON.stringify({action:'confirmOrder', row: item.row, code: item.code, qty: item.qty})
       });
       const data = await res.json();
-      if (!data.success) { showToast('⚠️ ' + (data.error||'เกิดข้อผิดพลาด'), 'warn'); return; }
+      if (!data.success) { showToast('⚠️ ' + (data.error||'เกิดข้อผิดพลาด'), 'warn'); loadPending(); return; }
     }
     showToast(`✅ ยืนยัน ${items.length} รายการแล้ว`); loadPending(); loadHistory();
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
@@ -2388,6 +2389,7 @@ async function confirmOrder(row, code, qty) {
       if (pendingOrders.length) renderPendingTable();
       else document.getElementById('pendingList').innerHTML = '<div class="empty">✅ ไม่มีคำสั่งซื้อรอยืนยัน</div>';
       loadHistory();
+      loadStock();
     } else {
       showToast('⚠️ ' + (data.error||'เกิดข้อผิดพลาด'), 'warn');
     }
@@ -2407,6 +2409,8 @@ async function rejectOrder(row) {
       document.getElementById('pendingCount').textContent = pendingOrders.length;
       if (pendingOrders.length) renderPendingTable();
       else document.getElementById('pendingList').innerHTML = '<div class="empty">✅ ไม่มีคำสั่งซื้อรอยืนยัน</div>';
+      loadHistory();
+      loadStock();
     } else alert('เกิดข้อผิดพลาด: '+(data.error||'unknown'));
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
 }
@@ -2449,7 +2453,7 @@ async function saveEdit() {
     const data = await res.json();
     if (data.success) {
       const o = pendingOrders.find(x => x.row === editingRow);
-      if (o) { o.qty = qty; o._urgency = urgency; o._note = note; }
+      if (o) { o.qty = qty; o._urgency = urgency; o.urgency = urgency; o._note = note; o.note = note; }
       closeEditModal();
       renderPendingTable();
       showToast('✅ บันทึกแล้ว');

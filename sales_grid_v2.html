@@ -1145,17 +1145,20 @@ async function confirmAllToAdmin() {
   btn.textContent = '⏳ กำลังส่ง...'; btn.disabled = true;
   try {
     for (const o of stagedOrders) {
-      await fetch(API, {
+      const res = await fetch(API, {
         method: 'POST',
         body: JSON.stringify({ action:'newOrder', code:o.code, name:o.name,
           customer:o.customer, qty:o.qty, unit:o.unit, urgency:o.urgency, note:o.note, date:o.date })
       });
+      const data = await res.json();
+      if (data.error) throw new Error('สินค้า ' + o.code + ': ' + data.error);
     }
     const count = stagedOrders.length;
     stagedOrders = [];
+    document.getElementById('inputNote').value = '';
     renderSalesHistory();
     showToast('✅ ส่งคำสั่งซื้อ ' + count + ' รายการไปที่ Admin แล้ว');
-  } catch(e) { alert('เกิดข้อผิดพลาด กรุณาลองใหม่'); }
+  } catch(e) { alert('เกิดข้อผิดพลาด: ' + e.message + '\nกรุณาลองใหม่'); }
   btn.textContent = '✅ ยืนยันส่งทั้งหมดไปที่ Admin'; btn.disabled = false;
 }
 
@@ -1220,11 +1223,22 @@ function renderTracking() {
   const bodyEl     = document.getElementById('trk-body');
   const statEl     = document.getElementById('trk-stat');
 
+  // แปลง date เป็น CE ISO สำหรับเปรียบเทียบ filter
+  const toISOLocal = d => {
+    if (!d) return '';
+    const s = String(d);
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); // Thai dd/mm/yyyy
+    if (m) {
+      const yr = Number(m[3]) > 2500 ? Number(m[3]) - 543 : Number(m[3]);
+      return yr+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+    }
+    return s.split('T')[0]; // ISO หรือ format อื่น
+  };
   let rows = trackingData.filter(o => {
     const cust = CUST_NAME_MAP[o.customer] || o.customer || '(ไม่ระบุ)';
     if (custFilter && cust !== custFilter) return false;
     if (statFilter && o.status !== statFilter) return false;
-    const d = (o.date||o.timestamp||'').split('T')[0];
+    const d = toISOLocal(o.date||o.timestamp||'');
     if (dateFrom && d < dateFrom) return false;
     if (dateTo   && d > dateTo)   return false;
     return true;
