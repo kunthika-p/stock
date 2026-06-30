@@ -2184,6 +2184,7 @@ async function loadPending() {
     const res = await fetch(API + '?action=getOrders&status=pending');
     const data = await res.json();
     pendingOrders = data.orders || [];
+    if(pendingOrders.length) console.log('DBG_PEND:', JSON.stringify(pendingOrders[0]));
     document.getElementById('pendingCount').textContent = pendingOrders.length;
     if (!pendingOrders.length) {
       document.getElementById('pendingList').innerHTML = '<div class="empty">✅ ไม่มีคำสั่งซื้อรอยืนยัน</div>';
