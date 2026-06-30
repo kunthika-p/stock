@@ -2163,7 +2163,7 @@ function fmtOrderDate(d) {
   const yyyy = dt.getFullYear() > 2100 ? dt.getFullYear() : dt.getFullYear() + 543;
   return `${dd}/${mm}/${yyyy}`;
 }
-function getOrderDate(o) { return fmtOrderDate(o.date || o.timestamp); }
+function getOrderDate(o) { return fmtOrderDate(o.timestamp || o.date); }
 
 let pendingOrders = [];
 let pendingSort = 'customer';

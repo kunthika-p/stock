@@ -1246,7 +1246,7 @@ function renderTracking() {
     const cust = CUST_NAME_MAP[o.customer] || o.customer || '(ไม่ระบุ)';
     if (custFilter && cust !== custFilter) return false;
     if (statFilter && o.status !== statFilter) return false;
-    const d = toISOLocal(o.date||o.timestamp||'');
+    const d = toISOLocal(o.timestamp||o.date||'');
     if (dateFrom && d < dateFrom) return false;
     if (dateTo   && d > dateTo)   return false;
     return true;
