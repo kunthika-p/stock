@@ -826,7 +826,7 @@ table.list tr:hover td{background:#f8fbff}
     </div>
     <div class="edit-actions">
       <button class="btn-cancel-edit" onclick="closeEditModal()">ยกเลิก</button>
-      <button class="btn-save" onclick="saveEdit()">💾 บันทึก</button>
+      <button class="btn-save" id="editSaveBtn" onclick="saveEdit()">💾 บันทึก</button>
     </div>
   </div>
 </div>
@@ -1655,6 +1655,15 @@ function siRender() {
     </tr>`;
   }).join('');
 }
+// สร้าง fingerprint ของ batch (date+recorder+items) แบบ deterministic
+// ส่ง batch เดิมซ้ำ (เช่น กดบันทึกซ้ำหลัง error/timeout) จะได้ batchId เดิมเป๊ะ -> server กันบันทึกซ้ำให้
+function siComputeBatchId(date, recorder, items) {
+  const raw = date + '|' + recorder + '|' +
+    items.map(it => it.code + ':' + it.qty + ':' + it.unit).sort().join(',');
+  let h = 0;
+  for (let i = 0; i < raw.length; i++) { h = (h * 31 + raw.charCodeAt(i)) | 0; }
+  return 'b' + Math.abs(h) + '_' + raw.length;
+}
 async function siSubmit() {
   const date = document.getElementById('si-date').value;
   const recorder = document.getElementById('si-recorder').value.trim();
@@ -1662,18 +1671,22 @@ async function siSubmit() {
   if (!recorder) { alert('กรุณาใส่ชื่อผู้บันทึก'); return; }
   if (!siItems.length) { alert('กรุณาเพิ่มรายการสินค้า'); return; }
   const btn = document.getElementById('si-submit-btn');
+  if (btn.disabled) return; // กันกดซ้ำระหว่างกำลังส่ง
   btn.textContent = '⏳ กำลังบันทึก...'; btn.disabled = true;
   try {
     const normalItems = siItems.filter(x => x.unit !== 'ถัง');
     const tankItems   = siItems.filter(x => x.unit === 'ถัง');
 
     let failedCodes = [];
+    let wasDuplicate = false;
 
     // บันทึกกระสอบ/กล่องปกติ
     if (normalItems.length) {
-      const r = await fetch(API, { method:'POST', body:JSON.stringify({action:'stockIn',date,recorder,items:normalItems}) });
+      const batchId = siComputeBatchId(date, recorder, normalItems);
+      const r = await fetch(API, { method:'POST', body:JSON.stringify({action:'stockIn',date,recorder,items:normalItems,batchId}) });
       const rd = await r.json();
       if (rd.errors && rd.errors.length) failedCodes = rd.errors;
+      if (rd.duplicate) wasDuplicate = true;
     }
     // บันทึกถังรับเข้า
     for (const item of tankItems) {
@@ -1691,12 +1704,15 @@ async function siSubmit() {
         return it ? (it.name || code) : code;
       }).join(', ');
       showToast('⚠️ ไม่พบรหัสสินค้า: ' + failedNames, 'warn');
+    } else if (wasDuplicate) {
+      showToast('⚠️ รายการนี้เพิ่งถูกบันทึกไปแล้ว ระบบข้ามการบันทึกซ้ำให้ (ไม่ได้เพิ่มสต็อคซ้ำ)', 'warn');
+      siItems = []; siRender();
     } else {
       showToast('✅ บันทึกรับสินค้าเข้า '+siItems.length+' รายการแล้ว');
       siItems = []; siRender();
     }
     loadStock();
-  } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
+  } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message+'\n\nถ้ากดบันทึกซ้ำ ระบบจะกันไม่ให้เพิ่มสต็อคซ้ำให้อัตโนมัติ (เช็คได้ที่ประวัติรับเข้า)'); }
   btn.textContent = '💾 บันทึกรับสินค้าเข้า'; btn.disabled = false;
 }
 
@@ -2462,6 +2478,8 @@ function openEditModalByRow(row) {
   document.getElementById('editDiscInput').value = (o.disc_pct !== '' && o.disc_pct !== null && o.disc_pct !== undefined) ? o.disc_pct : '';
   document.getElementById('editNetInput').value = (o.net_price !== '' && o.net_price !== null && o.net_price !== undefined) ? o.net_price : '';
   setEditUrg(o._urgency || 'ปกติ');
+  const saveBtn = document.getElementById('editSaveBtn');
+  if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 บันทึก'; }
   document.getElementById('editModalBg').classList.add('open');
 }
 
@@ -2487,6 +2505,9 @@ async function saveEdit() {
   const disc_pct  = _discRaw !== '' ? Number(_discRaw)  : null;
   const net_price = _netRaw  !== '' ? Number(_netRaw)   : null;
   if (!qty || qty < 1) { alert('กรุณาใส่จำนวนที่ถูกต้อง'); return; }
+  const saveBtn = document.getElementById('editSaveBtn');
+  const _origBtnText = saveBtn ? saveBtn.textContent : '';
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ กำลังบันทึก...'; }
   try {
     const res = await fetch(API, {
       method: 'POST', body: JSON.stringify({action:'editOrder', row: editingRow, qty, urgency, note, disc_pct, net_price})
@@ -2504,6 +2525,7 @@ async function saveEdit() {
       showToast('✅ บันทึกแล้ว');
     } else alert('เกิดข้อผิดพลาด: '+(data.error||'unknown'));
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
+  finally { if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = _origBtnText || '💾 บันทึก'; } }
 }
 
 // ---- History tab ----
