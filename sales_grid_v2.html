@@ -79,16 +79,18 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .urgency-opt.sel-medium{background:#fef9c3;border-color:#d97706;color:#92400e}
 .urgency-opt.sel-urgent{background:#fee2e2;border-color:#dc2626;color:#991b1b}
 .urgency-opt:not(.selected){opacity:.5}
-.modal-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:18px;align-items:end}
-.modal-actions .ma-col{display:flex;flex-direction:column;gap:4px}
-.modal-actions .ma-lbl{font-size:11px;color:#888;text-align:center;visibility:hidden}
-.modal-actions .ma-lbl.show{visibility:visible}
+.modal-actions{display:flex;gap:10px;margin-top:18px}
+.modal-actions.modal-actions-3{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end}
+.modal-actions-3 .ma-col{display:flex;flex-direction:column;gap:4px}
+.modal-actions-3 .ma-col button{width:100%;font-size:14px}
+.modal-actions-3 .ma-lbl{font-size:11px;color:#888;text-align:center;visibility:hidden}
+.modal-actions-3 .ma-lbl.show{visibility:visible}
 .price-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .field-auto input{background:var(--color-bg-auto,#f0f7ff);font-weight:500}
 .field-hint{font-size:11px;color:#999;margin:3px 0 0}
-.btn-cancel{width:100%;padding:13px;border:1.5px solid #d1d5db;border-radius:8px;background:white;font-size:15px;font-family:'Sarabun',sans-serif;cursor:pointer;color:#555}
-.btn-confirm{width:100%;padding:13px;border:none;border-radius:8px;background:#2563a8;color:white;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
-.btn-delivery{width:100%;padding:13px;border:1.5px solid #2563a8;border-radius:8px;background:white;color:#2563a8;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:600;cursor:pointer}
+.btn-cancel{flex:1;padding:13px;border:1.5px solid #d1d5db;border-radius:8px;background:white;font-size:15px;font-family:'Sarabun',sans-serif;cursor:pointer;color:#555}
+.btn-confirm{flex:2;padding:13px;border:none;border-radius:8px;background:#2563a8;color:white;font-size:15px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
+.btn-delivery{padding:13px;border:1.5px solid #2563a8;border-radius:8px;background:white;color:#2563a8;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:600;cursor:pointer}
 .btn-delivery:disabled{border-color:#d1d5db;color:#aaa;cursor:not-allowed;opacity:.6}
 
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a3a5c;color:white;padding:12px 20px;border-radius:8px;font-size:14px;font-weight:600;z-index:999;display:none;white-space:nowrap}
@@ -249,7 +251,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
         <div class="urgency-opt sel-urgent" onclick="selectItemUrgency('ด่วน',this)">🔴 ด่วน</div>
       </div>
     </div>
-    <div class="modal-actions">
+    <div class="modal-actions modal-actions-3">
       <div class="ma-col">
         <span class="ma-lbl">&nbsp;</span>
         <button class="btn-cancel" onclick="closeModalDirect()">ยกเลิก</button>
