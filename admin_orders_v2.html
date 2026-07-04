@@ -281,16 +281,18 @@ table.list tr:hover td{background:#f8fbff}
     padding:2px 4px!important;font-size:6.5pt!important;font-weight:700!important}
   .sum-tbl thead th,#tab-summary .hist-tbl thead th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 4px!important;font-size:6pt!important;text-align:center!important}
   .sum-tbl,#tab-summary .hist-tbl{font-size:6.5pt!important;border-collapse:collapse!important;width:100%!important;table-layout:fixed!important}
-  #tab-summary .hist-tbl col:nth-child(1){width:10%!important}
-  #tab-summary .hist-tbl col:nth-child(2){width:12%!important}
-  #tab-summary .hist-tbl col:nth-child(3){width:30%!important}
-  #tab-summary .hist-tbl col:nth-child(4){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(5){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(6){width:8%!important}
-  #tab-summary .hist-tbl col:nth-child(7){width:8%!important}
-  #tab-summary .hist-tbl col:nth-child(8){width:5%!important}
-  #tab-summary .hist-tbl col:nth-child(9){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(1){width:9%!important}
+  #tab-summary .hist-tbl col:nth-child(2){width:11%!important}
+  #tab-summary .hist-tbl col:nth-child(3){width:22%!important}
+  #tab-summary .hist-tbl col:nth-child(4){width:9%!important}
+  #tab-summary .hist-tbl col:nth-child(5){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(6){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(7){width:7%!important}
+  #tab-summary .hist-tbl col:nth-child(8){width:7%!important}
+  #tab-summary .hist-tbl col:nth-child(9){width:5%!important}
   #tab-summary .hist-tbl col:nth-child(10){width:7%!important}
+  #tab-summary .hist-tbl col:nth-child(11){width:5%!important}
+  #tab-summary .hist-tbl col:nth-child(12){width:6%!important}
   .sum-tbl th,#tab-summary .hist-tbl th{padding:2px 4px!important;font-size:6.5pt!important}
   .sum-tbl td,#tab-summary .hist-tbl td{padding:2px 5px!important;line-height:1.2!important;border:0.5px solid #ccc!important}
   .sum-tbl .num,#tab-summary .hist-tbl td{text-align:center!important}
@@ -464,11 +466,13 @@ table.list tr:hover td{background:#f8fbff}
           <th style="width:120px;font-size:11px">วันที่สั่ง</th>
           <th style="text-align:left">ลูกค้า</th>
           <th style="text-align:left;min-width:180px">ชื่อ / ขนาดสินค้า</th>
+          <th style="width:80px">รหัส</th>
           <th style="width:80px">กระสอบ</th>
           <th style="width:80px">กล่อง</th>
           <th style="width:55px;text-align:center">%ส่วนลด</th>
           <th style="width:65px;text-align:center">ราคาเน็ต</th>
           <th style="width:100px">ความเร่งด่วน</th>
+          <th style="width:85px">จัดส่ง</th>
           <th style="width:80px">สถานะ</th>
           <th style="text-align:left;min-width:120px">หมายเหตุ</th>
         </tr></thead>
@@ -2576,7 +2580,7 @@ function renderHistory() {
   });
   const tbody = document.getElementById('historyTbody');
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;color:#aaa">ไม่มีประวัติ</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:24px;color:#aaa">ไม่มีประวัติ</td></tr>';
     return;
   }
   const grouped = {};
@@ -2599,20 +2603,22 @@ function renderHistory() {
         <td style="font-size:11px;white-space:nowrap">${getOrderDate(o)}</td>
         <td class="td-cust">${idx===0?cust:''}</td>
         <td class="td-name">${fmtName(o.name||o.code)}</td>
+        <td style="font-family:monospace;font-size:11px">${o.code||''}</td>
         <td>${!isBox?qty:''}</td>
         <td>${isBox?qty:''}</td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo((CUST_MAP[cust]||{}).code||'',o.code,'');const _dv=(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)?o.disc_pct:(_pi.disc_pct!==null?_pi.disc_pct:'');return _dv!==''&&_dv!==null?_dv+'%':'';})()}</td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo((CUST_MAP[cust]||{}).code||'',o.code,'');const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
         <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
+        <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td class="${o.status==='confirmed'?'status-done':'status-rejected'}">${o.status==='confirmed'?'✅ ยืนยัน':'❌ ปฏิเสธ'}</td>
         <td style="font-size:11px;color:#666">${o._note}</td>
       </tr>`;
     });
     html += `<tr class="summary-row">
-      <td colspan="3" style="text-align:right">รวม ${cust}</td>
+      <td colspan="4" style="text-align:right">รวม ${cust}</td>
       <td>${cSack||'-'}</td>
       <td>${cBox||'-'}</td>
-      <td colspan="5"></td>
+      <td colspan="6"></td>
     </tr>`;
   });
   tbody.innerHTML = html;
@@ -2737,18 +2743,20 @@ function renderSummary() {
   </div>`;
 
   html += `<table class="hist-tbl"><colgroup>
-    <col><col><col><col style="width:80px"><col style="width:80px">
-    <col style="width:100px"><col style="width:80px">
-    <col style="width:55px"><col style="width:65px"><col>
+    <col><col><col><col style="width:80px"><col style="width:80px"><col style="width:80px">
+    <col style="width:55px"><col style="width:65px"><col style="width:100px"><col style="width:85px">
+    <col style="width:80px"><col>
   </colgroup><thead><tr>
     <th style="width:120px;font-size:11px">วันที่สั่ง</th>
     <th style="text-align:left">ลูกค้า</th>
     <th style="text-align:left;min-width:180px">ชื่อสินค้า</th>
+    <th>รหัส</th>
     <th>กระสอบ</th>
     <th>กล่อง</th>
     <th style="text-align:center">%ส่วนลด</th>
     <th style="text-align:center">ราคาเน็ต</th>
     <th>ความเร่งด่วน</th>
+    <th>จัดส่ง</th>
     <th>สถานะ</th>
     <th style="text-align:left;min-width:120px">หมายเหตุ</th>
   </tr></thead><tbody>`;
@@ -2784,20 +2792,22 @@ function renderSummary() {
         <td style="font-size:11px;white-space:nowrap">${dateStr}</td>
         <td class="td-cust">${idx===0?cust+(custCode?` <span class="sum-cust-code">${custCode}</span>`:''):''}</td>
         <td class="td-name">${fmtName(o.name||o.code)}</td>
+        <td style="font-family:monospace;font-size:11px">${o.code||''}</td>
         <td>${!isBox?qty:''}</td>
         <td>${isBox?qty:''}</td>
         <td style="text-align:center;font-size:12px">${discVal!==''&&discVal!==null?discVal+'%':''}</td>
         <td style="text-align:center;font-size:12px">${netVal}</td>
         <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
+        <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td>✅ ยืนยัน</td>
         <td style="font-size:11px;color:#555">${o._note}</td>
       </tr>`;
     });
     html += `<tr class="summary-row">
-      <td colspan="3" style="text-align:right">รวม ${cust}</td>
+      <td colspan="4" style="text-align:right">รวม ${cust}</td>
       <td>${totalSack||'-'}</td>
       <td>${totalBox||'-'}</td>
-      <td colspan="5"></td>
+      <td colspan="6"></td>
     </tr>`;
   });
   html += `</tbody></table>`;
