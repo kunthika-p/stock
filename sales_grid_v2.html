@@ -1276,8 +1276,13 @@ async function confirmAllToAdmin() {
   if (!confirm('ยืนยันส่งคำสั่งซื้อ ' + stagedOrders.length + ' รายการไปที่ Admin?')) return;
   const btn = document.getElementById('sales-confirm-all-btn');
   btn.textContent = '⏳ กำลังส่ง...'; btn.disabled = true;
+  const total = stagedOrders.length;
+  showToast('⏳ กำลังส่ง 0/' + total + ' รายการ...');
   try {
+    let sentCount = 0;
     for (const o of stagedOrders) {
+      sentCount++;
+      showToast('⏳ กำลังส่ง ' + sentCount + '/' + total + ' รายการ...');
       const batchId = salesComputeBatchId(o);
       const res = await fetch(API, {
         method: 'POST',
