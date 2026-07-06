@@ -492,6 +492,9 @@ let cart = [];
 let customerName = '';
 let customerCode = '';
 let editingCartIndex = null;
+// โหมดแก้ไขของ modal เต็ม (#modalBg): null = โหมดเพิ่มสินค้าปกติ
+// {type:'cart', index} = แก้รายการในตะกร้า, {type:'staged', id} = แก้รายการในประวัติที่รอส่ง Admin
+let modalEditMode = null;
 
 function fmtName(n) {
   if (!n) return n;
@@ -845,6 +848,7 @@ function openModal(code, name, type) {
     document.getElementById('customerInput').focus();
     return;
   }
+  modalEditMode = null;
   selectedCode = code;
   selectedName = name;
   selectedType = type;
@@ -908,6 +912,44 @@ function openModal(code, name, type) {
   document.getElementById('modalBg').classList.add('open');
 }
 
+// เปิด modal เต็มเพื่อแก้ไขรายการที่มีอยู่แล้ว (ในตะกร้า หรือในประวัติที่รอส่ง Admin)
+// ต่างจาก openModal() ตรงที่ prefill ค่าจากตัว item เอง (ไม่ใช่จากการ lookup ใน cart ด้วย code)
+function openItemModalFrom(item, mode) {
+  modalEditMode = mode;
+  selectedCode = item.code;
+  selectedName = item.name;
+  selectedType = item.type; // staged order ไม่มี type แต่ไม่กระทบเพราะ addToCart() จะ short-circuit ก่อนใช้ selectedType
+  const unit = item.unit || getUnit(item.type);
+  document.getElementById('modalName').textContent = fmtName(item.name);
+  document.getElementById('modalCode').textContent = 'รหัส: ' + item.code;
+  document.getElementById('qtyLabel').textContent = 'จำนวน (' + unit + ') *';
+  document.getElementById('inputQty').value = item.qty;
+  document.getElementById('inputItemNote').value = item.note || '';
+  document.getElementById('btnAddCart').textContent = '💾 บันทึกการแก้ไข';
+  selectedItemUrgency = item.urgency || 'ปกติ';
+  selectedDelivery = item.delivery || 'หน้าร้าน';
+  updateDeliveryBtn();
+
+  document.querySelectorAll('#itemUrgencyOpts .urgency-opt').forEach(e => e.classList.remove('selected'));
+  const urgencyMap = {'ปกติ':'sel-normal','จอง':'sel-medium','ด่วน':'sel-urgent'};
+  document.querySelector('#itemUrgencyOpts .' + (urgencyMap[selectedItemUrgency]||'sel-normal')).classList.add('selected');
+
+  const discInput = document.getElementById('inputDiscPct');
+  const netInput = document.getElementById('inputNetPrice');
+  const hintDisc = document.getElementById('hintDiscPct');
+  const hintNet = document.getElementById('hintNetPrice');
+  const fieldDisc = document.getElementById('fieldDiscPct');
+  const fieldNet = document.getElementById('fieldNetPrice');
+  discInput.value = (item.disc_pct !== null && item.disc_pct !== undefined) ? item.disc_pct : '';
+  netInput.value = (item.net_price !== null && item.net_price !== undefined) ? item.net_price : '';
+  hintDisc.textContent = discInput.value !== '' ? 'แก้ไขได้' : '';
+  hintNet.textContent = netInput.value !== '' ? 'แก้ไขได้' : '';
+  fieldDisc.classList.remove('field-auto');
+  fieldNet.classList.remove('field-auto');
+
+  document.getElementById('modalBg').classList.add('open');
+}
+
 function selectItemUrgency(val, el) {
   selectedItemUrgency = val;
   document.querySelectorAll('#itemUrgencyOpts .urgency-opt').forEach(e => e.classList.remove('selected'));
@@ -934,18 +976,39 @@ function closeModal(e) {
   if (e.target === document.getElementById('modalBg')) closeModalDirect();
 }
 function closeModalDirect() {
+  const reopenCart = !!(modalEditMode && modalEditMode.type === 'cart');
+  modalEditMode = null;
   document.getElementById('modalBg').classList.remove('open');
+  if (reopenCart) openCartModal();
 }
 
 function addToCart() {
   const qty = parseFloat(document.getElementById('inputQty').value);
   if (!qty || qty <= 0) { alert('กรุณากรอกจำนวน'); return; }
-  const unit = getUnit(selectedType);
   const note = document.getElementById('inputItemNote').value.trim();
   const discVal = document.getElementById('inputDiscPct').value;
   const netVal = document.getElementById('inputNetPrice').value;
   const disc_pct = discVal !== '' ? parseFloat(discVal) : null;
   const net_price = netVal !== '' ? parseFloat(netVal) : null;
+
+  // แก้ไขรายการในประวัติที่รอส่ง Admin (stagedOrders) — อัปเดตของเดิม ไม่สร้างรายการใหม่
+  if (modalEditMode && modalEditMode.type === 'staged') {
+    const o = stagedOrders.find(x => String(x.id) === String(modalEditMode.id));
+    if (o) {
+      o.qty = qty;
+      o.urgency = selectedItemUrgency;
+      o.note = note;
+      o.disc_pct = disc_pct;
+      o.net_price = net_price;
+      o.delivery = selectedDelivery;
+    }
+    closeModalDirect();
+    renderSalesHistory();
+    showToast('✅ แก้ไขแล้ว');
+    return;
+  }
+
+  const unit = getUnit(selectedType);
   const existing = cart.find(i => i.code === selectedCode);
   if (existing) {
     existing.qty = qty;
@@ -959,6 +1022,7 @@ function addToCart() {
   }
   closeModalDirect();
   updateCartBar();
+  renderCartItems();
   showToast('✅ ' + (existing ? 'อัปเดตแล้ว' : 'เพิ่มในตะกร้าแล้ว'));
 }
 
@@ -1035,7 +1099,7 @@ function renderCartItems() {
             <span style="font-size:11px;font-weight:700;color:${urgencyColor[item.urgency]||'#555'};margin-left:6px">${item.urgency}</span>
             ${item.note?`<br><span style="font-size:11px;color:#888">📝 ${item.note}</span>`:''}
           </div>
-          <div class="cart-item-qty" onclick="startInlineEdit(${origIdx})" title="กดเพื่อแก้ไขจำนวน">${item.qty} ${item.unit} ✏️</div>
+          <div class="cart-item-qty" onclick="startInlineEdit(${origIdx})" title="กดเพื่อแก้ไขรายการ">${item.qty} ${item.unit} ✏️</div>
           <button class="cart-item-del" onclick="removeFromCart(${origIdx})">✕</button>
         </div>`;
     }
@@ -1049,8 +1113,10 @@ function renderCartItems() {
 }
 
 function startInlineEdit(i) {
-  editingCartIndex = i;
-  renderCartItems();
+  const item = cart[i];
+  if (!item) return;
+  closeCartModalDirect();
+  openItemModalFrom(item, { type: 'cart', index: i });
 }
 
 function saveInlineQty(i) {
@@ -1175,18 +1241,12 @@ function salesDeleteOrder(id) {
 
 let _editOrderId = null;
 
+// เดิมเปิด #editOrderBg (แก้ได้แค่จำนวน+หมายเหตุ) — เปลี่ยนมาเปิด modal เต็มแทน (07-06)
+// #editOrderBg + closeEditOrder/closeEditOrderDirect/saveEditOrder เก็บไว้เป็น dead code ไม่ได้ใช้แล้ว แต่ไม่ลบเพื่อลดความเสี่ยง
 function salesEditOrder(id) {
   const o = stagedOrders.find(x => String(x.id) === String(id));
   if (!o) return;
-  _editOrderId = id;
-  document.getElementById('editOrderName').textContent = o.name;
-  document.getElementById('editOrderCode').textContent = 'รหัส: ' + o.code;
-  document.getElementById('editOrderQtyLabel').textContent = 'จำนวน (' + o.unit + ') *';
-  document.getElementById('editOrderQty').value = o.qty;
-  document.getElementById('editOrderNote').value = o.note || '';
-  const bg = document.getElementById('editOrderBg');
-  bg.style.display = 'flex';
-  setTimeout(() => document.getElementById('editOrderQty').focus(), 50);
+  openItemModalFrom(o, { type: 'staged', id: o.id });
 }
 function closeEditOrder(e) { if (e.target === document.getElementById('editOrderBg')) closeEditOrderDirect(); }
 function closeEditOrderDirect() { document.getElementById('editOrderBg').style.display = 'none'; _editOrderId = null; }
