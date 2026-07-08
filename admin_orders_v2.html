@@ -42,6 +42,22 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .edit-modal{background:white;border-radius:12px;padding:24px;width:90%;max-width:400px}
 .edit-modal h3{font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:4px}
 .edit-modal .sub{font-size:12px;color:#888;font-family:monospace;margin-bottom:16px}
+/* Stock error modal */
+.stockerr-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:310;align-items:center;justify-content:center}
+.stockerr-bg.open{display:flex}
+.stockerr-modal{background:white;border-radius:14px;width:90%;max-width:380px;overflow:hidden}
+.stockerr-icon{width:52px;height:52px;border-radius:50%;background:#FCEBEB;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:26px}
+.stockerr-title{font-size:16px;font-weight:700;color:#1a3a5c;text-align:center}
+.stockerr-sub{font-size:12px;color:#7a8699;text-align:center;margin-top:4px}
+.stockerr-name{font-size:13px;color:#374151;text-align:center;margin-top:2px}
+.stockerr-cards{display:flex;gap:10px;padding:16px 22px}
+.stockerr-card{flex:1;border-radius:8px;padding:10px 0;text-align:center}
+.stockerr-card .lbl{font-size:11px}
+.stockerr-card .val{font-size:20px;font-weight:700;margin-top:2px}
+.stockerr-actions{padding:0 22px 20px;display:flex;gap:8px}
+.stockerr-actions button{flex:1;height:38px;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+.stockerr-btn-close{border:1.5px solid #d1d5db;background:white;color:#374151}
+.stockerr-btn-fix{border:none;background:#1a3a5c;color:white}
 .edit-field{margin-bottom:14px}
 .edit-field label{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px}
 .edit-field input{width:100%;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:15px;font-family:'Sarabun',sans-serif}
@@ -910,6 +926,40 @@ table.list tr:hover td{background:#f8fbff}
     <div class="edit-actions">
       <button class="btn-cancel-edit" onclick="closeEditModal()">ยกเลิก</button>
       <button class="btn-save" id="editSaveBtn" onclick="saveEdit()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stock error modal -->
+<div class="stockerr-bg" id="stockErrBg" onclick="if(event.target===this)closeStockErrModal()">
+  <div class="stockerr-modal">
+    <div style="padding:20px 22px 16px">
+      <div class="stockerr-icon">⚠️</div>
+      <div class="stockerr-title">ยืนยันไม่สำเร็จ สต็อคไม่พอ</div>
+      <div class="stockerr-sub" id="stockErrSub"></div>
+      <div class="stockerr-name" id="stockErrName"></div>
+    </div>
+    <div style="margin:0 22px;border-top:0.5px solid #e5e7eb"></div>
+    <div class="stockerr-cards">
+      <div class="stockerr-card" style="background:#F1EFE8">
+        <div class="lbl" style="color:#5F5E5A">ต้องการ</div>
+        <div class="val" id="stockErrNeeded" style="color:#2C2C2A">—</div>
+        <div class="lbl" style="color:#5F5E5A" id="stockErrUnit1"></div>
+      </div>
+      <div class="stockerr-card" style="background:#E6F1FB">
+        <div class="lbl" style="color:#185FA5">คงเหลือจริง</div>
+        <div class="val" id="stockErrAvail" style="color:#0C447C">—</div>
+        <div class="lbl" style="color:#185FA5" id="stockErrUnit2"></div>
+      </div>
+      <div class="stockerr-card" style="background:#FCEBEB">
+        <div class="lbl" style="color:#A32D2D">ขาดอีก</div>
+        <div class="val" id="stockErrShort" style="color:#791F1F">—</div>
+        <div class="lbl" style="color:#A32D2D" id="stockErrUnit3"></div>
+      </div>
+    </div>
+    <div class="stockerr-actions">
+      <button class="stockerr-btn-close" onclick="closeStockErrModal()">ปิด</button>
+      <button class="stockerr-btn-fix" id="stockErrFixBtn" onclick="fixQtyFromStockErr()">แก้ไขจำนวน</button>
     </div>
   </div>
 </div>
@@ -2646,10 +2696,40 @@ async function confirmOrder(row, code, qty) {
       else document.getElementById('pendingList').innerHTML = '<div class="empty">✅ ไม่มีคำสั่งซื้อรอยืนยัน</div>';
       loadHistory();
       loadStock();
+    } else if (data.errorType === 'insufficient_stock') {
+      const o = pendingOrders.find(x => x.row === row);
+      showStockErrModal({
+        row, code,
+        itemLabel: o ? fmtName(o.name || o.code) : code,
+        needed: data.needed, available: data.available, unit: data.unit || 'กระสอบ'
+      });
     } else {
       showToast('⚠️ ' + (data.error||'เกิดข้อผิดพลาด'), 'warn');
     }
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
+}
+
+let stockErrRow = null;
+function showStockErrModal(d) {
+  stockErrRow = d.row;
+  document.getElementById('stockErrSub').textContent = (d.code ? 'รหัส ' + d.code : '');
+  document.getElementById('stockErrName').textContent = d.itemLabel || '';
+  document.getElementById('stockErrNeeded').textContent = d.needed;
+  document.getElementById('stockErrAvail').textContent = d.available;
+  document.getElementById('stockErrShort').textContent = Math.max(0, d.needed - d.available);
+  document.getElementById('stockErrUnit1').textContent = d.unit;
+  document.getElementById('stockErrUnit2').textContent = d.unit;
+  document.getElementById('stockErrUnit3').textContent = d.unit;
+  document.getElementById('stockErrBg').classList.add('open');
+}
+function closeStockErrModal() {
+  document.getElementById('stockErrBg').classList.remove('open');
+  stockErrRow = null;
+}
+function fixQtyFromStockErr() {
+  const row = stockErrRow;
+  closeStockErrModal();
+  if (row !== null) openEditModalByRow(row);
 }
 
 async function rejectOrder(row) {
