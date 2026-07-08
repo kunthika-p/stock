@@ -253,6 +253,7 @@ table.list tr:hover td{background:#f8fbff}
 .sum-filter-row select{min-width:170px}
 .sum-filter-row .sum-btn-show{font-family:'Sarabun',sans-serif;font-size:13px;padding:7px 18px;border-radius:8px;border:none;cursor:pointer;background:#1a3a5c;color:white;font-weight:600;margin-left:4px}
 .sum-filter-row .sum-btn-print{font-family:'Sarabun',sans-serif;font-size:13px;padding:7px 18px;border-radius:8px;border:none;cursor:pointer;background:#059669;color:white;font-weight:600}
+.ih-btn-print{font-family:'Sarabun',sans-serif;font-size:13px;padding:0 18px;height:34px;border-radius:6px;border:none;cursor:pointer;background:#059669;color:white;font-weight:600}
 .sum-stat-badge{font-size:12px;color:#6b7280;padding:4px 10px;background:#f3f4f6;border-radius:20px;white-space:nowrap}
 .sum-cust-row td{background:#dbeafe;color:#1e3a5f;font-weight:700;font-size:12px;padding:4px 8px;border:0.5px solid #93c5fd}
 .sum-tbl thead th{background:#1a3a5c;color:white;padding:5px 8px;font-size:11px;font-weight:600;border:0.5px solid #0f2844;text-align:center}
@@ -266,17 +267,29 @@ table.list tr:hover td{background:#f8fbff}
 .sum-tbl .sub-row td{background:#eef3fb;font-weight:700;color:#1a3a5c;border-color:#c7d8f0}
 .sum-grand{text-align:right;font-size:13px;padding:10px 2px 4px;border-top:2px solid #1a3a5c;margin-top:12px;font-weight:700;color:#1a3a5c}
 #sum-print-hdr{display:none}
+#ih-print-hdr{display:none}
 @media print {
   *{box-sizing:border-box}
   @page{margin:4mm 5mm}
   body{font-size:8pt;font-family:'Sarabun',sans-serif}
-  .tabs,.header,.sum-filter-row,.toast,#tab-overview,#tab-stock,#tab-stockin,#tab-pending,#tab-history{display:none!important}
-  #tab-summary{display:block!important}
+  .tabs,.header,.sum-filter-row,.toast,#tab-overview,#tab-stock,#tab-stockin,#tab-pending,#tab-history,#tab-summary,#tab-itemhistory{display:none!important}
+  #tab-summary.active{display:block!important}
+  #tab-itemhistory.active{display:block!important}
   #tab-summary .content{padding:0!important}
-  .sum-print-hide{display:none!important}
+  .sum-print-hide,.ih-print-hide{display:none!important}
   #sum-print-hdr{display:block!important;margin-bottom:6px}
   #sum-print-hdr .phdr-title{font-size:11pt;font-weight:700}
   #sum-print-hdr .phdr-sub{font-size:7.5pt;color:#444}
+  #ih-print-hdr{display:block!important;margin-bottom:6px}
+  #ih-print-hdr .phdr-title{font-size:11pt;font-weight:700}
+  #ih-print-hdr .phdr-sub{font-size:7.5pt;color:#444}
+  #tab-itemhistory .ov-cards{gap:6px!important;margin-bottom:10px!important}
+  #tab-itemhistory .ov-card{box-shadow:none!important;border:1px solid #ccc!important;padding:8px!important}
+  #tab-itemhistory .ov-card .val{font-size:13pt!important}
+  #tab-itemhistory .ov-card .lbl{font-size:7pt!important}
+  #tab-itemhistory .hist-tbl{font-size:7pt!important}
+  #tab-itemhistory .hist-tbl th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:3px 5px!important;font-size:7pt!important}
+  #tab-itemhistory .hist-tbl td{padding:2px 5px!important;line-height:1.25!important;border:0.5px solid #ccc!important}
   .sum-cust-row td{background:#dbeafe!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;
     padding:2px 4px!important;font-size:6.5pt!important;font-weight:700!important}
   .sum-tbl thead th,#tab-summary .hist-tbl thead th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 4px!important;font-size:6pt!important;text-align:center!important}
@@ -484,7 +497,7 @@ table.list tr:hover td{background:#f8fbff}
 
   <!-- Tab: ประวัติสินค้า -->
   <div class="tab-panel" id="tab-itemhistory">
-    <div class="card">
+    <div class="card ih-print-hide">
       <div class="card-title">🔍 ค้นหาประวัติสินค้า</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;padding:4px 2px 14px">
         <div style="flex:1;min-width:220px;position:relative">
@@ -503,10 +516,17 @@ table.list tr:hover td{background:#f8fbff}
           <input type="date" id="ih-to" style="width:100%;height:34px;border:1px solid #cbd5e1;border-radius:6px;padding:0 10px;font-family:'Sarabun',sans-serif;font-size:13px;box-sizing:border-box">
         </div>
         <button onclick="loadItemHistoryReport()" style="height:34px;padding:0 22px;border-radius:6px;border:none;background:#1a3a5c;color:white;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer">ค้นหา</button>
+        <button class="ih-btn-print" onclick="window.print()">🖨️ พิมพ์</button>
       </div>
     </div>
 
     <div id="ih-result" style="display:none">
+      <div id="ih-print-hdr">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span class="phdr-title" id="ih-print-title"></span>
+          <span class="phdr-sub" id="ih-print-sub"></span>
+        </div>
+      </div>
       <div style="font-size:11px;font-weight:700;color:#7a8699;margin:14px 2px 6px">หน่วย: ถัง</div>
       <div class="ov-cards">
         <div class="ov-card"><div class="val" id="ih-tank-open">—</div><div class="lbl">ยอดยกมา</div></div>
@@ -1393,6 +1413,11 @@ function renderItemHistoryReport(data) {
   document.getElementById('ih-empty').style.display = 'none';
   document.getElementById('ih-result').style.display = 'block';
   document.getElementById('ih-unit-label').textContent = data.unit || 'กระสอบ/กล่อง';
+
+  const printDate = new Date().toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const printTime = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('ih-print-title').textContent = 'ประวัติสินค้า: ' + (data.itemLabel || '') + (data.code ? ' (' + data.code + ')' : '');
+  document.getElementById('ih-print-sub').textContent = 'ช่วงวันที่ ' + (data.dateFrom || '') + ' – ' + (data.dateTo || '') + '  ·  พิมพ์: ' + printDate + ' ' + printTime;
 
   document.getElementById('ih-tank-open').textContent = data.opening.tank;
   document.getElementById('ih-tank-in').textContent = '+' + data.totals.tankIn;
