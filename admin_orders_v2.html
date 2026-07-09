@@ -3726,6 +3726,15 @@ function anFmtBaht(n) {
   return n.toLocaleString();
 }
 
+// รูปแบบละเอียดกว่า anFmtBaht (ทศนิยม 2 ตำแหน่ง + เว้นวรรคก่อนหน่วย เช่น "2.82 M") ใช้กับป้ายยอดรวมบนกราฟรายเดือน
+function anFmtBahtM(n) {
+  n = Math.round(n);
+  const abs = Math.abs(n);
+  if (abs >= 1000000) return (n/1000000).toFixed(2) + ' M';
+  if (abs >= 1000) return (n/1000).toFixed(2) + ' k';
+  return n.toLocaleString();
+}
+
 function anEsc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // แปลง preset (หรือ custom) เป็นช่วงวันที่จริง {from,to}
@@ -4042,16 +4051,16 @@ function anRenderSalesCharts(orders, items) {
     return h;
   }
 
-  // กราฟรายเดือน (แท่งซ้อน) — คงเดิม: ย้อนหลัง 6 เดือนปฏิทินเสมอ ไม่ผูกกับตัวเลือกช่วงเวลาใหม่ของกราฟหลัก
+  // กราฟรายเดือน (แท่งซ้อน) — โชว์เต็มปีปฏิทินปัจจุบัน ม.ค.-ธ.ค. เสมอ (เดือนในอนาคตจะเป็นแท่งว่าง/สูง 0 ไปก่อนจนกว่าจะมีออเดอร์จริง) ไม่ผูกกับตัวเลือกช่วงเวลาใหม่ของกราฟหลัก
   // แต่ใช้ "ชุดประเภท/สี" เดียวกับกราฟหลัก (ตามช่วงเวลาที่เลือกอยู่) เพื่อให้ legend/สีตรงกันทั้งหน้า
-  const last6 = [];
-  for (let i=5;i>=0;i--) { const d=new Date(thisY,thisM-i,1); last6.push({key:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),lbl:AN_THAI_M[d.getMonth()]}); }
-  const l6Set = new Set(last6.map(x=>x.key));
+  const yearMonths = [];
+  for (let m=0; m<=11; m++) { yearMonths.push({key:thisY+'-'+String(m+1).padStart(2,'0'),lbl:AN_THAI_M[m]}); }
+  const yMSet = new Set(yearMonths.map(x=>x.key));
   const typeMon = {};
   orders.forEach(o => {
     const d = anPDate(o); if (!d) return;
     const mKey = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-    if (!l6Set.has(mKey)) return;
+    if (!yMSet.has(mKey)) return;
     const code = String(o.code||'').padStart(8,'0');
     const item = anItemMap[code];
     const qty = Number(o.qty)||0;
@@ -4079,13 +4088,13 @@ function anRenderSalesCharts(orders, items) {
 
   function buildStack() {
     const mxH=140;
-    const mTots=last6.map(({key})=>stackTypeNames.reduce((s,t)=>(typeMon[t]&&typeMon[t][key]||0)+s,0));
+    const mTots=yearMonths.map(({key})=>stackTypeNames.reduce((s,t)=>(typeMon[t]&&typeMon[t][key]||0)+s,0));
     const mxT=Math.max(...mTots,1);
-    let h='<div class="an-card"><div class="an-card-title" style="display:flex;justify-content:space-between;align-items:center">ยอดขายรายเดือน แยกตามประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">6 เดือน · บาท</span></div><div class="anb-group" style="height:'+mxH+'px;gap:28px;margin-top:14px">';
-    last6.forEach(({key,lbl},mi)=>{
+    let h='<div class="an-card"><div class="an-card-title" style="display:flex;justify-content:space-between;align-items:center">ยอดขายรายเดือน แยกตามประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">ม.ค.-ธ.ค. '+(thisY+543)+' · บาท</span></div><div class="anb-group" style="height:'+mxH+'px;gap:10px;margin-top:14px">';
+    yearMonths.forEach(({key,lbl},mi)=>{
       const tot=mTots[mi];
       const bH=Math.max(4,Math.round(tot/mxT*mxH));
-      h+='<div class="anb-wrap"><div class="anb-stack" style="height:'+bH+'px">';
+      h+='<div class="anb-wrap"><div class="anb-val" style="font-size:10px">'+(tot>0?'฿'+anFmtBahtM(tot):'')+'</div><div class="anb-stack" style="height:'+bH+'px">';
       stackTypeNames.forEach((t,i)=>{
         const q=typeMon[t]&&typeMon[t][key]||0;
         const pct=tot>0?(q/tot*100).toFixed(1):'0';
