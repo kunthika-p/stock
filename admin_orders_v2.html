@@ -3802,7 +3802,7 @@ function anBuildMainCharts() {
   const label = anRangeLabel(anMainRange);
 
   const mx = Math.max(...types.map(e=>e[1]), 1);
-  let bar = '<div class="an-card"><div class="an-card-title">ยอดขายแต่ละประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+' · บาท</span></div><div class="anb-group" style="gap:20px;height:200px;margin-top:10px">';
+  let bar = '<div class="an-card"><div class="an-card-title">ยอดขายแต่ละประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+' · บาท</span></div><div class="anb-group" style="gap:20px;height:200px;margin-top:32px">';
   if (!types.length) bar += '<div style="font-size:12px;color:#94a3b8;padding:8px 0">ไม่มีข้อมูลในช่วงเวลานี้</div>';
   types.forEach(([t,q],i)=>{
     const barH=Math.max(6,Math.round(q/mx*170));
@@ -3819,7 +3819,7 @@ function anBuildMainCharts() {
     off += pct*circ;
     leg += '<div class="an-donut-row" style="font-size:13px"><div class="an-donut-box" style="background:'+AN_COLORS[i]+'"></div>'+t+' — '+Math.round(pct*100)+'%</div>';
   });
-  const donut = '<div class="an-card"><div class="an-card-title">สัดส่วนยอดขาย <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+'</span></div><div class="an-donut-wrap" style="margin-top:10px"><svg width="150" height="150" viewBox="0 0 108 108"><circle cx="54" cy="54" r="38" fill="none" stroke="#e2e8f0" stroke-width="16"/>'+segs+'<text x="54" y="51" text-anchor="middle" font-size="14" font-weight="800" fill="#1e293b">฿'+anFmtBaht(tot)+'</text><text x="54" y="63" text-anchor="middle" font-size="10" fill="#64748b">บาท</text></svg><div class="an-donut-leg">'+leg+'</div></div></div>';
+  const donut = '<div class="an-card"><div class="an-card-title">สัดส่วนยอดขาย <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+'</span></div><div class="an-donut-wrap" style="margin-top:32px"><svg width="150" height="150" viewBox="0 0 108 108"><circle cx="54" cy="54" r="38" fill="none" stroke="#e2e8f0" stroke-width="16"/>'+segs+'<text x="54" y="51" text-anchor="middle" font-size="14" font-weight="800" fill="#1e293b">฿'+anFmtBaht(tot)+'</text><text x="54" y="63" text-anchor="middle" font-size="10" fill="#64748b">บาท</text></svg><div class="an-donut-leg">'+leg+'</div></div></div>';
   return bar + donut;
 }
 
@@ -3899,10 +3899,10 @@ function anBuildCustomerResults() {
     list.forEach((c,i) => {
       const open = anCustOpenRow === c.name;
       rows += '<tr style="cursor:pointer;background:'+(open?'#eef2f7':(i%2?'#f8fafc':'white'))+'" onclick="anCustToggleRow('+i+')">'+
-        '<td style="padding:10px 12px;color:#1a3a5c;font-weight:700"><i class="ti ti-chevron-'+(open?'down':'right')+'" style="font-size:12px;margin-right:6px" aria-hidden="true"></i>'+anEsc(c.name)+'</td>'+
-        '<td style="padding:10px 12px;text-align:right;font-weight:700">฿'+Math.round(c.revenue).toLocaleString()+'</td>'+
-        '<td style="padding:10px 12px;text-align:right;color:#64748b">'+c.orders+'</td>'+
-        '<td style="padding:10px 12px;text-align:right;color:#64748b">฿'+c.avg.toLocaleString()+'</td></tr>';
+        '<td style="padding:10px 14px;color:#1a3a5c;font-weight:700"><i class="ti ti-chevron-'+(open?'down':'right')+'" style="font-size:12px;margin-right:6px" aria-hidden="true"></i>'+anEsc(c.name)+'</td>'+
+        '<td style="padding:10px 14px;text-align:right;font-weight:700">฿'+Math.round(c.revenue).toLocaleString()+'</td>'+
+        '<td style="padding:10px 14px;text-align:right;color:#64748b">'+c.orders+'</td>'+
+        '<td style="padding:10px 14px;text-align:right;color:#64748b">฿'+c.avg.toLocaleString()+'</td></tr>';
       if (open) {
         const types = anTopTypes(byCustType[c.name] || {});
         const ctot = types.reduce((s,e)=>s+e[1],0) || 1;
@@ -3923,21 +3923,21 @@ function anBuildCustomerResults() {
   }
 
   const custSortCols = [
-    ['name','ลูกค้า','left'],
-    ['revenue','ยอดขาย','right'],
-    ['orders','จำนวนออเดอร์','right'],
-    ['avg','เฉลี่ย/ออเดอร์','right']
+    ['name','ลูกค้า','left','min-width:170px'],
+    ['revenue','ยอดขาย','right','width:110px'],
+    ['orders','จำนวนออเดอร์','right','width:110px'],
+    ['avg','เฉลี่ย/ออเดอร์','right','width:110px']
   ];
   let theadH = '';
-  custSortCols.forEach(([key,label,align],i)=>{
+  custSortCols.forEach(([key,label,align,w],i)=>{
     const active = anCustSortField === key;
     const icon = active ? '<i class="ti ti-chevron-'+(anCustSortDesc?'down':'up')+'" style="font-size:13px;margin-left:4px;vertical-align:-2px" aria-hidden="true"></i>' : '';
     const rad = i===0 ? 'border-radius:6px 0 0 0;' : i===custSortCols.length-1 ? 'border-radius:0 6px 0 0;' : '';
-    theadH += '<th onclick="anCustSortChange(\''+key+'\')" style="background:#1a3a5c;color:white;padding:9px 12px;text-align:'+align+';font-weight:600;cursor:pointer;user-select:none;'+rad+'">'+label+icon+'</th>';
+    theadH += '<th onclick="anCustSortChange(\''+key+'\')" style="background:#1a3a5c;color:white;padding:9px 14px;text-align:'+align+';font-weight:600;cursor:pointer;user-select:none;'+w+';'+rad+'">'+label+icon+'</th>';
   });
 
   return topH + '<div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:10px">ลูกค้าทั้งหมด <span style="font-size:11px;color:#94a3b8;font-weight:400">'+list.length+' ราย</span></div>'+
-    '<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr>'+theadH+'</tr></thead><tbody>'+rows+'</tbody></table>';
+    '<table style="border-collapse:collapse;font-size:13px"><thead><tr>'+theadH+'</tr></thead><tbody>'+rows+'</tbody></table>';
 }
 
 function anCustSortChange(field) {
@@ -4090,11 +4090,11 @@ function anRenderSalesCharts(orders, items) {
     const mxH=140;
     const mTots=yearMonths.map(({key})=>stackTypeNames.reduce((s,t)=>(typeMon[t]&&typeMon[t][key]||0)+s,0));
     const mxT=Math.max(...mTots,1);
-    let h='<div class="an-card"><div class="an-card-title" style="display:flex;justify-content:space-between;align-items:center">ยอดขายรายเดือน แยกตามประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">ม.ค.-ธ.ค. '+(thisY+543)+' · บาท</span></div><div class="anb-group" style="height:'+mxH+'px;gap:10px;margin-top:14px">';
+    let h='<div class="an-card"><div class="an-card-title" style="display:flex;justify-content:space-between;align-items:center">ยอดขายรายเดือน แยกตามประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">ม.ค.-ธ.ค. '+(thisY+543)+' · บาท</span></div><div class="anb-group" style="height:'+mxH+'px;gap:10px;margin-top:32px">';
     yearMonths.forEach(({key,lbl},mi)=>{
       const tot=mTots[mi];
       const bH=Math.max(4,Math.round(tot/mxT*mxH));
-      h+='<div class="anb-wrap"><div class="anb-val" style="font-size:10px">'+(tot>0?'฿'+anFmtBahtM(tot):'')+'</div><div class="anb-stack" style="height:'+bH+'px">';
+      h+='<div class="anb-wrap"><div class="anb-val" style="font-size:14px;font-weight:700">'+(tot>0?'฿'+anFmtBahtM(tot):'')+'</div><div class="anb-stack" style="height:'+bH+'px">';
       stackTypeNames.forEach((t,i)=>{
         const q=typeMon[t]&&typeMon[t][key]||0;
         const pct=tot>0?(q/tot*100).toFixed(1):'0';
