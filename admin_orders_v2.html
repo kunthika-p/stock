@@ -3729,11 +3729,20 @@ function anRenderSalesCharts(orders, items) {
   }
 
   // Parse order date — robust: ISO / D/M/Y Buddhist / M/D/Y CE / any separator
+  // ใช้ o.date ก่อน ถ้าว่าง (พบว่าออเดอร์จำนวนมากช่อง date ว่าง) fallback ไป o.timestamp (เวลาที่กดยืนยัน มีเสมอ) — pattern เดียวกับที่ใช้อยู่แล้วใน anRenderVelocity ด้านบน
   function pDate(o) {
-    if (!o.date) return null;
-    const s = String(o.date).trim();
+    const raw = o.date || o.timestamp;
+    if (!raw) return null;
+    const s = String(raw).trim();
     if (s.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(s)) {
-      const d=new Date(s); return isNaN(d)?null:d;
+      // เจอ timestamp ที่ serialize เป็น ISO แต่ปีเป็น พ.ศ. (เช่น 2569-06-29T...) ต้องแปลงเป็น ค.ศ. ก่อนสร้าง Date ไม่งั้นได้ปี 2569 จริงๆ (ผิดหลักแสนปี ไม่ match thisY เลย)
+      let s2 = s;
+      const ym = s2.match(/^(\d{4})-/);
+      if (ym) {
+        let yr0 = parseInt(ym[1]);
+        if (yr0 > 2100) { s2 = (yr0 - 543) + s2.slice(4); }
+      }
+      const d=new Date(s2); return isNaN(d)?null:d;
     }
     const pts = s.match(/(\d+)/g);
     if (pts && pts.length >= 3) {
