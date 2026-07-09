@@ -348,8 +348,8 @@ table.list tr:hover td{background:#f8fbff}
 .an-kpi .ak-lbl{font-size:11px;color:#64748b}
 .an-kpi.blue .ak-val{color:#1d4ed8}.an-kpi.green .ak-val{color:#16a34a}.an-kpi.amber .ak-val{color:#d97706}.an-kpi.red .ak-val{color:#dc2626}
 .an-charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.an-card{background:white;border-radius:10px;padding:16px;border:1.5px solid #e2e8f0}
-.an-card-title{font-size:13px;font-weight:700;color:#1e293b;margin-bottom:10px}
+.an-card{background:white;border-radius:10px;padding:20px;border:1.5px solid #e2e8f0}
+.an-card-title{font-size:14px;font-weight:700;color:#1e293b;margin-bottom:10px}
 .an-toggle-row{display:flex;gap:6px;margin-bottom:10px}
 .an-toggle-btn{padding:4px 11px;border-radius:14px;font-size:11px;font-weight:700;border:1.5px solid #e2e8f0;background:white;cursor:pointer;color:#64748b}
 .an-toggle-btn.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
@@ -408,25 +408,25 @@ table.list tr:hover td{background:#f8fbff}
 .an-cal-day.acd-sel::after{background:#93c5fd}
 .an-cal-day.acd-today{border:1px solid #93c5fd;color:#1d4ed8;font-weight:600}
 .an-cal-day.acd-other,.an-cal-day.acd-none{color:#cbd5e1;cursor:default}
-.an-sales-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.an-sales-2col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:18px}
 /* bar chart */
-.anb-group{display:flex;align-items:flex-end;gap:7px;height:100px;padding:0 2px}
-.anb-wrap{display:flex;flex-direction:column;align-items:center;flex:1;gap:3px}
-.anb-bar{width:100%;border-radius:4px 4px 0 0}
-.anb-lbl{font-size:9px;color:#64748b;text-align:center;line-height:1.2}
-.anb-val{font-size:9px;font-weight:600;color:#475569}
+.anb-group{display:flex;align-items:flex-end;gap:10px;height:100px;padding:0 4px}
+.anb-wrap{display:flex;flex-direction:column;align-items:center;flex:1;gap:6px}
+.anb-bar{width:100%;border-radius:5px 5px 0 0}
+.anb-lbl{font-size:12px;color:#64748b;text-align:center;line-height:1.25}
+.anb-val{font-size:12px;font-weight:700;color:#475569}
 /* stacked bar */
-.anb-stack{width:100%;border-radius:4px 4px 0 0;display:flex;flex-direction:column-reverse;overflow:hidden}
+.anb-stack{width:100%;border-radius:5px 5px 0 0;display:flex;flex-direction:column-reverse;overflow:hidden}
 .anb-seg{width:100%}
 /* donut */
-.an-donut-wrap{display:flex;gap:14px;align-items:center}
-.an-donut-leg{display:flex;flex-direction:column;gap:6px}
-.an-donut-row{display:flex;align-items:center;gap:6px;font-size:11px;color:#475569}
-.an-donut-box{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.an-donut-wrap{display:flex;gap:20px;align-items:center}
+.an-donut-leg{display:flex;flex-direction:column;gap:9px}
+.an-donut-row{display:flex;align-items:center;gap:8px;font-size:13px;color:#475569}
+.an-donut-box{width:12px;height:12px;border-radius:3px;flex-shrink:0}
 /* legend */
-.an-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
-.an-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b}
-.an-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.an-legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px}
+.an-legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b}
+.an-legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
 .an-mock-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:#fef9c3;color:#92400e;margin-left:8px}
 
 </style>
@@ -3699,65 +3699,313 @@ async function dtSubmit() {
 }
 
 
+// ==== ยอดขายสินค้า/ลูกค้า (แท็บวิเคราะห์ข้อมูล) — state + helper ระดับ global ====
+// ต้อง global เพราะ dropdown/ช่องค้นหา/คลิกแถวลูกค้า ต้อง re-render ใหม่ได้ทันทีจาก cache โดยไม่ fetch ออเดอร์ซ้ำ
+const AN_COLORS = ['#1a3a5c','#d97706','#ca8a04','#16a34a','#9333ea','#e11d48'];
+const AN_THAI_M  = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const AN_THAI_MF = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+let anOrdersCache = [], anCtMap = {}, anItemMap = {};
+let anMainRange = { mode: 'month', from: '', to: '' };
+let anCustRange = { mode: 'month', from: '', to: '' };
+let anCustSearch = '';
+let anCustOpenRow = '';
+let anCustCurrentList = [];
+let anCustSearchTimer = null;
+
+// จัดกลุ่มประเภทสินค้าให้อ่านง่าย
+function anDType(t) {
+  if (!t) return 'อื่นๆ';
+  if (/น็อตเหลี่ยมเกลียว W|น็อตหัวกลมเกลียว W|น็อตเหลี่ยม W ไม่/.test(t)) return 'น็อตเหลี่ยม W';
+  if (/สกรูมิลขาว|สกรูเกลียวปล่อย/.test(t)) return 'สกรูมิล';
+  if (/น็อตแข็ง|หัวน็อตมิลแข็ง/.test(t)) return 'น็อตมิลแข็ง';
+  if (/หัวน็อตมิล[^แ]|หัวน็อตเกลียวหยาบ|หัวน็อตเกลียว W/.test(t)) return 'หัวน็อต';
+  if (/น็อตเหลี่ยม NC|น็อตเหลี่ยม NF/.test(t)) return 'น็อต NC/NF';
+  if (/Spring Washer/.test(t)) return 'Spring Washer';
+  return t;
+}
+
+// Parse order date — robust: ISO / D/M/Y Buddhist / M/D/Y CE / any separator
+// ใช้ o.date ก่อน ถ้าว่าง fallback ไป o.timestamp; แก้ปีพ.ศ.ที่ปนอยู่ใน ISO string ด้วย
+function anPDate(o) {
+  const raw = o.date || o.timestamp;
+  if (!raw) return null;
+  const s = String(raw).trim();
+  if (s.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(s)) {
+    let s2 = s;
+    const ym = s2.match(/^(\d{4})-/);
+    if (ym) { let yr0 = parseInt(ym[1]); if (yr0 > 2100) { s2 = (yr0 - 543) + s2.slice(4); } }
+    const d=new Date(s2); return isNaN(d)?null:d;
+  }
+  const pts = s.match(/(\d+)/g);
+  if (pts && pts.length >= 3) {
+    let p0=parseInt(pts[0]),p1=parseInt(pts[1]),p2=parseInt(pts[2]);
+    let yr,mo,dy;
+    if (p0 >= 100) { yr=p0; mo=p1; dy=p2; }
+    else if (p2 >= 100) { dy=p0; mo=p1; yr=p2; }
+    else return null;
+    if (yr > 2500) yr -= 543;
+    if (mo<1||mo>12) { const tmp=mo; mo=dy; dy=tmp; }
+    if (mo<1||mo>12||dy<1||dy>31) return null;
+    const d=new Date(yr,mo-1,dy); return isNaN(d)?null:d;
+  }
+  return null;
+}
+
+// จัดรูปแบบบาทให้กระชับ (1,234 / 12.3k / 1.2M)
+function anFmtBaht(n) {
+  n = Math.round(n);
+  const abs = Math.abs(n);
+  if (abs >= 1000000) return (n/1000000).toFixed(1).replace(/\.0$/,'')+'M';
+  if (abs >= 1000) return (n/1000).toFixed(1).replace(/\.0$/,'')+'k';
+  return n.toLocaleString();
+}
+
+function anEsc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// แปลง preset (หรือ custom) เป็นช่วงวันที่จริง {from,to}
+function anResolveRange(r) {
+  const now = new Date(); const thisY = now.getFullYear(), thisM = now.getMonth();
+  const endOfToday = new Date(thisY, thisM, now.getDate(), 23,59,59,999);
+  if (r.mode === 'custom' && r.from && r.to) {
+    const f = new Date(r.from+'T00:00:00'); const t = new Date(r.to+'T23:59:59');
+    if (!isNaN(f) && !isNaN(t)) return { from:f, to:t };
+  }
+  if (r.mode === 'quarter') return { from: new Date(thisY, thisM-2, 1), to: endOfToday };
+  if (r.mode === 'half')    return { from: new Date(thisY, thisM-5, 1), to: endOfToday };
+  if (r.mode === 'ytd')     return { from: new Date(thisY, 0, 1), to: endOfToday };
+  return { from: new Date(thisY, thisM, 1), to: endOfToday }; // month (default)
+}
+
+function anRangeLabel(r) {
+  if (r.mode !== 'custom') return ({month:'เดือนนี้',quarter:'ไตรมาสนี้',half:'6 เดือน',ytd:'ปีนี้ (YTD)'})[r.mode] || 'เดือนนี้';
+  const { from, to } = anResolveRange(r);
+  return from.getDate()+' '+AN_THAI_M[from.getMonth()]+' '+(from.getFullYear()+543)+' – '+to.getDate()+' '+AN_THAI_M[to.getMonth()]+' '+(to.getFullYear()+543);
+}
+
+// รวมยอดขาย(บาท) ตามประเภท/ลูกค้า ในช่วงวันที่ที่กำหนด จาก cache (ไม่ fetch ใหม่)
+function anAggregate(from, to) {
+  const byType = {}, byCust = {}, byCustType = {};
+  anOrdersCache.forEach(o => {
+    const d = anPDate(o); if (!d || d < from || d > to) return;
+    const code = String(o.code||'').padStart(8,'0');
+    const item = anItemMap[code];
+    const qty = Number(o.qty)||0;
+    const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price) : null;
+    if (perUnit === null) return;
+    const amt = perUnit * qty;
+    const t = anDType(anCtMap[code]);
+    byType[t] = (byType[t]||0) + amt;
+    const cust = o.customer || 'ไม่ระบุ';
+    if (!byCust[cust]) byCust[cust] = { revenue:0, orders:0 };
+    byCust[cust].revenue += amt; byCust[cust].orders += 1;
+    if (!byCustType[cust]) byCustType[cust] = {};
+    byCustType[cust][t] = (byCustType[cust][t]||0) + amt;
+  });
+  return { byType, byCust, byCustType };
+}
+
+// จัดกลุ่ม top-5 + "อื่นๆ" จาก map ประเภท->ยอด แล้วคืน [[name,value],...] เรียงมาก->น้อย
+function anTopTypes(byType) {
+  const all = Object.entries(byType).sort((a,b)=>b[1]-a[1]);
+  const top = all.slice(0,5);
+  const rest = all.slice(5);
+  if (rest.length) top.push(['อื่นๆ', rest.reduce((s,e)=>s+e[1],0)]);
+  return top;
+}
+
+function anRangeSelectHtml(mode, onchangeFn) {
+  const opts = [['month','เดือนนี้'],['quarter','ไตรมาสนี้ (3 เดือน)'],['half','6 เดือน'],['ytd','ปีนี้ (YTD)'],['custom','กำหนดเอง...']];
+  let h = '<select onchange="'+onchangeFn+'(this)" style="border:1px solid #d8dfe8;border-radius:8px;padding:8px 14px;font-size:13px;color:#1a3a5c;font-weight:700;background:white">';
+  opts.forEach(([v,l]) => { h += '<option value="'+v+'"'+(mode===v?' selected':'')+'>'+l+'</option>'; });
+  return h + '</select>';
+}
+
+// ==== กราฟหลัก: ยอดขายแต่ละประเภท + สัดส่วนยอดขาย (ผูกกับ anMainRange) ====
+function anBuildMainCharts() {
+  const { from, to } = anResolveRange(anMainRange);
+  const types = anTopTypes(anAggregate(from, to).byType);
+  const label = anRangeLabel(anMainRange);
+
+  const mx = Math.max(...types.map(e=>e[1]), 1);
+  let bar = '<div class="an-card"><div class="an-card-title">ยอดขายแต่ละประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+' · บาท</span></div><div class="anb-group" style="gap:20px;height:200px;margin-top:10px">';
+  if (!types.length) bar += '<div style="font-size:12px;color:#94a3b8;padding:8px 0">ไม่มีข้อมูลในช่วงเวลานี้</div>';
+  types.forEach(([t,q],i)=>{
+    const barH=Math.max(6,Math.round(q/mx*170));
+    bar += '<div class="anb-wrap"><div class="anb-val" style="font-size:13px">฿'+anFmtBaht(q)+'</div><div class="anb-bar" style="height:'+barH+'px;background:'+AN_COLORS[i]+'"></div><div class="anb-lbl" style="font-size:12px">'+t+'</div></div>';
+  });
+  bar += '</div></div>';
+
+  const tot = types.reduce((s,e)=>s+e[1],0) || 1;
+  const circ = 2*Math.PI*38;
+  let off=0, segs='', leg='';
+  types.forEach(([t,q],i)=>{
+    const pct=q/tot, dash=(pct*circ).toFixed(1);
+    segs += '<circle cx="54" cy="54" r="38" fill="none" stroke="'+AN_COLORS[i]+'" stroke-width="16" stroke-dasharray="'+dash+' '+circ.toFixed(1)+'" stroke-dashoffset="'+(-off).toFixed(1)+'" transform="rotate(-90 54 54)"/>';
+    off += pct*circ;
+    leg += '<div class="an-donut-row" style="font-size:13px"><div class="an-donut-box" style="background:'+AN_COLORS[i]+'"></div>'+t+' — '+Math.round(pct*100)+'%</div>';
+  });
+  const donut = '<div class="an-card"><div class="an-card-title">สัดส่วนยอดขาย <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+'</span></div><div class="an-donut-wrap" style="margin-top:10px"><svg width="150" height="150" viewBox="0 0 108 108"><circle cx="54" cy="54" r="38" fill="none" stroke="#e2e8f0" stroke-width="16"/>'+segs+'<text x="54" y="51" text-anchor="middle" font-size="14" font-weight="800" fill="#1e293b">฿'+anFmtBaht(tot)+'</text><text x="54" y="63" text-anchor="middle" font-size="10" fill="#64748b">บาท</text></svg><div class="an-donut-leg">'+leg+'</div></div></div>';
+  return bar + donut;
+}
+
+function anRenderMainCharts() {
+  const el = document.getElementById('an-main-charts');
+  if (el) el.innerHTML = anBuildMainCharts();
+}
+
+function anMainRangeChange(sel) {
+  anMainRange.mode = sel.value;
+  const custRow = document.getElementById('an-main-custom-row');
+  if (custRow) custRow.style.display = sel.value === 'custom' ? 'flex' : 'none';
+  if (sel.value !== 'custom') anRenderMainCharts();
+}
+
+function anMainCustomApply() {
+  const f = document.getElementById('an-main-from').value;
+  const t = document.getElementById('an-main-to').value;
+  if (!f || !t) return;
+  anMainRange.from = f; anMainRange.to = t;
+  anRenderMainCharts();
+}
+
+// ==== ส่วนยอดขายแยกตามลูกค้า (ผูกกับ anCustRange/anCustSearch แยกอิสระจากกราฟหลัก) ====
+function anBuildCustomerControls() {
+  let h = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:10px">'+
+    '<div class="an-card-title" style="margin-bottom:0">ยอดขายแยกตามลูกค้า</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
+      anRangeSelectHtml(anCustRange.mode, 'anCustRangeChange')+
+      '<input type="text" id="an-cust-search-input" placeholder="ค้นหาลูกค้า..." value="'+anEsc(anCustSearch)+'" oninput="anCustSearchInput(this.value)" style="border:1px solid #d8dfe8;border-radius:8px;padding:8px 14px;font-size:13px;width:180px">'+
+    '</div></div>';
+  h += '<div id="an-cust-custom-row" style="display:'+(anCustRange.mode==='custom'?'flex':'none')+';gap:8px;align-items:center;margin-bottom:12px">'+
+    '<input type="date" id="an-cust-from" value="'+anEsc(anCustRange.from||'')+'" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">'+
+    '<span style="font-size:12px;color:#94a3b8">ถึง</span>'+
+    '<input type="date" id="an-cust-to" value="'+anEsc(anCustRange.to||'')+'" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">'+
+    '<button onclick="anCustCustomApply()" style="border:none;background:#1a3a5c;color:white;border-radius:8px;padding:7px 16px;font-size:12px;cursor:pointer;font-weight:700">ใช้ช่วงนี้</button>'+
+  '</div>';
+  return h;
+}
+
+function anBuildCustomerResults() {
+  const { from, to } = anResolveRange(anCustRange);
+  const { byCust, byCustType } = anAggregate(from, to);
+  let list = Object.entries(byCust).map(([name,v])=>({name, revenue:v.revenue, orders:v.orders}));
+  if (anCustSearch.trim()) {
+    const q = anCustSearch.trim().toLowerCase();
+    list = list.filter(c => c.name.toLowerCase().includes(q));
+  }
+  list.sort((a,b)=>b.revenue-a.revenue);
+  anCustCurrentList = list;
+
+  const top5 = list.slice(0,5);
+  const mx = Math.max(...top5.map(c=>c.revenue), 1);
+  let topH = '<div style="font-size:13px;font-weight:700;color:#1a3a5c;margin:14px 0 12px">ท็อป 5 ลูกค้า</div><div style="display:flex;flex-direction:column;gap:12px;margin-bottom:22px">';
+  if (!top5.length) {
+    topH += '<div style="font-size:12px;color:#94a3b8;padding:4px 0">ไม่มีข้อมูลในช่วงเวลานี้</div>';
+  } else {
+    top5.forEach((c,i)=>{
+      const w = Math.round(c.revenue/mx*100);
+      topH += '<div style="display:flex;align-items:center;gap:12px">'+
+        '<div style="width:20px;font-size:13px;font-weight:700;color:#94a3b8">'+(i+1)+'</div>'+
+        '<div style="width:160px;font-size:13px;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+anEsc(c.name)+'">'+anEsc(c.name)+'</div>'+
+        '<div style="flex:1;background:#eef2f7;border-radius:5px;height:18px"><div style="width:'+w+'%;height:100%;background:#1a3a5c;border-radius:5px"></div></div>'+
+        '<div style="width:100px;text-align:right;font-size:13px;font-weight:700;color:#1a3a5c">฿'+Math.round(c.revenue).toLocaleString()+'</div></div>';
+    });
+  }
+  topH += '</div>';
+
+  let rows = '';
+  if (!list.length) {
+    rows = '<tr><td colspan="4" style="padding:16px;text-align:center;color:#94a3b8;font-size:12px">ไม่พบลูกค้าในช่วงเวลานี้'+(anCustSearch?' หรือคำค้นหา':'')+'</td></tr>';
+  } else {
+    list.forEach((c,i) => {
+      const open = anCustOpenRow === c.name;
+      const avg = c.orders ? Math.round(c.revenue/c.orders) : 0;
+      rows += '<tr style="cursor:pointer;background:'+(open?'#eef2f7':(i%2?'#f8fafc':'white'))+'" onclick="anCustToggleRow('+i+')">'+
+        '<td style="padding:10px 12px;color:#1a3a5c;font-weight:700"><i class="ti ti-chevron-'+(open?'down':'right')+'" style="font-size:12px;margin-right:6px" aria-hidden="true"></i>'+anEsc(c.name)+'</td>'+
+        '<td style="padding:10px 12px;text-align:right;font-weight:700">฿'+Math.round(c.revenue).toLocaleString()+'</td>'+
+        '<td style="padding:10px 12px;text-align:right;color:#64748b">'+c.orders+'</td>'+
+        '<td style="padding:10px 12px;text-align:right;color:#64748b">฿'+avg.toLocaleString()+'</td></tr>';
+      if (open) {
+        const types = anTopTypes(byCustType[c.name] || {});
+        const ctot = types.reduce((s,e)=>s+e[1],0) || 1;
+        let detail = '<div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:2px">ยอดขายแยกตามประเภท — '+anEsc(c.name)+'</div>'+
+          '<div style="font-size:11px;color:#94a3b8;margin-bottom:16px">'+anRangeLabel(anCustRange)+' · รวม ฿'+Math.round(ctot).toLocaleString()+'</div>'+
+          '<div style="display:flex;flex-direction:column;gap:10px">';
+        types.forEach(([t,q],ti)=>{
+          const w = Math.round(q/ctot*100);
+          detail += '<div style="display:flex;align-items:center;gap:12px">'+
+            '<div style="width:150px;font-size:12px;color:#334155">'+t+'</div>'+
+            '<div style="flex:1;background:#eef2f7;border-radius:5px;height:16px"><div style="width:'+w+'%;height:100%;background:'+AN_COLORS[ti]+';border-radius:5px"></div></div>'+
+            '<div style="width:90px;text-align:right;font-size:12px;font-weight:700;color:#1a3a5c">฿'+Math.round(q).toLocaleString()+'</div></div>';
+        });
+        detail += '</div>';
+        rows += '<tr><td colspan="4" style="padding:0"><div style="padding:20px 18px;background:#f8fafc;border-top:1px solid #eef1f5">'+detail+'</div></td></tr>';
+      }
+    });
+  }
+
+  return topH + '<div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:10px">ลูกค้าทั้งหมด <span style="font-size:11px;color:#94a3b8;font-weight:400">'+list.length+' ราย</span></div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr>'+
+      '<th style="background:#1a3a5c;color:white;padding:9px 12px;text-align:left;font-weight:600;border-radius:6px 0 0 0">ลูกค้า</th>'+
+      '<th style="background:#1a3a5c;color:white;padding:9px 12px;text-align:right;font-weight:600">ยอดขาย</th>'+
+      '<th style="background:#1a3a5c;color:white;padding:9px 12px;text-align:right;font-weight:600">จำนวนออเดอร์</th>'+
+      '<th style="background:#1a3a5c;color:white;padding:9px 12px;text-align:right;font-weight:600;border-radius:0 6px 0 0">เฉลี่ย/ออเดอร์</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function anRenderCustomerSection() {
+  const el = document.getElementById('an-cust-body');
+  if (!el) return;
+  el.innerHTML = '<div class="an-card">'+anBuildCustomerControls()+'<div id="an-cust-results">'+anBuildCustomerResults()+'</div></div>';
+}
+
+// re-render เฉพาะผลลัพธ์ (top5+ตาราง) โดยไม่แตะช่องค้นหา/dropdown เพื่อไม่ให้ focus หลุดตอนพิมพ์ค้นหา
+function anRefreshCustomerResults() {
+  const el = document.getElementById('an-cust-results');
+  if (el) el.innerHTML = anBuildCustomerResults();
+}
+
+function anCustRangeChange(sel) {
+  anCustRange.mode = sel.value;
+  anCustOpenRow = '';
+  anRenderCustomerSection();
+}
+
+function anCustCustomApply() {
+  const f = document.getElementById('an-cust-from').value;
+  const t = document.getElementById('an-cust-to').value;
+  if (!f || !t) return;
+  anCustRange.from = f; anCustRange.to = t;
+  anRenderCustomerSection();
+}
+
+function anCustSearchInput(val) {
+  anCustSearch = val;
+  clearTimeout(anCustSearchTimer);
+  anCustSearchTimer = setTimeout(anRefreshCustomerResults, 200);
+}
+
+function anCustToggleRow(idx) {
+  const c = anCustCurrentList[idx];
+  if (!c) return;
+  anCustOpenRow = (anCustOpenRow === c.name) ? '' : c.name;
+  anRefreshCustomerResults();
+}
+
+// ==== Entry point: เรียกตอนโหลดแท็บวิเคราะห์ข้อมูล ====
 function anRenderSalesCharts(orders, items) {
   const el = document.getElementById('an-sales-body');
   if (!el) return;
 
-  const COLORS = ['#1A3A5C','#2980B9','#5DADE2','#6C3483','#A569BD','#D2B4DE'];
-  const THAI_M  = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const THAI_MF = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
-
-  // code -> type / item lookup
-  const ctMap = {};
-  const itemMap = {};
+  // cache ไว้ให้ dropdown ช่วงเวลา/ช่องค้นหา/คลิกแถวลูกค้า re-render ได้ทันทีโดยไม่ fetch ใหม่
+  anOrdersCache = orders;
+  anCtMap = {}; anItemMap = {};
   items.forEach(it => {
     const c = String(it.code||'').padStart(8,'0');
-    ctMap[c] = it.type||'';
-    itemMap[c] = it;
+    anCtMap[c] = it.type||'';
+    anItemMap[c] = it;
   });
-
-  // Simplify type to display group
-  function dType(t) {
-    if (!t) return 'อื่นๆ';
-    if (/น็อตเหลี่ยมเกลียว W|น็อตหัวกลมเกลียว W|น็อตเหลี่ยม W ไม่/.test(t)) return 'น็อตเหลี่ยม W';
-    if (/สกรูมิลขาว|สกรูเกลียวปล่อย/.test(t)) return 'สกรูมิล';
-    if (/น็อตแข็ง|หัวน็อตมิลแข็ง/.test(t)) return 'น็อตมิลแข็ง';
-    if (/หัวน็อตมิล[^แ]|หัวน็อตเกลียวหยาบ|หัวน็อตเกลียว W/.test(t)) return 'หัวน็อต';
-    if (/น็อตเหลี่ยม NC|น็อตเหลี่ยม NF/.test(t)) return 'น็อต NC/NF';
-    if (/Spring Washer/.test(t)) return 'Spring Washer';
-    return t;
-  }
-
-  // Parse order date — robust: ISO / D/M/Y Buddhist / M/D/Y CE / any separator
-  // ใช้ o.date ก่อน ถ้าว่าง (พบว่าออเดอร์จำนวนมากช่อง date ว่าง) fallback ไป o.timestamp (เวลาที่กดยืนยัน มีเสมอ) — pattern เดียวกับที่ใช้อยู่แล้วใน anRenderVelocity ด้านบน
-  function pDate(o) {
-    const raw = o.date || o.timestamp;
-    if (!raw) return null;
-    const s = String(raw).trim();
-    if (s.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(s)) {
-      // เจอ timestamp ที่ serialize เป็น ISO แต่ปีเป็น พ.ศ. (เช่น 2569-06-29T...) ต้องแปลงเป็น ค.ศ. ก่อนสร้าง Date ไม่งั้นได้ปี 2569 จริงๆ (ผิดหลักแสนปี ไม่ match thisY เลย)
-      let s2 = s;
-      const ym = s2.match(/^(\d{4})-/);
-      if (ym) {
-        let yr0 = parseInt(ym[1]);
-        if (yr0 > 2100) { s2 = (yr0 - 543) + s2.slice(4); }
-      }
-      const d=new Date(s2); return isNaN(d)?null:d;
-    }
-    const pts = s.match(/(\d+)/g);
-    if (pts && pts.length >= 3) {
-      let p0=parseInt(pts[0]),p1=parseInt(pts[1]),p2=parseInt(pts[2]);
-      let yr,mo,dy;
-      if (p0 >= 100) { yr=p0; mo=p1; dy=p2; }
-      else if (p2 >= 100) { dy=p0; mo=p1; yr=p2; }
-      else return null;
-      if (yr > 2500) yr -= 543;
-      if (mo<1||mo>12) { const tmp=mo; mo=dy; dy=tmp; }
-      if (mo<1||mo>12||dy<1||dy>31) return null;
-      const d=new Date(yr,mo-1,dy); return isNaN(d)?null:d;
-    }
-    return null;
-  }
+  anCustOpenRow = ''; anCustSearch = ''; anCustCurrentList = [];
 
   const now   = new Date();
   const thisY = now.getFullYear();
@@ -3765,81 +4013,39 @@ function anRenderSalesCharts(orders, items) {
   const yest  = new Date(now); yest.setDate(now.getDate()-1);
   const prevMStart = new Date(thisY, thisM-1, 1);
 
+  // KPI: YTD/เดือนนี้/วันนี้ — ค่าคงที่เสมอ ไม่ผูกกับตัวเลือกช่วงเวลาของกราฟด้านล่าง
   let ytd=0, mon=0, tod=0, prevMon=0, yestQ=0;
-  const typeCur = {};    // type -> qty this month
-  const typeMon = {};    // type -> mKey -> qty
   const calDays = new Set();
-
-  // Build last-6-months keys
-  const last6 = [];
-  for (let i=5;i>=0;i--) { const d=new Date(thisY,thisM-i,1); last6.push({key:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),lbl:THAI_M[d.getMonth()]}); }
-  const l6Set = new Set(last6.map(x=>x.key));
-
   let excludedLines = 0, excludedQty = 0;
   orders.forEach(o => {
-    const d = pDate(o); if (!d) return;
+    const d = anPDate(o); if (!d) return;
     const code = String(o.code||'').padStart(8,'0');
-    const item = itemMap[code];
+    const item = anItemMap[code];
     const qty = Number(o.qty)||0;
     const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price) : null;
     if (perUnit === null) { excludedLines++; excludedQty += qty; return; }
     const amt = perUnit * qty;
-    const t   = dType(ctMap[code]);
     const dY=d.getFullYear(), dM=d.getMonth(), dd=d.getDate();
-    const mKey = dY+'-'+String(dM+1).padStart(2,'0');
-
     if (dY===thisY) ytd+=amt;
-    if (dY===thisY&&dM===thisM) {
-      mon+=amt;
-      typeCur[t]=(typeCur[t]||0)+amt;
-      calDays.add(dd);
-    }
+    if (dY===thisY&&dM===thisM) { mon+=amt; calDays.add(dd); }
     if (dY===prevMStart.getFullYear()&&dM===prevMStart.getMonth()) prevMon+=amt;
     if (dY===now.getFullYear()&&dM===now.getMonth()&&dd===now.getDate()) tod+=amt;
     if (dY===yest.getFullYear()&&dM===yest.getMonth()&&dd===yest.getDate()) yestQ+=amt;
-    if (l6Set.has(mKey)) {
-      if (!typeMon[t]) typeMon[t]={};
-      typeMon[t][mKey]=(typeMon[t][mKey]||0)+amt;
-    }
   });
   if (excludedLines) console.log('[Analytics revenue] ข้ามคำนวณ '+excludedLines+' รายการ (ไม่มีข้อมูลราคา เช่น มิลแข็ง/Spring Washer/OVERSIZE) รวม '+excludedQty+' หน่วย');
 
-  // Top types
-  const allTypes = Object.entries(typeCur).sort((a,b)=>b[1]-a[1]);
-  const topN = allTypes.slice(0,5).map(e=>e[0]);
-  const rest = allTypes.slice(5).map(e=>e[0]);
-  const dispT = [...topN];
-  if (rest.length) {
-    dispT.push('อื่นๆ');
-    typeCur['อื่นๆ']=(typeCur['อื่นๆ']||0)+rest.reduce((s,t)=>s+(typeCur[t]||0),0);
-    rest.forEach(t => { if(typeMon[t]){ if(!typeMon['อื่นๆ'])typeMon['อื่นๆ']={}; Object.entries(typeMon[t]).forEach(([k,v])=>{typeMon['อื่นๆ'][k]=(typeMon['อื่นๆ'][k]||0)+v;}); } });
-  }
-  const N = Math.min(dispT.length, COLORS.length);
-  const types = dispT.slice(0,N);
-
-  // จัดรูปแบบบาทให้กระชับ (1,234 / 12.3k / 1.2M)
-  function fmtBaht(n) {
-    n = Math.round(n);
-    const abs = Math.abs(n);
-    if (abs >= 1000000) return (n/1000000).toFixed(1).replace(/\.0$/,'')+'M';
-    if (abs >= 1000) return (n/1000).toFixed(1).replace(/\.0$/,'')+'k';
-    return n.toLocaleString();
-  }
-
-  // Pct badge
   function pBadge(cur,prev) {
     if(!prev)return '';
     const p=Math.round((cur-prev)/prev*100);
     return '<span class="'+(p>=0?'ask-up':'ask-dn')+'">'+(p>=0?'↑':'↓')+' '+Math.abs(p)+'%</span>';
   }
 
-  // Calendar
   function buildCal() {
     const DOW=['อา','จ','อ','พ','พฤ','ศ','ส'];
     const first=new Date(thisY,thisM,1).getDay();
     const days=new Date(thisY,thisM+1,0).getDate();
     const shift=first===0?6:first-1;
-    let h='<div class="an-cal-popup" id="an-cal-popup" style="display:none"><div class="an-cal-hdr"><div style="font-size:13px;font-weight:700">'+THAI_MF[thisM]+' '+(thisY+543)+'</div></div><div class="an-cal-grid">';
+    let h='<div class="an-cal-popup" id="an-cal-popup" style="display:none"><div class="an-cal-hdr"><div style="font-size:13px;font-weight:700">'+AN_THAI_MF[thisM]+' '+(thisY+543)+'</div></div><div class="an-cal-grid">';
     DOW.forEach(d=>{h+='<div class="an-cal-dow">'+d+'</div>';});
     for(let i=0;i<shift;i++) h+='<div class="an-cal-day acd-other"></div>';
     for(let d=1;d<=days;d++){
@@ -3848,71 +4054,90 @@ function anRenderSalesCharts(orders, items) {
       let cls='an-cal-day'+(isTd?' acd-sel acd-today':hasO?' acd-has':' acd-none');
       h+='<div class="'+cls+'">'+d+'</div>';
     }
-    h+='</div><div style="margin-top:8px;display:flex;gap:12px;font-size:10px;color:#64748b"><span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2980B9;margin-right:3px"></span>มีออเดอร์</span></div></div>';
+    h+='</div><div style="margin-top:8px;display:flex;gap:12px;font-size:10px;color:#64748b"><span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#1a3a5c;margin-right:3px"></span>มีออเดอร์</span></div></div>';
     return h;
   }
 
-  // Bar chart
-  function buildBar() {
-    const mx=Math.max(...types.map(t=>typeCur[t]||0),1);
-    let h='<div class="an-card"><div class="an-card-title">ยอดขายแต่ละประเภท <span style="font-size:10px;color:#94a3b8;font-weight:400">เดือนนี้ · บาท</span></div><div class="anb-group">';
-    types.forEach((t,i)=>{
-      const q=typeCur[t]||0, barH=Math.max(4,Math.round(q/mx*100));
-      h+='<div class="anb-wrap"><div class="anb-val">฿'+fmtBaht(q)+'</div><div class="anb-bar" style="height:'+barH+'px;background:'+COLORS[i]+'"></div><div class="anb-lbl">'+t+'</div></div>';
+  // กราฟรายเดือน (แท่งซ้อน) — คงเดิม: ย้อนหลัง 6 เดือนปฏิทินเสมอ ไม่ผูกกับตัวเลือกช่วงเวลาใหม่ของกราฟหลัก
+  // แต่ใช้ "ชุดประเภท/สี" เดียวกับกราฟหลัก (ตามช่วงเวลาที่เลือกอยู่) เพื่อให้ legend/สีตรงกันทั้งหน้า
+  const last6 = [];
+  for (let i=5;i>=0;i--) { const d=new Date(thisY,thisM-i,1); last6.push({key:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),lbl:AN_THAI_M[d.getMonth()]}); }
+  const l6Set = new Set(last6.map(x=>x.key));
+  const typeMon = {};
+  orders.forEach(o => {
+    const d = anPDate(o); if (!d) return;
+    const mKey = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    if (!l6Set.has(mKey)) return;
+    const code = String(o.code||'').padStart(8,'0');
+    const item = anItemMap[code];
+    const qty = Number(o.qty)||0;
+    const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price) : null;
+    if (perUnit === null) return;
+    const amt = perUnit * qty;
+    const t = anDType(anCtMap[code]);
+    if (!typeMon[t]) typeMon[t] = {};
+    typeMon[t][mKey] = (typeMon[t][mKey]||0) + amt;
+  });
+
+  const mainR = anResolveRange(anMainRange);
+  const stackTypesSrc = anTopTypes(anAggregate(mainR.from, mainR.to).byType);
+  const stackTypeNames = stackTypesSrc.map(e=>e[0]);
+  // รวมประเภทที่ไม่ติดท็อป (ตามที่กราฟหลักจัดกลุ่มไว้) เข้า "อื่นๆ" ให้ตรงกับ legend เดียวกัน
+  if (stackTypeNames.includes('อื่นๆ')) {
+    const topSet = new Set(stackTypeNames.filter(t=>t!=='อื่นๆ'));
+    Object.keys(typeMon).forEach(t => {
+      if (!topSet.has(t) && t !== 'อื่นๆ') {
+        if (!typeMon['อื่นๆ']) typeMon['อื่นๆ'] = {};
+        Object.entries(typeMon[t]).forEach(([k,v]) => { typeMon['อื่นๆ'][k] = (typeMon['อื่นๆ'][k]||0) + v; });
+      }
     });
-    return h+'</div></div>';
   }
 
-  // Donut
-  function buildDonut() {
-    const tot=types.reduce((s,t)=>s+(typeCur[t]||0),0)||1;
-    const circ=2*Math.PI*38;
-    let off=0,segs='',leg='';
-    types.forEach((t,i)=>{
-      const q=typeCur[t]||0, pct=q/tot;
-      const dash=(pct*circ).toFixed(1);
-      segs+='<circle cx="54" cy="54" r="38" fill="none" stroke="'+COLORS[i]+'" stroke-width="18" stroke-dasharray="'+dash+' '+circ.toFixed(1)+'" stroke-dashoffset="'+(-off).toFixed(1)+'" transform="rotate(-90 54 54)"/>';
-      off+=pct*circ;
-      leg+='<div class="an-donut-row"><div class="an-donut-box" style="background:'+COLORS[i]+'"></div>'+t+' — '+Math.round(pct*100)+'%</div>';
-    });
-    const lbl=fmtBaht(tot);
-    return '<div class="an-card"><div class="an-card-title">สัดส่วนยอดขาย <span style="font-size:10px;color:#94a3b8;font-weight:400">เดือนนี้</span></div><div class="an-donut-wrap"><svg width="108" height="108" viewBox="0 0 108 108"><circle cx="54" cy="54" r="38" fill="none" stroke="#e2e8f0" stroke-width="18"/>'+segs+'<text x="54" y="51" text-anchor="middle" font-size="12" font-weight="800" fill="#1e293b">฿'+lbl+'</text><text x="54" y="62" text-anchor="middle" font-size="9" fill="#64748b">บาท</text></svg><div class="an-donut-leg">'+leg+'</div></div></div>';
-  }
-
-  // Stacked bar
   function buildStack() {
-    const mxH=110;
-    const mTots=last6.map(({key})=>types.reduce((s,t)=>(typeMon[t]&&typeMon[t][key]||0)+s,0));
+    const mxH=140;
+    const mTots=last6.map(({key})=>stackTypeNames.reduce((s,t)=>(typeMon[t]&&typeMon[t][key]||0)+s,0));
     const mxT=Math.max(...mTots,1);
-    let h='<div class="an-card"><div class="an-card-title" style="display:flex;justify-content:space-between;align-items:center">ยอดขายรายเดือน แยกตามประเภท <span style="font-size:10px;color:#94a3b8;font-weight:400">6 เดือน · บาท</span></div><div class="anb-group" style="height:'+mxH+'px">';
+    let h='<div class="an-card"><div class="an-card-title" style="display:flex;justify-content:space-between;align-items:center">ยอดขายรายเดือน แยกตามประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">6 เดือน · บาท</span></div><div class="anb-group" style="height:'+mxH+'px;gap:28px;margin-top:14px">';
     last6.forEach(({key,lbl},mi)=>{
       const tot=mTots[mi];
       const bH=Math.max(4,Math.round(tot/mxT*mxH));
       h+='<div class="anb-wrap"><div class="anb-stack" style="height:'+bH+'px">';
-      // column-reverse: first in DOM = bottom, so put types[0] first
-      types.forEach((t,i)=>{
+      stackTypeNames.forEach((t,i)=>{
         const q=typeMon[t]&&typeMon[t][key]||0;
         const pct=tot>0?(q/tot*100).toFixed(1):'0';
-        h+='<div class="anb-seg" style="height:'+pct+'%;background:'+COLORS[i]+'"></div>';
+        h+='<div class="anb-seg" style="height:'+pct+'%;background:'+AN_COLORS[i]+'"></div>';
       });
-      h+='</div><div class="anb-lbl">'+lbl+'</div></div>';
+      h+='</div><div class="anb-lbl" style="font-size:12px">'+lbl+'</div></div>';
     });
     h+='</div><div class="an-legend">';
-    types.forEach((t,i)=>{ h+='<div class="an-legend-item"><div class="an-legend-dot" style="background:'+COLORS[i]+'"></div>'+t+'</div>'; });
+    stackTypeNames.forEach((t,i)=>{ h+='<div class="an-legend-item"><div class="an-legend-dot" style="background:'+AN_COLORS[i]+'"></div>'+t+'</div>'; });
     return h+'</div></div>';
   }
 
   const BY=thisY+543;
   el.innerHTML=
-    '<button class="an-cal-btn" onclick="var p=document.getElementById(\'an-cal-popup\');p.style.display=p.style.display===\'block\'?\'none\':\'block\'">📅 <span>'+THAI_MF[thisM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
+    '<button class="an-cal-btn" onclick="var p=document.getElementById(\'an-cal-popup\');p.style.display=p.style.display===\'block\'?\'none\':\'block\'">📅 <span>'+AN_THAI_MF[thisM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
     buildCal()+
     '<div class="an-sales-kpi-row">'+
-      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">฿'+Math.round(ytd).toLocaleString()+'</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+THAI_M[thisM]+'. '+BY+'</div></div>'+
-      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายเดือนนี้</div><div class="ask-val" style="color:#1A3A5C">฿'+Math.round(mon).toLocaleString()+'</div><div class="ask-sub">'+(pBadge(mon,prevMon)||'—')+' vs เดือนที่แล้ว</div></div>'+
-      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายวันนี้ ('+now.getDate()+' '+THAI_M[thisM]+'.)</div><div class="ask-val" style="color:#1A3A5C">฿'+Math.round(tod).toLocaleString()+'</div><div class="ask-sub">'+(pBadge(tod,yestQ)||'—')+' vs เมื่อวาน</div></div>'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">฿'+Math.round(ytd).toLocaleString()+'</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+AN_THAI_M[thisM]+'. '+BY+'</div></div>'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายเดือนนี้</div><div class="ask-val" style="color:#1a3a5c">฿'+Math.round(mon).toLocaleString()+'</div><div class="ask-sub">'+(pBadge(mon,prevMon)||'—')+' vs เดือนที่แล้ว</div></div>'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายวันนี้ ('+now.getDate()+' '+AN_THAI_M[thisM]+'.)</div><div class="ask-val" style="color:#1a3a5c">฿'+Math.round(tod).toLocaleString()+'</div><div class="ask-sub">'+(pBadge(tod,yestQ)||'—')+' vs เมื่อวาน</div></div>'+
     '</div>'+
-    '<div class="an-sales-2col">'+buildBar()+buildDonut()+'</div>'+
-    buildStack();
+    '<div style="display:flex;align-items:center;gap:10px;margin:18px 0 10px;flex-wrap:wrap">'+
+      anRangeSelectHtml(anMainRange.mode, 'anMainRangeChange')+
+      '<div id="an-main-custom-row" style="display:'+(anMainRange.mode==='custom'?'flex':'none')+';gap:8px;align-items:center">'+
+        '<input type="date" id="an-main-from" value="'+anEsc(anMainRange.from||'')+'" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">'+
+        '<span style="font-size:12px;color:#94a3b8">ถึง</span>'+
+        '<input type="date" id="an-main-to" value="'+anEsc(anMainRange.to||'')+'" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">'+
+        '<button onclick="anMainCustomApply()" style="border:none;background:#1a3a5c;color:white;border-radius:8px;padding:7px 16px;font-size:12px;cursor:pointer;font-weight:700">ใช้ช่วงนี้</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="an-sales-2col" id="an-main-charts"></div>'+
+    buildStack() +
+    '<div style="margin-top:20px" id="an-cust-body"></div>';
+
+  anRenderMainCharts();
+  anRenderCustomerSection();
 
   const badge=document.getElementById('an-sales-mock-badge');
   if(badge)badge.remove();
