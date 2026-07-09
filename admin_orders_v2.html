@@ -3802,24 +3802,60 @@ function anBuildMainCharts() {
   const label = anRangeLabel(anMainRange);
 
   const mx = Math.max(...types.map(e=>e[1]), 1);
-  let bar = '<div class="an-card"><div class="an-card-title">ยอดขายแต่ละประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+' · บาท</span></div><div class="anb-group" style="gap:20px;height:230px;margin-top:32px">';
-  if (!types.length) bar += '<div style="font-size:12px;color:#94a3b8;padding:8px 0">ไม่มีข้อมูลในช่วงเวลานี้</div>';
-  types.forEach(([t,q],i)=>{
-    const barH=Math.max(6,Math.round(q/mx*145));
-    bar += '<div class="anb-wrap"><div class="anb-val" style="font-size:13px;min-height:16px">฿'+anFmtBaht(q)+'</div><div class="anb-bar" style="height:'+barH+'px;background:'+AN_COLORS[i]+'"></div><div class="anb-lbl" style="font-size:12px;min-height:32px">'+t+'</div></div>';
-  });
-  bar += '</div></div>';
+  let bar = '<div class="an-card"><div class="an-card-title">ยอดขายแต่ละประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+' · บาท</span></div>';
+  if (!types.length) {
+    bar += '<div style="font-size:12px;color:#94a3b8;padding:8px 0;margin-top:32px">ไม่มีข้อมูลในช่วงเวลานี้</div>';
+  } else {
+    // ค่า+แท่ง อยู่คอลัมน์เดียวกัน (ป้ายค่าลอยติดยอดแท่งเหมือนเดิม) ส่วนชื่อหมวดแยกเป็นแถวอิสระต่างหาก
+    // เพราะป้ายค่าเป็นตัวเลขบรรทัดเดียวเสมอ ความสูงคงที่ ไม่ทำให้ฐานแท่งเยื้องกัน — ที่เยื้องเมื่อก่อนคือ "ชื่อหมวด" ที่ยาวไม่เท่ากัน ขึ้น 1-2 บรรทัดต่างกัน
+    let valBarRow = '<div style="display:flex;align-items:flex-end;gap:20px;height:170px;margin-top:32px">';
+    let lblRow = '<div style="display:flex;gap:20px;margin-top:6px">';
+    types.forEach(([t,q],i)=>{
+      const barH=Math.max(6,Math.round(q/mx*145));
+      valBarRow += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">'+
+        '<div style="font-size:13px;font-weight:600;color:#475569">฿'+anFmtBaht(q)+'</div>'+
+        '<div style="width:100%;height:'+barH+'px;background:'+AN_COLORS[i]+';border-radius:5px 5px 0 0"></div>'+
+      '</div>';
+      lblRow += '<div style="flex:1;text-align:center;font-size:12px;color:#64748b;line-height:1.25">'+t+'</div>';
+    });
+    valBarRow += '</div>'; lblRow += '</div>';
+    bar += valBarRow + lblRow;
+  }
+  bar += '</div>';
 
   const tot = types.reduce((s,e)=>s+e[1],0) || 1;
-  const circ = 2*Math.PI*38;
-  let off=0, segs='', leg='';
+  // โดนัทแบบเส้นชี้ (callout) ออกจากแต่ละสัดส่วนแทน legend แยกด้านข้าง — ทำให้ขยายวงกลมได้ใหญ่ขึ้น
+  const R=70, SW=40, CX=150, CY=150;
+  const circ = 2*Math.PI*R;
+  const rLineStart = R + SW/2 + 2;
+  const rLineEnd = rLineStart + 36;
+  // ชื่อหมวดที่ยาวเกินไป (เช่น "น็อตเหลี่ยม W (ใหญ่)") ตัดขึ้นบรรทัดใหม่ที่ช่องว่างใกล้กึ่งกลาง กันไม่ให้ยืดแนวนอนออกไปไกลเกิน
+  function anWrapDonutLabel(t) {
+    if (t.length <= 12) return [t];
+    const sp = t.lastIndexOf(' ', Math.ceil(t.length/2)+2);
+    if (sp > 0) return [t.slice(0,sp), t.slice(sp+1)];
+    return [t];
+  }
+  let off=0, segs='', callouts='';
   types.forEach(([t,q],i)=>{
     const pct=q/tot, dash=(pct*circ).toFixed(1);
-    segs += '<circle cx="54" cy="54" r="38" fill="none" stroke="'+AN_COLORS[i]+'" stroke-width="16" stroke-dasharray="'+dash+' '+circ.toFixed(1)+'" stroke-dashoffset="'+(-off).toFixed(1)+'" transform="rotate(-90 54 54)"/>';
+    segs += '<circle cx="'+CX+'" cy="'+CY+'" r="'+R+'" fill="none" stroke="'+AN_COLORS[i]+'" stroke-width="'+SW+'" stroke-dasharray="'+dash+' '+circ.toFixed(1)+'" stroke-dashoffset="'+(-off).toFixed(1)+'" transform="rotate(-90 '+CX+' '+CY+')"/>';
+    const midFrac = (off + (pct*circ)/2)/circ;
+    const ang = midFrac*2*Math.PI;
+    const sinA = Math.sin(ang), cosA = Math.cos(ang);
+    const x1=CX+rLineStart*sinA, y1=CY-rLineStart*cosA;
+    const x2=CX+rLineEnd*sinA, y2=CY-rLineEnd*cosA;
+    const anchor = x2 > CX+2 ? 'start' : (x2 < CX-2 ? 'end' : 'middle');
+    const tx = x2 + (anchor==='start'?4:(anchor==='end'?-4:0));
+    const lines = anWrapDonutLabel(t);
+    callouts += '<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'" stroke="'+AN_COLORS[i]+'" stroke-width="1.5"/>';
+    lines.forEach((ln,li)=>{
+      callouts += '<text x="'+tx.toFixed(1)+'" y="'+(y2+li*14).toFixed(1)+'" text-anchor="'+anchor+'" font-size="13" font-weight="600" fill="#334155">'+ln+'</text>';
+    });
+    callouts += '<text x="'+tx.toFixed(1)+'" y="'+(y2+lines.length*14).toFixed(1)+'" text-anchor="'+anchor+'" font-size="12" fill="#64748b">'+Math.round(pct*100)+'%</text>';
     off += pct*circ;
-    leg += '<div class="an-donut-row" style="font-size:13px"><div class="an-donut-box" style="background:'+AN_COLORS[i]+'"></div>'+t+' — '+Math.round(pct*100)+'%</div>';
   });
-  const donut = '<div class="an-card"><div class="an-card-title">สัดส่วนยอดขาย <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+'</span></div><div class="an-donut-wrap" style="margin-top:32px"><svg width="150" height="150" viewBox="0 0 108 108"><circle cx="54" cy="54" r="38" fill="none" stroke="#e2e8f0" stroke-width="16"/>'+segs+'<text x="54" y="51" text-anchor="middle" font-size="14" font-weight="800" fill="#1e293b">฿'+anFmtBaht(tot)+'</text><text x="54" y="63" text-anchor="middle" font-size="10" fill="#64748b">บาท</text></svg><div class="an-donut-leg">'+leg+'</div></div></div>';
+  const donut = '<div class="an-card"><div class="an-card-title">สัดส่วนยอดขาย <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+'</span></div><div style="margin-top:20px;display:flex;justify-content:center"><svg width="270" height="270" viewBox="0 0 300 300"><circle cx="'+CX+'" cy="'+CY+'" r="'+R+'" fill="none" stroke="#e2e8f0" stroke-width="'+SW+'"/>'+segs+'<text x="'+CX+'" y="'+(CY-4)+'" text-anchor="middle" font-size="20" font-weight="800" fill="#1e293b">฿'+anFmtBaht(tot)+'</text><text x="'+CX+'" y="'+(CY+16)+'" text-anchor="middle" font-size="12" fill="#64748b">บาท</text>'+callouts+'</svg></div></div>';
   return bar + donut;
 }
 
