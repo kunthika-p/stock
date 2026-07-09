@@ -3802,11 +3802,11 @@ function anBuildMainCharts() {
   const label = anRangeLabel(anMainRange);
 
   const mx = Math.max(...types.map(e=>e[1]), 1);
-  let bar = '<div class="an-card"><div class="an-card-title">ยอดขายแต่ละประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+' · บาท</span></div><div class="anb-group" style="gap:20px;height:200px;margin-top:32px">';
+  let bar = '<div class="an-card"><div class="an-card-title">ยอดขายแต่ละประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+' · บาท</span></div><div class="anb-group" style="gap:20px;height:230px;margin-top:32px">';
   if (!types.length) bar += '<div style="font-size:12px;color:#94a3b8;padding:8px 0">ไม่มีข้อมูลในช่วงเวลานี้</div>';
   types.forEach(([t,q],i)=>{
-    const barH=Math.max(6,Math.round(q/mx*170));
-    bar += '<div class="anb-wrap"><div class="anb-val" style="font-size:13px">฿'+anFmtBaht(q)+'</div><div class="anb-bar" style="height:'+barH+'px;background:'+AN_COLORS[i]+'"></div><div class="anb-lbl" style="font-size:12px">'+t+'</div></div>';
+    const barH=Math.max(6,Math.round(q/mx*145));
+    bar += '<div class="anb-wrap"><div class="anb-val" style="font-size:13px;min-height:16px">฿'+anFmtBaht(q)+'</div><div class="anb-bar" style="height:'+barH+'px;background:'+AN_COLORS[i]+'"></div><div class="anb-lbl" style="font-size:12px;min-height:32px">'+t+'</div></div>';
   });
   bar += '</div></div>';
 
