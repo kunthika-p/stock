@@ -981,6 +981,15 @@ table.list tr:hover td{background:#f8fbff}
         <button class="an-pw-btn" onclick="anCheckPw()">เข้าสู่ระบบ Analytics</button>
       </div>
     </div>
+
+    <!-- ===== SALES ANALYTICS (DYNAMIC) — ย้ายมาไว้บนสุดตามที่ user ขอ 07-09 ===== -->
+    <div class="an-sales-section">
+      <div class="an-section">ยอดขายสินค้า <span class="an-mock-badge" id="an-sales-mock-badge">⏳ กำลังโหลด...</span></div>
+
+      <div id="an-sales-body"><div style="text-align:center;padding:24px;font-size:12px;color:#94a3b8">⏳ กำลังโหลดข้อมูลยอดขาย...</div></div>
+    </div>
+    <!-- ===== END SALES ANALYTICS ===== -->
+
     <!-- dashboard -->
     <div id="an-dash" class="an-dash">
       <div class="an-section">KPI สต็อคสินค้า</div>
@@ -1001,11 +1010,6 @@ table.list tr:hover td{background:#f8fbff}
           <div id="an-chart-sku" style="display:none"></div>
         </div>
         <div class="an-card">
-          <div class="an-card-title">📥 ประวัติรับสินค้าเข้า</div>
-          <div class="an-stats-mini">
-            <div class="an-stat"><div class="asv" id="an-h30e">—</div><div class="asl">ครั้ง (30 วัน)</div></div>
-            <div class="an-stat"><div class="asv" id="an-h7e">—</div><div class="asl">ครั้ง (7 วัน)</div></div>
-          </div>
           <div class="an-card-title">🚨 สินค้าใกล้หมดที่สุด</div>
           <div id="an-low-list"><div class="an-loading">กำลังโหลด...</div></div>
         </div>
@@ -1016,14 +1020,10 @@ table.list tr:hover td{background:#f8fbff}
         <div class="an-section" style="margin-top:16px">วิเคราะห์เชิงลึก (จากออเดอร์ที่ยืนยันแล้ว)</div>
         <div id="an-orders-loading" style="text-align:center;padding:16px;font-size:12px;color:#94a3b8">⏳ กำลังโหลดข้อมูลออเดอร์...</div>
         <div id="an-features" style="display:none">
-          <div class="an-feat-grid">
+          <div class="an-feat-grid" style="grid-template-columns:1fr">
             <div class="an-feat-card">
               <div class="an-feat-title">⚡ Velocity สินค้า — กลุ่ม A-B-C</div>
               <div id="an-velocity"></div>
-            </div>
-            <div class="an-feat-card">
-              <div class="an-feat-title">🔔 Reorder point — ควรสั่งซื้อเพิ่ม</div>
-              <div id="an-reorder"></div>
             </div>
           </div>
           <div class="an-feat-grid">
@@ -1047,14 +1047,6 @@ table.list tr:hover td{background:#f8fbff}
             </div>
           </div>
         </div>
-
-      <!-- ===== SALES ANALYTICS (DYNAMIC) ===== -->
-      <div class="an-sales-section">
-        <div class="an-section">ยอดขายสินค้า <span class="an-mock-badge" id="an-sales-mock-badge">⏳ กำลังโหลด...</span></div>
-
-        <div id="an-sales-body"><div style="text-align:center;padding:24px;font-size:12px;color:#94a3b8">⏳ กำลังโหลดข้อมูลยอดขาย...</div></div>
-      </div>
-      <!-- ===== END SALES ANALYTICS ===== -->
       </div>
     </div>
   </div>
@@ -3403,11 +3395,6 @@ async function anLoadData() {
                `<div class="an-low-val" style="color:${col}">${x.stock} กระสอบ</div></div>`;
       }).join('');
     }
-    // History stats
-    const hRes = await fetch(API + '?action=getAnalytics');
-    const hData = await hRes.json();
-    document.getElementById('an-h30e').textContent = hData.last30?.entries ?? '—';
-    document.getElementById('an-h7e').textContent  = hData.last7?.entries  ?? '—';
     // --- Fetch confirmed orders for deep analytics ---
     const oRes = await fetch(API + '?action=getOrders');
     const oData = await oRes.json();
@@ -3438,7 +3425,6 @@ async function anLoadData() {
     const oldestDate = allDates.length ? new Date(Math.min(...allDates.map(d=>d.getTime()))) : new Date();
     const daysPeriod = Math.max(1, Math.round((Date.now() - oldestDate.getTime()) / 86400000));
     anRenderVelocity(salesMap, orders.length);
-    anRenderReorder(salesMap, items, daysPeriod);
     anRenderDeadStock(items, salesMap);
     anRenderSeasonal(orders);
     anRenderTurnover(salesMap, items, daysPeriod);
@@ -3464,28 +3450,6 @@ function anRenderVelocity(salesMap, totalOrders) {
       const g = gradeOf(i);
       return '<tr><td style="font-family:monospace">' + code + '</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + v.name + '">' + v.name + '</td><td style="text-align:right;font-weight:600">' + v.totalQty.toLocaleString() + '</td><td><span class="grade-' + g.toLowerCase() + '">' + g + '</span></td></tr>';
     }).join('') + '</tbody></table>';
-}
-function anRenderReorder(salesMap, items, daysPeriod) {
-  const LEAD_DAYS = 14;
-  const alerts = [];
-  items.forEach(item => {
-    const code = String(item.code||'').padStart(8,'0');
-    const stock = Number(item.stock) || 0;
-    const sold = salesMap[code] ? salesMap[code].totalQty : 0;
-    const avgDaily = sold / daysPeriod;
-    const reorderPt = Math.round(avgDaily * LEAD_DAYS);
-    if (reorderPt > 0 && stock <= reorderPt) {
-      alerts.push({code, name: buildName(item), col: '', row: '', stock, reorderPt, avgDaily});
-    }
-  });
-  const el = document.getElementById('an-reorder');
-  if (alerts.length === 0) { el.innerHTML = '<div class="an-no-data">✅ ไม่มีสินค้าต่ำกว่า reorder point (ใช้ lead time 14 วัน)</div>'; return; }
-  alerts.sort((a,b) => (a.stock/Math.max(a.reorderPt,1)) - (b.stock/Math.max(b.reorderPt,1)));
-  const top = alerts.slice(0,8);
-  el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">lead time 14 วัน | ' + alerts.length + ' รายการต่ำกว่าจุดสั่ง</div>' +
-    '<table class="an-tbl"><thead><tr><th>สินค้า</th><th style="text-align:right">สต็อค</th><th style="text-align:right">ควรสั่งเมื่อ≤</th></tr></thead><tbody>' +
-    top.map(a => '<tr><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + a.name + ' ' + a.col + ' x ' + a.row + '">' + [a.name, a.col, a.row].filter(Boolean).join(' ').trim() + '</td><td style="text-align:right;color:' + (a.stock===0?'#dc2626':'#d97706') + ';font-weight:600">' + a.stock + '</td><td style="text-align:right;color:#64748b">' + a.reorderPt + '</td></tr>').join('') +
-    '</tbody></table>';
 }
 function anRenderDeadStock(items, salesMap) {
   const DEAD_DAYS = 90;
@@ -3513,8 +3477,8 @@ function anRenderSeasonal(orders) {
   const monthMap = {};
   const MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   orders.forEach(o => {
-    const d = (o.timestamp||o.date) ? new Date(o.timestamp||o.date) : null;
-    if (!d || isNaN(d)) return;
+    const d = anPDate(o);
+    if (!d) return;
     const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
     const lbl = MONTHS[d.getMonth()] + ' ' + (d.getFullYear()+543-2500);
     if (!monthMap[key]) monthMap[key] = {lbl, qty: 0, count: 0};
@@ -3711,6 +3675,8 @@ let anCustSearch = '';
 let anCustOpenRow = '';
 let anCustCurrentList = [];
 let anCustSearchTimer = null;
+let anCustSortField = 'revenue'; // name | revenue | orders | avg
+let anCustSortDesc = true;
 
 // จัดกลุ่มประเภทสินค้าให้อ่านง่าย
 function anDType(t) {
@@ -3888,12 +3854,16 @@ function anBuildCustomerControls() {
 function anBuildCustomerResults() {
   const { from, to } = anResolveRange(anCustRange);
   const { byCust, byCustType } = anAggregate(from, to);
-  let list = Object.entries(byCust).map(([name,v])=>({name, revenue:v.revenue, orders:v.orders}));
+  let list = Object.entries(byCust).map(([name,v])=>({name, revenue:v.revenue, orders:v.orders, avg: v.orders ? Math.round(v.revenue/v.orders) : 0}));
   if (anCustSearch.trim()) {
     const q = anCustSearch.trim().toLowerCase();
     list = list.filter(c => c.name.toLowerCase().includes(q));
   }
-  list.sort((a,b)=>b.revenue-a.revenue);
+  list.sort((a,b) => {
+    if (anCustSortField === 'name') return anCustSortDesc ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name);
+    const av = a[anCustSortField], bv = b[anCustSortField];
+    return anCustSortDesc ? bv - av : av - bv;
+  });
   anCustCurrentList = list;
 
   const top5 = list.slice(0,5);
@@ -3919,12 +3889,11 @@ function anBuildCustomerResults() {
   } else {
     list.forEach((c,i) => {
       const open = anCustOpenRow === c.name;
-      const avg = c.orders ? Math.round(c.revenue/c.orders) : 0;
       rows += '<tr style="cursor:pointer;background:'+(open?'#eef2f7':(i%2?'#f8fafc':'white'))+'" onclick="anCustToggleRow('+i+')">'+
         '<td style="padding:10px 12px;color:#1a3a5c;font-weight:700"><i class="ti ti-chevron-'+(open?'down':'right')+'" style="font-size:12px;margin-right:6px" aria-hidden="true"></i>'+anEsc(c.name)+'</td>'+
         '<td style="padding:10px 12px;text-align:right;font-weight:700">฿'+Math.round(c.revenue).toLocaleString()+'</td>'+
         '<td style="padding:10px 12px;text-align:right;color:#64748b">'+c.orders+'</td>'+
-        '<td style="padding:10px 12px;text-align:right;color:#64748b">฿'+avg.toLocaleString()+'</td></tr>';
+        '<td style="padding:10px 12px;text-align:right;color:#64748b">฿'+c.avg.toLocaleString()+'</td></tr>';
       if (open) {
         const types = anTopTypes(byCustType[c.name] || {});
         const ctot = types.reduce((s,e)=>s+e[1],0) || 1;
@@ -3944,13 +3913,28 @@ function anBuildCustomerResults() {
     });
   }
 
+  const custSortCols = [
+    ['name','ลูกค้า','left'],
+    ['revenue','ยอดขาย','right'],
+    ['orders','จำนวนออเดอร์','right'],
+    ['avg','เฉลี่ย/ออเดอร์','right']
+  ];
+  let theadH = '';
+  custSortCols.forEach(([key,label,align],i)=>{
+    const active = anCustSortField === key;
+    const icon = active ? '<i class="ti ti-chevron-'+(anCustSortDesc?'down':'up')+'" style="font-size:13px;margin-left:4px;vertical-align:-2px" aria-hidden="true"></i>' : '';
+    const rad = i===0 ? 'border-radius:6px 0 0 0;' : i===custSortCols.length-1 ? 'border-radius:0 6px 0 0;' : '';
+    theadH += '<th onclick="anCustSortChange(\''+key+'\')" style="background:#1a3a5c;color:white;padding:9px 12px;text-align:'+align+';font-weight:600;cursor:pointer;user-select:none;'+rad+'">'+label+icon+'</th>';
+  });
+
   return topH + '<div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:10px">ลูกค้าทั้งหมด <span style="font-size:11px;color:#94a3b8;font-weight:400">'+list.length+' ราย</span></div>'+
-    '<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr>'+
-      '<th style="background:#1a3a5c;color:white;padding:9px 12px;text-align:left;font-weight:600;border-radius:6px 0 0 0">ลูกค้า</th>'+
-      '<th style="background:#1a3a5c;color:white;padding:9px 12px;text-align:right;font-weight:600">ยอดขาย</th>'+
-      '<th style="background:#1a3a5c;color:white;padding:9px 12px;text-align:right;font-weight:600">จำนวนออเดอร์</th>'+
-      '<th style="background:#1a3a5c;color:white;padding:9px 12px;text-align:right;font-weight:600;border-radius:0 6px 0 0">เฉลี่ย/ออเดอร์</th>'+
-    '</tr></thead><tbody>'+rows+'</tbody></table>';
+    '<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr>'+theadH+'</tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function anCustSortChange(field) {
+  if (anCustSortField === field) { anCustSortDesc = !anCustSortDesc; }
+  else { anCustSortField = field; anCustSortDesc = true; }
+  anRefreshCustomerResults();
 }
 
 function anRenderCustomerSection() {
