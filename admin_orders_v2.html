@@ -3851,6 +3851,8 @@ let anOrdersCache = [], anCtMap = {}, anItemMap = {};
 let anMainRange = { mode: 'month', from: '', to: '' };
 // 2026-07-10: วันที่ที่เลือกในปฏิทิน KPI (null = วันนี้จริง) — คลิกวันในปฏิทินเพื่อดูยอดขายวันนั้นแทน "วันนี้"
 let anSelDay = null;
+// 2026-07-10: โหมดกราฟแท่งซ้อน "รายวัน"/"รายเดือน" (ตั้งต้นที่ "day" ตามที่ user ขอ) — คงค่าไว้ข้ามการ re-render จนกว่าจะโหลดข้อมูลใหม่
+let anStackMode = 'day';
 let anCustRange = { mode: 'month', from: '', to: '' };
 let anCustSearch = '';
 let anCustOpenRow = '';
@@ -4282,6 +4284,127 @@ function anSelectCalDay(d) {
   anRenderKpiCal();
 }
 
+// 2026-07-10: กราฟแท่งซ้อน "ยอดขายรายวัน/รายเดือน แยกตามประเภท" — สลับมุมมองได้ด้วยปุ่ม toggle (เริ่มต้นที่ "รายวัน")
+// คำนวณ+render จาก cache (anOrdersCache/anItemMap/anCtMap) ล้วนๆ ไม่ fetch ใหม่ ตาม pattern เดียวกับ anBuildKpiCal()
+// ใช้ "ชุดประเภท/สี" (stackTypeNames) เดียวกับกราฟหลัก (ตามช่วงเวลาที่กราฟหลักเลือกอยู่ anMainRange) ให้ legend/สีตรงกันทั้งหน้า ไม่ว่าจะสลับรายวัน/รายเดือน
+function anBuildStackChart() {
+  const now = new Date();
+  const thisY = now.getFullYear();
+  const thisM = now.getMonth();
+  const isDay = anStackMode === 'day';
+
+  const mainR = anResolveRange(anMainRange);
+  const stackTypeNames = anTopTypes(anAggregate(mainR.from, mainR.to).byType).map(e=>e[0]);
+
+  let bars, title, sub;
+
+  if (isDay) {
+    const daysInMonth = new Date(thisY, thisM+1, 0).getDate();
+    const typeDay = {};
+    anOrdersCache.forEach(o => {
+      const d = anPDate(o); if (!d) return;
+      if (d.getFullYear()!==thisY || d.getMonth()!==thisM) return;
+      const code = String(o.code||'').padStart(8,'0');
+      const item = anItemMap[code];
+      const qty = Number(o.qty)||0;
+      const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price) : null;
+      if (perUnit === null) return;
+      const amt = perUnit * qty;
+      const t = anDType(anCtMap[code]);
+      const dd = d.getDate();
+      if (!typeDay[t]) typeDay[t] = {};
+      typeDay[t][dd] = (typeDay[t][dd]||0) + amt;
+    });
+    if (stackTypeNames.includes('อื่นๆ')) {
+      const topSet = new Set(stackTypeNames.filter(t=>t!=='อื่นๆ'));
+      Object.keys(typeDay).forEach(t => {
+        if (!topSet.has(t) && t !== 'อื่นๆ') {
+          if (!typeDay['อื่นๆ']) typeDay['อื่นๆ'] = {};
+          Object.entries(typeDay[t]).forEach(([k,v]) => { typeDay['อื่นๆ'][k] = (typeDay['อื่นๆ'][k]||0) + v; });
+        }
+      });
+    }
+    bars = [];
+    for (let dd=1; dd<=daysInMonth; dd++) bars.push({ key:dd, lbl:String(dd), isCur: dd===now.getDate(), map:typeDay });
+    title = 'ยอดขายรายวัน แยกตามประเภท';
+    sub = '1-'+daysInMonth+' '+AN_THAI_M[thisM]+' '+(thisY+543)+' · บาท';
+  } else {
+    const yearMonths = [];
+    for (let m=0; m<=11; m++) yearMonths.push({key:thisY+'-'+String(m+1).padStart(2,'0'), lbl:AN_THAI_M[m]});
+    const yMSet = new Set(yearMonths.map(x=>x.key));
+    const typeMon = {};
+    anOrdersCache.forEach(o => {
+      const d = anPDate(o); if (!d) return;
+      const mKey = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      if (!yMSet.has(mKey)) return;
+      const code = String(o.code||'').padStart(8,'0');
+      const item = anItemMap[code];
+      const qty = Number(o.qty)||0;
+      const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price) : null;
+      if (perUnit === null) return;
+      const amt = perUnit * qty;
+      const t = anDType(anCtMap[code]);
+      if (!typeMon[t]) typeMon[t] = {};
+      typeMon[t][mKey] = (typeMon[t][mKey]||0) + amt;
+    });
+    if (stackTypeNames.includes('อื่นๆ')) {
+      const topSet = new Set(stackTypeNames.filter(t=>t!=='อื่นๆ'));
+      Object.keys(typeMon).forEach(t => {
+        if (!topSet.has(t) && t !== 'อื่นๆ') {
+          if (!typeMon['อื่นๆ']) typeMon['อื่นๆ'] = {};
+          Object.entries(typeMon[t]).forEach(([k,v]) => { typeMon['อื่นๆ'][k] = (typeMon['อื่นๆ'][k]||0) + v; });
+        }
+      });
+    }
+    const curKey = thisY+'-'+String(thisM+1).padStart(2,'0');
+    bars = yearMonths.map(({key,lbl}) => ({ key, lbl, isCur: key===curKey, map:typeMon }));
+    title = 'ยอดขายรายเดือน แยกตามประเภท';
+    sub = 'ม.ค.-ธ.ค. '+(thisY+543)+' · บาท';
+  }
+
+  const mxH=140;
+  const mTots = bars.map(b => stackTypeNames.reduce((s,t)=>(b.map[t]&&b.map[t][b.key]||0)+s,0));
+  const mxT = Math.max(...mTots,1);
+  const valFs = isDay ? '8.5px' : '11.5px';
+  const lblFs = isDay ? '9px' : '12px';
+  const barGap = isDay ? '3px' : '10px';
+  const wrapMaxW = isDay ? ';max-width:20px' : '';
+
+  let h = '<div class="an-card"><div class="an-card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'+
+    '<span>'+title+'</span>'+
+    '<div style="display:flex;align-items:center;gap:10px">'+
+      '<div style="display:flex;border:1px solid #d8dfe8;border-radius:8px;overflow:hidden">'+
+        '<button onclick="anSetStackMode(\'day\')" style="border:none;padding:5px 12px;font-size:12px;cursor:pointer;background:'+(isDay?'#1a3a5c':'transparent')+';color:'+(isDay?'white':'#64748b')+'">รายวัน</button>'+
+        '<button onclick="anSetStackMode(\'month\')" style="border:none;padding:5px 12px;font-size:12px;cursor:pointer;background:'+(!isDay?'#1a3a5c':'transparent')+';color:'+(!isDay?'white':'#64748b')+'">รายเดือน</button>'+
+      '</div>'+
+      '<span style="font-size:11px;color:#94a3b8;font-weight:400">'+sub+'</span>'+
+    '</div>'+
+  '</div><div class="anb-group" style="height:'+mxH+'px;gap:'+barGap+';margin-top:32px">';
+
+  bars.forEach((b,mi)=>{
+    const tot=mTots[mi];
+    const bH=Math.max(4,Math.round(tot/mxT*mxH));
+    h+='<div class="anb-wrap" style="flex:1'+wrapMaxW+'"><div class="anb-val" style="font-size:'+valFs+';font-weight:700;white-space:nowrap">'+(tot>0?'฿'+anFmtBahtM(tot):'')+'</div><div class="anb-stack" style="height:'+bH+'px'+(b.isCur?';outline:1.5px solid #185fa5;outline-offset:1px':'')+'">';
+    stackTypeNames.forEach((t,i)=>{
+      const q=b.map[t]&&b.map[t][b.key]||0;
+      const pct=tot>0?(q/tot*100).toFixed(1):'0';
+      h+='<div class="anb-seg" style="height:'+pct+'%;background:'+AN_COLORS[i]+'"></div>';
+    });
+    h+='</div><div class="anb-lbl" style="font-size:'+lblFs+'">'+b.lbl+'</div></div>';
+  });
+  h+='</div><div class="an-legend">';
+  stackTypeNames.forEach((t,i)=>{ h+='<div class="an-legend-item"><div class="an-legend-dot" style="background:'+AN_COLORS[i]+'"></div>'+t+'</div>'; });
+  return h+'</div></div>';
+}
+function anRenderStackChart() {
+  const el = document.getElementById('an-stack-container');
+  if (el) el.innerHTML = anBuildStackChart();
+}
+function anSetStackMode(mode) {
+  anStackMode = mode;
+  anRenderStackChart();
+}
+
 // ==== Entry point: เรียกตอนโหลดแท็บวิเคราะห์ข้อมูล ====
 function anRenderSalesCharts(orders, items) {
   const el = document.getElementById('an-sales-body');
@@ -4298,65 +4421,6 @@ function anRenderSalesCharts(orders, items) {
   anCustOpenRow = ''; anCustSearch = ''; anCustCurrentList = [];
   anSelDay = null; // รีเซ็ตกลับเป็น "วันนี้" ทุกครั้งที่โหลดข้อมูลใหม่จริง (ไม่รีเซ็ตตอน re-render จาก cache)
 
-  const now   = new Date();
-  const thisY = now.getFullYear();
-
-  // กราฟรายเดือน (แท่งซ้อน) — โชว์เต็มปีปฏิทินปัจจุบัน ม.ค.-ธ.ค. เสมอ (เดือนในอนาคตจะเป็นแท่งว่าง/สูง 0 ไปก่อนจนกว่าจะมีออเดอร์จริง) ไม่ผูกกับตัวเลือกช่วงเวลาใหม่ของกราฟหลัก
-  // แต่ใช้ "ชุดประเภท/สี" เดียวกับกราฟหลัก (ตามช่วงเวลาที่เลือกอยู่) เพื่อให้ legend/สีตรงกันทั้งหน้า
-  const yearMonths = [];
-  for (let m=0; m<=11; m++) { yearMonths.push({key:thisY+'-'+String(m+1).padStart(2,'0'),lbl:AN_THAI_M[m]}); }
-  const yMSet = new Set(yearMonths.map(x=>x.key));
-  const typeMon = {};
-  orders.forEach(o => {
-    const d = anPDate(o); if (!d) return;
-    const mKey = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-    if (!yMSet.has(mKey)) return;
-    const code = String(o.code||'').padStart(8,'0');
-    const item = anItemMap[code];
-    const qty = Number(o.qty)||0;
-    const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price) : null;
-    if (perUnit === null) return;
-    const amt = perUnit * qty;
-    const t = anDType(anCtMap[code]);
-    if (!typeMon[t]) typeMon[t] = {};
-    typeMon[t][mKey] = (typeMon[t][mKey]||0) + amt;
-  });
-
-  const mainR = anResolveRange(anMainRange);
-  const stackTypesSrc = anTopTypes(anAggregate(mainR.from, mainR.to).byType);
-  const stackTypeNames = stackTypesSrc.map(e=>e[0]);
-  // รวมประเภทที่ไม่ติดท็อป (ตามที่กราฟหลักจัดกลุ่มไว้) เข้า "อื่นๆ" ให้ตรงกับ legend เดียวกัน
-  if (stackTypeNames.includes('อื่นๆ')) {
-    const topSet = new Set(stackTypeNames.filter(t=>t!=='อื่นๆ'));
-    Object.keys(typeMon).forEach(t => {
-      if (!topSet.has(t) && t !== 'อื่นๆ') {
-        if (!typeMon['อื่นๆ']) typeMon['อื่นๆ'] = {};
-        Object.entries(typeMon[t]).forEach(([k,v]) => { typeMon['อื่นๆ'][k] = (typeMon['อื่นๆ'][k]||0) + v; });
-      }
-    });
-  }
-
-  function buildStack() {
-    const mxH=140;
-    const mTots=yearMonths.map(({key})=>stackTypeNames.reduce((s,t)=>(typeMon[t]&&typeMon[t][key]||0)+s,0));
-    const mxT=Math.max(...mTots,1);
-    let h='<div class="an-card"><div class="an-card-title" style="display:flex;justify-content:space-between;align-items:center">ยอดขายรายเดือน แยกตามประเภท <span style="font-size:11px;color:#94a3b8;font-weight:400">ม.ค.-ธ.ค. '+(thisY+543)+' · บาท</span></div><div class="anb-group" style="height:'+mxH+'px;gap:10px;margin-top:32px">';
-    yearMonths.forEach(({key,lbl},mi)=>{
-      const tot=mTots[mi];
-      const bH=Math.max(4,Math.round(tot/mxT*mxH));
-      h+='<div class="anb-wrap"><div class="anb-val" style="font-size:11.5px;font-weight:700;white-space:nowrap">'+(tot>0?'฿'+anFmtBahtM(tot):'')+'</div><div class="anb-stack" style="height:'+bH+'px">';
-      stackTypeNames.forEach((t,i)=>{
-        const q=typeMon[t]&&typeMon[t][key]||0;
-        const pct=tot>0?(q/tot*100).toFixed(1):'0';
-        h+='<div class="anb-seg" style="height:'+pct+'%;background:'+AN_COLORS[i]+'"></div>';
-      });
-      h+='</div><div class="anb-lbl" style="font-size:12px">'+lbl+'</div></div>';
-    });
-    h+='</div><div class="an-legend">';
-    stackTypeNames.forEach((t,i)=>{ h+='<div class="an-legend-item"><div class="an-legend-dot" style="background:'+AN_COLORS[i]+'"></div>'+t+'</div>'; });
-    return h+'</div></div>';
-  }
-
   el.innerHTML=
     '<div id="an-kpi-cal">'+anBuildKpiCal()+'</div>'+
     '<div style="display:flex;align-items:center;gap:10px;margin:18px 0 10px;flex-wrap:wrap">'+
@@ -4369,7 +4433,7 @@ function anRenderSalesCharts(orders, items) {
       '</div>'+
     '</div>'+
     '<div class="an-sales-2col" id="an-main-charts"></div>'+
-    buildStack() +
+    '<div id="an-stack-container">'+anBuildStackChart()+'</div>'+
     '<div style="margin-top:20px" id="an-cust-body"></div>';
 
   anRenderMainCharts();
