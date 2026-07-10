@@ -3730,8 +3730,8 @@ function anFmtBaht(n) {
 function anFmtBahtM(n) {
   n = Math.round(n);
   const abs = Math.abs(n);
-  if (abs >= 1000000) return (n/1000000).toFixed(2) + ' M';
-  if (abs >= 1000) return (n/1000).toFixed(2) + ' k';
+  if (abs >= 1000000) return (n/1000000).toFixed(1) + ' M';
+  if (abs >= 1000) return (n/1000).toFixed(1) + ' k';
   return n.toLocaleString();
 }
 
@@ -3825,14 +3825,14 @@ function anBuildMainCharts() {
 
   const tot = types.reduce((s,e)=>s+e[1],0) || 1;
   // โดนัทแบบเส้นชี้ (callout) ออกจากแต่ละสัดส่วนแทน legend แยกด้านข้าง — ทำให้ขยายวงกลมได้ใหญ่ขึ้น
-  const R=70, SW=40, CX=150, CY=150;
+  const R=70, SW=40, CX=210, CY=150;
   const circ = 2*Math.PI*R;
   const rLineStart = R + SW/2 + 2;
-  const rLineEnd = rLineStart + 36;
+  const rLineEnd = rLineStart + 26;
   // ชื่อหมวดที่ยาวเกินไป (เช่น "น็อตเหลี่ยม W (ใหญ่)") ตัดขึ้นบรรทัดใหม่ที่ช่องว่างใกล้กึ่งกลาง กันไม่ให้ยืดแนวนอนออกไปไกลเกิน
   function anWrapDonutLabel(t) {
-    if (t.length <= 12) return [t];
-    const sp = t.lastIndexOf(' ', Math.ceil(t.length/2)+2);
+    if (t.length <= 10) return [t];
+    const sp = t.lastIndexOf(' ', Math.ceil(t.length/2)+1);
     if (sp > 0) return [t.slice(0,sp), t.slice(sp+1)];
     return [t];
   }
@@ -3850,12 +3850,12 @@ function anBuildMainCharts() {
     const lines = anWrapDonutLabel(t);
     callouts += '<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'" stroke="'+AN_COLORS[i]+'" stroke-width="1.5"/>';
     lines.forEach((ln,li)=>{
-      callouts += '<text x="'+tx.toFixed(1)+'" y="'+(y2+li*14).toFixed(1)+'" text-anchor="'+anchor+'" font-size="13" font-weight="600" fill="#334155">'+ln+'</text>';
+      callouts += '<text x="'+tx.toFixed(1)+'" y="'+(y2+li*13).toFixed(1)+'" text-anchor="'+anchor+'" font-size="12" font-weight="600" fill="#334155">'+ln+'</text>';
     });
-    callouts += '<text x="'+tx.toFixed(1)+'" y="'+(y2+lines.length*14).toFixed(1)+'" text-anchor="'+anchor+'" font-size="12" fill="#64748b">'+Math.round(pct*100)+'%</text>';
+    callouts += '<text x="'+tx.toFixed(1)+'" y="'+(y2+lines.length*13).toFixed(1)+'" text-anchor="'+anchor+'" font-size="11" fill="#64748b">'+Math.round(pct*100)+'%</text>';
     off += pct*circ;
   });
-  const donut = '<div class="an-card"><div class="an-card-title">สัดส่วนยอดขาย <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+'</span></div><div style="margin-top:20px;display:flex;justify-content:center"><svg width="270" height="270" viewBox="0 0 300 300"><circle cx="'+CX+'" cy="'+CY+'" r="'+R+'" fill="none" stroke="#e2e8f0" stroke-width="'+SW+'"/>'+segs+'<text x="'+CX+'" y="'+(CY-4)+'" text-anchor="middle" font-size="20" font-weight="800" fill="#1e293b">฿'+anFmtBaht(tot)+'</text><text x="'+CX+'" y="'+(CY+16)+'" text-anchor="middle" font-size="12" fill="#64748b">บาท</text>'+callouts+'</svg></div></div>';
+  const donut = '<div class="an-card"><div class="an-card-title">สัดส่วนยอดขาย <span style="font-size:11px;color:#94a3b8;font-weight:400">'+label+'</span></div><div style="margin-top:20px;display:flex;justify-content:center"><svg width="378" height="270" viewBox="0 0 420 300" style="overflow:visible"><circle cx="'+CX+'" cy="'+CY+'" r="'+R+'" fill="none" stroke="#e2e8f0" stroke-width="'+SW+'"/>'+segs+'<text x="'+CX+'" y="'+(CY-4)+'" text-anchor="middle" font-size="20" font-weight="800" fill="#1e293b">฿'+anFmtBaht(tot)+'</text><text x="'+CX+'" y="'+(CY+16)+'" text-anchor="middle" font-size="12" fill="#64748b">บาท</text>'+callouts+'</svg></div></div>';
   return bar + donut;
 }
 
@@ -4130,7 +4130,7 @@ function anRenderSalesCharts(orders, items) {
     yearMonths.forEach(({key,lbl},mi)=>{
       const tot=mTots[mi];
       const bH=Math.max(4,Math.round(tot/mxT*mxH));
-      h+='<div class="anb-wrap"><div class="anb-val" style="font-size:14px;font-weight:700">'+(tot>0?'฿'+anFmtBahtM(tot):'')+'</div><div class="anb-stack" style="height:'+bH+'px">';
+      h+='<div class="anb-wrap"><div class="anb-val" style="font-size:11.5px;font-weight:700;white-space:nowrap">'+(tot>0?'฿'+anFmtBahtM(tot):'')+'</div><div class="anb-stack" style="height:'+bH+'px">';
       stackTypeNames.forEach((t,i)=>{
         const q=typeMon[t]&&typeMon[t][key]||0;
         const pct=tot>0?(q/tot*100).toFixed(1):'0';
