@@ -1050,14 +1050,19 @@ table.list tr:hover td{background:#f8fbff}
             </div>
           </div>
           <div class="an-feat-grid">
-            <div class="an-feat-card">
+            <div class="an-feat-card" style="grid-column:1/-1">
               <div class="an-feat-title">📅 Seasonal pattern — ยอดขายรายเดือน</div>
               <div id="an-seasonal"></div>
             </div>
+            <!-- 2026-07-10: ยกเลิกการ์ด "Stock turnover" ตามที่ user ขอ — รวมระดับหมวดเท่านั้น ไม่แยกรายไซส์
+                 ซ้ำกับ Dead stock/Stockout alert ที่ actionable กว่า + daysPeriod ที่ใช้คำนวณยังมีบั๊กแฝงเรื่อง parse วันที่
+                 (ดู MEMORY item 6) comment ไว้ ไม่ลบทิ้ง เผื่อกลับมาทำใหม่แบบแยกรายชิ้นในอนาคต -->
+            <!--
             <div class="an-feat-card">
               <div class="an-feat-title">🔄 Stock turnover — อัตราหมุนเวียนต่อประเภท</div>
               <div id="an-turnover"></div>
             </div>
+            -->
           </div>
         </div>
       </div>
@@ -3549,7 +3554,7 @@ async function anLoadData() {
     anRenderVelocity(salesMap, orders.length);
     anRenderDeadStock(items, salesMap);
     anRenderSeasonal(orders);
-    anRenderTurnover(salesMap, items, daysPeriod);
+    // 2026-07-10: ยกเลิกการ์ด "Stock turnover" แล้ว (element #an-turnover ไม่มีในหน้าแล้ว) — ไม่เรียก anRenderTurnover() อีกต่อไป กันพัง null.innerHTML
     anRenderStockout(items, salesMap, daysPeriod);
     anRenderSalesCharts(orders, items);
   } catch(e) {
