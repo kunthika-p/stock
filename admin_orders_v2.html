@@ -3412,12 +3412,18 @@ async function anLoadData() {
     }
     document.getElementById('an-orders-loading').style.display = 'none';
     document.getElementById('an-features').style.display = 'block';
+    // 2026-07-10: sheet "orders" ไม่มีคอลัมน์ "type" เลย (ดู ORDER_COLS ใน Code.gs) — o.type จาก API เป็น undefined เสมอ
+    // เดิม Velocity (ตอน ABC percentile) ไม่ได้ใช้ .type เลยจึงไม่เคยเจอบั๊กนี้ พอเปลี่ยนมาแยกตามหมวดถึงพังเงียบๆ
+    // (ทุกอย่างตกไปอยู่ 'อื่นๆ' เพราะ anVCategory('') return 'อื่นๆ') — แก้โดย lookup type จริงจาก items (stock)
+    // ตาม pattern เดียวกับ anCtMap ที่ใช้ในส่วน "ยอดขายแยกตามประเภท" ของลูกค้าอยู่แล้ว (บรรทัด ~4085)
+    const itemTypeMap = {};
+    items.forEach(it => { itemTypeMap[String(it.code||'').padStart(8,'0')] = it.type || ''; });
     // Build salesMap: code -> {name, type, totalQty, lastDate}
     const salesMap = {};
     orders.forEach(o => {
       const code = String(o.code || '').padStart(8,'0');
       const qty = Number(o.qty) || 0;
-      if (!salesMap[code]) salesMap[code] = {name: o.name||'', type: o.type||'', totalQty: 0, orderCount: 0, lastDate: null};
+      if (!salesMap[code]) salesMap[code] = {name: o.name||'', type: itemTypeMap[code] || o.type || '', totalQty: 0, orderCount: 0, lastDate: null};
       salesMap[code].totalQty += qty;
       salesMap[code].orderCount++;
       const d = (o.timestamp||o.date) ? new Date(o.timestamp||o.date) : null;
