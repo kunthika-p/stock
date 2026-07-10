@@ -1022,7 +1022,7 @@ table.list tr:hover td{background:#f8fbff}
         <div id="an-features" style="display:none">
           <div class="an-feat-grid" style="grid-template-columns:1fr">
             <div class="an-feat-card">
-              <div class="an-feat-title">⚡ Velocity สินค้า — กลุ่ม A-B-C</div>
+              <div class="an-feat-title">⚡ สินค้าขายดีสุด — แยกตามหมวด (Top 3/หมวด)</div>
               <div id="an-velocity"></div>
             </div>
           </div>
@@ -3439,19 +3439,50 @@ async function anLoadData() {
 function anNoData(el, msg) {
   document.getElementById(el).innerHTML = '<div class="an-no-data">' + (msg || 'ยังไม่มีข้อมูลออเดอร์ที่ยืนยันแล้ว') + '</div>';
 }
+// 2026-07-10: จัดกลุ่มหมวดสำหรับ Velocity แยกตามหมวด — คนละชุดกับ anDType() ที่ใช้ในกราฟโดนัท/แท่งด้านบน
+// (anDType รวม น็อตเหลี่ยมเกลียว W + น็อตหัวกลมเกลียว W + น็อตเหลี่ยม W ไม่ควบหัว เป็นก้อนเดียว "น็อตเหลี่ยม W"
+//  แต่ user ต้องการแยก 3 หมวดนี้ออกจากกันใน Velocity โดยเฉพาะ ส่วน "หัวน็อต"/"น็อตมิลแข็ง" ให้รวมเหมือนเดิม)
+function anVCategory(t) {
+  if (!t) return 'อื่นๆ';
+  if (t === 'น็อตเหลี่ยมเกลียว W') return 'น็อตเหลี่ยมเกลียว W';
+  if (t === 'น็อตหัวกลมเกลียว W') return 'น็อตหัวกลมเกลียว W';
+  if (t === 'สกรูเกลียวปล่อย') return 'สกรูเกลียวปล่อย';
+  if (t === 'สกรูมิลขาว') return 'สกรูมิลขาว';
+  if (t === 'น็อตเหลี่ยม W ไม่ควบหัว') return 'น็อตเหลี่ยม W ไม่ควบหัว';
+  if (/หัวน็อตมิล[^แ]|หัวน็อตเกลียวหยาบ|หัวน็อตเกลียว W/.test(t)) return 'หัวน็อต';
+  if (/น็อตเหลี่ยม NC|น็อตเหลี่ยม NF/.test(t)) return 'น็อตเหลี่ยม NC/NF';
+  if (/น็อตแข็ง|หัวน็อตมิลแข็ง|Spring Washer/.test(t)) return 'น็อตมิลแข็ง';
+  return 'อื่นๆ';
+}
+const AN_VCAT_ORDER = ['น็อตเหลี่ยมเกลียว W','น็อตหัวกลมเกลียว W','สกรูเกลียวปล่อย','หัวน็อต','สกรูมิลขาว','น็อตเหลี่ยม NC/NF','น็อตมิลแข็ง','น็อตเหลี่ยม W ไม่ควบหัว','อื่นๆ'];
+
 function anRenderVelocity(salesMap, totalOrders) {
   const el = document.getElementById('an-velocity');
-  const rows = Object.entries(salesMap).sort((a,b) => b[1].totalQty - a[1].totalQty);
+  const rows = Object.entries(salesMap);
   if (rows.length === 0) { anNoData('an-velocity'); return; }
-  const n = rows.length;
-  const gradeOf = (i) => i < Math.ceil(n*0.2) ? 'A' : i < Math.ceil(n*0.5) ? 'B' : 'C';
-  const top10 = rows.slice(0,10);
-  el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">แสดง top 10 จาก ' + n + ' รายการ (ช่วง ' + (salesMap[rows[0][0]]?.lastDate ? Math.round((Date.now()-new Date(rows[0][1].lastDate).getTime())/86400000) + ' วันที่ผ่านมา' : '—') + ')</div>' +
-    '<table class="an-tbl"><thead><tr><th>รหัส</th><th>ชื่อ</th><th style="text-align:right">กระสอบ</th><th>กลุ่ม</th></tr></thead><tbody>' +
-    top10.map(([code, v], i) => {
-      const g = gradeOf(i);
-      return '<tr><td style="font-family:monospace">' + code + '</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + v.name + '">' + v.name + '</td><td style="text-align:right;font-weight:600">' + v.totalQty.toLocaleString() + '</td><td><span class="grade-' + g.toLowerCase() + '">' + g + '</span></td></tr>';
-    }).join('') + '</tbody></table>';
+  // เดิม: top10 รวมทุกหมวดจัดกลุ่ม ABC ตาม percentile — เปลี่ยนเป็น top3 แยกตามหมวด (2026-07-10)
+  // เหตุผล: totalQty หน่วยนับไม่เท่ากันข้ามหมวด (ดู BOX_TYPES — บางหมวดนับเป็น "กล่อง" บางหมวดนับเป็น "กระสอบ")
+  // เทียบ top10 รวมข้ามหมวดแบบเดิมจึงเทียบกันไม่ตรง แยกตามหมวดแล้วในหมวดเดียวกันหน่วยจะสอดคล้องกันเอง (ยกเว้น
+  // หมวด "น็อตมิลแข็ง" ที่รวมหลายชนิดย่อยจนหน่วยปนกันเล็กน้อย [ส่วนใหญ่กล่อง, "หัวน็อตมิลแข็ง เกรด8" เป็นกระสอบ]
+  // ตามที่ user ยืนยันให้รวมทั้งหมดไม่ต้องแยก จึงโชว์หน่วยต่อแถวแทนต่อหมวดกันสับสน)
+  const catMap = {};
+  rows.forEach(([code, v]) => {
+    const cat = anVCategory(v.type);
+    if (!catMap[cat]) catMap[cat] = [];
+    catMap[cat].push(Object.assign({code: code}, v));
+  });
+  const cats = AN_VCAT_ORDER.filter(c => catMap[c] && catMap[c].length);
+  if (cats.length === 0) { anNoData('an-velocity'); return; }
+  el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">' +
+    cats.map(cat => {
+      const top3 = catMap[cat].sort((a,b) => b.totalQty - a.totalQty).slice(0,3);
+      return '<div><div style="font-size:12px;font-weight:700;color:#1a3a5c;margin-bottom:4px">' + cat + '</div>' +
+        '<table class="an-tbl"><thead><tr><th>รหัส</th><th>ชื่อ</th><th style="text-align:right">จำนวน</th></tr></thead><tbody>' +
+        top3.map(v => {
+          const unit = getUnit(v.type);
+          return '<tr><td style="font-family:monospace">' + v.code + '</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + v.name + '">' + v.name + '</td><td style="text-align:right;font-weight:600;white-space:nowrap">' + v.totalQty.toLocaleString() + ' ' + unit + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+    }).join('') + '</div>';
 }
 function anRenderDeadStock(items, salesMap) {
   const DEAD_DAYS = 90;
