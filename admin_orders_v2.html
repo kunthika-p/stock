@@ -60,8 +60,8 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .stockerr-btn-fix{border:none;background:#1a3a5c;color:white}
 .edit-field{margin-bottom:14px}
 .edit-field label{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px}
-.edit-field input{width:100%;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:15px;font-family:'Sarabun',sans-serif}
-.edit-field input:focus{outline:none;border-color:#d97706}
+.edit-field input,.edit-field select{width:100%;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:15px;font-family:'Sarabun',sans-serif;background:white}
+.edit-field input:focus,.edit-field select:focus{outline:none;border-color:#d97706}
 .edit-actions{display:flex;gap:8px;margin-top:18px}
 .btn-save{flex:2;background:#d97706;color:white;border:none;border-radius:8px;padding:11px;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
 .btn-cancel-edit{flex:1;background:white;color:#555;border:1.5px solid #d1d5db;border-radius:8px;padding:11px;font-size:14px;font-family:'Sarabun',sans-serif;cursor:pointer}
@@ -899,6 +899,17 @@ table.list tr:hover td{background:#f8fbff}
   <div class="edit-modal">
     <h3>✏️ แก้ไขคำสั่งซื้อ</h3>
     <div class="sub" id="editModalSub"></div>
+    <!-- 2026-07-10 (v4 ตาม feedback): user แจ้งว่าเวลาคีย์ผิดความยาว/ขนาด (แต่อย่างอื่นถูก) ต้องยกเลิกออเดอร์แล้วเพิ่มใหม่ทั้งอัน
+         v1=ปุ่ม+ช่องค้นหา+list แยก, v2=<select> dropdown, v3=<input list> datalist — ล่าสุด user ส่งภาพช่อง
+         "ค้นหาสินค้า" ใน "รับสินค้าเข้า" (si-search/siSearch()) มาถามว่าหมายถึงแบบนี้ไหม → ใช่ ใช้ pattern เดียวกันเป๊ะ
+         (custom dropdown ของระบบเอง ไม่ใช่ browser native) เพื่อความสม่ำเสมอกับจุดอื่นในระบบ จำกัดผลลัพธ์เฉพาะ type เดิม -->
+    <div class="edit-field" style="position:relative">
+      <label>สินค้า (พิมพ์ชื่อหรือรหัสเพื่อเปลี่ยนขนาดในหมวดเดิม)</label>
+      <input type="text" id="editSizeSearch" placeholder="พิมพ์ชื่อหรือรหัส..." autocomplete="off"
+        oninput="editSizeSearchInput()" onkeydown="editSizeSearchKey(event)" onblur="editSizeSearchBlur()">
+      <div id="editSizeDrop" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid #2563a8;border-top:none;border-radius:0 0 8px 8px;max-height:200px;overflow-y:auto;z-index:400;box-shadow:0 4px 12px rgba(0,0,0,.15)"></div>
+      <div id="editSizeMsg" style="font-size:11px;margin-top:4px;min-height:14px"></div>
+    </div>
     <div class="edit-field">
       <label>วันที่สั่ง</label>
       <input type="date" id="editDateInput">
@@ -1000,19 +1011,21 @@ table.list tr:hover td{background:#f8fbff}
         <div class="an-kpi red"><div class="ak-icon">🚨</div><div class="ak-val" id="an-empty">—</div><div class="ak-lbl">หมดแล้ว</div></div>
       </div>
       <div class="an-charts">
-        <div class="an-card">
+        <div class="an-card" style="grid-column:1/-1">
           <div class="an-card-title">📊 สต็อครวมแต่ละประเภท</div>
-          <div class="an-toggle-row">
-            <button class="an-toggle-btn active" onclick="anToggleChart('qty',this)">จำนวนกระสอบ</button>
-            <button class="an-toggle-btn" onclick="anToggleChart('sku',this)">จำนวน SKU</button>
-          </div>
+          <!-- 2026-07-10: ยกเลิกปุ่มสลับ "จำนวน SKU" ตามที่ user ขอ เหลือแค่มุมมอง "จำนวนกระสอบ" อย่างเดียว
+               (เดิมมี toggle 2 ปุ่ม qty/sku — ตัดปุ่มออก โค้ดคำนวณ #an-chart-sku ใน anLoadData()/anToggleChart()
+               ยังเหลือไว้เป็น dead code เผื่ออยากเอากลับมาทีหลัง ไม่ได้ลบทิ้ง) -->
           <div id="an-chart-qty"></div>
           <div id="an-chart-sku" style="display:none"></div>
         </div>
+        <!-- 2026-07-10: ยกเลิกการ์ด "สินค้าใกล้หมดที่สุด" ตามที่ user ขอ — comment out ทั้ง block ไม่ลบทิ้ง
+             (โค้ดคำนวณ lowItems / #an-low-list ใน anLoadData() ~บรรทัด 3387-3398 ยังเหลืออยู่เป็น dead code)
         <div class="an-card">
           <div class="an-card-title">🚨 สินค้าใกล้หมดที่สุด</div>
           <div id="an-low-list"><div class="an-loading">กำลังโหลด...</div></div>
         </div>
+        -->
       </div>
       <div class="an-info">💡 ข้อมูลดึงจาก Google Sheet real-time ทุกครั้งที่เปิด tab</div>
       <!-- 6 Analytics Features -->
@@ -2691,6 +2704,8 @@ function renderPendingTable() {
       : (o.unit && o.unit !== '') ? o.unit
       : (UNIT_VALS.includes(o.urgency) ? o.urgency
       : (UNIT_VALS.includes(o.note) ? o.note : 'กระสอบ'));
+    // 2026-07-10: เพิ่ม _type ไว้ใช้ scope ปุ่ม "เปลี่ยนขนาด" ใน edit modal (จำกัดเลือกได้แค่ type เดียวกันเท่านั้น)
+    o._type = _si ? resolveType(_si) : '';
   });
 
   // จัดกลุ่มตามลูกค้า
@@ -2943,10 +2958,97 @@ async function rejectOrder(row) {
 }
 
 let editingRow = null;
+// 2026-07-10: state สำหรับช่อง "เปลี่ยนขนาด" ใน edit modal — pattern เดียวกับ si-search/siSearch() ในแท็บรับสินค้าเข้า
+let editingType = '', editingOrigCode = '', editingOrigName = '', editingNewCode = null, editingNewName = null;
+let editSizeSearchResults = [], editSizeSearchIdx = -1;
+
+function populateEditSizeSelect() {
+  const input = document.getElementById('editSizeSearch');
+  const drop = document.getElementById('editSizeDrop');
+  const msg = document.getElementById('editSizeMsg');
+  drop.style.display = 'none';
+  input.value = editingOrigName;
+  if (!editingType) {
+    input.disabled = true;
+    msg.textContent = 'ไม่ทราบหมวดสินค้าเดิม เปลี่ยนขนาดจากตรงนี้ไม่ได้';
+    msg.style.color = '#888';
+    return;
+  }
+  input.disabled = false;
+  msg.textContent = '';
+}
+function editSizeSearchInput() {
+  const q = document.getElementById('editSizeSearch').value.trim().toLowerCase();
+  const drop = document.getElementById('editSizeDrop');
+  const msg = document.getElementById('editSizeMsg');
+  editSizeSearchIdx = -1;
+  editingNewCode = null; editingNewName = null; // ยังไม่ยืนยันจนกว่าจะเลือกจาก dropdown
+  msg.textContent = '';
+  if (!q || !editingType) { drop.style.display = 'none'; return; }
+  const candidates = allItems.filter(x => resolveType(x) === editingType);
+  editSizeSearchResults = candidates.filter(i => {
+    const name = buildName(i).toLowerCase();
+    return name.includes(q) || String(i.code).includes(q);
+  }).slice(0, 12);
+  if (!editSizeSearchResults.length) {
+    drop.style.display = 'none';
+    msg.textContent = '⚠ ไม่พบสินค้านี้ในหมวดเดิม';
+    msg.style.color = '#dc2626';
+    return;
+  }
+  drop.innerHTML = editSizeSearchResults.map((i, idx) => {
+    const name = buildName(i);
+    return `<div style="padding:9px 12px;cursor:pointer;border-bottom:1px solid #f3f4f6;font-size:13px;display:flex;justify-content:space-between"
+      onmousedown="editSizeSelectItem(${idx})" data-idx="${idx}">
+      <span style="font-weight:600;color:#1a3a5c">${name}</span>
+      <span style="font-size:11px;color:#888;font-family:monospace">${i.code}</span>
+    </div>`;
+  }).join('');
+  drop.style.display = 'block';
+}
+function editSizeSearchKey(e) {
+  const drop = document.getElementById('editSizeDrop');
+  const items = drop.style.display !== 'none' ? drop.querySelectorAll('[data-idx]') : [];
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') { e.preventDefault(); editSizeSearchIdx = Math.min(editSizeSearchIdx+1, items.length-1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); editSizeSearchIdx = Math.max(editSizeSearchIdx-1, 0); }
+  else if (e.key === 'Enter') { e.preventDefault(); editSizeSelectItem(editSizeSearchIdx >= 0 ? editSizeSearchIdx : 0); return; }
+  else if (e.key === 'Escape') { drop.style.display = 'none'; return; }
+  items.forEach((el,i) => el.style.background = i===editSizeSearchIdx ? '#f0f5ff' : '');
+}
+function editSizeSelectItem(idx) {
+  const item = editSizeSearchResults[idx];
+  if (!item) return;
+  const name = buildName(item);
+  editingNewCode = item.code;
+  editingNewName = name;
+  document.getElementById('editSizeSearch').value = name;
+  document.getElementById('editSizeDrop').style.display = 'none';
+  const msg = document.getElementById('editSizeMsg');
+  msg.style.color = '#16a34a';
+  msg.textContent = item.code !== editingOrigCode ? '✓ เปลี่ยนจากเดิม: ' + editingOrigName : '';
+}
+// กันเผื่อ user พิมพ์ค้นหาแล้วคลิกออกโดยไม่เลือกจาก dropdown (ไม่กด Enter/คลิกรายการ)
+// ดีดกลับไปค่าที่ยืนยันแล้วล่าสุดเสมอ (ของเดิม หรือรายการที่เพิ่งเลือกไปก่อนหน้า) กัน input ค้างเป็นข้อความที่ไม่ตรงกับ code จริง
+function editSizeSearchBlur() {
+  setTimeout(() => {
+    document.getElementById('editSizeDrop').style.display = 'none';
+    const input = document.getElementById('editSizeSearch');
+    const confirmedName = editingNewCode ? editingNewName : editingOrigName;
+    if (input.value.trim() !== confirmedName) input.value = confirmedName;
+  }, 150);
+}
+
 function openEditModalByRow(row) {
   const o = pendingOrders.find(x => x.row === row);
   if (!o) return;
   editingRow = row;
+  editingType = o._type || '';
+  editingOrigCode = o.code;
+  editingOrigName = o.name;
+  editingNewCode = null;
+  editingNewName = null;
+  populateEditSizeSelect();
   document.getElementById('editModalSub').textContent = `รหัส: ${o.code}`;
   document.getElementById('editDateInput').value = orderDateToInputISO(o.timestamp || o.date);
   document.getElementById('editQtyLabel').textContent = `จำนวน (${o._unit||'กระสอบ'})`;
@@ -2984,12 +3086,18 @@ async function saveEdit() {
   const disc_pct  = _discRaw !== '' ? Number(_discRaw)  : null;
   const net_price = _netRaw  !== '' ? Number(_netRaw)   : null;
   if (!qty || qty < 1) { alert('กรุณาใส่จำนวนที่ถูกต้อง'); return; }
+  // 2026-07-10: ไม่ต้องกัน save แยกอีกแล้ว — editSizeSearchBlur() ดีดข้อความกลับเป็นค่าที่ยืนยันแล้วเสมอตอนออกจากช่องนี้
+  // (editingNewCode ตั้งค่าได้เฉพาะตอนคลิกเลือกจาก dropdown เท่านั้น พิมพ์เฉยๆ ไม่ทำให้ค่าเปลี่ยน)
   const saveBtn = document.getElementById('editSaveBtn');
   const _origBtnText = saveBtn ? saveBtn.textContent : '';
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ กำลังบันทึก...'; }
+  // 2026-07-10: ถ้าเปลี่ยนขนาดไว้ (editingNewCode ต่างจากของเดิม) ส่ง code/name ไปด้วย
+  const sizeChanged = editingNewCode && editingNewCode !== editingOrigCode;
+  const body = {action:'editOrder', row: editingRow, qty, urgency, note, disc_pct, net_price, date};
+  if (sizeChanged) { body.code = editingNewCode; body.name = editingNewName; }
   try {
     const res = await fetch(API, {
-      method: 'POST', body: JSON.stringify({action:'editOrder', row: editingRow, qty, urgency, note, disc_pct, net_price, date})
+      method: 'POST', body: JSON.stringify(body)
     });
     const data = await res.json();
     if (data.success) {
@@ -2999,6 +3107,7 @@ async function saveEdit() {
         if (disc_pct  !== null) o.disc_pct  = disc_pct;
         if (net_price !== null) o.net_price = net_price;
         if (date) { o.date = date; o.timestamp = date; }
+        if (sizeChanged) { o.code = editingNewCode; o.name = editingNewName; }
       }
       closeEditModal();
       renderPendingTable();
@@ -3385,10 +3494,15 @@ async function anLoadData() {
     document.getElementById('an-chart-sku').innerHTML =
       [...types].sort((a,b)=>b[1].sku-a[1].sku).map((t,i) => mkBar(t[0], t[1].sku+' SKU', maxSku, colors[i])).join('');
     // Low stock list (top 5, stock > 0 and <= 5)
+    // 2026-07-10: การ์ด "สินค้าใกล้หมดที่สุด" (#an-low-list) ถูก comment ออกจาก HTML แล้วตามที่ user ขอ
+    // เพิ่ม guard "if (lowEl)" กันพัง — ถ้าไม่ guard ตรงนี้จะ error (setting innerHTML ของ null) แล้วทำให้
+    // โค้ดส่วนที่เหลือใน try block นี้ (Velocity/ยอดขายบาท ฯลฯ) หยุดทำงานไปด้วยทั้งหมด
     const lowItems = items.filter(x => Number(x.stock) > 0 && Number(x.stock) <= 5)
       .sort((a,b) => Number(a.stock)-Number(b.stock)).slice(0,5);
     const lowEl = document.getElementById('an-low-list');
-    if (lowItems.length === 0) {
+    if (!lowEl) {
+      // การ์ดถูกซ่อนไว้ — ข้ามการ render แต่ไม่ throw error
+    } else if (lowItems.length === 0) {
       lowEl.innerHTML = '<div style="font-size:12px;color:#16a34a;padding:8px 0">✅ ไม่มีสินค้าวิกฤต</div>';
     } else {
       lowEl.innerHTML = lowItems.map(x => {
@@ -3448,15 +3562,18 @@ function anNoData(el, msg) {
 // 2026-07-10: จัดกลุ่มหมวดสำหรับ Velocity แยกตามหมวด — คนละชุดกับ anDType() ที่ใช้ในกราฟโดนัท/แท่งด้านบน
 // (anDType รวม น็อตเหลี่ยมเกลียว W + น็อตหัวกลมเกลียว W + น็อตเหลี่ยม W ไม่ควบหัว เป็นก้อนเดียว "น็อตเหลี่ยม W"
 //  แต่ user ต้องการแยก 3 หมวดนี้ออกจากกันใน Velocity โดยเฉพาะ ส่วน "หัวน็อต"/"น็อตมิลแข็ง" ให้รวมเหมือนเดิม)
+// 2026-07-10 (แก้บั๊ก): เดิมเช็ค t === 'น็อตเหลี่ยมเกลียว W' ตรงๆ ไม่ครอบคลุม alias ที่รวมกันอยู่ใน MERGED_TYPES
+// (เช่น "น็อตเหลี่ยม W (ใหญ่)" = คอลัมน์ 5/8W/3/4W, "น็อตเหลี่ยมเกลียว W 7/16x3 1/2 ครึ่ง") ทำให้ตกไป 'อื่นๆ' ผิดหมวด
+// แก้โดยอ้างอิง MERGED_TYPES เป็น source of truth เดียวกับที่จุดอื่นในระบบใช้ (กันหลุด sync กันในอนาคต)
 function anVCategory(t) {
   if (!t) return 'อื่นๆ';
-  if (t === 'น็อตเหลี่ยมเกลียว W') return 'น็อตเหลี่ยมเกลียว W';
+  if ((MERGED_TYPES['น็อตเหลี่ยมเกลียว W'] || ['น็อตเหลี่ยมเกลียว W']).includes(t)) return 'น็อตเหลี่ยมเกลียว W';
   if (t === 'น็อตหัวกลมเกลียว W') return 'น็อตหัวกลมเกลียว W';
   if (t === 'สกรูเกลียวปล่อย') return 'สกรูเกลียวปล่อย';
   if (t === 'สกรูมิลขาว') return 'สกรูมิลขาว';
   if (t === 'น็อตเหลี่ยม W ไม่ควบหัว') return 'น็อตเหลี่ยม W ไม่ควบหัว';
   if (/หัวน็อตมิล[^แ]|หัวน็อตเกลียวหยาบ|หัวน็อตเกลียว W/.test(t)) return 'หัวน็อต';
-  if (/น็อตเหลี่ยม NC|น็อตเหลี่ยม NF/.test(t)) return 'น็อตเหลี่ยม NC/NF';
+  if ((MERGED_TYPES['น็อตเหลี่ยม NC'] || ['น็อตเหลี่ยม NC']).includes(t) || t === 'น็อตเหลี่ยม NF') return 'น็อตเหลี่ยม NC/NF';
   if (/น็อตแข็ง|หัวน็อตมิลแข็ง|Spring Washer/.test(t)) return 'น็อตมิลแข็ง';
   return 'อื่นๆ';
 }
