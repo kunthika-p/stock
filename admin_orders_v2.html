@@ -4365,10 +4365,9 @@ function anBuildStackChart() {
   const mxH=140;
   const mTots = bars.map(b => stackTypeNames.reduce((s,t)=>(b.map[t]&&b.map[t][b.key]||0)+s,0));
   const mxT = Math.max(...mTots,1);
-  const valFs = isDay ? '8.5px' : '11.5px';
-  const lblFs = isDay ? '9px' : '12px';
-  const barGap = isDay ? '3px' : '10px';
-  const wrapMaxW = isDay ? ';max-width:20px' : '';
+  const valFs = isDay ? '10px' : '11.5px';
+  const lblFs = isDay ? '10px' : '12px';
+  const barGap = isDay ? '4px' : '10px';
 
   let h = '<div class="an-card"><div class="an-card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'+
     '<span>'+title+'</span>'+
@@ -4384,7 +4383,7 @@ function anBuildStackChart() {
   bars.forEach((b,mi)=>{
     const tot=mTots[mi];
     const bH=Math.max(4,Math.round(tot/mxT*mxH));
-    h+='<div class="anb-wrap" style="flex:1'+wrapMaxW+'"><div class="anb-val" style="font-size:'+valFs+';font-weight:700;white-space:nowrap">'+(tot>0?'฿'+anFmtBahtM(tot):'')+'</div><div class="anb-stack" style="height:'+bH+'px'+(b.isCur?';outline:1.5px solid #185fa5;outline-offset:1px':'')+'">';
+    h+='<div class="anb-wrap"><div class="anb-val" style="font-size:'+valFs+';font-weight:700;white-space:nowrap">'+(tot>0?'฿'+anFmtBahtM(tot):'')+'</div><div class="anb-stack" style="height:'+bH+'px'+(b.isCur?';outline:1.5px solid #185fa5;outline-offset:1px':'')+'">';
     stackTypeNames.forEach((t,i)=>{
       const q=b.map[t]&&b.map[t][b.key]||0;
       const pct=tot>0?(q/tot*100).toFixed(1):'0';
