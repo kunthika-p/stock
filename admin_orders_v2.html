@@ -3315,7 +3315,9 @@ const AN_PW_HASH = 'c3RpYzEz'; // btoa('stic13')
 function anCheckPw() {
   const val = document.getElementById('anPwInput').value;
   if (btoa(val) === AN_PW_HASH) {
-    sessionStorage.setItem('an_unlocked','1');
+    // 2026-07-10: เดิมมี sessionStorage.setItem('an_unlocked','1') ตรงนี้ เพื่อจำการปลดล็อกไว้ทั้ง browser tab
+    // (สลับไปแท็บอื่นในหน้านี้แล้วกลับมาไม่ต้องกรอกซ้ำ) — user แจ้งว่าข้อมูลยอดขาย confidential
+    // ไม่ต้องการให้จนท. admin ทั่วไปเข้าดูได้ถ้าเผลอเปิดค้างไว้ จึงตัดการจำออก บังคับกรอก password ทุกครั้งที่เข้าแท็บนี้
     document.getElementById('anPwErr').textContent = '';
     anShowDash();
   } else {
@@ -3331,13 +3333,13 @@ function anShowDash() {
   if (!dash.dataset.loaded) { anLoadData(); dash.dataset.loaded = '1'; }
 }
 function anMaybUnlock() {
-  if (sessionStorage.getItem('an_unlocked') === '1') {
-    anShowDash();
-  } else {
-    document.getElementById('an-pw-section').style.display = 'flex';
-    document.getElementById('an-dash').style.display = 'none';
-    setTimeout(() => { const i = document.getElementById('anPwInput'); if(i) i.focus(); }, 100);
-  }
+  // 2026-07-10: เดิมเช็ค sessionStorage.getItem('an_unlocked')==='1' ก่อนแล้วค่อย anShowDash() ตรงๆ ถ้าเคยปลดล็อกแล้ว
+  // ตอนนี้ตัดออก บังคับโชว์หน้ากรอก password ทุกครั้งที่สลับเข้าแท็บนี้ ไม่เช็ค/ไม่จำสถานะปลดล็อกอีกต่อไป
+  document.getElementById('anPwInput').value = '';
+  document.getElementById('anPwErr').textContent = '';
+  document.getElementById('an-pw-section').style.display = 'flex';
+  document.getElementById('an-dash').style.display = 'none';
+  setTimeout(() => { const i = document.getElementById('anPwInput'); if(i) i.focus(); }, 100);
 }
 
 // Patch switchTab to trigger analytics unlock check
