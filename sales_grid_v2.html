@@ -239,6 +239,15 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
   <div class="modal">
     <div class="modal-title" id="modalName"></div>
     <div class="modal-code" id="modalCode"></div>
+    <!-- 2026-07-10: "เปลี่ยนขนาด" — เฉพาะตอนแก้ไขรายการที่มีอยู่แล้ว (staged/cart) ไม่โชว์ตอนเพิ่มสินค้าใหม่
+         จำกัดเลือกได้เฉพาะ type เดียวกับของเดิม (กันหน่วยกระสอบ/กล่องไม่ตรงกัน) -->
+    <div id="modalSizeChangeWrap" style="display:none;margin:-4px 0 14px">
+      <button type="button" class="btn-cancel" style="width:100%;font-size:12px;padding:7px" onclick="toggleSizePicker()">🔁 เปลี่ยนขนาด (หมวดเดิม)</button>
+      <div id="sizePicker" style="display:none;margin-top:8px">
+        <input type="text" id="sizeSearch" placeholder="ค้นหาขนาด..." oninput="renderSizeList()" style="width:100%;padding:8px 10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:'Sarabun',sans-serif;margin-bottom:6px">
+        <div id="sizeList" style="max-height:180px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px"></div>
+      </div>
+    </div>
     <div class="field">
       <label id="qtyLabel">จำนวน *</label>
       <input type="number" id="inputQty" placeholder="0" min="1" step="1">
@@ -495,6 +504,15 @@ let editingCartIndex = null;
 // โหมดแก้ไขของ modal เต็ม (#modalBg): null = โหมดเพิ่มสินค้าปกติ
 // {type:'cart', index} = แก้รายการในตะกร้า, {type:'staged', id} = แก้รายการในประวัติที่รอส่ง Admin
 let modalEditMode = null;
+
+// 2026-07-10: state สำหรับปุ่ม "เปลี่ยนขนาด" ใน modal แก้ไข (cart/staged)
+let sizeChangeType = '', sizeChangeOrigCode = '', sizeChangeNewCode = null, sizeChangeNewName = null;
+// สร้างชื่อแสดงผลจาก stock item เดียวกับ buildName() ฝั่ง admin_orders_v2.html (ที่นี่ไม่มีฟังก์ชันนี้มาก่อน)
+function pickerBuildName(item) {
+  const clean = v => { if (!v || v === 'STOCK') return ''; return String(v); };
+  const size = [clean(item.col), clean(item.row)].filter(Boolean).join(' x ');
+  return fmtName([item.type||'', size].filter(Boolean).join(' '));
+}
 
 function fmtName(n) {
   if (!n) return n;
@@ -857,6 +875,8 @@ function openModal(code, name, type) {
   document.getElementById('modalName').textContent = fmtName(name);
   document.getElementById('modalCode').textContent = 'รหัส: ' + code;
   document.getElementById('qtyLabel').textContent = 'จำนวน (' + unit + ') *';
+  // 2026-07-10: ปุ่ม "เปลี่ยนขนาด" โชว์เฉพาะตอนแก้ไข (openItemModalFrom) เท่านั้น ไม่ใช่ตอนเพิ่มสินค้าใหม่
+  document.getElementById('modalSizeChangeWrap').style.display = 'none';
 
   // ถ้ามีในตะกร้าแล้ว ให้แสดงจำนวนเดิม
   const existing = cart.find(i => i.code === code);
@@ -923,6 +943,14 @@ function openItemModalFrom(item, mode) {
   document.getElementById('modalName').textContent = fmtName(item.name);
   document.getElementById('modalCode').textContent = 'รหัส: ' + item.code;
   document.getElementById('qtyLabel').textContent = 'จำนวน (' + unit + ') *';
+  // 2026-07-10: เปิดปุ่ม "เปลี่ยนขนาด" — staged order ไม่มี .type ติดมา ต้อง lookup จาก allItems ด้วย code แทน
+  const _si = allItems.find(x => x.code === item.code);
+  sizeChangeType = item.type || (_si ? resolveType(_si) : '');
+  sizeChangeOrigCode = item.code;
+  sizeChangeNewCode = null;
+  sizeChangeNewName = null;
+  document.getElementById('modalSizeChangeWrap').style.display = 'block';
+  document.getElementById('sizePicker').style.display = 'none';
   document.getElementById('inputQty').value = item.qty;
   document.getElementById('inputItemNote').value = item.note || '';
   document.getElementById('btnAddCart').textContent = '💾 บันทึกการแก้ไข';
@@ -948,6 +976,42 @@ function openItemModalFrom(item, mode) {
   fieldNet.classList.remove('field-auto');
 
   document.getElementById('modalBg').classList.add('open');
+}
+
+// 2026-07-10: picker "เปลี่ยนขนาด" (แก้ไซส์คีย์ผิดโดยไม่ต้องลบ+เพิ่มรายการใหม่) — เลือกได้เฉพาะ type เดียวกับของเดิม
+function toggleSizePicker() {
+  const el = document.getElementById('sizePicker');
+  const show = el.style.display === 'none';
+  el.style.display = show ? 'block' : 'none';
+  if (show) { document.getElementById('sizeSearch').value = ''; renderSizeList(); }
+}
+function renderSizeList() {
+  const q = document.getElementById('sizeSearch').value.trim().toLowerCase();
+  const listEl = document.getElementById('sizeList');
+  if (!sizeChangeType) {
+    listEl.innerHTML = '<div style="padding:10px;font-size:12px;color:#888">ไม่ทราบหมวดสินค้าเดิม เปลี่ยนขนาดจากตรงนี้ไม่ได้</div>';
+    return;
+  }
+  const candidates = allItems.filter(x => resolveType(x) === sizeChangeType);
+  const filtered = q ? candidates.filter(x => pickerBuildName(x).toLowerCase().includes(q) || x.code.includes(q)) : candidates;
+  if (!filtered.length) { listEl.innerHTML = '<div style="padding:10px;font-size:12px;color:#888">ไม่พบ</div>'; return; }
+  listEl.innerHTML = filtered.slice(0,80).map(x => {
+    const label = pickerBuildName(x);
+    const isSelected = (sizeChangeNewCode || sizeChangeOrigCode) === x.code;
+    return `<div onclick="pickSize('${x.code}')" style="padding:8px 10px;font-size:13px;cursor:pointer;border-bottom:1px solid #f1f5f9;${isSelected?'background:#fef3c7;font-weight:700':''}">${label} <span style="color:#94a3b8;font-family:monospace;font-size:11px">${x.code}</span></div>`;
+  }).join('');
+}
+function pickSize(code) {
+  const item = allItems.find(x => x.code === code);
+  if (!item) return;
+  sizeChangeNewCode = code;
+  sizeChangeNewName = pickerBuildName(item);
+  selectedCode = code;
+  selectedName = sizeChangeNewName;
+  const changedTag = code !== sizeChangeOrigCode ? '  <span style="color:#d97706;font-size:12px">← เปลี่ยนจากเดิม</span>' : '';
+  document.getElementById('modalName').innerHTML = fmtName(sizeChangeNewName) + changedTag;
+  document.getElementById('modalCode').textContent = 'รหัส: ' + code;
+  document.getElementById('sizePicker').style.display = 'none';
 }
 
 function selectItemUrgency(val, el) {
@@ -1001,10 +1065,36 @@ function addToCart() {
       o.disc_pct = disc_pct;
       o.net_price = net_price;
       o.delivery = selectedDelivery;
+      // 2026-07-10: บันทึกผลเปลี่ยนขนาดถ้ามี (sizeChangeNewCode ต่างจากของเดิม)
+      if (sizeChangeNewCode && sizeChangeNewCode !== sizeChangeOrigCode) {
+        o.code = sizeChangeNewCode;
+        o.name = fmtName(sizeChangeNewName);
+      }
     }
     closeModalDirect();
     renderSalesHistory();
     showToast('✅ แก้ไขแล้ว');
+    return;
+  }
+
+  // 2026-07-10: แก้ไขรายการในตะกร้า (cart) — ใช้ index จาก modalEditMode ตรงๆ แทนการค้นด้วย code
+  // (เดิมค้นด้วย selectedCode ได้อยู่เพราะ code ไม่เคยเปลี่ยน แต่พอมีปุ่ม "เปลี่ยนขนาด" ที่แก้ selectedCode ได้
+  // การค้นด้วย code เดิมจะหารายการเก่าไม่เจอ กลายเป็นเพิ่มรายการใหม่ซ้อนแทนที่จะอัปเดตของเดิม)
+  if (modalEditMode && modalEditMode.type === 'cart' && cart[modalEditMode.index]) {
+    const c = cart[modalEditMode.index];
+    c.code = selectedCode;
+    c.name = fmtName(selectedName);
+    c.type = selectedType;
+    c.qty = qty;
+    c.urgency = selectedItemUrgency;
+    c.note = note;
+    c.disc_pct = disc_pct;
+    c.net_price = net_price;
+    c.delivery = selectedDelivery;
+    closeModalDirect();
+    updateCartBar();
+    renderCartItems();
+    showToast('✅ อัปเดตแล้ว');
     return;
   }
 

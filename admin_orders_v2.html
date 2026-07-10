@@ -899,6 +899,17 @@ table.list tr:hover td{background:#f8fbff}
   <div class="edit-modal">
     <h3>✏️ แก้ไขคำสั่งซื้อ</h3>
     <div class="sub" id="editModalSub"></div>
+    <!-- 2026-07-10: "เปลี่ยนขนาด" — user แจ้งว่าเวลาคีย์ผิดความยาว/ขนาด (แต่อย่างอื่นถูก) ต้องยกเลิกออเดอร์แล้วเพิ่มใหม่ทั้งอัน
+         เพิ่ม picker ให้เลือกสินค้าใหม่แทนได้เลย จำกัดเฉพาะ type เดียวกับของเดิม (กันหน่วยกระสอบ/กล่องไม่ตรงกัน) -->
+    <div class="edit-field">
+      <label>สินค้า</label>
+      <div id="editSizeCurrent" style="font-size:13px;color:#1a3a5c;font-weight:600;margin-bottom:6px"></div>
+      <button type="button" class="btn-cancel-edit" style="width:100%;font-size:12px;padding:7px" onclick="toggleEditSizePicker()">🔁 เปลี่ยนขนาด (หมวดเดิม)</button>
+      <div id="editSizePicker" style="display:none;margin-top:8px">
+        <input type="text" id="editSizeSearch" placeholder="ค้นหาขนาด..." oninput="renderEditSizeList()" style="width:100%;padding:8px 10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:'Sarabun',sans-serif;margin-bottom:6px">
+        <div id="editSizeList" style="max-height:180px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px"></div>
+      </div>
+    </div>
     <div class="edit-field">
       <label>วันที่สั่ง</label>
       <input type="date" id="editDateInput">
@@ -1000,19 +1011,21 @@ table.list tr:hover td{background:#f8fbff}
         <div class="an-kpi red"><div class="ak-icon">🚨</div><div class="ak-val" id="an-empty">—</div><div class="ak-lbl">หมดแล้ว</div></div>
       </div>
       <div class="an-charts">
-        <div class="an-card">
+        <div class="an-card" style="grid-column:1/-1">
           <div class="an-card-title">📊 สต็อครวมแต่ละประเภท</div>
-          <div class="an-toggle-row">
-            <button class="an-toggle-btn active" onclick="anToggleChart('qty',this)">จำนวนกระสอบ</button>
-            <button class="an-toggle-btn" onclick="anToggleChart('sku',this)">จำนวน SKU</button>
-          </div>
+          <!-- 2026-07-10: ยกเลิกปุ่มสลับ "จำนวน SKU" ตามที่ user ขอ เหลือแค่มุมมอง "จำนวนกระสอบ" อย่างเดียว
+               (เดิมมี toggle 2 ปุ่ม qty/sku — ตัดปุ่มออก โค้ดคำนวณ #an-chart-sku ใน anLoadData()/anToggleChart()
+               ยังเหลือไว้เป็น dead code เผื่ออยากเอากลับมาทีหลัง ไม่ได้ลบทิ้ง) -->
           <div id="an-chart-qty"></div>
           <div id="an-chart-sku" style="display:none"></div>
         </div>
+        <!-- 2026-07-10: ยกเลิกการ์ด "สินค้าใกล้หมดที่สุด" ตามที่ user ขอ — comment out ทั้ง block ไม่ลบทิ้ง
+             (โค้ดคำนวณ lowItems / #an-low-list ใน anLoadData() ~บรรทัด 3387-3398 ยังเหลืออยู่เป็น dead code)
         <div class="an-card">
           <div class="an-card-title">🚨 สินค้าใกล้หมดที่สุด</div>
           <div id="an-low-list"><div class="an-loading">กำลังโหลด...</div></div>
         </div>
+        -->
       </div>
       <div class="an-info">💡 ข้อมูลดึงจาก Google Sheet real-time ทุกครั้งที่เปิด tab</div>
       <!-- 6 Analytics Features -->
@@ -2691,6 +2704,8 @@ function renderPendingTable() {
       : (o.unit && o.unit !== '') ? o.unit
       : (UNIT_VALS.includes(o.urgency) ? o.urgency
       : (UNIT_VALS.includes(o.note) ? o.note : 'กระสอบ'));
+    // 2026-07-10: เพิ่ม _type ไว้ใช้ scope ปุ่ม "เปลี่ยนขนาด" ใน edit modal (จำกัดเลือกได้แค่ type เดียวกันเท่านั้น)
+    o._type = _si ? resolveType(_si) : '';
   });
 
   // จัดกลุ่มตามลูกค้า
@@ -2943,10 +2958,52 @@ async function rejectOrder(row) {
 }
 
 let editingRow = null;
+// 2026-07-10: state สำหรับปุ่ม "เปลี่ยนขนาด" ใน edit modal
+let editingType = '', editingOrigCode = '', editingOrigName = '', editingNewCode = null, editingNewName = null;
+
+function toggleEditSizePicker() {
+  const el = document.getElementById('editSizePicker');
+  const show = el.style.display === 'none';
+  el.style.display = show ? 'block' : 'none';
+  if (show) { document.getElementById('editSizeSearch').value = ''; renderEditSizeList(); }
+}
+function renderEditSizeList() {
+  const q = document.getElementById('editSizeSearch').value.trim().toLowerCase();
+  const listEl = document.getElementById('editSizeList');
+  if (!editingType) {
+    listEl.innerHTML = '<div style="padding:10px;font-size:12px;color:#888">ไม่ทราบหมวดสินค้าเดิม (โค้ดเก่าไม่มีข้อมูลในสต็อค) เปลี่ยนขนาดจากตรงนี้ไม่ได้</div>';
+    return;
+  }
+  const candidates = allItems.filter(x => resolveType(x) === editingType);
+  const filtered = q ? candidates.filter(x => buildName(x).toLowerCase().includes(q) || x.code.includes(q)) : candidates;
+  if (!filtered.length) { listEl.innerHTML = '<div style="padding:10px;font-size:12px;color:#888">ไม่พบ</div>'; return; }
+  listEl.innerHTML = filtered.slice(0,80).map(x => {
+    const label = buildName(x);
+    const isSelected = (editingNewCode || editingOrigCode) === x.code;
+    return `<div onclick="pickEditSize('${x.code}')" style="padding:8px 10px;font-size:13px;cursor:pointer;border-bottom:1px solid #f1f5f9;${isSelected?'background:#fef3c7;font-weight:700':''}">${label} <span style="color:#94a3b8;font-family:monospace;font-size:11px">${x.code}</span></div>`;
+  }).join('');
+}
+function pickEditSize(code) {
+  const item = allItems.find(x => x.code === code);
+  if (!item) return;
+  editingNewCode = code;
+  editingNewName = buildName(item);
+  const changedTag = code !== editingOrigCode ? '  <span style="color:#d97706">← เปลี่ยนจากเดิม</span>' : '';
+  document.getElementById('editSizeCurrent').innerHTML = editingNewName + ' (รหัส: ' + code + ')' + changedTag;
+  document.getElementById('editSizePicker').style.display = 'none';
+}
+
 function openEditModalByRow(row) {
   const o = pendingOrders.find(x => x.row === row);
   if (!o) return;
   editingRow = row;
+  editingType = o._type || '';
+  editingOrigCode = o.code;
+  editingOrigName = o.name;
+  editingNewCode = null;
+  editingNewName = null;
+  document.getElementById('editSizeCurrent').textContent = o.name + ' (รหัส: ' + o.code + ')';
+  document.getElementById('editSizePicker').style.display = 'none';
   document.getElementById('editModalSub').textContent = `รหัส: ${o.code}`;
   document.getElementById('editDateInput').value = orderDateToInputISO(o.timestamp || o.date);
   document.getElementById('editQtyLabel').textContent = `จำนวน (${o._unit||'กระสอบ'})`;
@@ -2987,9 +3044,13 @@ async function saveEdit() {
   const saveBtn = document.getElementById('editSaveBtn');
   const _origBtnText = saveBtn ? saveBtn.textContent : '';
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ กำลังบันทึก...'; }
+  // 2026-07-10: ถ้าเปลี่ยนขนาดไว้ (editingNewCode ต่างจากของเดิม) ส่ง code/name ไปด้วย
+  const sizeChanged = editingNewCode && editingNewCode !== editingOrigCode;
+  const body = {action:'editOrder', row: editingRow, qty, urgency, note, disc_pct, net_price, date};
+  if (sizeChanged) { body.code = editingNewCode; body.name = editingNewName; }
   try {
     const res = await fetch(API, {
-      method: 'POST', body: JSON.stringify({action:'editOrder', row: editingRow, qty, urgency, note, disc_pct, net_price, date})
+      method: 'POST', body: JSON.stringify(body)
     });
     const data = await res.json();
     if (data.success) {
@@ -2999,6 +3060,7 @@ async function saveEdit() {
         if (disc_pct  !== null) o.disc_pct  = disc_pct;
         if (net_price !== null) o.net_price = net_price;
         if (date) { o.date = date; o.timestamp = date; }
+        if (sizeChanged) { o.code = editingNewCode; o.name = editingNewName; }
       }
       closeEditModal();
       renderPendingTable();
@@ -3385,10 +3447,15 @@ async function anLoadData() {
     document.getElementById('an-chart-sku').innerHTML =
       [...types].sort((a,b)=>b[1].sku-a[1].sku).map((t,i) => mkBar(t[0], t[1].sku+' SKU', maxSku, colors[i])).join('');
     // Low stock list (top 5, stock > 0 and <= 5)
+    // 2026-07-10: การ์ด "สินค้าใกล้หมดที่สุด" (#an-low-list) ถูก comment ออกจาก HTML แล้วตามที่ user ขอ
+    // เพิ่ม guard "if (lowEl)" กันพัง — ถ้าไม่ guard ตรงนี้จะ error (setting innerHTML ของ null) แล้วทำให้
+    // โค้ดส่วนที่เหลือใน try block นี้ (Velocity/ยอดขายบาท ฯลฯ) หยุดทำงานไปด้วยทั้งหมด
     const lowItems = items.filter(x => Number(x.stock) > 0 && Number(x.stock) <= 5)
       .sort((a,b) => Number(a.stock)-Number(b.stock)).slice(0,5);
     const lowEl = document.getElementById('an-low-list');
-    if (lowItems.length === 0) {
+    if (!lowEl) {
+      // การ์ดถูกซ่อนไว้ — ข้ามการ render แต่ไม่ throw error
+    } else if (lowItems.length === 0) {
       lowEl.innerHTML = '<div style="font-size:12px;color:#16a34a;padding:8px 0">✅ ไม่มีสินค้าวิกฤต</div>';
     } else {
       lowEl.innerHTML = lowItems.map(x => {
@@ -3448,15 +3515,18 @@ function anNoData(el, msg) {
 // 2026-07-10: จัดกลุ่มหมวดสำหรับ Velocity แยกตามหมวด — คนละชุดกับ anDType() ที่ใช้ในกราฟโดนัท/แท่งด้านบน
 // (anDType รวม น็อตเหลี่ยมเกลียว W + น็อตหัวกลมเกลียว W + น็อตเหลี่ยม W ไม่ควบหัว เป็นก้อนเดียว "น็อตเหลี่ยม W"
 //  แต่ user ต้องการแยก 3 หมวดนี้ออกจากกันใน Velocity โดยเฉพาะ ส่วน "หัวน็อต"/"น็อตมิลแข็ง" ให้รวมเหมือนเดิม)
+// 2026-07-10 (แก้บั๊ก): เดิมเช็ค t === 'น็อตเหลี่ยมเกลียว W' ตรงๆ ไม่ครอบคลุม alias ที่รวมกันอยู่ใน MERGED_TYPES
+// (เช่น "น็อตเหลี่ยม W (ใหญ่)" = คอลัมน์ 5/8W/3/4W, "น็อตเหลี่ยมเกลียว W 7/16x3 1/2 ครึ่ง") ทำให้ตกไป 'อื่นๆ' ผิดหมวด
+// แก้โดยอ้างอิง MERGED_TYPES เป็น source of truth เดียวกับที่จุดอื่นในระบบใช้ (กันหลุด sync กันในอนาคต)
 function anVCategory(t) {
   if (!t) return 'อื่นๆ';
-  if (t === 'น็อตเหลี่ยมเกลียว W') return 'น็อตเหลี่ยมเกลียว W';
+  if ((MERGED_TYPES['น็อตเหลี่ยมเกลียว W'] || ['น็อตเหลี่ยมเกลียว W']).includes(t)) return 'น็อตเหลี่ยมเกลียว W';
   if (t === 'น็อตหัวกลมเกลียว W') return 'น็อตหัวกลมเกลียว W';
   if (t === 'สกรูเกลียวปล่อย') return 'สกรูเกลียวปล่อย';
   if (t === 'สกรูมิลขาว') return 'สกรูมิลขาว';
   if (t === 'น็อตเหลี่ยม W ไม่ควบหัว') return 'น็อตเหลี่ยม W ไม่ควบหัว';
   if (/หัวน็อตมิล[^แ]|หัวน็อตเกลียวหยาบ|หัวน็อตเกลียว W/.test(t)) return 'หัวน็อต';
-  if (/น็อตเหลี่ยม NC|น็อตเหลี่ยม NF/.test(t)) return 'น็อตเหลี่ยม NC/NF';
+  if ((MERGED_TYPES['น็อตเหลี่ยม NC'] || ['น็อตเหลี่ยม NC']).includes(t) || t === 'น็อตเหลี่ยม NF') return 'น็อตเหลี่ยม NC/NF';
   if (/น็อตแข็ง|หัวน็อตมิลแข็ง|Spring Washer/.test(t)) return 'น็อตมิลแข็ง';
   return 'อื่นๆ';
 }
