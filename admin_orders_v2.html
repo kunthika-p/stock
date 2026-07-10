@@ -3849,6 +3849,8 @@ const AN_THAI_M  = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.'
 const AN_THAI_MF = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 let anOrdersCache = [], anCtMap = {}, anItemMap = {};
 let anMainRange = { mode: 'month', from: '', to: '' };
+// 2026-07-10: วันที่ที่เลือกในปฏิทิน KPI (null = วันนี้จริง) — คลิกวันในปฏิทินเพื่อดูยอดขายวันนั้นแทน "วันนี้"
+let anSelDay = null;
 let anCustRange = { mode: 'month', from: '', to: '' };
 let anCustSearch = '';
 let anCustOpenRow = '';
@@ -4200,29 +4202,20 @@ function anCustToggleRow(idx) {
   anRefreshCustomerResults();
 }
 
-// ==== Entry point: เรียกตอนโหลดแท็บวิเคราะห์ข้อมูล ====
-function anRenderSalesCharts(orders, items) {
-  const el = document.getElementById('an-sales-body');
-  if (!el) return;
-
-  // cache ไว้ให้ dropdown ช่วงเวลา/ช่องค้นหา/คลิกแถวลูกค้า re-render ได้ทันทีโดยไม่ fetch ใหม่
-  anOrdersCache = orders;
-  anCtMap = {}; anItemMap = {};
-  items.forEach(it => {
-    const c = String(it.code||'').padStart(8,'0');
-    anCtMap[c] = it.type||'';
-    anItemMap[c] = it;
-  });
-  anCustOpenRow = ''; anCustSearch = ''; anCustCurrentList = [];
-
+// 2026-07-10: ปฏิทิน KPI คลิกเลือกวันได้ (เดิม fix ที่ "วันนี้" เสมอ) — คำนวณ+render แยกจาก anRenderSalesCharts()
+// ให้คลิกวันแล้ว re-render เฉพาะส่วนนี้จาก cache (anOrdersCache/anItemMap) ไม่ต้อง fetch/rebuild กราฟทั้งหน้าใหม่
+function anBuildKpiCal() {
+  const orders = anOrdersCache;
   const now   = new Date();
   const thisY = now.getFullYear();
   const thisM = now.getMonth();
-  const yest  = new Date(now); yest.setDate(now.getDate()-1);
   const prevMStart = new Date(thisY, thisM-1, 1);
+  const selDay = anSelDay || now.getDate();
+  const selDate = new Date(thisY, thisM, selDay);
+  const selPrevDate = new Date(selDate); selPrevDate.setDate(selDate.getDate()-1);
+  const isRealToday = selDate.getDate()===now.getDate() && selDate.getMonth()===now.getMonth() && selDate.getFullYear()===now.getFullYear();
 
-  // KPI: YTD/เดือนนี้/วันนี้ — ค่าคงที่เสมอ ไม่ผูกกับตัวเลือกช่วงเวลาของกราฟด้านล่าง
-  let ytd=0, mon=0, tod=0, prevMon=0, yestQ=0;
+  let ytd=0, mon=0, tod=0, prevMon=0, selPrev=0;
   const calDays = new Set();
   let excludedLines = 0, excludedQty = 0;
   orders.forEach(o => {
@@ -4237,8 +4230,8 @@ function anRenderSalesCharts(orders, items) {
     if (dY===thisY) ytd+=amt;
     if (dY===thisY&&dM===thisM) { mon+=amt; calDays.add(dd); }
     if (dY===prevMStart.getFullYear()&&dM===prevMStart.getMonth()) prevMon+=amt;
-    if (dY===now.getFullYear()&&dM===now.getMonth()&&dd===now.getDate()) tod+=amt;
-    if (dY===yest.getFullYear()&&dM===yest.getMonth()&&dd===yest.getDate()) yestQ+=amt;
+    if (dY===selDate.getFullYear()&&dM===selDate.getMonth()&&dd===selDate.getDate()) tod+=amt;
+    if (dY===selPrevDate.getFullYear()&&dM===selPrevDate.getMonth()&&dd===selPrevDate.getDate()) selPrev+=amt;
   });
   if (excludedLines) console.log('[Analytics revenue] ข้ามคำนวณ '+excludedLines+' รายการ (ไม่มีข้อมูลราคา เช่น มิลแข็ง/Spring Washer/OVERSIZE) รวม '+excludedQty+' หน่วย');
 
@@ -4257,14 +4250,56 @@ function anRenderSalesCharts(orders, items) {
     DOW.forEach(d=>{h+='<div class="an-cal-dow">'+d+'</div>';});
     for(let i=0;i<shift;i++) h+='<div class="an-cal-day acd-other"></div>';
     for(let d=1;d<=days;d++){
-      const isTd=d===now.getDate();
+      const isTd=d===now.getDate()&&thisM===now.getMonth()&&thisY===now.getFullYear();
+      const isSel=d===selDay;
       const hasO=calDays.has(d);
-      let cls='an-cal-day'+(isTd?' acd-sel acd-today':hasO?' acd-has':' acd-none');
-      h+='<div class="'+cls+'">'+d+'</div>';
+      let cls='an-cal-day'+(isSel?' acd-sel':'')+(isTd?' acd-today':'')+(hasO?' acd-has':'');
+      h+='<div class="'+cls+'" onclick="anSelectCalDay('+d+')">'+d+'</div>';
     }
     h+='</div><div style="margin-top:8px;display:flex;gap:12px;font-size:10px;color:#64748b"><span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#1a3a5c;margin-right:3px"></span>มีออเดอร์</span></div></div>';
     return h;
   }
+
+  const BY=thisY+543;
+  const dLbl = selDate.getDate()+' '+AN_THAI_M[selDate.getMonth()]+'.';
+  const kpiTitle = isRealToday ? ('ยอดขายวันนี้ ('+dLbl+')') : ('ยอดขาย '+dLbl);
+  const subLbl = isRealToday ? 'vs เมื่อวาน' : 'vs วันก่อนหน้า';
+
+  return '<button class="an-cal-btn" onclick="var p=document.getElementById(\'an-cal-popup\');p.style.display=p.style.display===\'block\'?\'none\':\'block\'">📅 <span>'+AN_THAI_MF[thisM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
+    buildCal()+
+    '<div class="an-sales-kpi-row">'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">฿'+Math.round(ytd).toLocaleString()+'</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+AN_THAI_M[thisM]+'. '+BY+'</div></div>'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายเดือนนี้</div><div class="ask-val" style="color:#1a3a5c">฿'+Math.round(mon).toLocaleString()+'</div><div class="ask-sub">'+(pBadge(mon,prevMon)||'—')+' vs เดือนที่แล้ว</div></div>'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">'+kpiTitle+'</div><div class="ask-val" style="color:#1a3a5c">฿'+Math.round(tod).toLocaleString()+'</div><div class="ask-sub">'+(pBadge(tod,selPrev)||'—')+' '+subLbl+'</div></div>'+
+    '</div>';
+}
+function anRenderKpiCal() {
+  const el = document.getElementById('an-kpi-cal');
+  if (el) el.innerHTML = anBuildKpiCal();
+}
+function anSelectCalDay(d) {
+  anSelDay = d;
+  anRenderKpiCal();
+}
+
+// ==== Entry point: เรียกตอนโหลดแท็บวิเคราะห์ข้อมูล ====
+function anRenderSalesCharts(orders, items) {
+  const el = document.getElementById('an-sales-body');
+  if (!el) return;
+
+  // cache ไว้ให้ dropdown ช่วงเวลา/ช่องค้นหา/คลิกแถวลูกค้า re-render ได้ทันทีโดยไม่ fetch ใหม่
+  anOrdersCache = orders;
+  anCtMap = {}; anItemMap = {};
+  items.forEach(it => {
+    const c = String(it.code||'').padStart(8,'0');
+    anCtMap[c] = it.type||'';
+    anItemMap[c] = it;
+  });
+  anCustOpenRow = ''; anCustSearch = ''; anCustCurrentList = [];
+  anSelDay = null; // รีเซ็ตกลับเป็น "วันนี้" ทุกครั้งที่โหลดข้อมูลใหม่จริง (ไม่รีเซ็ตตอน re-render จาก cache)
+
+  const now   = new Date();
+  const thisY = now.getFullYear();
 
   // กราฟรายเดือน (แท่งซ้อน) — โชว์เต็มปีปฏิทินปัจจุบัน ม.ค.-ธ.ค. เสมอ (เดือนในอนาคตจะเป็นแท่งว่าง/สูง 0 ไปก่อนจนกว่าจะมีออเดอร์จริง) ไม่ผูกกับตัวเลือกช่วงเวลาใหม่ของกราฟหลัก
   // แต่ใช้ "ชุดประเภท/สี" เดียวกับกราฟหลัก (ตามช่วงเวลาที่เลือกอยู่) เพื่อให้ legend/สีตรงกันทั้งหน้า
@@ -4322,15 +4357,8 @@ function anRenderSalesCharts(orders, items) {
     return h+'</div></div>';
   }
 
-  const BY=thisY+543;
   el.innerHTML=
-    '<button class="an-cal-btn" onclick="var p=document.getElementById(\'an-cal-popup\');p.style.display=p.style.display===\'block\'?\'none\':\'block\'">📅 <span>'+AN_THAI_MF[thisM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
-    buildCal()+
-    '<div class="an-sales-kpi-row">'+
-      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">฿'+Math.round(ytd).toLocaleString()+'</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+AN_THAI_M[thisM]+'. '+BY+'</div></div>'+
-      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายเดือนนี้</div><div class="ask-val" style="color:#1a3a5c">฿'+Math.round(mon).toLocaleString()+'</div><div class="ask-sub">'+(pBadge(mon,prevMon)||'—')+' vs เดือนที่แล้ว</div></div>'+
-      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายวันนี้ ('+now.getDate()+' '+AN_THAI_M[thisM]+'.)</div><div class="ask-val" style="color:#1a3a5c">฿'+Math.round(tod).toLocaleString()+'</div><div class="ask-sub">'+(pBadge(tod,yestQ)||'—')+' vs เมื่อวาน</div></div>'+
-    '</div>'+
+    '<div id="an-kpi-cal">'+anBuildKpiCal()+'</div>'+
     '<div style="display:flex;align-items:center;gap:10px;margin:18px 0 10px;flex-wrap:wrap">'+
       anRangeSelectHtml(anMainRange.mode, 'anMainRangeChange')+
       '<div id="an-main-custom-row" style="display:'+(anMainRange.mode==='custom'?'flex':'none')+';gap:8px;align-items:center">'+
