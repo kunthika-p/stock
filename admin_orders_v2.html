@@ -3455,6 +3455,18 @@ function anVCategory(t) {
   return 'อื่นๆ';
 }
 const AN_VCAT_ORDER = ['น็อตเหลี่ยมเกลียว W','น็อตหัวกลมเกลียว W','สกรูเกลียวปล่อย','หัวน็อต','สกรูมิลขาว','น็อตเหลี่ยม NC/NF','น็อตมิลแข็ง','น็อตเหลี่ยม W ไม่ควบหัว','อื่นๆ'];
+// สีต่อหมวด (2026-07-10 v3) ให้หัวข้อแต่ละการ์ดเด่น/แยกจากกันง่ายขึ้นด้วยตา — คนละชุดกับ AN_COLORS (ใช้กับกราฟ/โดนัทจุดอื่น)
+const AN_VCAT_COLORS = {
+  'น็อตเหลี่ยมเกลียว W': '#1a3a5c',
+  'น็อตหัวกลมเกลียว W': '#0e7490',
+  'สกรูเกลียวปล่อย': '#b45309',
+  'หัวน็อต': '#d97706',
+  'สกรูมิลขาว': '#65a30d',
+  'น็อตเหลี่ยม NC/NF': '#16a34a',
+  'น็อตมิลแข็ง': '#7c3aed',
+  'น็อตเหลี่ยม W ไม่ควบหัว': '#be185d',
+  'อื่นๆ': '#64748b'
+};
 
 function anRenderVelocity(salesMap, totalOrders) {
   const el = document.getElementById('an-velocity');
@@ -3473,14 +3485,20 @@ function anRenderVelocity(salesMap, totalOrders) {
   });
   const cats = AN_VCAT_ORDER.filter(c => catMap[c] && catMap[c].length);
   if (cats.length === 0) { anNoData('an-velocity'); return; }
+  // 2026-07-10 (v4): เพิ่ม % เทียบกับยอดรวมทั้งหมวด (ทุกรายการในหมวด ไม่ใช่แค่ top3) ต่อท้ายจำนวน
+  // หมายเหตุ: หมวด "น็อตมิลแข็ง" หน่วยปนกันเล็กน้อย (กล่อง/กระสอบ ดู comment ด้านบน) % จึงเป็นสัดส่วนของยอดรวมแบบไม่แยกหน่วย
   el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">' +
     cats.map(cat => {
-      const top3 = catMap[cat].sort((a,b) => b.totalQty - a.totalQty).slice(0,3);
-      return '<div><div style="font-size:12px;font-weight:700;color:#1a3a5c;margin-bottom:4px">' + cat + '</div>' +
-        '<table class="an-tbl"><thead><tr><th>รหัส</th><th>ชื่อ</th><th style="text-align:right">จำนวน</th></tr></thead><tbody>' +
+      const sorted = catMap[cat].sort((a,b) => b.totalQty - a.totalQty);
+      const top3 = sorted.slice(0,3);
+      const catTotal = sorted.reduce((s,x) => s + x.totalQty, 0) || 1;
+      const catColor = AN_VCAT_COLORS[cat] || '#1a3a5c';
+      return '<div><div style="font-size:13px;font-weight:700;color:' + catColor + ';margin-bottom:6px;padding-bottom:4px;border-bottom:2px solid ' + catColor + '">' + cat + '</div>' +
+        '<table class="an-tbl"><thead><tr><th>ชื่อ</th><th style="text-align:right">จำนวน</th></tr></thead><tbody>' +
         top3.map(v => {
           const unit = getUnit(v.type);
-          return '<tr><td style="font-family:monospace">' + v.code + '</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + v.name + '">' + v.name + '</td><td style="text-align:right;font-weight:600;white-space:nowrap">' + v.totalQty.toLocaleString() + ' ' + unit + '</td></tr>';
+          const pct = Math.round(v.totalQty / catTotal * 100);
+          return '<tr><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + v.name + '">' + v.name + '</td><td style="text-align:right;font-weight:600;white-space:nowrap">' + v.totalQty.toLocaleString() + ' ' + unit + ' <span style="color:#94a3b8;font-weight:400">(' + pct + '%)</span></td></tr>';
         }).join('') + '</tbody></table></div>';
     }).join('') + '</div>';
 }
@@ -3983,7 +4001,7 @@ function anBuildCustomerResults() {
           detail += '<div style="display:flex;align-items:center;gap:12px">'+
             '<div style="width:150px;font-size:12px;color:#334155">'+t+'</div>'+
             '<div style="flex:1;background:#eef2f7;border-radius:5px;height:16px"><div style="width:'+w+'%;height:100%;background:'+AN_COLORS[ti]+';border-radius:5px"></div></div>'+
-            '<div style="width:90px;text-align:right;font-size:12px;font-weight:700;color:#1a3a5c">฿'+Math.round(q).toLocaleString()+'</div></div>';
+            '<div style="width:110px;text-align:right;font-size:12px;font-weight:700;color:#1a3a5c">฿'+Math.round(q).toLocaleString()+' <span style="color:#94a3b8;font-weight:400">('+w+'%)</span></div></div>';
         });
         detail += '</div>';
         rows += '<tr><td colspan="4" style="padding:0"><div style="padding:20px 18px;background:#f8fafc;border-top:1px solid #eef1f5">'+detail+'</div></td></tr>';
