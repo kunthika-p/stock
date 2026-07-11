@@ -3861,6 +3861,7 @@ let anCustCurrentList = [];
 let anCustSearchTimer = null;
 let anCustSortField = 'revenue'; // name | revenue | orders | avg
 let anCustSortDesc = true;
+let anCustShowAll = false; // 2026-07-11: ตารางลูกค้าทั้งหมดยาวเกินไป (40 ราย) เริ่มโชว์แค่ top 10 กดปุ่มค่อยกางครบ
 
 // จัดกลุ่มประเภทสินค้าให้อ่านง่าย
 // 2026-07-11: แยก "น็อตหัวกลมเกลียว W" ออกเป็นหมวดของตัวเอง (เดิมรวมกับ "น็อตเหลี่ยม W") ตามที่ user ขอ
@@ -4121,11 +4122,16 @@ function anBuildCustomerResults() {
   }
   topH += '</div>';
 
+  // 2026-07-11: จำกัดโชว์แค่ top 10 ตามลำดับ sort ปัจจุบันก่อน (ตารางยาวเกินไปตอน 40 ราย) กดปุ่ม "ดูทั้งหมด" ค่อยกาง
+  // ยกเว้นตอนกำลังค้นหาอยู่ (anCustSearch ไม่ว่าง) ให้โชว์ผลค้นหาครบทุกรายการเสมอ ไม่ตัด
+  const custCapped = !anCustSearch.trim() && !anCustShowAll && list.length > 10;
+  const custDisplayList = custCapped ? list.slice(0, 10) : list;
+
   let rows = '';
-  if (!list.length) {
+  if (!custDisplayList.length) {
     rows = '<tr><td colspan="4" style="padding:16px;text-align:center;color:#94a3b8;font-size:12px">ไม่พบลูกค้าในช่วงเวลานี้'+(anCustSearch?' หรือคำค้นหา':'')+'</td></tr>';
   } else {
-    list.forEach((c,i) => {
+    custDisplayList.forEach((c,i) => {
       const open = anCustOpenRow === c.name;
       rows += '<tr style="cursor:pointer;background:'+(open?'#eef2f7':(i%2?'#f8fafc':'white'))+'" onclick="anCustToggleRow('+i+')">'+
         '<td style="padding:10px 14px;color:#1a3a5c;font-weight:700"><i class="ti ti-chevron-'+(open?'down':'right')+'" style="font-size:12px;margin-right:6px" aria-hidden="true"></i>'+anEsc(c.name)+'</td>'+
@@ -4165,8 +4171,21 @@ function anBuildCustomerResults() {
     theadH += '<th onclick="anCustSortChange(\''+key+'\')" style="background:#1a3a5c;color:white;padding:9px 14px;text-align:'+align+';font-weight:600;cursor:pointer;user-select:none;'+w+';'+rad+'">'+label+icon+'</th>';
   });
 
+  const custToggleBtn = (list.length > 10 && !anCustSearch.trim())
+    ? '<button onclick="anCustShowAllToggle()" style="width:100%;margin-top:8px;padding:10px;border-radius:8px;border:1px solid #d8dfe8;background:white;color:#1a3a5c;font-size:12px;font-weight:700;cursor:pointer">'+
+        (anCustShowAll
+          ? 'ย่อกลับ <i class="ti ti-chevron-up" style="font-size:14px;vertical-align:-2px" aria-hidden="true"></i>'
+          : 'ดูทั้งหมด ('+list.length+' ราย) <i class="ti ti-chevron-down" style="font-size:14px;vertical-align:-2px" aria-hidden="true"></i>')+
+      '</button>'
+    : '';
+
   return topH + '<div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:10px">ลูกค้าทั้งหมด <span style="font-size:11px;color:#94a3b8;font-weight:400">'+list.length+' ราย</span></div>'+
-    '<table style="border-collapse:collapse;font-size:13px"><thead><tr>'+theadH+'</tr></thead><tbody>'+rows+'</tbody></table>';
+    '<table style="border-collapse:collapse;font-size:13px"><thead><tr>'+theadH+'</tr></thead><tbody>'+rows+'</tbody></table>'+custToggleBtn;
+}
+
+function anCustShowAllToggle() {
+  anCustShowAll = !anCustShowAll;
+  anRefreshCustomerResults();
 }
 
 function anCustSortChange(field) {
@@ -4190,6 +4209,7 @@ function anRefreshCustomerResults() {
 function anCustRangeChange(sel) {
   anCustRange.mode = sel.value;
   anCustOpenRow = '';
+  anCustShowAll = false;
   anRenderCustomerSection();
 }
 
@@ -4198,6 +4218,7 @@ function anCustCustomApply() {
   const t = document.getElementById('an-cust-to').value;
   if (!f || !t) return;
   anCustRange.from = f; anCustRange.to = t;
+  anCustShowAll = false;
   anRenderCustomerSection();
 }
 
@@ -4427,7 +4448,7 @@ function anRenderSalesCharts(orders, items) {
     anCtMap[c] = it.type||'';
     anItemMap[c] = it;
   });
-  anCustOpenRow = ''; anCustSearch = ''; anCustCurrentList = [];
+  anCustOpenRow = ''; anCustSearch = ''; anCustCurrentList = []; anCustShowAll = false;
   anSelDay = null; // รีเซ็ตกลับเป็น "วันนี้" ทุกครั้งที่โหลดข้อมูลใหม่จริง (ไม่รีเซ็ตตอน re-render จาก cache)
 
   el.innerHTML=
