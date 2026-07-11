@@ -1033,37 +1033,53 @@ table.list tr:hover td{background:#f8fbff}
         <div class="an-section" style="margin-top:16px">วิเคราะห์เชิงลึก (จากออเดอร์ที่ยืนยันแล้ว)</div>
         <div id="an-orders-loading" style="text-align:center;padding:16px;font-size:12px;color:#94a3b8">⏳ กำลังโหลดข้อมูลออเดอร์...</div>
         <div id="an-features" style="display:none">
-          <div class="an-feat-grid" style="grid-template-columns:1fr">
+          <!-- 2026-07-11: "รวบพื้นที่" ตามข้อเสนอที่ user ยืนยันแล้ว — เปลี่ยน 3 การ์ด ⚡/☠️/🚨 จากเรียงต่อกันตลอด
+               เป็นแท็บสลับดูทีละอัน (ปุ่มสไตล์เดียวกับ toggle รายวัน/รายเดือนของกราฟแท่งซ้อน — พื้นเข้ม #1a3a5c ตอนเลือกอยู่) -->
+          <div style="display:flex;border:1px solid #d8dfe8;border-radius:8px;overflow:hidden;width:fit-content;margin-bottom:14px">
+            <button id="an-feat-tab-velocity" onclick="anSetFeatTab('velocity')" style="border:none;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;background:#1a3a5c;color:white">⚡ ขายดี</button>
+            <button id="an-feat-tab-dead" onclick="anSetFeatTab('dead')" style="border:none;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#64748b">☠️ ค้างสต็อค</button>
+            <button id="an-feat-tab-stockout" onclick="anSetFeatTab('stockout')" style="border:none;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#64748b">🚨 ใกล้หมด</button>
+          </div>
+          <div id="an-feat-panel-velocity" class="an-feat-grid" style="grid-template-columns:1fr">
             <div class="an-feat-card">
               <div class="an-feat-title">⚡ สินค้าขายดีสุด — แยกตามหมวด (Top 3/หมวด)</div>
               <div id="an-velocity"></div>
             </div>
           </div>
-          <div class="an-feat-grid">
-            <div class="an-feat-card">
+          <div id="an-feat-panel-dead" class="an-feat-grid" style="display:none">
+            <div class="an-feat-card" style="grid-column:1/-1">
               <div class="an-feat-title">☠️ Dead stock — ค้างสต็อคนาน</div>
               <div id="an-dead"></div>
             </div>
-            <div class="an-feat-card">
+          </div>
+          <div id="an-feat-panel-stockout" class="an-feat-grid" style="display:none">
+            <div class="an-feat-card" style="grid-column:1/-1">
               <div class="an-feat-title">🚨 Stockout alert — คาดการณ์วันหมด</div>
               <div id="an-stockout"></div>
             </div>
           </div>
+          <!-- 2026-07-11: ยกเลิกการ์ด "Seasonal pattern" ตามที่ user ยืนยันแล้ว — ซ้ำกับกราฟ
+               "ยอดขายรายวัน/รายเดือน แยกตามประเภท" (item 17) ที่ละเอียดกว่า comment ไว้ ไม่ลบทิ้ง
+               ต้อง comment เรียก anRenderSeasonal(orders) ใน anLoadData() ด้วย กัน null.innerHTML พัง -->
+          <!--
           <div class="an-feat-grid">
             <div class="an-feat-card" style="grid-column:1/-1">
               <div class="an-feat-title">📅 Seasonal pattern — ยอดขายรายเดือน</div>
               <div id="an-seasonal"></div>
             </div>
-            <!-- 2026-07-10: ยกเลิกการ์ด "Stock turnover" ตามที่ user ขอ — รวมระดับหมวดเท่านั้น ไม่แยกรายไซส์
-                 ซ้ำกับ Dead stock/Stockout alert ที่ actionable กว่า + daysPeriod ที่ใช้คำนวณยังมีบั๊กแฝงเรื่อง parse วันที่
-                 (ดู MEMORY item 6) comment ไว้ ไม่ลบทิ้ง เผื่อกลับมาทำใหม่แบบแยกรายชิ้นในอนาคต -->
-            <!--
+          </div>
+          -->
+          <!-- 2026-07-10: ยกเลิกการ์ด "Stock turnover" ตามที่ user ขอ — รวมระดับหมวดเท่านั้น ไม่แยกรายไซส์
+               ซ้ำกับ Dead stock/Stockout alert ที่ actionable กว่า + daysPeriod ที่ใช้คำนวณยังมีบั๊กแฝงเรื่อง parse วันที่
+               (ดู MEMORY item 6) comment ไว้ ไม่ลบทิ้ง เผื่อกลับมาทำใหม่แบบแยกรายชิ้นในอนาคต -->
+          <!--
+          <div class="an-feat-grid">
             <div class="an-feat-card">
               <div class="an-feat-title">🔄 Stock turnover — อัตราหมุนเวียนต่อประเภท</div>
               <div id="an-turnover"></div>
             </div>
-            -->
           </div>
+          -->
         </div>
       </div>
     </div>
@@ -3553,7 +3569,7 @@ async function anLoadData() {
     const daysPeriod = Math.max(1, Math.round((Date.now() - oldestDate.getTime()) / 86400000));
     anRenderVelocity(salesMap, orders.length);
     anRenderDeadStock(items, salesMap);
-    anRenderSeasonal(orders);
+    // 2026-07-11: ยกเลิกการ์ด "Seasonal pattern" แล้ว (element #an-seasonal ไม่มีในหน้าแล้ว) — ไม่เรียก anRenderSeasonal() อีกต่อไป กันพัง null.innerHTML
     // 2026-07-10: ยกเลิกการ์ด "Stock turnover" แล้ว (element #an-turnover ไม่มีในหน้าแล้ว) — ไม่เรียก anRenderTurnover() อีกต่อไป กันพัง null.innerHTML
     anRenderStockout(items, salesMap, daysPeriod);
     anRenderSalesCharts(orders, items);
@@ -3563,6 +3579,16 @@ async function anLoadData() {
 }
 function anNoData(el, msg) {
   document.getElementById(el).innerHTML = '<div class="an-no-data">' + (msg || 'ยังไม่มีข้อมูลออเดอร์ที่ยืนยันแล้ว') + '</div>';
+}
+// 2026-07-11: สลับแท็บ ⚡ขายดี/☠️ค้างสต็อค/🚨ใกล้หมด ในส่วน "วิเคราะห์เชิงลึก" (ตามข้อเสนอ "รวบพื้นที่" ที่ user ยืนยันแล้ว)
+// สลับแค่ display ของ panel ที่ render ไว้แล้วในหน้า (ไม่ fetch/คำนวณใหม่) เหมือน pattern anSetStackMode()
+function anSetFeatTab(tab) {
+  ['velocity','dead','stockout'].forEach(function(k){
+    const panel = document.getElementById('an-feat-panel-'+k);
+    if (panel) panel.style.display = (k===tab) ? '' : 'none';
+    const btn = document.getElementById('an-feat-tab-'+k);
+    if (btn) { btn.style.background = (k===tab) ? '#1a3a5c' : 'transparent'; btn.style.color = (k===tab) ? 'white' : '#64748b'; }
+  });
 }
 // 2026-07-10: จัดกลุ่มหมวดสำหรับ Velocity แยกตามหมวด — คนละชุดกับ anDType() ที่ใช้ในกราฟโดนัท/แท่งด้านบน
 // (2026-07-11: anDType เดิมรวม น็อตเหลี่ยมเกลียว W + น็อตหัวกลมเกลียว W + น็อตเหลี่ยม W ไม่ควบหัว เป็นก้อนเดียว
