@@ -2120,6 +2120,7 @@ async function siSubmit() {
   if (btn.disabled) return; // กันกดซ้ำระหว่างกำลังส่ง
   btn.textContent = '⏳ กำลังบันทึก...'; btn.disabled = true;
   try {
+    const allItemsSnapshot = siItems.slice(); // เก็บไว้ก่อนแก้ siItems ทีหลัง เพื่อใช้หาชื่อรายการที่พลาด (รวมรายการถังด้วย)
     const normalItems = siItems.filter(x => x.unit !== 'ถัง');
     const tankItems   = siItems.filter(x => x.unit === 'ถัง');
 
@@ -2135,13 +2136,22 @@ async function siSubmit() {
       if (rd.duplicate) wasDuplicate = true;
     }
     // บันทึกถังรับเข้า (เพิ่ม batchId กันบันทึกซ้ำ — เหมือน normalItems)
-    for (const item of tankItems) {
-      const tankBatchId = siComputeBatchId(date, recorder, [item]);
-      const tr = await fetch(API, { method:'POST', body:JSON.stringify({action:'stockInTank',date,recorder,
-        code:item.code, name:item.name, job:'-', qty:item.qty, note:item.note, batchId:tankBatchId}) });
-      const trd = await tr.json();
-      if (trd.duplicate) wasDuplicate = true;
+    // ทีละรายการ + โชว์ progress มุมขวาบน — ถ้ารายการไหนพลาด (network/error) จะเห็นทันทีว่าหยุดอยู่ที่ตัวไหน
+    const tankTotal = tankItems.length;
+    for (let ti = 0; ti < tankItems.length; ti++) {
+      const item = tankItems[ti];
+      if (tankTotal > 1) showToast(`⏳ กำลังบันทึกถังรายการที่ ${ti+1}/${tankTotal}: ${item.name}`, 'warn');
+      try {
+        const tankBatchId = siComputeBatchId(date, recorder, [item]);
+        const tr = await fetch(API, { method:'POST', body:JSON.stringify({action:'stockInTank',date,recorder,
+          code:item.code, name:item.name, job:'-', qty:item.qty, note:item.note, batchId:tankBatchId}) });
+        const trd = await tr.json();
+        if (trd.duplicate) wasDuplicate = true;
+      } catch (e) {
+        failedCodes.push(item.code);
+      }
     }
+    if (tankTotal > 1) clearWarnToast();
 
     if (failedCodes.length) {
       // มีบางรายการ fail — เอา failed items ค้างไว้ใน list, เคลียร์เฉพาะที่สำเร็จ
@@ -2149,10 +2159,10 @@ async function siSubmit() {
       siItems = siItems.filter(x => failedSet.has(String(x.code)));
       siRender();
       const failedNames = failedCodes.map(code => {
-        const it = normalItems.find(x => String(x.code) === String(code));
+        const it = allItemsSnapshot.find(x => String(x.code) === String(code));
         return it ? (it.name || code) : code;
       }).join(', ');
-      showToast('⚠️ ไม่พบรหัสสินค้า: ' + failedNames, 'warn');
+      showToast('⚠️ บันทึกไม่สำเร็จ (' + failedCodes.length + ' รายการ ยังค้างในตาราง): ' + failedNames, 'warn');
     } else if (wasDuplicate) {
       showToast('⚠️ รายการนี้เพิ่งถูกบันทึกไปแล้ว ระบบข้ามการบันทึกซ้ำให้ (ไม่ได้เพิ่มสต็อคซ้ำ)', 'warn');
       siItems = []; siRender();
@@ -2283,15 +2293,29 @@ function cvRemove(i) {
   cvRender();
 }
 
+// fingerprint ของแต่ละรายการแปลงบรรจุ (date+recorder+code+tanks+outQty+outUnit) แบบ deterministic
+// กันบันทึกซ้ำถ้า retry รายการที่เพิ่งพลาด — เหมือน siComputeBatchId
+function cvComputeBatchId(date, recorder, it) {
+  const raw = date + '|' + recorder + '|pack|' + it.code + ':' + it.tanks + ':' + it.outQty + ':' + it.outUnit;
+  let h = 0;
+  for (let i = 0; i < raw.length; i++) { h = (h * 31 + raw.charCodeAt(i)) | 0; }
+  return 'b' + Math.abs(h) + '_' + raw.length;
+}
 async function cvSubmit() {
   if (!cvItems.length) return;
   const date = document.getElementById('si-date').value || new Date().toISOString().split('T')[0];
   const recorder = document.getElementById('si-recorder').value.trim();
   const btn = document.getElementById('cv-submit-btn');
-  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
-  let allOk = true;
-  for (const it of cvItems) {
+  btn.disabled = true;
+  const total = cvItems.length;
+  const okNames = [], failMsgs = [], failItems = [];
+  for (let i = 0; i < cvItems.length; i++) {
+    const it = cvItems[i];
+    const progressMsg = `⏳ กำลังบันทึกรายการที่ ${i+1}/${total}: ${it.name}`;
+    btn.textContent = `⏳ ${i+1}/${total}...`;
+    showToast(progressMsg, 'warn'); // มุมขวาบน ค้างไว้จนกว่าจะอัพเดตรายการถัดไป/จบ
     try {
+      const batchId = cvComputeBatchId(date, recorder, it);
       const res = await fetch(API, { method: 'POST', body: JSON.stringify({
         action: 'packItems',
         code: it.code,
@@ -2301,26 +2325,34 @@ async function cvSubmit() {
         outUnit: it.outUnit,
         date: date,
         recorder: recorder,
-        note: it.note
+        note: it.note,
+        batchId: batchId
       })});
       const data = await res.json();
       if (!data.success) {
-        showToast('⚠️ ' + it.name + ': ' + (data.error || 'เกิดข้อผิดพลาด'), 'warn');
-        allOk = false;
+        failMsgs.push(it.name + ': ' + (data.error || 'เกิดข้อผิดพลาด'));
+        failItems.push(it);
+      } else {
+        okNames.push(it.name);
       }
     } catch(e) {
-      showToast('⚠️ ' + it.name + ': ' + e.message, 'warn');
-      allOk = false;
+      failMsgs.push(it.name + ': ' + e.message);
+      failItems.push(it);
     }
   }
-  btn.disabled = !allOk;
+  clearWarnToast();
+  btn.disabled = false;
   btn.textContent = '💾 บันทึกการแปลง';
-  if (allOk) {
-    showToast('✅ บันทึกการแปลงบรรจุภัณฑ์แล้ว ' + cvItems.length + ' รายการ');
+  if (failMsgs.length) {
+    // ค้างไว้ (warn) ไม่หายเอง — ต้องเห็นชัดว่ารายการไหนพลาดบ้าง
+    showToast('⚠️ สำเร็จ ' + okNames.length + '/' + total + ' รายการ — พลาด: ' + failMsgs.join(' | '), 'warn');
+    cvItems = failItems; // เก็บเฉพาะที่พลาดไว้ให้แก้/ลองใหม่ เอาที่สำเร็จออก
+  } else {
+    showToast('✅ บันทึกการแปลงบรรจุภัณฑ์แล้ว ' + total + ' รายการ');
     cvItems = [];
-    cvRender();
-    loadStock();
   }
+  cvRender();
+  loadStock();
 }
 
 
@@ -3634,9 +3666,9 @@ function anRenderVelocity(salesMap, totalOrders) {
   if (rows.length === 0) { anNoData('an-velocity'); return; }
   // เดิม: top10 รวมทุกหมวดจัดกลุ่ม ABC ตาม percentile — เปลี่ยนเป็น top3 แยกตามหมวด (2026-07-10)
   // เหตุผล: totalQty หน่วยนับไม่เท่ากันข้ามหมวด (ดู BOX_TYPES — บางหมวดนับเป็น "กล่อง" บางหมวดนับเป็น "กระสอบ")
-  // เทียบ top10 รวมข้ามหมวดแบบเดิมจึงเทียบกันไม่ตรง แยกตามหมวดแล้วในหมวดเดียวกันหน่วยจะสอดคล้องกันเอง (ยกเว้น
-  // หมวด "น็อตมิลแข็ง" ที่รวมหลายชนิดย่อยจนหน่วยปนกันเล็กน้อย [ส่วนใหญ่กล่อง, "หัวน็อตมิลแข็ง เกรด8" เป็นกระสอบ]
-  // ตามที่ user ยืนยันให้รวมทั้งหมดไม่ต้องแยก จึงโชว์หน่วยต่อแถวแทนต่อหมวดกันสับสน)
+  // เทียบ top10 รวมข้ามหมวดแบบเดิมจึงเทียบกันไม่ตรง แยกตามหมวดแล้วในหมวดเดียวกันหน่วยจะสอดคล้องกันเอง
+  // 2026-07-11: หมวด "น็อตมิลแข็ง" หน่วยไม่ปนกันแล้ว — ย้าย "หัวน็อตมิลแข็ง เกรด8/OVERSIZE" (ตัวที่เคยทำให้ปน
+  // กล่อง/กระสอบ) ออกไป "อื่นๆ" แล้ว (ตาม anVCategory ล่าสุด) เหลือแต่ "น็อตแข็ง..." 6 ชนิดย่อยที่เป็นกล่องล้วนใน BOX_TYPES
   const catMap = {};
   rows.forEach(([code, v]) => {
     const cat = anVCategory(v.type);
@@ -3646,7 +3678,8 @@ function anRenderVelocity(salesMap, totalOrders) {
   const cats = AN_VCAT_ORDER.filter(c => catMap[c] && catMap[c].length);
   if (cats.length === 0) { anNoData('an-velocity'); return; }
   // 2026-07-10 (v4): เพิ่ม % เทียบกับยอดรวมทั้งหมวด (ทุกรายการในหมวด ไม่ใช่แค่ top3) ต่อท้ายจำนวน
-  // หมายเหตุ: หมวด "น็อตมิลแข็ง" หน่วยปนกันเล็กน้อย (กล่อง/กระสอบ ดู comment ด้านบน) % จึงเป็นสัดส่วนของยอดรวมแบบไม่แยกหน่วย
+  // % ต่ำ (เช่น top3 รวมกันไม่ถึง 20%) เป็นเรื่องปกติในหมวดที่มีจำนวนไซส์/ขนาดย่อยเยอะ (เช่น น็อตเหลี่ยมเกลียว W
+  // มีถึง ~100 ไซส์) ยอดขายเลยกระจายตัว ไม่ได้แปลว่าคำนวณผิด — ดูสัดส่วนเทียบ MATRICES จำนวนไซส์ต่อหมวดประกอบ
   el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">' +
     cats.map(cat => {
       const sorted = catMap[cat].sort((a,b) => b.totalQty - a.totalQty);
