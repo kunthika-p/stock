@@ -945,6 +945,22 @@ table.list tr:hover td{background:#f8fbff}
   </div>
 </div>
 
+<!-- 2026-07-13: เปลี่ยนวันที่สั่งของหลายรายการที่เลือกไว้พร้อมกัน (bulk date change) -->
+<div class="edit-modal-bg" id="bulkDateModalBg" onclick="if(event.target===this)closeBulkDateModal()">
+  <div class="edit-modal">
+    <h3>📅 เปลี่ยนวันที่สั่ง</h3>
+    <div class="sub" id="bulkDateModalSub"></div>
+    <div class="edit-field">
+      <label>วันที่ใหม่</label>
+      <input type="date" id="bulkDateInput">
+    </div>
+    <div class="edit-actions">
+      <button class="btn-cancel-edit" onclick="closeBulkDateModal()">ยกเลิก</button>
+      <button class="btn-save" id="bulkDateSaveBtn" onclick="applyBulkDate()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <!-- Stock error modal -->
 <div class="stockerr-bg" id="stockErrBg" onclick="if(event.target===this)closeStockErrModal()">
   <div class="stockerr-modal">
@@ -2809,7 +2825,7 @@ function renderPendingTable() {
       if (isBox) custBox += qty; else custSack += qty;
       rows += `<tr class="${idx===0?'cust-sep':''}">
         <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" onchange="updateBulkCount()"></td>
-        <td style="font-size:11px;white-space:nowrap">${getOrderDate(o)}</td>
+        <td style="font-size:11px;white-space:nowrap"><span id="pend-date-${o.row}">${getOrderDate(o)}</span></td>
         <td>${idx===0?`<span class="grade-badge ${gbClass}">${grade||'—'}</span>`:''}</td>
         <td class="td-left" style="font-weight:700;color:#1a3a5c">${idx===0?cust:''}</td>
         <td class="td-left" style="color:#374151">${fmtName(o.name||o.code)}</td>
@@ -2858,6 +2874,7 @@ function renderPendingTable() {
         ${sortBtn('ความเร่งด่วน','urgency')}
         ${sortBtn('วันที่ล่าสุด','date')}
         <span style="margin-left:auto;font-size:12px;color:#555" id="bulkCount"></span>
+        <button id="bulkDateBtn" onclick="openBulkDateModal()" style="display:none;padding:5px 14px;background:#2563a8;color:white;border:none;border-radius:6px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer">📅 เปลี่ยนวันที่ที่เลือก</button>
         <button id="bulkBtn" onclick="bulkConfirm()" style="display:none;padding:5px 14px;background:#16a34a;color:white;border:none;border-radius:6px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer">✅ ยืนยันที่เลือก</button>
       </div>
       <div style="overflow-x:auto">
@@ -2891,15 +2908,78 @@ function toggleAllPend(cb) {
 function updateBulkCount() {
   const checked = [...document.querySelectorAll('.pend-chk:checked')];
   const btn = document.getElementById('bulkBtn');
+  const dateBtn = document.getElementById('bulkDateBtn');
   const cnt = document.getElementById('bulkCount');
   if (!btn || !cnt) return;
   if (checked.length > 0) {
     btn.style.display = 'inline-block';
+    if (dateBtn) dateBtn.style.display = 'inline-block';
     cnt.textContent = `เลือก ${checked.length} รายการ`;
   } else {
     btn.style.display = 'none';
+    if (dateBtn) dateBtn.style.display = 'none';
     cnt.textContent = '';
   }
+}
+
+// 2026-07-13: เปลี่ยนวันที่สั่งของหลายรายการที่เลือกไว้พร้อมกัน (bulk) — ใช้ API เดิม editOrder() ทีละรายการ
+// สำคัญ: editOrder() ฝั่ง Code.gs เขียนทับ qty แบบไม่เช็คก่อนทุกครั้งที่เรียก (ต่างจาก field อื่นที่เช็ค undefined ก่อน)
+// จึงต้องแนบ qty (จาก data-qty ของ checkbox) ไปด้วยเสมอ ไม่งั้นจำนวนของออเดอร์จะหาย
+function openBulkDateModal() {
+  const checked = [...document.querySelectorAll('.pend-chk:checked')];
+  if (!checked.length) return;
+  document.getElementById('bulkDateModalSub').textContent = `${checked.length} รายการ`;
+  const today = new Date();
+  const iso = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  document.getElementById('bulkDateInput').value = iso;
+  const saveBtn = document.getElementById('bulkDateSaveBtn');
+  if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 บันทึก'; }
+  document.getElementById('bulkDateModalBg').classList.add('open');
+}
+
+function closeBulkDateModal() {
+  document.getElementById('bulkDateModalBg').classList.remove('open');
+}
+
+async function applyBulkDate() {
+  const dateIso = document.getElementById('bulkDateInput').value;
+  if (!dateIso) { alert('กรุณาเลือกวันที่'); return; }
+  const date = inputISOToOrderDate(dateIso);
+  const checked = [...document.querySelectorAll('.pend-chk:checked')];
+  if (!checked.length) return;
+  const items = checked.map(c => ({row: Number(c.dataset.row), code: c.dataset.code, qty: Number(c.dataset.qty)}));
+  const saveBtn = document.getElementById('bulkDateSaveBtn');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ กำลังบันทึก...'; }
+  showToast('⏳ กำลังบันทึกวันที่ 0/' + items.length + ' รายการ...');
+  const errors = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    showToast('⏳ กำลังบันทึกวันที่ ' + (i+1) + '/' + items.length + ' รายการ...');
+    try {
+      const res = await fetch(API, {
+        method: 'POST', body: JSON.stringify({action:'editOrder', row: item.row, qty: item.qty, date})
+      });
+      const data = await res.json();
+      if (data.success) {
+        const o = pendingOrders.find(x => x.row === item.row);
+        if (o) { o.date = date; o.timestamp = date; }
+        // อัปเดตแค่ข้อความวันที่ในเซลล์ ไม่เรียก renderPendingTable() ใหม่ทั้งตาราง
+        // กันไม่ให้ตำแหน่งแถว/กลุ่มลูกค้าขยับทันที ถ้ากำลังเรียงตาราง "วันที่ล่าสุด" อยู่
+        const span = document.getElementById('pend-date-' + item.row);
+        if (span) span.textContent = fmtOrderDate(date);
+      } else {
+        errors.push(item.code + ': ' + (data.error||'fail'));
+      }
+    } catch(e2) { errors.push(item.code + ': ' + e2.message); }
+    if (i < items.length - 1) await new Promise(r => setTimeout(r, 300));
+  }
+  if (errors.length) {
+    showToast('⚠️ บันทึก ' + (items.length - errors.length) + '/' + items.length + ' รายการ (fail: ' + errors.length + ')', 'warn');
+  } else {
+    showToast('✅ บันทึกวันที่ ' + items.length + ' รายการแล้ว');
+  }
+  closeBulkDateModal();
+  if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 บันทึก'; }
 }
 
 async function bulkConfirm() {
