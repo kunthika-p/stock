@@ -1491,16 +1491,20 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice) {
   if (isNaN(dPct)) return null;
   const factor = 1 - dPct / 100;
 
-  // น็อตเหลี่ยมเกลียว W และ น็อตหัวกลมเกลียว W ใช้ตารางราคาเดียวกัน (TNK)
-  if (itemType === 'น็อตเหลี่ยมเกลียว W' || itemType === 'น็อตหัวกลมเกลียว W') {
+  // น็อตเหลี่ยมเกลียว W, น็อตหัวกลมเกลียว W, และน็อตเหลี่ยม W ไม่ควบหัว ใช้ตารางราคาเดียวกัน (TNK)
+  // 2026-07-13: เพิ่ม "น็อตเหลี่ยม W ไม่ควบหัว" เข้าเงื่อนไข — ก่อนหน้านี้ไม่มี ทั้งที่ getPriceInfo() (sales_grid_v2.html)
+  // จัดกลุ่ม %ส่วนลด d.sw/d.bw ให้เหมือนกันอยู่แล้ว ทำให้ยอดขายหมวดนี้หายไปจากทุกกราฟบาท (บั๊กเดิม ไม่ใช่ตั้งใจตัดออก)
+  if (itemType === 'น็อตเหลี่ยมเกลียว W' || itemType === 'น็อตหัวกลมเกลียว W' || itemType === 'น็อตเหลี่ยม W ไม่ควบหัว') {
     const SW  = { '1/4': 70, '5/16': 69, '3/8': 68.5, '7/16': 68, '1/2': 67 };   // ยาว 1/2"-1" และ 4.1/2"-12"
     const SW2 = { '1/4': 65, '5/16': 64, '3/8': 63.5, '7/16': 63, '1/2': 62 };   // ยาว 1.1/4"-4"
     const BW  = { '5/8 W': 57, '3/4 W': 58 };                                   // flat ทุกความยาว
-    if (BW[col] !== undefined) return BW[col] * 50 * factor;
+    // 2026-07-13: "น็อตเหลี่ยม W ไม่ควบหัว" ใช้ราคาตั้งเดียวกับน็อตเหลี่ยม W แต่หัก 1 บาท/กก. ก่อน แล้วค่อยคูณ %ส่วนลด (user ยืนยัน)
+    const noHeadAdj = itemType === 'น็อตเหลี่ยม W ไม่ควบหัว' ? 1 : 0;
+    if (BW[col] !== undefined) return (BW[col] - noHeadAdj) * 50 * factor;
     if (SW[col] === undefined) return null;
     const len = lenIn(row);
     const price = (len >= 1.25 && len <= 4) ? SW2[col] : SW[col];
-    return price * 50 * factor;
+    return (price - noHeadAdj) * 50 * factor;
   }
 
   if (itemType === 'สกรูมิลขาว') {
