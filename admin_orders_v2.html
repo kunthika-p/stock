@@ -292,7 +292,7 @@ table.list tr:hover td{background:#f8fbff}
   #tab-summary.active{display:block!important}
   #tab-itemhistory.active{display:block!important}
   #tab-summary .content{padding:0!important}
-  .sum-print-hide,.ih-print-hide{display:none!important}
+  .sum-print-hide,.ih-print-hide,.hist-print-hide{display:none!important}
   #sum-print-hdr{display:block!important;margin-bottom:6px}
   #sum-print-hdr .phdr-title{font-size:11pt;font-weight:700}
   #sum-print-hdr .phdr-sub{font-size:7.5pt;color:#444}
@@ -505,6 +505,7 @@ table.list tr:hover td{background:#f8fbff}
           <th style="width:85px">จัดส่ง</th>
           <th style="width:80px">สถานะ</th>
           <th style="text-align:left;min-width:120px">หมายเหตุ</th>
+          <th style="width:60px;text-align:center" class="hist-print-hide">จัดการ</th>
         </tr></thead>
         <tbody id="historyTbody"></tbody>
       </table>
@@ -3116,6 +3117,25 @@ async function rejectOrder(row) {
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
 }
 
+// 2026-07-14: ยกเลิกออเดอร์ที่ "ยืนยันแล้ว" จากแท็บ "ประวัติ" — เรียก action เดิม (rejectOrder) ตัวเดียวกับ
+// ปุ่ม ❌ ในแท็บ "รอยืนยัน" ซึ่ง backend มี logic คืนสต็อคให้อยู่แล้วถ้า status เดิม='confirmed' (ดู
+// rejectOrder() ใน Code.gs, comment "Fix 2: ถ้าเคย confirmed แล้วมา reject → ต้องคืน stock") ไม่ต้องแก้
+// Code.gs เลย แค่เพิ่มทางเข้าจาก UI ฝั่งนี้ — ทำให้ครั้งหน้าคีย์ผิด/ยืนยันผิดไม่ต้องรอสคริปต์เฉพาะกิจอีก
+async function voidConfirmedOrderFromHistory(row, name, qty, unit) {
+  if (!confirm(`ยกเลิกออเดอร์นี้?\n\n${name} จำนวน ${qty} ${unit}\n\nระบบจะคืนสต็อคที่ตัดไปให้อัตโนมัติ (ย้อนกลับไม่ได้) — ถ้ายังต้องการสินค้านี้อยู่ ต้องไปกด "+สั่งสินค้า" ใหม่เอง`)) return;
+  try {
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'rejectOrder', row }) });
+    const data = await res.json();
+    if (data.success) {
+      showToast('↩️ ยกเลิกออเดอร์ + คืนสต็อคแล้ว');
+      loadHistory();
+      loadStock();
+    } else {
+      showToast('⚠️ ' + (data.error || 'เกิดข้อผิดพลาด'), 'warn');
+    }
+  } catch (e) { alert('เกิดข้อผิดพลาด: ' + e.message); }
+}
+
 let editingRow = null;
 // 2026-07-10: state สำหรับช่อง "เปลี่ยนขนาด" ใน edit modal — pattern เดียวกับ si-search/siSearch() ในแท็บรับสินค้าเข้า
 let editingType = '', editingOrigCode = '', editingOrigName = '', editingNewCode = null, editingNewName = null;
@@ -3321,7 +3341,7 @@ function renderHistory() {
   });
   const tbody = document.getElementById('historyTbody');
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:24px;color:#aaa">ไม่มีประวัติ</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:24px;color:#aaa">ไม่มีประวัติ</td></tr>';
     return;
   }
   const grouped = {};
@@ -3353,13 +3373,16 @@ function renderHistory() {
         <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td class="${o.status==='confirmed'?'status-done':'status-rejected'}">${o.status==='confirmed'?'✅ ยืนยัน':'❌ ปฏิเสธ'}</td>
         <td style="font-size:11px;color:#666">${o._note}</td>
+        <td style="text-align:center" class="hist-print-hide">${o.status==='confirmed'
+          ? `<button class="btn-reject" title="ยกเลิกออเดอร์ + คืนสต็อค" onclick="voidConfirmedOrderFromHistory(${o.row},'${(fmtName(o.name||o.code)||'').replace(/'/g,"\\'")}',${qty},'${isBox?'กล่อง':'กระสอบ'}')">↩️</button>`
+          : ''}</td>
       </tr>`;
     });
     html += `<tr class="summary-row">
       <td colspan="4" style="text-align:right">รวม ${cust}</td>
       <td>${cSack||'-'}</td>
       <td>${cBox||'-'}</td>
-      <td colspan="6"></td>
+      <td colspan="7"></td>
     </tr>`;
   });
   tbody.innerHTML = html;
