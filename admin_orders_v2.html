@@ -900,6 +900,9 @@ table.list tr:hover td{background:#f8fbff}
   <div class="edit-modal">
     <h3>✏️ แก้ไขคำสั่งซื้อ</h3>
     <div class="sub" id="editModalSub"></div>
+    <!-- 2026-07-14: เตือนเมื่อออเดอร์ยังไม่มีราคาเลย (ทั้ง %ส่วนลด และ ราคาเน็ตว่างหมด) — บังคับ admin ตัดสินใจ
+         ก่อนยืนยันได้ (ดู confirmOrder()/bulkConfirm() ที่เช็คเงื่อนไขเดียวกันแล้วเปิด modal นี้ให้อัตโนมัติ) -->
+    <div id="editPriceWarn" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;color:#b91c1c;padding:8px 10px;border-radius:8px;font-size:12.5px;font-weight:700;margin-bottom:10px">⚠️ ออเดอร์นี้ยังไม่มีราคาบันทึกไว้ — กรุณากรอก "%ส่วนลด" หรือ "ราคา Net" อย่างใดอย่างหนึ่งก่อน ถึงจะกดยืนยันออเดอร์ได้</div>
     <!-- 2026-07-10 (v4 ตาม feedback): user แจ้งว่าเวลาคีย์ผิดความยาว/ขนาด (แต่อย่างอื่นถูก) ต้องยกเลิกออเดอร์แล้วเพิ่มใหม่ทั้งอัน
          v1=ปุ่ม+ช่องค้นหา+list แยก, v2=<select> dropdown, v3=<input list> datalist — ล่าสุด user ส่งภาพช่อง
          "ค้นหาสินค้า" ใน "รับสินค้าเข้า" (si-search/siSearch()) มาถามว่าหมายถึงแบบนี้ไหม → ใช่ ใช้ pattern เดียวกันเป๊ะ
@@ -2862,6 +2865,7 @@ function renderPendingTable() {
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _dv=(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)?o.disc_pct:(_pi.disc_pct!==null?_pi.disc_pct:'');return _dv!==''&&_dv!==null?_dv+'%':'';})()}</td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
         <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
+        <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td style="font-size:11px;color:#666">${o._note}</td>
         <td>
           <div class="pend-actions">
@@ -2877,7 +2881,7 @@ function renderPendingTable() {
       <td colspan="6" style="text-align:right;font-size:11px;color:#555">รวม ${cust}</td>
       <td style="font-weight:700;color:#1a3a5c">${custSack||'-'}</td>
       <td style="font-weight:700;color:#7c3aed">${custBox||'-'}</td>
-      <td colspan="5"></td>
+      <td colspan="6"></td>
     </tr>`;
     totalSack += custSack;
     totalBox += custBox;
@@ -2887,7 +2891,7 @@ function renderPendingTable() {
     <td colspan="6" style="text-align:right;font-weight:700;font-size:12px;padding:6px 8px">รวมทั้งหมด</td>
     <td style="font-weight:700;color:#93c5fd;text-align:center">${totalSack||'-'}</td>
     <td style="font-weight:700;color:#c4b5fd;text-align:center">${totalBox||'-'}</td>
-    <td colspan="5"></td>
+    <td colspan="6"></td>
   </tr>`;
 
   const sortBtn = (label, val) => `<button onclick="pendingSort='${val}';renderPendingTable()" style="padding:5px 12px;border-radius:6px;border:1.5px solid ${pendingSort===val?'#1a3a5c':'#d1d5db'};background:${pendingSort===val?'#1a3a5c':'white'};color:${pendingSort===val?'white':'#555'};font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer">${label}</button>`;
@@ -2918,6 +2922,7 @@ function renderPendingTable() {
             <th style="width:55px;text-align:center">%ส่วนลด</th>
             <th style="width:65px;text-align:center">ราคาเน็ต</th>
             <th style="width:95px">ความเร่งด่วน</th>
+            <th style="width:85px">จัดส่ง</th>
             <th style="text-align:left;min-width:90px">หมายเหตุ</th>
             <th style="width:90px">จัดการ</th>
           </tr></thead>
@@ -3012,8 +3017,15 @@ async function applyBulkDate() {
 async function bulkConfirm() {
   const checked = [...document.querySelectorAll('.pend-chk:checked')];
   if (!checked.length) return;
-  if (!confirm(`ยืนยัน ${checked.length} รายการ?`)) return;
   const items = checked.map(c => ({row: Number(c.dataset.row), code: c.dataset.code, qty: Number(c.dataset.qty)}));
+  // 2026-07-14: เช็คราคาก่อนยืนยันแบบ bulk เหมือนกัน — ถ้ามีรายการไหนไม่มีราคา ไม่ยืนยันอะไรเลยสักอันจนกว่าจะกรอกให้ครบ
+  const missing = items.filter(item => { const o = pendingOrders.find(x => x.row === item.row); return o && !hasPriceSet(o); });
+  if (missing.length) {
+    alert('มี ' + missing.length + ' รายการยังไม่มีราคา (%ส่วนลด หรือ ราคา Net) กรุณากด ✏️ กรอกราคาให้ครบก่อนยืนยัน:\n' + missing.map(m => m.code).join(', '));
+    openEditModalByRow(missing[0].row);
+    return;
+  }
+  if (!confirm(`ยืนยัน ${checked.length} รายการ?`)) return;
   showToast('⏳ กำลังยืนยัน 0/' + items.length + ' รายการ...');
   try {
     const errors = [];
@@ -3047,7 +3059,22 @@ async function bulkConfirm() {
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
 }
 
+// 2026-07-14: บังคับต้องมีราคา (disc_pct หรือ net_price อย่างน้อย 1 อย่าง) ก่อนยืนยันออเดอร์ได้ — sale ยังกด
+// สั่งของได้ตามปกติ ไม่บล็อกตอนสั่ง แต่พอมาถึงขั้น admin กดยืนยัน ถ้ายังไม่มีราคาจะเด้งไปหน้ากรอกราคาแทนทันที
+// (กันเคสแบบ checkRoundHeadPricing_20260714 เจอ — ออเดอร์ยืนยันแล้วแต่ไม่มีราคา หายจากยอดขายเงียบๆ)
+function hasPriceSet(o) {
+  const hasDisc = o.disc_pct !== '' && o.disc_pct !== null && o.disc_pct !== undefined;
+  const hasNet  = o.net_price !== '' && o.net_price !== null && o.net_price !== undefined;
+  return hasDisc || hasNet;
+}
+
 async function confirmOrder(row, code, qty) {
+  const oChk = pendingOrders.find(x => x.row === row);
+  if (oChk && !hasPriceSet(oChk)) {
+    showToast('⚠️ ออเดอร์นี้ยังไม่มีราคา กรุณากรอก %ส่วนลด หรือ ราคา Net ก่อน', 'warn');
+    openEditModalByRow(row);
+    return;
+  }
   if (!confirm(`ยืนยัน ${code} จำนวน ${qty}?`)) return;
   try {
     const res = await fetch(API, {
@@ -3069,6 +3096,9 @@ async function confirmOrder(row, code, qty) {
         itemLabel: o ? fmtName(o.name || o.code) : code,
         needed: data.needed, available: data.available, unit: data.unit || 'กระสอบ'
       });
+    } else if (data.errorType === 'missing_price') {
+      showToast('⚠️ ' + data.error, 'warn');
+      openEditModalByRow(row);
     } else {
       showToast('⚠️ ' + (data.error||'เกิดข้อผิดพลาด'), 'warn');
     }
@@ -3235,6 +3265,8 @@ function openEditModalByRow(row) {
   document.getElementById('editNoteInput').value = o._note || '';
   document.getElementById('editDiscInput').value = (o.disc_pct !== '' && o.disc_pct !== null && o.disc_pct !== undefined) ? o.disc_pct : '';
   document.getElementById('editNetInput').value = (o.net_price !== '' && o.net_price !== null && o.net_price !== undefined) ? o.net_price : '';
+  const priceWarn = document.getElementById('editPriceWarn');
+  if (priceWarn) priceWarn.style.display = hasPriceSet(o) ? 'none' : 'block';
   setEditUrg(o._urgency || 'ปกติ');
   const saveBtn = document.getElementById('editSaveBtn');
   if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 บันทึก'; }
