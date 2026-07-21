@@ -51,7 +51,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .stk-cell.has{background:#d1fae5;cursor:pointer}
 .stk-cell.has:hover{background:#a7f3d0}
 .stk-cell.has.locked{background:#d1fae5;cursor:not-allowed;opacity:.6}
-.stk-cell.out{background:#fee2e2;cursor:default}
+.stk-cell.out{background:#fee2e2;cursor:pointer}
 .stk-cell.blocked{background:#e5e7eb}
 .cell-tick{font-size:20px;display:block}
 .cell-code{font-size:9px;color:#666;font-family:'Courier New',monospace;letter-spacing:0.5px}
@@ -692,7 +692,7 @@ function buildNokMilAengSalesTable(tabDef, suffix) {
       const tick = hasStock ? '✅' : '❌';
       const nm = (srcType + ' ' + col + ' ' + row).replace(/'/g,"\\'");
       const tp = srcType.replace(/'/g,"\\'");
-      const onclk = hasStock ? `onclick="openModal('${item.code}','${nm}','${tp}')"` : '';
+      const onclk = `onclick="openModal('${item.code}','${nm}','${tp}')"`;
       html += `<td class="stk-cell ${cls}" ${onclk}><span class="cell-tick">${tick}</span><span class="cell-code">${item.code}</span></td>`;
     });
     html += '</tr>';
@@ -731,7 +731,7 @@ function renderAll() {
             const tick = hasStock ? '✅' : '❌';
             const nm = (ht+' '+col+' '+r).replace(/'/g,"\\'");
             const t2 = ht.replace(/'/g,"\\'");
-            const onclick2 = hasStock ? `onclick="openModal('${item.code}','${nm}','${t2}')"` : '';
+            const onclick2 = `onclick="openModal('${item.code}','${nm}','${t2}')"`;
             html2 += `<td class="stk-cell ${cls}" ${onclick2}><span class="cell-tick">${tick}</span><span class="cell-code">${item.code}</span></td>`;
           });
           html2 += '</tr>';
@@ -785,7 +785,7 @@ function renderAll() {
             const tick = hasStock ? '✅' : '❌';
             const nm3 = (ot+' '+col+' '+r3).replace(/'/g,"\\'");
             const t3 = ot.replace(/'/g,"\\'");
-            const onclick3 = hasStock ? `onclick="openModal('${item.code}','${nm3}','${t3}')"` : '';
+            const onclick3 = `onclick="openModal('${item.code}','${nm3}','${t3}')"`;
             html3 += `<td class="stk-cell ${cls}" ${onclick3}><span class="cell-tick">${tick}</span><span class="cell-code">${item.code}</span></td>`;
           });
           html3 += '</tr>';
@@ -826,7 +826,7 @@ function renderAll() {
             const tick = hasStock ? '✅' : '❌';
             const name = (type+' '+col+' '+row).replace(/'/g,"\'");
             const _rtype = resolveType(item);
-            const onclick = hasStock ? `onclick="openModal('${item.code}','${name}','${_rtype}')"` : '';
+            const onclick = `onclick="openModal('${item.code}','${name}','${_rtype}')"`;
             html += `<td class="stk-cell ${cls}" ${onclick}>
               <span class="cell-tick">${tick}</span>
               <span class="cell-code"${codeStyle}>${item.code}</span>
@@ -841,7 +841,7 @@ function renderAll() {
         const hasStock = Number(item.stock) > 0;
         const tick = hasStock ? '✅' : '❌';
         const _rtype = resolveType(item);
-        const onclick = hasStock ? `onclick="openModal('${item.code}','${item.type}','${_rtype}')"` : '';
+        const onclick = `onclick="openModal('${item.code}','${item.type}','${_rtype}')"`;
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0" ${onclick}>
           <span style="font-size:13px;color:#1a3a5c;font-weight:600">${item.code}</span>
           <span style="font-size:20px">${tick}</span>
