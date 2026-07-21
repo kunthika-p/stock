@@ -1607,9 +1607,14 @@ function renderTracking() {
       const isPending = o.status === 'pending';
       const rowStyle = isPending ? 'background:#fffbeb' : '';
       const urgBg = urgBgMap[o._urgency] || '#f3f4f6';
-      const pi = getPriceInfo(custCode, o.code, '');
-      const discVal = pi.disc_pct !== null ? pi.disc_pct : ((o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined) ? o.disc_pct : '');
-      const netVal  = pi.net_price !== null ? pi.net_price : ((o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined) ? o.net_price : '');
+      // 2026-07-21: เดิม priority สลับกัน — เอาราคา "ปัจจุบันของลูกค้า" (pi, re-derive จาก getPriceInfo) มาก่อนราคาจริงที่บันทึกไว้ในออเดอร์ (o.net_price/o.disc_pct)
+      // ทำให้หน้า "ติดตามออเดอร์" โชว์ราคาผิดทุกครั้งที่ sale พิมพ์ราคาต่างจากราคา default ของลูกค้า (เจอเคสจริง: กรอก 26 แต่หน้านี้โชว์ 32)
+      // แก้ให้ใช้ค่าจริงที่บันทึกในออเดอร์ก่อนเสมอ (o.*) ใช้ pi (ราคาที่ควรจะเป็น) แค่ตอนออเดอร์ไม่มีราคาบันทึกไว้เลยเท่านั้น
+      const hasODisc = o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined;
+      const hasONet  = o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined;
+      const pi = (hasODisc || hasONet) ? {disc_pct:null,net_price:null} : getPriceInfo(custCode, o.code, '');
+      const discVal = hasODisc ? o.disc_pct : (pi.disc_pct !== null ? pi.disc_pct : '');
+      const netVal  = hasONet ? o.net_price : (pi.net_price !== null ? pi.net_price : '');
       html += `<tr style="${rowStyle}" class="${idx===0?'group-sep':''}">
         <td style="font-size:11px;white-space:nowrap">${fmtDate(o.timestamp||o.date)}</td>
         <td class="td-cust">${idx===0?cust:''}</td>
