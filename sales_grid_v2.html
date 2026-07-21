@@ -1407,7 +1407,12 @@ function saveEditOrder() {
 // เช่น network ช้า/error กลางทาง แล้ว user กด "ลองใหม่" ทำให้ order ที่ส่งสำเร็จไปแล้ว
 // (stagedOrders ไม่ถูกเคลียร์เมื่อ error) ถูกส่งซ้ำอีกรอบ -> เกิดออเดอร์ซ้ำใน "รอยืนยัน"
 function salesComputeBatchId(o) {
-  const raw = (o.date||'') + '|' + (o.customer||'') + '|' + o.code + ':' + o.qty + ':' + o.unit;
+  // 2026-07-21: เดิม fingerprint ไม่มี o.id (unique ต่อรายการที่กด "เพิ่มในตะกร้า" แต่ละครั้ง)
+  // ทำให้ลูกค้าสั่งของซ้ำจริง (ไซส์/จำนวน/วันเดียวกัน 2 ออเดอร์แยกกัน) โดนระบบกันซ้ำเข้าใจผิดว่าเป็น retry เดิม
+  // แล้วข้ามการบันทึกออเดอร์ที่ 2 ไปเงียบๆ (เจอเคสจริง: 3/8x5 80กระสอบ เอส.เจ.สกรูไทย สั่ง 2 รอบวันเดียวกัน)
+  // แก้โดยเอา o.id (Date.now()+Math.random() ตอน push เข้า stagedOrders) มารวมในคีย์ด้วย
+  // — ยังกัน retry เดิมได้ปกติ (เพราะ retry ส่ง object เดิม มี id เดิม) แต่ไม่กันออเดอร์ใหม่ที่เนื้อหาเหมือนกันอีกแล้ว
+  const raw = (o.date||'') + '|' + (o.customer||'') + '|' + o.code + ':' + o.qty + ':' + o.unit + '|' + (o.id||'');
   let h = 0;
   for (let i = 0; i < raw.length; i++) { h = (h * 31 + raw.charCodeAt(i)) | 0; }
   return 'o' + Math.abs(h) + '_' + raw.length;
