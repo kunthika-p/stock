@@ -2912,8 +2912,12 @@ function renderPendingTable() {
       <td style="font-weight:700;color:#7c3aed">${custBox||'-'}</td>
       <td colspan="6"></td>
     </tr>`;
-    totalSack += custSack;
-    totalBox += custBox;
+    // 2026-07-25: แก้ตามที่ user ทักว่าเลขไม่ตรง — เดิมรวมลูกค้าที่ถูกซ่อน (กลุ่มปิดอยู่) เข้าไปด้วยแบบไม่บอกใคร
+    // ทำให้ "รวมทั้งหมด" ไม่ตรงกับที่เห็นบนจอ ตอนนี้ตัดลูกค้าที่ถูกซ่อนออกจากผลรวมนี้ด้วย (นับเฉพาะที่แสดงอยู่จริง)
+    if (!custHidden) {
+      totalSack += custSack;
+      totalBox += custBox;
+    }
 
     // 2026-07-25: แถวรวม "เลือกแล้วในกลุ่ม" — เฉพาะตอนเรียงตามกลุ่ม (pendingSort==='grade') เท่านั้น
     // เพราะเรียงแบบอื่นลูกค้ากลุ่มเดียวกันจะไม่ได้อยู่ติดกัน ปิดท้ายกลุ่มเมื่อลูกค้าถัดไปเปลี่ยนกลุ่ม (หรือเป็นรายสุดท้าย)
@@ -2935,14 +2939,14 @@ function renderPendingTable() {
   });  // end sortedCusts.forEach
 
   rows += `<tr style="background:#1a3a5c;color:white">
-    <td colspan="6" style="text-align:right;font-weight:700;font-size:12px;padding:6px 8px">รวมทั้งหมด</td>
+    <td colspan="6" style="text-align:right;font-weight:700;font-size:12px;padding:6px 8px">รวมทั้งหมด (ที่แสดงอยู่)</td>
     <td style="font-weight:700;color:#93c5fd;text-align:center">${totalSack||'-'}</td>
     <td style="font-weight:700;color:#c4b5fd;text-align:center">${totalBox||'-'}</td>
     <td colspan="6"></td>
   </tr>`;
 
-  // 2026-07-25: แถวรวม "รถเที่ยวนี้" — รวมเฉพาะกลุ่มที่เปิดปุ่มไว้ + นับเฉพาะรายการที่ติ๊ก checkbox
-  // ต่างจาก "รวมทั้งหมด" ด้านบน (รวมทุกออเดอร์เสมอ ไม่สนใจปุ่มเปิด/ปิดหรือ checkbox) — เรนเดอร์เสมอไม่ผูกกับ pendingSort
+  // 2026-07-25: แถวรวม "รถเที่ยวนี้" — เหมือน "รวมทั้งหมด (ที่แสดงอยู่)" ด้านบนตรงที่ตัดกลุ่มที่ปิดออกเหมือนกัน
+  // แต่ต่างตรงนับเฉพาะรายการที่ติ๊ก checkbox เท่านั้น (ไม่ใช่รวมทุกออเดอร์ที่แสดง) — เรนเดอร์เสมอไม่ผูกกับ pendingSort
   rows += `<tr style="background:#0f2844;color:white">
     <td colspan="6" style="text-align:right;font-weight:700;font-size:12px;padding:6px 8px">รวมรถเที่ยวนี้ (กลุ่มที่เปิดอยู่)</td>
     <td style="font-weight:700;text-align:center"><span id="route-total-sack">-</span></td>
