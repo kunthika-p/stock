@@ -138,7 +138,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 
 <div class="header">
   <h1>🛒 สั่งสินค้า STIC</h1>
-  <p>กรอกชื่อลูกค้าก่อน แล้วกดช่อง ✅ เพื่อเพิ่มในตะกร้า</p>
+  <p>กรอกชื่อลูกค้าก่อน แล้วกดช่อง ✅ เพื่อสั่งสินค้า</p>
 </div>
 
 <!-- Customer name bar -->
@@ -273,7 +273,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
       </div>
       <div class="ma-col">
         <span class="ma-lbl">&nbsp;</span>
-        <button class="btn-confirm" id="btnAddCart" onclick="addToCart()">🛒 เพิ่มในตะกร้า</button>
+        <button class="btn-confirm" id="btnAddCart" onclick="addToCart()">✅ เพิ่มรายการ</button>
       </div>
     </div>
     <div class="price-row" style="margin-top:14px">
@@ -869,6 +869,14 @@ function openModal(code, name, type) {
     document.getElementById('customerInput').focus();
     return;
   }
+  // 2026-07-25: ตัดขั้นตอน "ตะกร้า" ออกตามที่ user ยืนยัน (เดิม cart.find ที่นี่)
+  // ถ้ารหัสนี้เคยเพิ่มเข้า "ประวัติ" (stagedOrders) ของลูกค้าคนเดียวกันไปแล้ว (ยังไม่กดยืนยันส่ง Admin)
+  // เปิดโหมดแก้ไขรายการเดิมแทนการเพิ่มซ้ำ (reuse openItemModalFrom เดิมที่ใช้กับปุ่มแก้ไขในหน้าประวัติอยู่แล้ว)
+  const existingStaged = stagedOrders.find(o => o.code === code && o.customer === customerName);
+  if (existingStaged) {
+    openItemModalFrom(existingStaged, { type: 'staged', id: existingStaged.id });
+    return;
+  }
   modalEditMode = null;
   selectedCode = code;
   selectedName = name;
@@ -881,18 +889,12 @@ function openModal(code, name, type) {
   // 2026-07-10: dropdown "เปลี่ยนขนาด" โชว์เฉพาะตอนแก้ไข (openItemModalFrom) เท่านั้น ไม่ใช่ตอนเพิ่มสินค้าใหม่
   document.getElementById('fieldSizeChange').style.display = 'none';
 
-  // ถ้ามีในตะกร้าแล้ว ให้แสดงจำนวนเดิม
-  const existing = cart.find(i => i.code === code);
-  document.getElementById('inputQty').value = existing ? existing.qty : '';
-  document.getElementById('inputItemNote').value = existing ? (existing.note||'') : '';
-  if (existing) {
-    document.getElementById('btnAddCart').textContent = '✏️ อัปเดตจำนวน';
-    selectedItemUrgency = existing.urgency;
-    selectedDelivery = existing.delivery || 'หน้าร้าน';
-  } else {
-    document.getElementById('btnAddCart').textContent = '🛒 เพิ่มในตะกร้า';
-    selectedDelivery = 'หน้าร้าน';
-  }
+  // 2026-07-25: เคสมีของเดิมอยู่แล้วถูกดักไปใช้ openItemModalFrom() ด้านบนตั้งแต่ต้นฟังก์ชันแล้ว
+  // ที่เหลือด้านล่างนี้คือเคสเพิ่มรายการใหม่ล้วนๆเสมอ
+  document.getElementById('inputQty').value = '';
+  document.getElementById('inputItemNote').value = '';
+  document.getElementById('btnAddCart').textContent = '✅ เพิ่มรายการ';
+  selectedDelivery = 'หน้าร้าน';
   updateDeliveryBtn();
 
   document.querySelectorAll('#itemUrgencyOpts .urgency-opt').forEach(e => e.classList.remove('selected'));
@@ -1149,22 +1151,27 @@ function addToCart() {
     return;
   }
 
+  // 2026-07-25: ตัดขั้นตอน "ตะกร้า" ออกตามที่ user ยืนยัน (แนะนำ: "ตัดทั้งหมด")
+  // เดิม push เข้า cart ก่อน ต้องกด "ยืนยันสั่งทั้งหมด" ในหน้าตะกร้า (popup แยก) อีกที ถึงจะเข้า "ประวัติ"
+  // user บอกว่าหน้าตะกร้าทับซ้อนกับหน้า "ประวัติ" (ทั้งคู่มีปุ่มยืนยันเหมือนกัน) — เลยตัดตัวกลางออก
+  // เพิ่มรายการใหม่ตรงเข้า stagedOrders (= หน้า "ประวัติ") ทันที เหมือนที่ submitAllOrders() เคยทำต่อรายการในตะกร้า
+  if (!customerName) { alert('ไม่พบชื่อลูกค้า'); return; }
   const unit = getUnit(selectedType);
-  const existing = cart.find(i => i.code === selectedCode);
-  if (existing) {
-    existing.qty = qty;
-    existing.urgency = selectedItemUrgency;
-    existing.note = note;
-    existing.disc_pct = disc_pct;
-    existing.net_price = net_price;
-    existing.delivery = selectedDelivery;
-  } else {
-    cart.push({ code: selectedCode, name: fmtName(selectedName), type: selectedType, qty, unit, urgency: selectedItemUrgency, note, disc_pct, net_price, delivery: selectedDelivery });
-  }
+  stagedOrders.push({
+    id: Date.now() + Math.random(),
+    customer: customerName, code: selectedCode, name: fmtName(selectedName),
+    qty, unit, urgency: selectedItemUrgency, note,
+    date: new Date().toLocaleDateString('th-TH'),
+    disc_pct, net_price, delivery: selectedDelivery
+  });
   closeModalDirect();
-  updateCartBar();
-  renderCartItems();
-  showToast('✅ ' + (existing ? 'อัปเดตแล้ว' : 'เพิ่มในตะกร้าแล้ว'));
+  showToast('✅ เพิ่มใน ประวัติ แล้ว กรุณายืนยันก่อนส่ง Admin');
+  // เปิด tab ประวัติ ให้เห็นรายการที่เพิ่งเพิ่มทันที (เหมือนพฤติกรรมเดิมของ submitAllOrders())
+  setTimeout(() => {
+    const btn = document.getElementById('tab-btn-history');
+    if (btn) { btn.click(); }
+  }, 300);
+  renderSalesHistory();
 }
 
 // ---- Cart ----
@@ -1510,23 +1517,24 @@ function renderTracking() {
   const statEl     = document.getElementById('trk-stat');
 
   // แปลง date เป็น CE ISO สำหรับเปรียบเทียบ filter
+  // 2026-07-25: เดิม branch ISO string ตัด s.split('T')[0] ตรงๆ ไม่ปรับ timezone
+  // ทำให้ order ที่ column A ในชีทถูกแปลงเป็น Date object จริง (Sheets auto-parse) แล้ว toISOString()
+  // เลื่อนวันที่ถอยหลัง 1 วันจาก UTC offset (เที่ยงคืนไทย = 17:00 UTC วันก่อนหน้า)
+  // กรองวันเดียว (จาก=ถึง=วันนี้) เลยไม่เจอออเดอร์ของวันนั้นเลย ทั้งที่มีจริง
+  // แก้ให้ใช้ new Date(s) + local getters เหมือน orderDateToInputISO() ใน admin_orders_v2.html (fix เดิมที่ผ่านการทดสอบแล้ว)
   const toISOLocal = d => {
     if (!d) return '';
-    const s = String(d);
+    const s = String(d).trim();
     const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); // Thai dd/mm/yyyy
     if (m) {
       const yr = Number(m[3]) > 2500 ? Number(m[3]) - 543 : Number(m[3]);
       return yr+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
     }
-    // ISO string อาจมีปี BE (>2100) เช่น '2569-06-21T...'
-    const isoDate = s.split('T')[0];
-    const pts = isoDate.split('-');
-    if (pts.length === 3) {
-      const yr = Number(pts[0]);
-      const ceYr = yr > 2100 ? yr - 543 : yr;
-      return ceYr + '-' + pts[1] + '-' + pts[2];
-    }
-    return isoDate;
+    // ISO string (อาจปี BE >2100) — ใช้ Date object + local getters กัน UTC เพี้ยนวัน
+    const dt = new Date(s);
+    if (isNaN(dt)) return '';
+    let yr = dt.getFullYear(); if (yr > 2100) yr -= 543;
+    return yr + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
   };
   let rows = trackingData.filter(o => {
     const cust = CUST_NAME_MAP[o.customer] || o.customer || '(ไม่ระบุ)';
