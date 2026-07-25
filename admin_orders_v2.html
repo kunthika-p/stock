@@ -2756,6 +2756,13 @@ function inputISOToOrderDate(iso) {
 
 let pendingOrders = [];
 let pendingSort = 'customer';
+// 2026-07-25: กลุ่มเส้นทางรถที่ "เปิด" อยู่ตอนนี้ (สำหรับรถเที่ยวที่วิ่งได้หลายกลุ่มพร้อมกัน เช่น A+B)
+// เปิดทุกกลุ่มไว้เป็นค่าเริ่มต้นเสมอ (ไม่ซ่อนอะไรจนกว่า user จะกดปิดเอง) — ไม่ผูกกับ pendingSort เลย ใช้ได้ทุกโหมดเรียง
+let activeRouteGroups = new Set(['A','B','C','D']);
+function toggleRouteGroup(g) {
+  if (activeRouteGroups.has(g)) activeRouteGroups.delete(g); else activeRouteGroups.add(g);
+  renderPendingTable();
+}
 
 async function loadPending() {
   // ถ้า allItems ยังไม่ได้โหลด ดึงมาก่อนเพื่อให้ resolveType ทำงานได้
@@ -2867,12 +2874,15 @@ function renderPendingTable() {
     const gKey = grade || 'X';
     const gbClass = grade ? 'gb-'+grade : 'gb-X';
     let custSack = 0, custBox = 0;
+    // 2026-07-25: ซ่อนลูกค้าทั้งกลุ่มถ้าปิดปุ่มกลุ่มนั้นไว้ (ลูกค้าไม่ระบุกลุ่ม gKey==='X' ไม่ถูกซ่อนเลย ไม่ผูกกับปุ่มเปิด/ปิด)
+    const custHidden = gKey !== 'X' && !activeRouteGroups.has(gKey);
+    const hideStyle = custHidden ? 'display:none' : '';
 
     items.forEach((o, idx) => {
       const isBox = o._unit === 'กล่อง';
       const qty = Number(o.qty)||0;
       if (isBox) custBox += qty; else custSack += qty;
-      rows += `<tr class="${idx===0?'cust-sep':''}">
+      rows += `<tr class="${idx===0?'cust-sep':''}" style="${hideStyle}">
         <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-group="${gKey}" data-sack="${!isBox?qty:0}" data-box="${isBox?qty:0}" onchange="updateBulkCount()"></td>
         <td style="font-size:11px;white-space:nowrap"><span id="pend-date-${o.row}">${getOrderDate(o)}</span></td>
         <td>${idx===0?`<span class="grade-badge ${gbClass}">${grade||'—'}</span>`:''}</td>
@@ -2896,7 +2906,7 @@ function renderPendingTable() {
       </tr>`;
     });
 
-    rows += `<tr style="background:#f0f5ff">
+    rows += `<tr style="background:#f0f5ff;${hideStyle}">
       <td colspan="6" style="text-align:right;font-size:11px;color:#555">รวม ${cust}</td>
       <td style="font-weight:700;color:#1a3a5c">${custSack||'-'}</td>
       <td style="font-weight:700;color:#7c3aed">${custBox||'-'}</td>
@@ -2908,12 +2918,13 @@ function renderPendingTable() {
     // 2026-07-25: แถวรวม "เลือกแล้วในกลุ่ม" — เฉพาะตอนเรียงตามกลุ่ม (pendingSort==='grade') เท่านั้น
     // เพราะเรียงแบบอื่นลูกค้ากลุ่มเดียวกันจะไม่ได้อยู่ติดกัน ปิดท้ายกลุ่มเมื่อลูกค้าถัดไปเปลี่ยนกลุ่ม (หรือเป็นรายสุดท้าย)
     // ยอดนับเฉพาะรายการที่ติ๊ก checkbox เท่านั้น (ไม่ใช่รวมทุกออเดอร์ในกลุ่ม) — คำนวณสดผ่าน updateGroupTotals()
+    // ซ่อนแถวนี้ไปด้วยถ้าปิดปุ่มกลุ่มนั้นไว้ (hideStyle ตัวเดียวกับแถวลูกค้า)
     if (pendingSort === 'grade') {
       const nextCust = sortedCusts[custIdx + 1];
       const nextGrade = nextCust ? ((CUST_MAP[nextCust]||{}).grade || '') : null;
       if (nextGrade !== grade) {
         const gc = GROUP_COLORS[gKey] || GROUP_COLORS.X;
-        rows += `<tr style="background:${gc.bg}">
+        rows += `<tr style="background:${gc.bg};${hideStyle}">
           <td colspan="6" style="text-align:right;font-weight:700;color:${gc.text};padding:8px 8px">เลือกแล้วในกลุ่ม ${grade||'—'}</td>
           <td style="font-weight:700;color:${gc.text};text-align:center"><span id="grp-sel-sack-${gKey}">-</span></td>
           <td style="font-weight:700;color:${gc.text};text-align:center"><span id="grp-sel-box-${gKey}">-</span></td>
@@ -2930,7 +2941,22 @@ function renderPendingTable() {
     <td colspan="6"></td>
   </tr>`;
 
+  // 2026-07-25: แถวรวม "รถเที่ยวนี้" — รวมเฉพาะกลุ่มที่เปิดปุ่มไว้ + นับเฉพาะรายการที่ติ๊ก checkbox
+  // ต่างจาก "รวมทั้งหมด" ด้านบน (รวมทุกออเดอร์เสมอ ไม่สนใจปุ่มเปิด/ปิดหรือ checkbox) — เรนเดอร์เสมอไม่ผูกกับ pendingSort
+  rows += `<tr style="background:#0f2844;color:white">
+    <td colspan="6" style="text-align:right;font-weight:700;font-size:12px;padding:6px 8px">รวมรถเที่ยวนี้ (กลุ่มที่เปิดอยู่)</td>
+    <td style="font-weight:700;text-align:center"><span id="route-total-sack">-</span></td>
+    <td style="font-weight:700;text-align:center"><span id="route-total-box">-</span></td>
+    <td colspan="6"></td>
+  </tr>`;
+
   const sortBtn = (label, val) => `<button onclick="pendingSort='${val}';renderPendingTable()" style="padding:5px 12px;border-radius:6px;border:1.5px solid ${pendingSort===val?'#1a3a5c':'#d1d5db'};background:${pendingSort===val?'#1a3a5c':'white'};color:${pendingSort===val?'white':'#555'};font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer">${label}</button>`;
+  // 2026-07-25: ปุ่มเปิด/ปิดกลุ่มเส้นทางรถ — เลือกเปิดได้พร้อมกันหลายกลุ่ม (รถบางคันวิ่งหลายเส้นทาง เช่น A+B)
+  const routeBtn = (g) => {
+    const on = activeRouteGroups.has(g);
+    const gc = GROUP_COLORS[g];
+    return `<button onclick="toggleRouteGroup('${g}')" style="padding:5px 14px;border-radius:6px;border:1.5px solid ${on?gc.text:'#d1d5db'};background:${on?gc.bg:'white'};color:${on?gc.text:'#9ca3af'};font-family:'Sarabun',sans-serif;font-size:12px;font-weight:600;cursor:pointer">${g}</button>`;
+  };
 
   document.getElementById('pendingList').innerHTML = `
     <div class="pend-wrap">
@@ -2943,6 +2969,10 @@ function renderPendingTable() {
         <span style="margin-left:auto;font-size:12px;color:#555" id="bulkCount"></span>
         <button id="bulkDateBtn" onclick="openBulkDateModal()" style="display:none;padding:5px 14px;background:#2563a8;color:white;border:none;border-radius:6px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer">📅 เปลี่ยนวันที่ที่เลือก</button>
         <button id="bulkBtn" onclick="bulkConfirm()" style="display:none;padding:5px 14px;background:#16a34a;color:white;border:none;border-radius:6px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer">✅ ยืนยันที่เลือก</button>
+      </div>
+      <div style="padding:8px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fff;border-bottom:1px solid #e5e7eb">
+        <span style="font-size:12px;color:#555">รถเที่ยวนี้วิ่งกลุ่ม:</span>
+        ${routeBtn('A')}${routeBtn('B')}${routeBtn('C')}${routeBtn('D')}
       </div>
       <div style="overflow-x:auto">
         <table class="pend-tbl">
@@ -3011,6 +3041,15 @@ function updateGroupTotals() {
     if (sEl) sEl.textContent = groups[g].sack || '-';
     if (bEl) bEl.textContent = groups[g].box || '-';
   });
+  // 2026-07-25: "รวมรถเที่ยวนี้" — รวมเฉพาะกลุ่มที่เปิดปุ่มไว้ (activeRouteGroups) ไม่รวม X (ไม่ระบุกลุ่ม เพราะไม่ใช่เส้นทางรถจริง)
+  let routeSack = 0, routeBox = 0;
+  activeRouteGroups.forEach(g => {
+    if (groups[g]) { routeSack += groups[g].sack; routeBox += groups[g].box; }
+  });
+  const rs = document.getElementById('route-total-sack');
+  const rb = document.getElementById('route-total-box');
+  if (rs) rs.textContent = routeSack || '-';
+  if (rb) rb.textContent = routeBox || '-';
 }
 
 // 2026-07-13: เปลี่ยนวันที่สั่งของหลายรายการที่เลือกไว้พร้อมกัน (bulk) — ใช้ API เดิม editOrder() ทีละรายการ
