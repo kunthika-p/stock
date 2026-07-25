@@ -2787,6 +2787,8 @@ async function loadPending() {
 
 const urgOrder = {'ด่วน':0,'จอง':1,'ปกติ':2,'':3};
 const gradeOrder2 = {'A':0,'B':1,'C':2,'D':3,'':4};
+// 2026-07-25: สีแถวรวมยอด "เลือกแล้วในกลุ่ม" — ใช้สีเดียวกับ .gb-A/B/C/D (grade-badge) เพื่อให้ตรงกับป้ายกลุ่มในตาราง
+const GROUP_COLORS = {A:{bg:'#d1fae5',text:'#065f46'},B:{bg:'#dbeafe',text:'#1e40af'},C:{bg:'#fef9c3',text:'#92400e'},D:{bg:'#fee2e2',text:'#991b1b'},X:{bg:'#f3f4f6',text:'#666'}};
 
 function renderPendingTable() {
   const orders = pendingOrders;
@@ -2858,10 +2860,11 @@ function renderPendingTable() {
   let rows = '';
   let totalSack = 0, totalBox = 0;
 
-  sortedCusts.forEach(cust => {
+  sortedCusts.forEach((cust, custIdx) => {
     const items = grouped[cust];
     const custInfo = CUST_MAP[cust] || {};
     const grade = custInfo.grade || '';
+    const gKey = grade || 'X';
     const gbClass = grade ? 'gb-'+grade : 'gb-X';
     let custSack = 0, custBox = 0;
 
@@ -2870,7 +2873,7 @@ function renderPendingTable() {
       const qty = Number(o.qty)||0;
       if (isBox) custBox += qty; else custSack += qty;
       rows += `<tr class="${idx===0?'cust-sep':''}">
-        <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" onchange="updateBulkCount()"></td>
+        <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-group="${gKey}" data-sack="${!isBox?qty:0}" data-box="${isBox?qty:0}" onchange="updateBulkCount()"></td>
         <td style="font-size:11px;white-space:nowrap"><span id="pend-date-${o.row}">${getOrderDate(o)}</span></td>
         <td>${idx===0?`<span class="grade-badge ${gbClass}">${grade||'—'}</span>`:''}</td>
         <td class="td-left" style="font-weight:700;color:#1a3a5c">${idx===0?cust:''}</td>
@@ -2901,6 +2904,23 @@ function renderPendingTable() {
     </tr>`;
     totalSack += custSack;
     totalBox += custBox;
+
+    // 2026-07-25: แถวรวม "เลือกแล้วในกลุ่ม" — เฉพาะตอนเรียงตามกลุ่ม (pendingSort==='grade') เท่านั้น
+    // เพราะเรียงแบบอื่นลูกค้ากลุ่มเดียวกันจะไม่ได้อยู่ติดกัน ปิดท้ายกลุ่มเมื่อลูกค้าถัดไปเปลี่ยนกลุ่ม (หรือเป็นรายสุดท้าย)
+    // ยอดนับเฉพาะรายการที่ติ๊ก checkbox เท่านั้น (ไม่ใช่รวมทุกออเดอร์ในกลุ่ม) — คำนวณสดผ่าน updateGroupTotals()
+    if (pendingSort === 'grade') {
+      const nextCust = sortedCusts[custIdx + 1];
+      const nextGrade = nextCust ? ((CUST_MAP[nextCust]||{}).grade || '') : null;
+      if (nextGrade !== grade) {
+        const gc = GROUP_COLORS[gKey] || GROUP_COLORS.X;
+        rows += `<tr style="background:${gc.bg}">
+          <td colspan="6" style="text-align:right;font-weight:700;color:${gc.text};padding:8px 8px">เลือกแล้วในกลุ่ม ${grade||'—'}</td>
+          <td style="font-weight:700;color:${gc.text};text-align:center"><span id="grp-sel-sack-${gKey}">-</span></td>
+          <td style="font-weight:700;color:${gc.text};text-align:center"><span id="grp-sel-box-${gKey}">-</span></td>
+          <td colspan="6"></td>
+        </tr>`;
+      }
+    }
   });  // end sortedCusts.forEach
 
   rows += `<tr style="background:#1a3a5c;color:white">
@@ -2917,7 +2937,7 @@ function renderPendingTable() {
       <div style="padding:10px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#f8fbff;border-bottom:1px solid #e5e7eb">
         <span style="font-size:13px;font-weight:700;color:#1a3a5c">เรียงตาม:</span>
         ${sortBtn('ลูกค้า A-Z','customer')}
-        ${sortBtn('เกรด','grade')}
+        ${sortBtn('กลุ่ม','grade')}
         ${sortBtn('ความเร่งด่วน','urgency')}
         ${sortBtn('วันที่ล่าสุด','date')}
         <span style="margin-left:auto;font-size:12px;color:#555" id="bulkCount"></span>
@@ -2929,7 +2949,7 @@ function renderPendingTable() {
           <thead><tr>
             <th style="width:32px"><input type="checkbox" onchange="toggleAllPend(this)"></th>
             <th style="width:80px">วันที่สั่ง</th>
-            <th style="width:30px">เกรด</th>
+            <th style="width:30px">กลุ่ม</th>
             <th style="text-align:left;min-width:130px">ลูกค้า</th>
             <th style="text-align:left;min-width:150px">ชื่อสินค้า</th>
             <th style="width:90px">รหัส</th>
@@ -2946,6 +2966,7 @@ function renderPendingTable() {
         </table>
       </div>
     </div>`;
+  updateGroupTotals();
 }
 
 function toggleAllPend(cb) {
@@ -2958,6 +2979,7 @@ function updateBulkCount() {
   const btn = document.getElementById('bulkBtn');
   const dateBtn = document.getElementById('bulkDateBtn');
   const cnt = document.getElementById('bulkCount');
+  updateGroupTotals();
   if (!btn || !cnt) return;
   if (checked.length > 0) {
     btn.style.display = 'inline-block';
@@ -2968,6 +2990,27 @@ function updateBulkCount() {
     if (dateBtn) dateBtn.style.display = 'none';
     cnt.textContent = '';
   }
+}
+
+// 2026-07-25: คำนวณยอด "เลือกแล้วในกลุ่ม" สดจาก checkbox ที่ติ๊กจริง (ไม่ใช่รวมทุกออเดอร์ในกลุ่ม)
+// เพราะบางออเดอร์ในกลุ่มเดียวกันอาจไม่ได้ขึ้นรถเที่ยวนี้ (ลูกค้าขอเลื่อน/ของไม่พร้อม) — element ที่อ้างถึง
+// มีอยู่จริงเฉพาะตอน pendingSort==='grade' เท่านั้น (querySelector คืน null เฉยๆถ้าไม่มี ไม่ error)
+function updateGroupTotals() {
+  const groups = {};
+  document.querySelectorAll('.pend-chk').forEach(c => {
+    const g = c.getAttribute('data-group') || 'X';
+    if (!groups[g]) groups[g] = {sack:0, box:0};
+    if (c.checked) {
+      groups[g].sack += Number(c.getAttribute('data-sack'))||0;
+      groups[g].box += Number(c.getAttribute('data-box'))||0;
+    }
+  });
+  Object.keys(groups).forEach(g => {
+    const sEl = document.getElementById('grp-sel-sack-'+g);
+    const bEl = document.getElementById('grp-sel-box-'+g);
+    if (sEl) sEl.textContent = groups[g].sack || '-';
+    if (bEl) bEl.textContent = groups[g].box || '-';
+  });
 }
 
 // 2026-07-13: เปลี่ยนวันที่สั่งของหลายรายการที่เลือกไว้พร้อมกัน (bulk) — ใช้ API เดิม editOrder() ทีละรายการ
