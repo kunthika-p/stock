@@ -288,6 +288,14 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
         <p class="field-hint" id="hintNetPrice"></p>
       </div>
     </div>
+    <div class="field" id="fieldPlating" style="display:none">
+      <label>ชุบพิเศษ</label>
+      <select id="inputPlating" onchange="updateNetForPlating()">
+        <option value="">ไม่ชุบ</option>
+        <option value="ชุบขาว">ชุบขาว (+5 บาท/กก.)</option>
+        <option value="ชุบรุ้ง">ชุบรุ้ง (+5 บาท/กก.)</option>
+      </select>
+    </div>
     <div class="field">
       <label>หมายเหตุ (ถ้ามี)</label>
       <input type="text" id="inputItemNote" placeholder="">
@@ -478,6 +486,12 @@ let selectedName = '';
 let selectedType = '';
 let selectedItemUrgency = 'ปกติ';
 let selectedDelivery = 'หน้าร้าน';
+// 2026-07-29: ฟีเจอร์ชุบขาว/ชุบรุ้ง +5บาท/กก. เฉพาะลูกค้ากิ้มง้วนฟาสเทนเนอร์ (code 00205)
+// modalBaseNetPrice = ราคา Net "ก่อน" บวกค่าชุบเสมอ (ไม่ว่าจะมาจาก getPriceInfo หรือค่าที่เคยบันทึกไว้แล้วหักค่าชุบออก)
+// กันปัญหาบวกซ้ำซ้อนเวลาสลับตัวเลือกชุบไปมาในโมดัลเดียว
+const PLATING_CUSTOMER_CODE = '00205';
+const PLATING_SURCHARGE = 5;
+let modalBaseNetPrice = null;
 // จุดจัดส่งพิเศษของลูกค้า (นอกเหนือจากหน้าร้านซึ่งเป็นค่าเริ่มต้นเสมอ) — รองรับหลายจุดต่อลูกค้าในอนาคต
 const CUST_DELIVERY = {
   "04102": ["พระราม 2"],
@@ -916,8 +930,14 @@ function openModal(code, name, type) {
   fieldDisc.classList.remove('field-auto');
   fieldNet.classList.remove('field-auto');
 
+  // 2026-07-29: ชุบขาว/ชุบรุ้ง — โชว์เฉพาะลูกค้ากิ้มง้วนฟาสเทนเนอร์ รีเซ็ตทุกครั้งที่เปิดโมดัลเพิ่มรายการใหม่
+  document.getElementById('fieldPlating').style.display = customerCode === PLATING_CUSTOMER_CODE ? '' : 'none';
+  document.getElementById('inputPlating').value = '';
+  modalBaseNetPrice = null;
+
   if (customerCode) {
     const pi = getPriceInfo(customerCode, code, type);
+    modalBaseNetPrice = pi.net_price;
     if (pi.disc_pct !== null) {
       discInput.value = pi.disc_pct;
       hintDisc.textContent = 'ดึงอัตโนมัติ แก้ได้';
@@ -935,6 +955,14 @@ function openModal(code, name, type) {
   }
 
   document.getElementById('modalBg').classList.add('open');
+}
+
+// 2026-07-29: อัปเดตราคา Net ทันทีที่เลือก/เปลี่ยนตัวเลือกชุบขาว/ชุบรุ้ง — บวกจาก modalBaseNetPrice เสมอ
+// (ไม่บวกจากค่าที่โชว์อยู่ในช่อง กันปัญหาบวกซ้ำซ้อนเวลาสลับตัวเลือกไปมาหลายรอบ)
+function updateNetForPlating() {
+  if (modalBaseNetPrice === null || modalBaseNetPrice === undefined) return;
+  const platingVal = document.getElementById('inputPlating').value;
+  document.getElementById('inputNetPrice').value = modalBaseNetPrice + (platingVal ? PLATING_SURCHARGE : 0);
 }
 
 // เปิด modal เต็มเพื่อแก้ไขรายการที่มีอยู่แล้ว (ในตะกร้า หรือในประวัติที่รอส่ง Admin)
@@ -980,6 +1008,14 @@ function openItemModalFrom(item, mode) {
   hintNet.textContent = netInput.value !== '' ? 'แก้ไขได้' : '';
   fieldDisc.classList.remove('field-auto');
   fieldNet.classList.remove('field-auto');
+
+  // 2026-07-29: ชุบขาว/ชุบรุ้ง — prefill จากรายการเดิม, modalBaseNetPrice = ราคา Net ที่บันทึกไว้ "หักค่าชุบออก" แล้ว
+  // (เพราะ item.net_price ที่บันทึกไว้แล้วรวมค่าชุบ +5 เข้าไปตั้งแต่ตอนเพิ่มรายการ ถ้าตอนนั้นเลือกชุบไว้)
+  document.getElementById('fieldPlating').style.display = customerCode === PLATING_CUSTOMER_CODE ? '' : 'none';
+  document.getElementById('inputPlating').value = item.plating || '';
+  modalBaseNetPrice = (item.net_price !== null && item.net_price !== undefined)
+    ? (item.plating ? item.net_price - PLATING_SURCHARGE : item.net_price)
+    : null;
 
   document.getElementById('modalBg').classList.add('open');
 }
@@ -1107,6 +1143,9 @@ function addToCart() {
   const netVal = document.getElementById('inputNetPrice').value;
   const disc_pct = discVal !== '' ? parseFloat(discVal) : null;
   const net_price = netVal !== '' ? parseFloat(netVal) : null;
+  // 2026-07-29: ชุบขาว/ชุบรุ้ง — netVal ที่อ่านมาข้างบนรวมค่าชุบ +5 ไว้แล้วถ้ามี (updateNetForPlating() คำนวณสดตอนเลือก)
+  const platingEl = document.getElementById('inputPlating');
+  const plating = platingEl ? platingEl.value : '';
 
   // แก้ไขรายการในประวัติที่รอส่ง Admin (stagedOrders) — อัปเดตของเดิม ไม่สร้างรายการใหม่
   if (modalEditMode && modalEditMode.type === 'staged') {
@@ -1118,6 +1157,7 @@ function addToCart() {
       o.disc_pct = disc_pct;
       o.net_price = net_price;
       o.delivery = selectedDelivery;
+      o.plating = plating;
       // 2026-07-10: บันทึกผลเปลี่ยนขนาดถ้ามี (sizeChangeNewCode ต่างจากของเดิม)
       if (sizeChangeNewCode && sizeChangeNewCode !== sizeChangeOrigCode) {
         o.code = sizeChangeNewCode;
@@ -1144,6 +1184,7 @@ function addToCart() {
     c.disc_pct = disc_pct;
     c.net_price = net_price;
     c.delivery = selectedDelivery;
+    c.plating = plating;
     closeModalDirect();
     updateCartBar();
     renderCartItems();
@@ -1162,7 +1203,7 @@ function addToCart() {
     customer: customerName, code: selectedCode, name: fmtName(selectedName),
     qty, unit, urgency: selectedItemUrgency, note,
     date: new Date().toLocaleDateString('th-TH'),
-    disc_pct, net_price, delivery: selectedDelivery
+    disc_pct, net_price, delivery: selectedDelivery, plating
   });
   closeModalDirect();
   showToast('✅ เพิ่มใน ประวัติ แล้ว กรุณายืนยันก่อนส่ง Admin');
@@ -1303,7 +1344,7 @@ async function submitAllOrders() {
       qty: item.qty, unit: item.unit, urgency: item.urgency,
       note: item.note || note || '', date,
       disc_pct: item.disc_pct, net_price: item.net_price,
-      delivery: item.delivery || 'หน้าร้าน'
+      delivery: item.delivery || 'หน้าร้าน', plating: item.plating || ''
     });
   });
   cart = [];
@@ -1355,7 +1396,7 @@ function renderSalesHistory() {
         <td style="text-align:center;font-size:12px">${o.disc_pct!==null&&o.disc_pct!==undefined&&o.disc_pct!==''?o.disc_pct+'%':''}</td>
         <td style="text-align:center;font-size:12px">${o.net_price!==null&&o.net_price!==undefined?o.net_price:''}</td>
         <td style="text-align:center"><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
-        <td style="font-size:12px;color:#666">${o.note||''}</td>
+        <td style="font-size:12px;color:#666">${o.note||''}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
         <td>
           <div style="display:flex;gap:4px">
             <button onclick="salesEditOrder('${o.id}')" style="background:white;border:1.5px solid #d97706;color:#d97706;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✏️</button>
@@ -1441,7 +1482,7 @@ async function confirmAllToAdmin() {
         method: 'POST',
         body: JSON.stringify({ action:'newOrder', code:o.code, name:o.name,
           customer:o.customer, qty:o.qty, unit:o.unit, urgency:o.urgency, note:o.note, date:o.date,
-          disc_pct:o.disc_pct, net_price:o.net_price, delivery:o.delivery||'หน้าร้าน', batchId })
+          disc_pct:o.disc_pct, net_price:o.net_price, delivery:o.delivery||'หน้าร้าน', plating:o.plating||'', batchId })
       });
       const data = await res.json();
       if (data.error) throw new Error('สินค้า ' + o.code + ': ' + data.error);

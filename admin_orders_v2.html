@@ -1426,7 +1426,11 @@ function computeNetPrice(custName, itemCode) {
 // - ถ้า disc_pct ไม่ว่าง: ราคาตั้ง(จาก Excel, บาท/กก.หรือ/ตัว) x หน่วยบรรจุ x (1-disc_pct/100)
 // - หมวดที่ยังไม่มีข้อมูลราคา (Spring Washer/OVERSIZE) → return null (ไม่รวมในยอดขายบาท) — น็อตแข็ง/มิลแข็งทั่วไป (NOK_PRICE) และหัวน็อตมิลแข็งเกรด8 (4 ไซส์: M12/16/20/24) เพิ่มราคาแล้ว 07-13
 // อ้างอิงราคา+หน่วยบรรจุ: nokkilo_price_recheck.xlsx (07-09) + memory/MEMORY_น็อตกิโล.md
-function getRevenuePerUnit(type, col, row, discPct, netPrice) {
+function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
+  // 2026-07-29: ชุบขาว/ชุบรุ้ง +5บาท/กก. เฉพาะกิ้มง้วนฟาสเทนเนอร์ (code 00205) — user ยืนยัน "บวกตรงๆ" ไม่แปลงหน่วย
+  // หมวด NET (hasNet ด้านล่าง): ค่าชุบถูกบวกเข้า netPrice ไว้แล้วตั้งแต่ sales_grid_v2.html ตอนบันทึกออเดอร์ (ไม่บวกซ้ำที่นี่)
+  // หมวด %ส่วนลด (hasDisc ด้านล่าง): ราคาตั้งยังไม่ถูก resolve จนกว่าจะมาถึงฟังก์ชันนี้ — บวก surcharge*pack เข้าไปตรงจุด return ของแต่ละกิ่ง
+  const surcharge = (plating === 'ชุบขาว' || plating === 'ชุบรุ้ง') ? 5 : 0;
   let itemType = type;
   for (const [canonical, aliases] of Object.entries(MERGED_TYPES)) {
     if (aliases.includes(type)) { itemType = canonical; break; }
@@ -1521,11 +1525,11 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice) {
     const BW  = { '5/8 W': 57, '3/4 W': 58 };                                   // flat ทุกความยาว
     // 2026-07-13: "น็อตเหลี่ยม W ไม่ควบหัว" ใช้ราคาตั้งเดียวกับน็อตเหลี่ยม W แต่หัก 1 บาท/กก. ก่อน แล้วค่อยคูณ %ส่วนลด (user ยืนยัน)
     const noHeadAdj = itemType === 'น็อตเหลี่ยม W ไม่ควบหัว' ? 1 : 0;
-    if (BW[col] !== undefined) return (BW[col] - noHeadAdj) * 50 * factor;
+    if (BW[col] !== undefined) return (BW[col] - noHeadAdj) * 50 * factor + surcharge * 50;
     if (SW[col] === undefined) return null;
     const len = lenIn(row);
     const price = (len >= 1.25 && len <= 4) ? SW2[col] : SW[col];
-    return (price - noHeadAdj) * 50 * factor;
+    return (price - noHeadAdj) * 50 * factor + surcharge * 50;
   }
 
   if (itemType === 'สกรูมิลขาว') {
@@ -1547,7 +1551,7 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice) {
     const price = MW_PRICE[col] && MW_PRICE[col][rk];
     const pack = MW_PACK[col] && MW_PACK[col][rk];
     if (price === undefined || pack === undefined) return null;
-    return price * pack * factor;
+    return price * pack * factor + surcharge * pack;
   }
 
   if (itemType === 'น็อตเหลี่ยม NC' || itemType === 'น็อตเหลี่ยม NF') {
@@ -1558,7 +1562,7 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice) {
       const BIG = { '5/8 NC': [60, 62, 65], '3/4 NC': [61, 63, 66], '7/8 NC': [66, 66, 68], '1 NC': [66, 66, 68] };
       const price = BIG[col] ? BIG[col][band] : undefined;
       if (price === undefined) return null;
-      return price * 50 * factor;
+      return price * 50 * factor + surcharge * 50;
     }
     const SMALL_PRICE = {
       '1/4': { 0.5: 0.55, 0.625: 0.60, 0.75: 0.61, 1: 0.73, 1.25: 0.95, 1.5: 1.06, 2: 1.38, 2.5: 1.66, 3: 1.95, 3.5: 2.24, 4: 2.53 },
@@ -1581,7 +1585,7 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice) {
     const price = SMALL_PRICE[col] && SMALL_PRICE[col][rk];
     const pack = SMALL_PACK[col] && SMALL_PACK[col][rk];
     if (price === undefined || pack === undefined) return null;
-    return price * pack * factor;
+    return price * pack * factor + surcharge * pack;
   }
 
   // 2026-07-13: น็อตแข็ง (มิลแข็ง M6-M30 ตลอด/ครึ่ง + น็อตแข็งเกลียวมิล ตลอด/ครึ่ง) — ราคาต่อตัวตามขนาด(M)+ความยาว(มม.)
@@ -1595,14 +1599,14 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice) {
     const lenKey = String(Math.round(Number(row)));
     const entry = NOK_PRICE[sizeM[1]] && NOK_PRICE[sizeM[1]][lenKey];
     if (!entry) return null;
-    return entry[0] * entry[1] * factor;
+    return entry[0] * entry[1] * factor + surcharge * entry[1];
   }
 
   if (itemType === 'หัวน็อตเกลียว W') {
     const H_W = { '1/4': 74, '5/16': 71, '3/8': 68, '7/16': 67, '1/2': 66 };
     const base = String(row || '').split(' ')[0];
     if (H_W[base] === undefined) return null;
-    return H_W[base] * 50 * factor;
+    return H_W[base] * 50 * factor + surcharge * 50;
   }
 
   if (itemType === 'หัวน็อตมิล') {
@@ -1611,7 +1615,7 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice) {
     const H_MIL = { '6_10': 86, '8_12': 83, '8_13': 83, '10_14': 81, '10_17': 80, '12_17': 81, '12_19': 80, '14_22': 82 };
     const price = H_MIL[m[1] + '_' + m[2]];
     if (price === undefined) return null;
-    return price * 50 * factor;
+    return price * 50 * factor + surcharge * 50;
   }
 
   if (itemType === 'หัวน็อตเกลียวหยาบ NC' || itemType === 'หัวน็อตเกลียวหยาบ NF') {
@@ -1620,7 +1624,7 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice) {
     const NF = { '1/4': 89, '5/16': 87, '3/8': 86, '7/16': 85, '1/2': 85, '9/16': 87 };
     const tbl = itemType.slice(-2) === 'NF' ? NF : NC;
     if (tbl[base] === undefined) return null;
-    return tbl[base] * 50 * factor;
+    return tbl[base] * 50 * factor + surcharge * 50;
   }
 
   return null; // Spring Washer/OVERSIZE/ไม่รู้จัก — ยังไม่มีข้อมูลราคา ไม่รวมในยอดขายบาท (น็อตแข็ง/มิลแข็งทั่วไป ดู NOK_PRICE, หัวน็อตมิลแข็งเกรด8 ดู NET_PIECE_PACK grade8_* ด้านบน)
@@ -2895,7 +2899,7 @@ function renderPendingTable() {
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
         <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
         <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
-        <td style="font-size:11px;color:#666">${o._note}</td>
+        <td style="font-size:11px;color:#666">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
         <td>
           <div class="pend-actions">
             <button class="btn-confirm" onclick="confirmOrder(${o.row},'${o.code}',${qty})">✅</button>
@@ -3506,7 +3510,7 @@ function renderHistory() {
         <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
         <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td class="${o.status==='confirmed'?'status-done':'status-rejected'}">${o.status==='confirmed'?'✅ ยืนยัน':'❌ ปฏิเสธ'}</td>
-        <td style="font-size:11px;color:#666">${o._note}</td>
+        <td style="font-size:11px;color:#666">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
         <td style="text-align:center" class="hist-print-hide">${o.status==='confirmed'
           ? `<button class="btn-reject" title="ยกเลิกออเดอร์ + คืนสต็อค" onclick="voidConfirmedOrderFromHistory(${o.row},'${(fmtName(o.name||o.code)||'').replace(/'/g,"\\'")}',${qty},'${isBox?'กล่อง':'กระสอบ'}')">↩️</button>`
           : ''}</td>
@@ -3690,7 +3694,7 @@ function renderSummary() {
         <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
         <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td>✅ ยืนยัน</td>
-        <td style="font-size:11px;color:#555">${o._note}</td>
+        <td style="font-size:11px;color:#555">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
       </tr>`;
     });
     html += `<tr class="summary-row">
@@ -4279,7 +4283,7 @@ function anAggregate(from, to) {
     const code = String(o.code||'').padStart(8,'0');
     const item = anItemMap[code];
     const qty = Number(o.qty)||0;
-    const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price) : null;
+    const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price, o.plating) : null;
     if (perUnit === null) return;
     const amt = perUnit * qty;
     const t = anDType(anCtMap[code]);
@@ -4619,7 +4623,7 @@ function anBuildKpiCal() {
     const code = String(o.code||'').padStart(8,'0');
     const item = anItemMap[code];
     const qty = Number(o.qty)||0;
-    const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price) : null;
+    const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price, o.plating) : null;
     if (perUnit === null) { excludedLines++; excludedQty += qty; return; }
     const amt = perUnit * qty;
     const dY=d.getFullYear(), dM=d.getMonth(), dd=d.getDate();
@@ -4701,7 +4705,7 @@ function anBuildStackChart() {
       const code = String(o.code||'').padStart(8,'0');
       const item = anItemMap[code];
       const qty = Number(o.qty)||0;
-      const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price) : null;
+      const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price, o.plating) : null;
       if (perUnit === null) return;
       const amt = perUnit * qty;
       const t = anDType(anCtMap[code]);
@@ -4734,7 +4738,7 @@ function anBuildStackChart() {
       const code = String(o.code||'').padStart(8,'0');
       const item = anItemMap[code];
       const qty = Number(o.qty)||0;
-      const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price) : null;
+      const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price, o.plating) : null;
       if (perUnit === null) return;
       const amt = perUnit * qty;
       const t = anDType(anCtMap[code]);
