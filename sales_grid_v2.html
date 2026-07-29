@@ -1676,7 +1676,7 @@ function renderTracking() {
         <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;color:#333">${urgLbl[o._urgency]||o._urgency||'ปกติ'}</span></td>
         <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td><span style="background:${statBg[o.status]||'#f3f4f6'};color:${statTxt[o.status]||'#555'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${statLbl[o.status]||o.status||''}</span></td>
-        <td style="font-size:11px;color:#666">${o._note||''}</td>
+        <td style="font-size:11px;color:#666">${o._note||''}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
       </tr>`;
     });
   });
