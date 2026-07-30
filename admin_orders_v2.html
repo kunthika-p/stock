@@ -86,6 +86,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .pend-tbl tr.cust-sep td{border-top:2px solid #2563a8}
 .pend-tbl tr:hover td{background:#f8fbff}
 .pend-tbl tr.pend-total-row:hover td{background:transparent}
+.pend-tbl tr.today-row:hover td{background:#E1F5EE}
 .pend-actions{display:flex;gap:5px;justify-content:center}
 .grade-badge{display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;font-size:12px;font-weight:700;text-align:center}
 .gb-A{background:#d1fae5;color:#065f46}.gb-B{background:#dbeafe;color:#1e40af}
@@ -2810,6 +2811,11 @@ function renderPendingTable() {
   const orders = pendingOrders;
   if (!orders.length) return;
 
+  // 2026-07-30: ไฮไลท์แถวออเดอร์ของ "วันนี้" ให้ user ดูออกง่ายๆด้วยสายตาว่าอันไหนแอดวันนี้ vs ค้างเก่า
+  // ใช้ local getters (เหมือน orderDateToInputISO()) ไม่ใช้ toISOString() กัน timezone เพี้ยนวันข้ามคืน
+  const _todayD = new Date();
+  const todayISO = _todayD.getFullYear() + '-' + String(_todayD.getMonth()+1).padStart(2,'0') + '-' + String(_todayD.getDate()).padStart(2,'0');
+
   // ติด _unit ให้แต่ละ order
   orders.forEach(o => {
     const _si = allItems.find(x => x.code === o.code);
@@ -2891,7 +2897,11 @@ function renderPendingTable() {
       const isBox = o._unit === 'กล่อง';
       const qty = Number(o.qty)||0;
       if (isBox) custBox += qty; else custSack += qty;
-      rows += `<tr class="${idx===0?'cust-sep':''}" style="${hideStyle}">
+      // 2026-07-30: เทียบวันที่ออเดอร์กับวันนี้ — ตรงกันแปลว่าแอดวันนี้ ให้พื้นหลังทั้งแถวเป็นเขียวอ่อน (ตัวเลือก C จาก mockup ที่ user เลือก)
+      const isToday = orderDateToInputISO(o.timestamp || o.date) === todayISO;
+      const rowStyle = hideStyle + (isToday ? ';background:#E1F5EE' : '');
+      const rowClass = (idx===0?'cust-sep ':'') + (isToday?'today-row':'');
+      rows += `<tr class="${rowClass}" style="${rowStyle}">
         <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-group="${gKey}" data-sack="${!isBox?qty:0}" data-box="${isBox?qty:0}" onchange="updateBulkCount()"></td>
         <td style="font-size:11px;white-space:nowrap"><span id="pend-date-${o.row}">${getOrderDate(o)}</span></td>
         <td>${idx===0?`<span class="grade-badge ${gbClass}">${grade||'—'}</span>`:''}</td>
