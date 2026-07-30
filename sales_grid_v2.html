@@ -128,7 +128,6 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .sum-tbl .td-cust{font-weight:700;color:#1a3a5c;text-align:left}
 .sum-tbl .td-name{text-align:left;color:#374151}
 .sum-tbl tr:hover td{background:#f8fbff}
-.sum-tbl tr.recent-row:hover td{background:#E1F5EE}
 .sum-tbl tr.summary-row td{background:#1a3a5c;color:white;font-weight:700;border:1px solid #0f2844}
 .sum-tbl tr.summary-row:hover td{background:#1a3a5c}
 </style>
@@ -1576,13 +1575,6 @@ function renderTracking() {
     let yr = dt.getFullYear(); if (yr > 2100) yr -= 543;
     return yr + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
   };
-  // 2026-07-30: ไฮไลท์แถวออเดอร์วันนี้/เมื่อวาน (ตามที่ user ขอ ต่างจากฝั่ง admin ที่ไฮไลท์แค่วันนี้วันเดียว)
-  // ใช้ local getters เหมือน toISOLocal() กันปัญหา timezone เที่ยงคืนแบบเดียวกับที่เคยแก้ไปแล้วในฟังก์ชันนี้
-  const _todayD = new Date();
-  const todayISO = _todayD.getFullYear() + '-' + String(_todayD.getMonth()+1).padStart(2,'0') + '-' + String(_todayD.getDate()).padStart(2,'0');
-  const _yestD = new Date(_todayD); _yestD.setDate(_yestD.getDate()-1);
-  const yesterdayISO = _yestD.getFullYear() + '-' + String(_yestD.getMonth()+1).padStart(2,'0') + '-' + String(_yestD.getDate()).padStart(2,'0');
-
   let rows = trackingData.filter(o => {
     const cust = CUST_NAME_MAP[o.customer] || o.customer || '(ไม่ระบุ)';
     if (custFilter && cust !== custFilter) return false;
@@ -1610,23 +1602,35 @@ function renderTracking() {
     }
   });
 
-  // 2026-07-30: user ขอให้เรียงตามวันที่สั่งอย่างเดียว ล่าสุดอยู่บนสุด (ตัด sort ตามสถานะ pending ก่อน ออก)
-  // เดิม sort ตาม status priority ก่อน แล้วค่อยเทียบวันที่ด้วย string localeCompare ตรงๆ (ผิด เพราะ "3/7/2569" vs
-  // "16/7/2569" เทียบ lexicographic ตัวอักษร "1" มาก่อน "3" ทำให้เรียงมั่ว) — ใช้ toISOLocal() ตัวเดิมในฟังก์ชันนี้
-  // แปลงเป็น ISO yyyy-mm-dd ก่อนเทียบ เรียงถูกต้องตามลำดับเวลาจริงแล้ว
-  rows.sort((a,b) => {
-    const da = toISOLocal(a.timestamp || a.date || '');
-    const db = toISOLocal(b.timestamp || b.date || '');
-    return db.localeCompare(da);
-  });
+  // จัดกลุ่มใหม่ (07-30 รอบ 17): วันนี้ที่ยืนยันแล้วก่อน (เขียว) -> รอยืนยันทุกวันที่ (เหลือง) -> วันก่อนหน้าที่ยืนยันแล้ว ไล่ย้อนหลัง (ขาว)
+  // เดิม: sort ตาม status (pending ก่อนเสมอ) แล้ว group by ลูกค้าล้วนๆ — ทำให้ลูกค้าคนแรกที่มีออเดอร์ล่าสุด ดึงประวัติเก่าทั้งหมดของตัวเองมาโชว์รวดเดียว
+  // บังออเดอร์ "วันนี้" ของลูกค้าคนอื่นที่ไม่ใช่คนแรกให้ลงไปอยู่ท้ายตาราง (user ทักว่าไม่ใช่สิ่งที่ต้องการ)
+  // แก้ตาม spec ที่ user ยืนยันผ่าน mockup หลายรอบ: จัดกลุ่มตามวันที่เป็นหลักก่อน (รวมทุกลูกค้าของวันนั้นให้ครบก่อนไปวันถัดไป) โดยรอยืนยันคั่นกลางระหว่างวันนี้กับวันก่อนหน้า
+  // ภายในแต่ละช่วงจัดกลุ่มตามวันที่ก่อน แล้วรวมรายการของลูกค้าคนเดียวกันในวันนั้นไว้ด้วยกัน (ลูกค้าที่สั่งหลายวันจะโผล่ซ้ำได้คนละวัน — user ยอมรับ tradeoff นี้แล้ว)
+  const dateKey = o => toISOLocal(o.timestamp||o.date||'');
+  const now = new Date();
+  const todayISO = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
 
-  // group by customer
-  const grouped = {};
-  rows.forEach(o => {
-    const c = CUST_NAME_MAP[o.customer] || o.customer || '(ไม่ระบุ)';
-    if (!grouped[c]) grouped[c] = [];
-    grouped[c].push(o);
-  });
+  const pendingRows = rows.filter(o => o.status === 'pending');
+  const otherRows   = rows.filter(o => o.status !== 'pending');
+  const sortByDateDesc = (a,b) => dateKey(b).localeCompare(dateKey(a));
+  pendingRows.sort(sortByDateDesc);
+  otherRows.sort(sortByDateDesc);
+  const todayRows = otherRows.filter(o => dateKey(o) === todayISO);
+  const olderRows  = otherRows.filter(o => dateKey(o) !== todayISO);
+
+  // จัดกลุ่มรายการในแต่ละช่วง: วันที่ (เรียงจากล่าสุดไปเก่าตามที่ sort ไว้แล้ว) -> ลูกค้า (รวมทุกรายการของลูกค้าคนนั้นในวันเดียวกันไว้ด้วยกัน)
+  const groupByDateThenCust = list => {
+    const dateOrder = []; const dateMap = {};
+    list.forEach(o => {
+      const d = dateKey(o);
+      if (!dateMap[d]) { dateMap[d] = { custOrder: [], custMap: {} }; dateOrder.push(d); }
+      const c = CUST_NAME_MAP[o.customer] || o.customer || '(ไม่ระบุ)';
+      if (!dateMap[d].custMap[c]) { dateMap[d].custMap[c] = []; dateMap[d].custOrder.push(c); }
+      dateMap[d].custMap[c].push(o);
+    });
+    return dateOrder.map(d => ({ date: d, groups: dateMap[d].custOrder.map(c => ({ cust: c, orders: dateMap[d].custMap[c] })) }));
+  };
 
   const fmtDate = d => {
     if (!d) return '—';
@@ -1655,30 +1659,28 @@ function renderTracking() {
     <th style="text-align:left">หมายเหตุ</th>
   </tr></thead><tbody>`;
 
-  Object.entries(grouped).forEach(([cust, orders]) => {
-    const custCode = CUSTOMERS.find(c => c.name === cust)?.code || '';
-    orders.forEach((o, idx) => {
-      const si = allItems.find(x => x.code === o.code);
-      const isBox = si ? getUnit(resolveType(si)) === 'กล่อง' : (o.unit === 'กล่อง');
-      const qty = Number(o.qty) || 0;
-      const isPending = o.status === 'pending';
-      // 2026-07-30: ไม่ทับสีเหลือง pending เดิม (สื่อว่าต้องรอดำเนินการ สำคัญกว่า) — ไฮไลท์เขียวเฉพาะแถวที่ไม่ pending และวันที่ตรงวันนี้/เมื่อวาน
-      const _od = toISOLocal(o.timestamp||o.date||'');
-      const isRecent = !isPending && (_od === todayISO || _od === yesterdayISO);
-      const rowStyle = isPending ? 'background:#fffbeb' : (isRecent ? 'background:#E1F5EE' : '');
-      const urgBg = urgBgMap[o._urgency] || '#f3f4f6';
-      // 2026-07-21: เดิม priority สลับกัน — เอาราคา "ปัจจุบันของลูกค้า" (pi, re-derive จาก getPriceInfo) มาก่อนราคาจริงที่บันทึกไว้ในออเดอร์ (o.net_price/o.disc_pct)
-      // ทำให้หน้า "ติดตามออเดอร์" โชว์ราคาผิดทุกครั้งที่ sale พิมพ์ราคาต่างจากราคา default ของลูกค้า (เจอเคสจริง: กรอก 26 แต่หน้านี้โชว์ 32)
-      // แก้ให้ใช้ค่าจริงที่บันทึกในออเดอร์ก่อนเสมอ (o.*) ใช้ pi (ราคาที่ควรจะเป็น) แค่ตอนออเดอร์ไม่มีราคาบันทึกไว้เลยเท่านั้น
-      const hasODisc = o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined;
-      const hasONet  = o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined;
-      const pi = (hasODisc || hasONet) ? {disc_pct:null,net_price:null} : getPriceInfo(custCode, o.code, '');
-      const discVal = hasODisc ? o.disc_pct : (pi.disc_pct !== null ? pi.disc_pct : '');
-      const netVal  = hasONet ? o.net_price : (pi.net_price !== null ? pi.net_price : '');
-      const rowClass = (idx===0?'group-sep ':'') + (isRecent?'recent-row':'');
-      html += `<tr style="${rowStyle}" class="${rowClass}">
-        <td style="font-size:11px;white-space:nowrap">${fmtDate(o.timestamp||o.date)}</td>
-        <td class="td-cust">${idx===0?cust:''}</td>
+  const renderTrackingSection = (dateGroups, sectionBg) => {
+    dateGroups.forEach(dg => {
+      dg.groups.forEach((grp, custIdx) => {
+        const custCode = CUSTOMERS.find(c => c.name === grp.cust)?.code || '';
+        grp.orders.forEach((o, idx) => {
+          const si = allItems.find(x => x.code === o.code);
+          const isBox = si ? getUnit(resolveType(si)) === 'กล่อง' : (o.unit === 'กล่อง');
+          const qty = Number(o.qty) || 0;
+          const isPending = o.status === 'pending';
+          const rowStyle = isPending ? 'background:#fffbeb' : (sectionBg || '');
+          const urgBg = urgBgMap[o._urgency] || '#f3f4f6';
+          // 2026-07-21: เดิม priority สลับกัน — เอาราคา "ปัจจุบันของลูกค้า" (pi, re-derive จาก getPriceInfo) มาก่อนราคาจริงที่บันทึกไว้ในออเดอร์ (o.net_price/o.disc_pct)
+          // ทำให้หน้า "ติดตามออเดอร์" โชว์ราคาผิดทุกครั้งที่ sale พิมพ์ราคาต่างจากราคา default ของลูกค้า (เจอเคสจริง: กรอก 26 แต่หน้านี้โชว์ 32)
+          // แก้ให้ใช้ค่าจริงที่บันทึกในออเดอร์ก่อนเสมอ (o.*) ใช้ pi (ราคาที่ควรจะเป็น) แค่ตอนออเดอร์ไม่มีราคาบันทึกไว้เลยเท่านั้น
+          const hasODisc = o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined;
+          const hasONet  = o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined;
+          const pi = (hasODisc || hasONet) ? {disc_pct:null,net_price:null} : getPriceInfo(custCode, o.code, '');
+          const discVal = hasODisc ? o.disc_pct : (pi.disc_pct !== null ? pi.disc_pct : '');
+          const netVal  = hasONet ? o.net_price : (pi.net_price !== null ? pi.net_price : '');
+          html += `<tr style="${rowStyle}">
+        <td style="font-size:11px;white-space:nowrap">${(custIdx===0&&idx===0)?fmtDate(o.timestamp||o.date):''}</td>
+        <td class="td-cust">${idx===0?grp.cust:''}</td>
         <td class="td-name">${fmtName(o.name||o.code)}</td>
         <td style="font-family:monospace;font-size:11px">${o.code||''}</td>
         <td>${!isBox?qty:''}</td>
@@ -1690,8 +1692,15 @@ function renderTracking() {
         <td><span style="background:${statBg[o.status]||'#f3f4f6'};color:${statTxt[o.status]||'#555'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${statLbl[o.status]||o.status||''}</span></td>
         <td style="font-size:11px;color:#666">${o._note||''}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
       </tr>`;
+        });
+      });
     });
-  });
+  };
+
+  renderTrackingSection(groupByDateThenCust(todayRows), '#d1fae5');
+  renderTrackingSection(groupByDateThenCust(pendingRows), '#fffbeb');
+  renderTrackingSection(groupByDateThenCust(olderRows), '');
+
   html += '</tbody></table>';
   bodyEl.innerHTML = html;
   statEl.textContent = rows.length + ' รายการ';
