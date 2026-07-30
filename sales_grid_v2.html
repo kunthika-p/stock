@@ -1610,12 +1610,14 @@ function renderTracking() {
     }
   });
 
-  // sort: pending ขึ้นก่อน → date ล่าสุด
-  const sPrio = {pending:0, confirmed:1, rejected:2};
+  // 2026-07-30: user ขอให้เรียงตามวันที่สั่งอย่างเดียว ล่าสุดอยู่บนสุด (ตัด sort ตามสถานะ pending ก่อน ออก)
+  // เดิม sort ตาม status priority ก่อน แล้วค่อยเทียบวันที่ด้วย string localeCompare ตรงๆ (ผิด เพราะ "3/7/2569" vs
+  // "16/7/2569" เทียบ lexicographic ตัวอักษร "1" มาก่อน "3" ทำให้เรียงมั่ว) — ใช้ toISOLocal() ตัวเดิมในฟังก์ชันนี้
+  // แปลงเป็น ISO yyyy-mm-dd ก่อนเทียบ เรียงถูกต้องตามลำดับเวลาจริงแล้ว
   rows.sort((a,b) => {
-    const p = (sPrio[a.status]??1) - (sPrio[b.status]??1);
-    if (p !== 0) return p;
-    return String(b.date||b.timestamp||'').localeCompare(String(a.date||a.timestamp||''));
+    const da = toISOLocal(a.timestamp || a.date || '');
+    const db = toISOLocal(b.timestamp || b.date || '');
+    return db.localeCompare(da);
   });
 
   // group by customer

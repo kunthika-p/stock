@@ -86,7 +86,7 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .pend-tbl tr.cust-sep td{border-top:2px solid #2563a8}
 .pend-tbl tr:hover td{background:#f8fbff}
 .pend-tbl tr.pend-total-row:hover td{background:transparent}
-.pend-tbl tr.today-row:hover td{background:#E1F5EE}
+.pend-tbl tr.today-row:hover td{background:#fffbeb}
 .pend-actions{display:flex;gap:5px;justify-content:center}
 .grade-badge{display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;font-size:12px;font-weight:700;text-align:center}
 .gb-A{background:#d1fae5;color:#065f46}.gb-B{background:#dbeafe;color:#1e40af}
@@ -2920,9 +2920,10 @@ function renderPendingTable() {
       const isBox = o._unit === 'กล่อง';
       const qty = Number(o.qty)||0;
       if (isBox) custBox += qty; else custSack += qty;
-      // 2026-07-30: เทียบวันที่ออเดอร์กับวันนี้ — ตรงกันแปลว่าแอดวันนี้ ให้พื้นหลังทั้งแถวเป็นเขียวอ่อน (ตัวเลือก C จาก mockup ที่ user เลือก)
+      // 2026-07-30: เทียบวันที่ออเดอร์กับวันนี้ — ตรงกันแปลว่าแอดวันนี้ ให้พื้นหลังทั้งแถวเป็นสีเหลืองอ่อน
+      // (เดิมเขียว #E1F5EE เปลี่ยนเป็นเหลือง #fffbeb ให้ตรงกับสีที่ใช้ฝั่ง sale ตามที่ user ขอ)
       const isToday = orderDateToInputISO(o.timestamp || o.date) === todayISO;
-      const rowStyle = hideStyle + (isToday ? ';background:#E1F5EE' : '');
+      const rowStyle = hideStyle + (isToday ? ';background:#fffbeb' : '');
       const rowClass = (idx===0?'cust-sep ':'') + (isToday?'today-row':'');
       rows += `<tr class="${rowClass}" style="${rowStyle}">
         <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-group="${gKey}" data-sack="${!isBox?qty:0}" data-box="${isBox?qty:0}" onchange="updateBulkCount()"></td>
