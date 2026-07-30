@@ -128,6 +128,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .sum-tbl .td-cust{font-weight:700;color:#1a3a5c;text-align:left}
 .sum-tbl .td-name{text-align:left;color:#374151}
 .sum-tbl tr:hover td{background:#f8fbff}
+.sum-tbl tr.recent-row:hover td{background:#E1F5EE}
 .sum-tbl tr.summary-row td{background:#1a3a5c;color:white;font-weight:700;border:1px solid #0f2844}
 .sum-tbl tr.summary-row:hover td{background:#1a3a5c}
 </style>
@@ -1575,6 +1576,13 @@ function renderTracking() {
     let yr = dt.getFullYear(); if (yr > 2100) yr -= 543;
     return yr + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
   };
+  // 2026-07-30: ไฮไลท์แถวออเดอร์วันนี้/เมื่อวาน (ตามที่ user ขอ ต่างจากฝั่ง admin ที่ไฮไลท์แค่วันนี้วันเดียว)
+  // ใช้ local getters เหมือน toISOLocal() กันปัญหา timezone เที่ยงคืนแบบเดียวกับที่เคยแก้ไปแล้วในฟังก์ชันนี้
+  const _todayD = new Date();
+  const todayISO = _todayD.getFullYear() + '-' + String(_todayD.getMonth()+1).padStart(2,'0') + '-' + String(_todayD.getDate()).padStart(2,'0');
+  const _yestD = new Date(_todayD); _yestD.setDate(_yestD.getDate()-1);
+  const yesterdayISO = _yestD.getFullYear() + '-' + String(_yestD.getMonth()+1).padStart(2,'0') + '-' + String(_yestD.getDate()).padStart(2,'0');
+
   let rows = trackingData.filter(o => {
     const cust = CUST_NAME_MAP[o.customer] || o.customer || '(ไม่ระบุ)';
     if (custFilter && cust !== custFilter) return false;
@@ -1652,7 +1660,10 @@ function renderTracking() {
       const isBox = si ? getUnit(resolveType(si)) === 'กล่อง' : (o.unit === 'กล่อง');
       const qty = Number(o.qty) || 0;
       const isPending = o.status === 'pending';
-      const rowStyle = isPending ? 'background:#fffbeb' : '';
+      // 2026-07-30: ไม่ทับสีเหลือง pending เดิม (สื่อว่าต้องรอดำเนินการ สำคัญกว่า) — ไฮไลท์เขียวเฉพาะแถวที่ไม่ pending และวันที่ตรงวันนี้/เมื่อวาน
+      const _od = toISOLocal(o.timestamp||o.date||'');
+      const isRecent = !isPending && (_od === todayISO || _od === yesterdayISO);
+      const rowStyle = isPending ? 'background:#fffbeb' : (isRecent ? 'background:#E1F5EE' : '');
       const urgBg = urgBgMap[o._urgency] || '#f3f4f6';
       // 2026-07-21: เดิม priority สลับกัน — เอาราคา "ปัจจุบันของลูกค้า" (pi, re-derive จาก getPriceInfo) มาก่อนราคาจริงที่บันทึกไว้ในออเดอร์ (o.net_price/o.disc_pct)
       // ทำให้หน้า "ติดตามออเดอร์" โชว์ราคาผิดทุกครั้งที่ sale พิมพ์ราคาต่างจากราคา default ของลูกค้า (เจอเคสจริง: กรอก 26 แต่หน้านี้โชว์ 32)
@@ -1662,7 +1673,8 @@ function renderTracking() {
       const pi = (hasODisc || hasONet) ? {disc_pct:null,net_price:null} : getPriceInfo(custCode, o.code, '');
       const discVal = hasODisc ? o.disc_pct : (pi.disc_pct !== null ? pi.disc_pct : '');
       const netVal  = hasONet ? o.net_price : (pi.net_price !== null ? pi.net_price : '');
-      html += `<tr style="${rowStyle}" class="${idx===0?'group-sep':''}">
+      const rowClass = (idx===0?'group-sep ':'') + (isRecent?'recent-row':'');
+      html += `<tr style="${rowStyle}" class="${rowClass}">
         <td style="font-size:11px;white-space:nowrap">${fmtDate(o.timestamp||o.date)}</td>
         <td class="td-cust">${idx===0?cust:''}</td>
         <td class="td-name">${fmtName(o.name||o.code)}</td>

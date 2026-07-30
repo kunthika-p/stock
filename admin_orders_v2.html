@@ -885,6 +885,11 @@ table.list tr:hover td{background:#f8fbff}
       <div class="sum-filter-row sum-print-hide">
         <label>ลูกค้า:</label>
         <select id="sum-cust-filter"><option value="">ทั้งหมด</option></select>
+        <label>กรองตาม:</label>
+        <span id="sum-date-mode-wrap" style="display:inline-flex;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden">
+          <button type="button" id="sum-mode-ordered" onclick="setSummaryDateMode('ordered')" style="padding:5px 10px;border:none;font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer">วันที่สั่ง</button>
+          <button type="button" id="sum-mode-confirmed" onclick="setSummaryDateMode('confirmed')" style="padding:5px 10px;border:none;font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer">วันที่ยืนยัน</button>
+        </span>
         <label>จาก:</label>
         <input type="date" id="sum-date-from">
         <label>ถึง:</label>
@@ -3581,8 +3586,24 @@ function clearWarnToast() {
 
 // ── สรุปออเดอร์ ────────────────────────────────────────────────────
 let summaryData = [];
+// 2026-07-30: โหมดกรองวันที่ในหน้าสรุปออเดอร์ — 'confirmed' (ค่าเริ่มต้น) = กรองตาม "วันที่ยืนยัน" (confirmed_date)
+// 'ordered' = กรองตาม "วันที่สั่ง" (date) แบบเดิม — ที่มา: ออเดอร์อาจสั่งคนละวันแต่มายืนยันพร้อมกันวันเดียวเพื่อพิมพ์ invoice
+// ส่งของรวมกัน กรองตามวันที่สั่งแบบเดิมจะไม่เจอครบทุกแถว ต้อง default เป็น confirmed ให้ตรงกับการใช้งานจริงตอนพิมพ์
+let summaryDateMode = 'confirmed';
+
+function setSummaryDateMode(mode) {
+  summaryDateMode = mode;
+  const ob = document.getElementById('sum-mode-ordered');
+  const cb = document.getElementById('sum-mode-confirmed');
+  ob.style.background = mode==='ordered' ? '#1a3a5c' : 'white';
+  ob.style.color = mode==='ordered' ? 'white' : '#555';
+  cb.style.background = mode==='confirmed' ? '#1a3a5c' : 'white';
+  cb.style.color = mode==='confirmed' ? 'white' : '#555';
+  if (summaryData.length) renderSummary();
+}
 
 function initSummaryTab() {
+  setSummaryDateMode(summaryDateMode);
   if (!summaryData.length) loadSummary();
   else renderSummary();
 }
@@ -3625,7 +3646,11 @@ function renderSummary() {
     // เดิมมีโค้ด parse วันที่แยกเขียนเองตรงนี้ ตัด ISO string ด้วย split('T')[0] ตรงๆ ไม่ปรับ timezone
     // ทำให้ order ที่ timestamp ตกช่วงเที่ยงคืน-ตี 7 (เวลาไทย) คำนวณวันที่กรองผิดไปวันก่อนหน้า 1 วัน
     // (ทั้งที่วันที่ที่โชว์ในตารางถูกต้อง) — แก้โดย unify ให้ใช้ฟังก์ชันเดียวกับฝั่งโชว์ผล
-    const d = orderDateToInputISO(o.timestamp || o.date);
+    // 2026-07-30: กรองตาม o.confirmed_date แทน o.date เมื่อเลือกโหมด "วันที่ยืนยัน" (ค่าเริ่มต้น)
+    // ออเดอร์เก่าก่อนมีฟีเจอร์นี้จะไม่มี confirmed_date (ค่าว่าง) — กรองแบบนี้จะไม่เจอ ต้องสลับไปโหมด "วันที่สั่ง" แทนถ้าจะหาออเดอร์เก่า
+    const d = summaryDateMode === 'confirmed'
+      ? orderDateToInputISO(o.confirmed_date)
+      : orderDateToInputISO(o.timestamp || o.date);
     if (dateFrom && d < dateFrom) return false;
     if (dateTo   && d > dateTo)   return false;
     return true;
@@ -3664,9 +3689,11 @@ function renderSummary() {
   const printTime = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
 
   // print header (hidden on screen)
+  // 2026-07-30: บอกโหมดกรองวันที่ในหัวใบพิมพ์ด้วย กันสับสนว่าช่วงวันที่นี้คือ "สั่ง" หรือ "ยืนยัน"
+  const dateModeLabel = summaryDateMode === 'confirmed' ? 'วันที่ยืนยัน' : 'วันที่สั่ง';
   html += `<div class="sum-print-title" id="sum-print-hdr">
     <div style="display:flex;justify-content:space-between;align-items:baseline">
-      <span class="phdr-title">ใบสรุปออเดอร์${dateFrom||dateTo?' &nbsp;·&nbsp; '+(dateFrom||'')+(dateTo?' – '+dateTo:''):''}</span>
+      <span class="phdr-title">ใบสรุปออเดอร์${dateFrom||dateTo?' &nbsp;·&nbsp; '+dateModeLabel+' '+(dateFrom||'')+(dateTo?' – '+dateTo:''):''}</span>
       <span class="phdr-sub">พิมพ์: ${printDate} ${printTime} &nbsp;·&nbsp; ${Object.keys(grouped).length} ลูกค้า · ${rows.length} รายการ</span>
     </div>
   </div>`;
