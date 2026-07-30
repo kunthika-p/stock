@@ -2915,7 +2915,7 @@ function renderPendingTable() {
     });
 
     rows += `<tr style="background:#f0f5ff;${hideStyle}">
-      <td colspan="6" style="text-align:right;font-size:11px;color:#555">รวม ${cust}</td>
+      <td colspan="6" style="text-align:right;font-size:11px;font-weight:700;color:#1a3a5c">รวม ${cust}</td>
       <td style="font-weight:700;color:#1a3a5c">${custSack||'-'}</td>
       <td style="font-weight:700;color:#7c3aed">${custBox||'-'}</td>
       <td colspan="6"></td>
@@ -2956,10 +2956,11 @@ function renderPendingTable() {
 
   // 2026-07-25: แถวรวม "รถเที่ยวนี้" — เหมือน "รวมทั้งหมด (ที่แสดงอยู่)" ด้านบนตรงที่ตัดกลุ่มที่ปิดออกเหมือนกัน
   // แต่ต่างตรงนับเฉพาะรายการที่ติ๊ก checkbox เท่านั้น (ไม่ใช่รวมทุกออเดอร์ที่แสดง) — เรนเดอร์เสมอไม่ผูกกับ pendingSort
-  rows += `<tr style="background:#0f2844;color:white">
-    <td colspan="6" style="text-align:right;font-weight:700;font-size:12px;padding:6px 8px">รวมรถเที่ยวนี้ (กลุ่มที่เปิดอยู่)</td>
-    <td style="font-weight:700;text-align:center"><span id="route-total-sack">-</span></td>
-    <td style="font-weight:700;text-align:center"><span id="route-total-box">-</span></td>
+  // 2026-07-30: เปลี่ยนเป็นสีส้มเข้มเดียวกับแถว "เลือกแล้วในกลุ่ม X" ตามที่ user ขอเพิ่ม (ให้เข้าชุดสีเดียวกัน เด่นเหมือนกัน)
+  rows += `<tr style="background:#FAC775">
+    <td colspan="6" style="text-align:right;font-weight:700;font-size:12px;color:#412402;padding:6px 8px">รวมรถเที่ยวนี้ (กลุ่มที่เปิดอยู่)</td>
+    <td style="font-weight:700;color:#412402;text-align:center"><span id="route-total-sack">-</span></td>
+    <td style="font-weight:700;color:#412402;text-align:center"><span id="route-total-box">-</span></td>
     <td colspan="6"></td>
   </tr>`;
 
