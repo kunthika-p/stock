@@ -2935,11 +2935,12 @@ function renderPendingTable() {
       const nextCust = sortedCusts[custIdx + 1];
       const nextGrade = nextCust ? ((CUST_MAP[nextCust]||{}).grade || '') : null;
       if (nextGrade !== grade) {
-        const gc = GROUP_COLORS[gKey] || GROUP_COLORS.X;
-        rows += `<tr style="background:${gc.bg};${hideStyle}">
-          <td colspan="6" style="text-align:right;font-weight:700;color:${gc.text};padding:8px 8px">เลือกแล้วในกลุ่ม ${grade||'—'}</td>
-          <td style="font-weight:700;color:${gc.text};text-align:center"><span id="grp-sel-sack-${gKey}">-</span></td>
-          <td style="font-weight:700;color:${gc.text};text-align:center"><span id="grp-sel-box-${gKey}">-</span></td>
+        // 2026-07-30: user แจ้งว่าตารางลายตา สีพาสเทลแยกตามกลุ่ม (GROUP_COLORS) ทำให้แถวสรุปนี้กลืนกับสีอื่นในตาราง
+        // เปลี่ยนเป็นสีส้มเข้มเดียวกันทุกกลุ่ม (ตัวเลือก C จาก mockup ที่ user เลือก) ให้เด่นแยกจากทุกอย่างในตารางชัดเจน
+        rows += `<tr style="background:#FAC775;${hideStyle}">
+          <td colspan="6" style="text-align:right;font-weight:700;color:#412402;padding:8px 8px">เลือกแล้วในกลุ่ม ${grade||'—'}</td>
+          <td style="font-weight:700;color:#412402;text-align:center"><span id="grp-sel-sack-${gKey}">-</span></td>
+          <td style="font-weight:700;color:#412402;text-align:center"><span id="grp-sel-box-${gKey}">-</span></td>
           <td colspan="6"></td>
         </tr>`;
       }
