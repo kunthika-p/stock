@@ -2847,9 +2847,19 @@ function renderPendingTable() {
     o._type = _si ? resolveType(_si) : '';
   });
 
+  // 2026-07-30: user ยืนยันผ่าน AskUserQuestion ให้เปลี่ยนปุ่ม "ความเร่งด่วน"/"วันที่ล่าสุด" จากแค่ "จัดเรียง" (sort)
+  // เป็น "กรอง" (filter) จริง — กดแล้วซ่อนแถวที่ไม่ตรงเงื่อนไขไปเลย ไม่ใช่แค่ย้ายขึ้นบนสุด
+  // ปุ่ม "ลูกค้า A-Z"/"กลุ่ม" ยังทำงานแบบ sort เหมือนเดิม (user ไม่ได้ขอเปลี่ยน 2 ปุ่มนี้)
+  let visibleOrders = orders;
+  if (pendingSort === 'urgency') {
+    visibleOrders = orders.filter(o => o._urgency === 'ด่วน');
+  } else if (pendingSort === 'date') {
+    visibleOrders = orders.filter(o => orderDateToInputISO(o.timestamp||o.date) === todayISO);
+  }
+
   // จัดกลุ่มตามลูกค้า
   const grouped = {};
-  orders.forEach(o => {
+  visibleOrders.forEach(o => {
     const cust = resolveCust(o.customer || '(ไม่ระบุ)');
     if (!grouped[cust]) grouped[cust] = [];
     grouped[cust].push(o);
@@ -2881,6 +2891,14 @@ function renderPendingTable() {
 
   let rows = '';
   let totalSack = 0, totalBox = 0;
+
+  // 2026-07-30: empty state ตอนกรองแล้วไม่เหลือรายการเลย (เช่น กด "ความเร่งด่วน" แต่ไม่มีออเดอร์ด่วนค้างอยู่)
+  if (!sortedCusts.length) {
+    const emptyMsg = pendingSort === 'urgency' ? 'ไม่มีออเดอร์ด่วนค้างอยู่'
+      : pendingSort === 'date' ? 'ไม่มีออเดอร์ที่แอดวันนี้'
+      : 'ไม่มีรายการ';
+    rows += `<tr><td colspan="14" style="padding:24px;color:#9ca3af;font-size:13px">${emptyMsg}</td></tr>`;
+  }
 
   sortedCusts.forEach((cust, custIdx) => {
     const items = grouped[cust];
