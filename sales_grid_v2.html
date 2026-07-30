@@ -1207,11 +1207,9 @@ function addToCart() {
   });
   closeModalDirect();
   showToast('✅ เพิ่มใน ประวัติ แล้ว กรุณายืนยันก่อนส่ง Admin');
-  // เปิด tab ประวัติ ให้เห็นรายการที่เพิ่งเพิ่มทันที (เหมือนพฤติกรรมเดิมของ submitAllOrders())
-  setTimeout(() => {
-    const btn = document.getElementById('tab-btn-history');
-    if (btn) { btn.click(); }
-  }, 300);
+  // 2026-07-30: ตัด auto-switch ไปแท็บ "ประวัติ" ออกตามที่ user ขอ — user อยากคีย์ได้หลายออเดอร์ต่อกัน
+  // ในหน้า "สั่งสินค้า" ก่อน แล้วค่อยกดแท็บ "ประวัติ" เองตอนคีย์ครบ (เดิม auto-switch ทุกครั้งหลังเพิ่ม 1 รายการ ไม่สะดวก)
+  // ยังคง renderSalesHistory() ไว้เพื่อให้ข้อมูลพร้อมอัปเดตทันทีที่ user กดแท็บเอง
   renderSalesHistory();
 }
 
