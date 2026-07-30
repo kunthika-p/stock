@@ -128,6 +128,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .sum-tbl .td-cust{font-weight:700;color:#1a3a5c;text-align:left}
 .sum-tbl .td-name{text-align:left;color:#374151}
 .sum-tbl tr:hover td{background:#f8fbff}
+.sum-tbl tr.trk-hl-row:hover td{background:transparent}
 .sum-tbl tr.summary-row td{background:#1a3a5c;color:white;font-weight:700;border:1px solid #0f2844}
 .sum-tbl tr.summary-row:hover td{background:#1a3a5c}
 </style>
@@ -1668,7 +1669,11 @@ function renderTracking() {
           const isBox = si ? getUnit(resolveType(si)) === 'กล่อง' : (o.unit === 'กล่อง');
           const qty = Number(o.qty) || 0;
           const isPending = o.status === 'pending';
-          const rowStyle = isPending ? 'background:#fffbeb' : (sectionBg || '');
+          // 2026-07-30 บั๊ก: เดิม sectionBg ส่งมาเป็นแค่ค่าสี ('#d1fae5') ไม่ใช่ CSS declaration เต็ม
+          // ทำให้ rowStyle กลายเป็น style="#d1fae5" (ไม่มี "background:" นำหน้า) ซึ่งเป็น CSS ที่ไม่ถูกต้อง เบราว์เซอร์เลยไม่แสดงสีอะไรเลย (เฉพาะกลุ่มวันนี้/เขียว เพราะ pending มี prefix ถูกต้องอยู่แล้ว)
+          const rowStyle = isPending ? 'background:#fffbeb' : (sectionBg ? 'background:'+sectionBg : '');
+          // แถวที่มีสีพื้นหลัง (pending เหลือง หรือ sectionBg เขียว) ต้องกัน .sum-tbl tr:hover td{background:#f8fbff} ทับสี — ใช้ class trk-hl-row คู่กับ CSS override ใหม่ (ไม่แตะ .sum-tbl tr:hover เดิมที่ตารางอื่นใช้ร่วมกัน)
+          const hlRowClass = (isPending || sectionBg) ? ' class="trk-hl-row"' : '';
           const urgBg = urgBgMap[o._urgency] || '#f3f4f6';
           // 2026-07-21: เดิม priority สลับกัน — เอาราคา "ปัจจุบันของลูกค้า" (pi, re-derive จาก getPriceInfo) มาก่อนราคาจริงที่บันทึกไว้ในออเดอร์ (o.net_price/o.disc_pct)
           // ทำให้หน้า "ติดตามออเดอร์" โชว์ราคาผิดทุกครั้งที่ sale พิมพ์ราคาต่างจากราคา default ของลูกค้า (เจอเคสจริง: กรอก 26 แต่หน้านี้โชว์ 32)
@@ -1678,7 +1683,7 @@ function renderTracking() {
           const pi = (hasODisc || hasONet) ? {disc_pct:null,net_price:null} : getPriceInfo(custCode, o.code, '');
           const discVal = hasODisc ? o.disc_pct : (pi.disc_pct !== null ? pi.disc_pct : '');
           const netVal  = hasONet ? o.net_price : (pi.net_price !== null ? pi.net_price : '');
-          html += `<tr style="${rowStyle}">
+          html += `<tr style="${rowStyle}"${hlRowClass}>
         <td style="font-size:11px;white-space:nowrap">${(custIdx===0&&idx===0)?fmtDate(o.timestamp||o.date):''}</td>
         <td class="td-cust">${idx===0?grp.cust:''}</td>
         <td class="td-name">${fmtName(o.name||o.code)}</td>
