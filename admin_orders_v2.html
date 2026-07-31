@@ -359,18 +359,24 @@ table.list tr:hover td{background:#f8fbff}
     padding:2px 4px!important;font-size:6.5pt!important;font-weight:700!important}
   .sum-tbl thead th,#tab-summary .hist-tbl thead th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 4px!important;font-size:6pt!important;text-align:center!important}
   .sum-tbl,#tab-summary .hist-tbl{font-size:6.5pt!important;border-collapse:collapse!important;width:100%!important;table-layout:fixed!important}
-  #tab-summary .hist-tbl col:nth-child(1){width:9%!important}
+  #tab-summary .hist-tbl col:nth-child(1){width:7%!important}
   #tab-summary .hist-tbl col:nth-child(2){width:11%!important}
-  #tab-summary .hist-tbl col:nth-child(3){width:22%!important}
-  #tab-summary .hist-tbl col:nth-child(4){width:9%!important}
+  #tab-summary .hist-tbl col:nth-child(3){width:34%!important}
+  #tab-summary .hist-tbl col:nth-child(4){width:7%!important}
   #tab-summary .hist-tbl col:nth-child(5){width:6%!important}
   #tab-summary .hist-tbl col:nth-child(6){width:6%!important}
   #tab-summary .hist-tbl col:nth-child(7){width:7%!important}
   #tab-summary .hist-tbl col:nth-child(8){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(9){width:5%!important}
-  #tab-summary .hist-tbl col:nth-child(10){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(11){width:5%!important}
+  #tab-summary .hist-tbl col:nth-child(9){width:4%!important}
+  #tab-summary .hist-tbl col:nth-child(10){width:5%!important}
+  #tab-summary .hist-tbl col:nth-child(11){width:0%!important}
   #tab-summary .hist-tbl col:nth-child(12){width:6%!important}
+  /* 2026-07-31: ลด font คอลัมน์ วันที่/รหัส/ความเร่งด่วน/จัดส่ง (เดิม inline 11px แต่ละแถวข้อมูล) + ซ่อนคอลัมน์สถานะ ตอนพิมพ์เท่านั้น (จอปกติยังเห็นครบ) — ให้พื้นที่ชื่อสินค้ากว้างขึ้น */
+  #tab-summary .hist-tbl th:nth-child(11),#tab-summary .hist-tbl td:nth-child(11){visibility:hidden!important;padding:0!important;border:none!important}
+  #tab-summary .hist-tbl td:nth-child(1){font-size:6.5pt!important;white-space:normal!important}
+  #tab-summary .hist-tbl td:nth-child(4){font-size:6.5pt!important}
+  #tab-summary .hist-tbl td:nth-child(9) span{font-size:6.5pt!important;padding:1px 5px!important}
+  #tab-summary .hist-tbl td:nth-child(10) span{font-size:6.5pt!important;padding:1px 5px!important}
   .sum-tbl th,#tab-summary .hist-tbl th{padding:2px 4px!important;font-size:6.5pt!important}
   .sum-tbl td,#tab-summary .hist-tbl td{padding:2px 5px!important;line-height:1.2!important;border:0.5px solid #ccc!important}
   .sum-tbl .num,#tab-summary .hist-tbl td{text-align:center!important}
