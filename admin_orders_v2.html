@@ -302,16 +302,26 @@ table.list tr:hover td{background:#f8fbff}
   #tab-stock .legend,#tab-stock .type-nav-wrap,#tab-stock .card-title{display:none!important}
   #tab-stock .type-panel{display:block!important}
   #tab-stock .stk-new-page{page-break-before:always}
+  #tab-stock .stk-pair-l,#tab-stock .stk-pair-r{display:inline-block!important;width:49%!important;vertical-align:top}
+  #tab-stock .stk-keep-together{page-break-inside:avoid}
   #tab-stock .stk-print-only-title{display:block!important;page-break-after:avoid}
-  #tab-stock .stk-tbl{font-size:8pt!important;page-break-inside:avoid}
-  #tab-stock .stk-cell{width:50px!important;height:36px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #tab-stock .stk-tbl{font-size:9.5pt!important;page-break-inside:avoid}
+  #tab-stock .stk-cell{width:62px!important;height:48px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #tab-stock .th-corner,#tab-stock .th-col{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #tab-stock .stk-v{font-size:11pt!important;margin-top:5px!important}
-  #tab-stock .code-v{font-size:6pt!important}
-  #tab-stock .th-col{padding:2px 1px!important;font-size:8pt!important;width:50px!important}
-  #tab-stock .th-corner{padding:3px 6px!important;font-size:8pt!important}
-  #tab-stock .td-row{padding:0 6px!important;font-size:8pt!important}
-  #tab-stock .nut-sub-title{font-size:8pt!important;padding:3px 8px!important;margin-bottom:4px!important;page-break-after:avoid}
+  #tab-stock .stk-v{font-size:12pt!important;margin-top:8px!important}
+  #tab-stock .code-v{font-size:6.5pt!important}
+  #tab-stock .th-col{padding:3px 2px!important;font-size:9pt!important;width:62px!important}
+  #tab-stock .th-corner{padding:4px 7px!important;font-size:9pt!important}
+  #tab-stock .td-row{padding:0 7px!important;font-size:9pt!important}
+  #tab-stock .nut-sub-title{font-size:9.5pt!important;padding:4px 9px!important;margin-bottom:5px!important;page-break-after:avoid}
+  #tab-stock .stk-compact .stk-tbl{font-size:8pt!important}
+  #tab-stock .stk-compact .stk-cell{width:55px!important;height:36px!important}
+  #tab-stock .stk-compact .stk-v{font-size:10pt!important;margin-top:3px!important}
+  #tab-stock .stk-compact .code-v{font-size:5.5pt!important}
+  #tab-stock .stk-compact .th-col{padding:2px 1px!important;font-size:8pt!important;width:55px!important}
+  #tab-stock .stk-compact .th-corner{padding:3px 5px!important;font-size:8pt!important}
+  #tab-stock .stk-compact .td-row{padding:0 5px!important;font-size:8pt!important}
+  #tab-stock .stk-compact .nut-sub-title{font-size:8pt!important;padding:3px 7px!important;margin-bottom:3px!important}
   #stk-print-hdr{display:block!important;text-align:right;margin-bottom:4px;font-size:8pt;color:#444}
   #sum-print-hdr{display:block!important;margin-bottom:6px}
   #sum-print-hdr .phdr-title{font-size:11pt;font-weight:700}
@@ -2703,11 +2713,13 @@ function buildMatrix() {
       const huaDiv = document.createElement('div');
       huaDiv.className = 'type-panel'+(isHua?' active':'');
       huaDiv.id = 'mp-'+HUA_NUT_ENC;
-      huaDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">หัวน็อต</div><div class="stk-print-stack" style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+      huaDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">หัวน็อต</div><div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
         <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล')}</div>
         <div><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W')}</div>
-        <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC')}</div>
-        <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF')}</div>
+        <div class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:24px">
+          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC')}</div>
+          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF')}</div>
+        </div>
       </div>`;
       panels.appendChild(huaDiv);
       return;
@@ -2741,18 +2753,21 @@ function buildMatrix() {
     if (nmTab) {
       const enc = encT(t);
       const nmDiv = document.createElement('div');
-      nmDiv.className = 'type-panel stk-new-page' + (enc === curEnc ? ' active' : '');
+      nmDiv.className = 'type-panel stk-new-page stk-compact' + (enc === curEnc ? ' active' : '');
       nmDiv.id = 'mp-' + enc;
       nmDiv.innerHTML =
         `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">${nmTab.name}</div>` +
         `<span class="nut-sub-title" style="margin-bottom:8px">${nmTab.name} — ตลอด</span>${buildNokMilAengAdminTable(nmTab, '(ตลอด)')}` +
-        `<span class="nut-sub-title stk-new-page" style="margin-top:16px;margin-bottom:8px">${nmTab.name} — ครึ่ง</span>${buildNokMilAengAdminTable(nmTab, '(ครึ่ง)')}`;
+        `<span class="nut-sub-title" style="margin-top:16px;margin-bottom:8px">${nmTab.name} — ครึ่ง</span>${buildNokMilAengAdminTable(nmTab, '(ครึ่ง)')}`;
       panels.appendChild(nmDiv);
       return;
     }
     const enc = encT(t); const div = document.createElement('div');
-    const newPageCls = (t === 'น็อตเหลี่ยม W ไม่ควบหัว') ? ' stk-new-page' : '';
-    div.className = 'type-panel'+newPageCls+(enc===curEnc?' active':''); div.id = 'mp-'+enc;
+    let extraCls = '';
+    if (t === 'น็อตเหลี่ยม W ไม่ควบหัว') extraCls = ' stk-new-page';
+    else if (t === 'น็อตหัวกลมเกลียว W') extraCls = ' stk-pair-l';
+    else if (t === 'สกรูเกลียวปล่อย') extraCls = ' stk-pair-r';
+    div.className = 'type-panel'+extraCls+(enc===curEnc?' active':''); div.id = 'mp-'+enc;
     div.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">${t}</div>` + buildTypeTable(t);
     panels.appendChild(div);
   });
