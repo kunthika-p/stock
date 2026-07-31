@@ -299,11 +299,12 @@ table.list tr:hover td{background:#f8fbff}
   #tab-stock.active{display:block!important}
   #tab-summary .content{padding:0!important}
   .sum-print-hide,.ih-print-hide,.hist-print-hide{display:none!important}
-  #tab-stock .legend,#tab-stock .type-nav-wrap,#tab-stock .card-title button{display:none!important}
+  #tab-stock .legend,#tab-stock .type-nav-wrap,#tab-stock .card-title{display:none!important}
   #tab-stock .type-panel{display:block!important}
-  #tab-stock .type-panel+.type-panel{page-break-before:always}
-  #tab-stock .stk-print-only-title{display:block!important}
-  #tab-stock .stk-tbl{font-size:8pt!important}
+  #tab-stock .stk-print-only-title{display:block!important;page-break-after:avoid}
+  #tab-stock .stk-print-stack{display:block!important}
+  #tab-stock .stk-print-stack>div{display:block!important;margin-bottom:10px}
+  #tab-stock .stk-tbl{font-size:8pt!important;page-break-inside:avoid}
   #tab-stock .stk-cell{width:50px!important;height:36px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #tab-stock .th-corner,#tab-stock .th-col{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #tab-stock .stk-v{font-size:11pt!important;margin-top:5px!important}
@@ -311,10 +312,8 @@ table.list tr:hover td{background:#f8fbff}
   #tab-stock .th-col{padding:2px 1px!important;font-size:8pt!important}
   #tab-stock .th-corner{padding:3px 6px!important;font-size:8pt!important}
   #tab-stock .td-row{padding:0 6px!important;font-size:8pt!important}
-  #tab-stock .nut-sub-title{font-size:8pt!important;padding:3px 8px!important;margin-bottom:4px!important}
-  #stk-print-hdr{display:block!important;margin-bottom:6px}
-  #stk-print-hdr .phdr-title{font-size:11pt;font-weight:700}
-  #stk-print-hdr .phdr-sub{font-size:7.5pt;color:#444}
+  #tab-stock .nut-sub-title{font-size:8pt!important;padding:3px 8px!important;margin-bottom:4px!important;page-break-after:avoid}
+  #stk-print-hdr{display:block!important;text-align:right;margin-bottom:4px;font-size:8pt;color:#444}
   #sum-print-hdr{display:block!important;margin-bottom:6px}
   #sum-print-hdr .phdr-title{font-size:11pt;font-weight:700}
   #sum-print-hdr .phdr-sub{font-size:7.5pt;color:#444}
@@ -485,10 +484,7 @@ table.list tr:hover td{background:#f8fbff}
           <button class="stk-btn-print" onclick="window.print()">🖨️ พิมพ์ทั้งหมด</button>
         </span>
       </div>
-      <div id="stk-print-hdr">
-        <span class="phdr-title">📋 ตารางสต็อค (Matrix View) — ทุกหมวด</span><br>
-        <span class="phdr-sub" id="stk-print-sub"></span>
-      </div>
+      <div id="stk-print-hdr"><span id="stk-print-sub"></span></div>
       <div class="legend">
         <b>ตำนาน:</b>
         <span><span class="ld" style="background:#d1fae5"></span>ปกติ (≥20)</span>
@@ -2589,9 +2585,8 @@ async function loadStock() {
       buildStockNav();
       buildMatrix();
       const printDate = new Date().toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
-      const printTime = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
       const stkSub = document.getElementById('stk-print-sub');
-      if (stkSub) stkSub.textContent = 'พิมพ์: ' + printDate + ' ' + printTime;
+      if (stkSub) stkSub.textContent = printDate;
         }
   } catch(e) {
     document.getElementById('stk-matrix-panels').innerHTML = '<div class="empty">❌ โหลดไม่ได้: '+e.message+'</div>';
@@ -2702,50 +2697,64 @@ function buildMatrix() {
   const isHua = HUA_NUT.some(t=>encT(t)===curEnc)||curEnc===HUA_NUT_ENC;
   const isNc = NC_NF_SM.some(t=>encT(t)===curEnc)||curEnc===NC_NF_SM_ENC;
   const isOther = OTHER_TYPES.some(t=>encT(t)===curEnc)||curEnc===OTHER_ENC;
-  const huaDiv = document.createElement('div');
-  huaDiv.className = 'type-panel'+(isHua?' active':'');
-  huaDiv.id = 'mp-'+HUA_NUT_ENC;
-  huaDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">หัวน็อต</div><div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
-    <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล')}</div>
-    <div><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W')}</div>
-    <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC')}</div>
-    <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF')}</div>
-  </div>`;
-  panels.appendChild(huaDiv);
-  const ncDiv = document.createElement('div');
-  ncDiv.className = 'type-panel'+(isNc?' active':'');
-  ncDiv.id = 'mp-'+NC_NF_SM_ENC;
-  ncDiv.innerHTML =
-    `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">น็อตเหลี่ยม NC/NF</div>`+
-    `<span class="nut-sub-title" style="margin-bottom:8px">น็อตเหลี่ยม NC</span>${buildTypeTable('น็อตเหลี่ยม NC')}`+
-    `<span class="nut-sub-title" style="margin-top:16px;margin-bottom:8px">น็อตเหลี่ยม NF</span>${buildTypeTable('น็อตเหลี่ยม NF')}`;
-  panels.appendChild(ncDiv);
-  const otherDiv = document.createElement('div');
-  otherDiv.className = 'type-panel'+(isOther?' active':'');
-  otherDiv.id = 'mp-'+OTHER_ENC;
-  otherDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">อื่นๆ</div><div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
-    <div><span class="nut-sub-title">หัวน็อตมิลแข็ง เกรด8</span>${buildTypeTable('หัวน็อตมิลแข็ง เกรด8')}</div>
-    <div><span class="nut-sub-title">Spring Washer</span>${buildTypeTable('Spring Washer')}</div>
-    <div><span class="nut-sub-title">หัวน็อตมิลแข็ง OVERSIZE</span>${buildTypeTable('หัวน็อตมิลแข็ง OVERSIZE')}</div>
-  </div>`;
-  panels.appendChild(otherDiv);
-  NOK_MIL_AENG_TABS.forEach(tabDef => {
-    const enc = encT(tabDef.key);
-    const nmDiv = document.createElement('div');
-    nmDiv.className = 'type-panel' + (enc === curEnc ? ' active' : '');
-    nmDiv.id = 'mp-' + enc;
-    nmDiv.innerHTML =
-      `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">${tabDef.name}</div>` +
-      `<span class="nut-sub-title" style="margin-bottom:8px">${tabDef.name} — ตลอด</span>${buildNokMilAengAdminTable(tabDef, '(ตลอด)')}` +
-      `<span class="nut-sub-title" style="margin-top:16px;margin-bottom:8px">${tabDef.name} — ครึ่ง</span>${buildNokMilAengAdminTable(tabDef, '(ครึ่ง)')}`;
-    panels.appendChild(nmDiv);
-  });
+  let huaDone = false, ncDone = false, otherDone = false;
   TYPES.forEach(t => {
-    if (HUA_NUT.includes(t)||NC_NF_SM.includes(t)||OTHER_TYPES.includes(t)) return;
-    if (NOK_MIL_AENG_TABS.some(td => td.key === t)) return;
+    if (HUA_NUT.includes(t)) {
+      if (huaDone) return; huaDone = true;
+      const huaDiv = document.createElement('div');
+      huaDiv.className = 'type-panel'+(isHua?' active':'');
+      huaDiv.id = 'mp-'+HUA_NUT_ENC;
+      huaDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">หัวน็อต</div><div class="stk-print-stack" style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+        <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล')}</div>
+        <div><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W')}</div>
+        <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC')}</div>
+        <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF')}</div>
+      </div>`;
+      panels.appendChild(huaDiv);
+      return;
+    }
+    if (NC_NF_SM.includes(t)) {
+      if (ncDone) return; ncDone = true;
+      const ncDiv = document.createElement('div');
+      ncDiv.className = 'type-panel'+(isNc?' active':'');
+      ncDiv.id = 'mp-'+NC_NF_SM_ENC;
+      ncDiv.innerHTML =
+        `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">น็อตเหลี่ยม NC/NF</div>`+
+        `<span class="nut-sub-title" style="margin-bottom:8px">น็อตเหลี่ยม NC</span>${buildTypeTable('น็อตเหลี่ยม NC')}`+
+        `<span class="nut-sub-title" style="margin-top:16px;margin-bottom:8px">น็อตเหลี่ยม NF</span>${buildTypeTable('น็อตเหลี่ยม NF')}`;
+      panels.appendChild(ncDiv);
+      return;
+    }
+    if (OTHER_TYPES.includes(t)) {
+      if (otherDone) return; otherDone = true;
+      const otherDiv = document.createElement('div');
+      otherDiv.className = 'type-panel'+(isOther?' active':'');
+      otherDiv.id = 'mp-'+OTHER_ENC;
+      otherDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">อื่นๆ</div><div class="stk-print-stack" style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+        <div><span class="nut-sub-title">หัวน็อตมิลแข็ง เกรด8</span>${buildTypeTable('หัวน็อตมิลแข็ง เกรด8')}</div>
+        <div><span class="nut-sub-title">Spring Washer</span>${buildTypeTable('Spring Washer')}</div>
+        <div><span class="nut-sub-title">หัวน็อตมิลแข็ง OVERSIZE</span>${buildTypeTable('หัวน็อตมิลแข็ง OVERSIZE')}</div>
+      </div>`;
+      panels.appendChild(otherDiv);
+      return;
+    }
+    const nmTab = NOK_MIL_AENG_TABS.find(td => td.key === t);
+    if (nmTab) {
+      const enc = encT(t);
+      const nmDiv = document.createElement('div');
+      nmDiv.className = 'type-panel' + (enc === curEnc ? ' active' : '');
+      nmDiv.id = 'mp-' + enc;
+      nmDiv.innerHTML =
+        `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">${nmTab.name}</div>` +
+        `<span class="nut-sub-title" style="margin-bottom:8px">${nmTab.name} — ตลอด</span>${buildNokMilAengAdminTable(nmTab, '(ตลอด)')}` +
+        `<span class="nut-sub-title" style="margin-top:16px;margin-bottom:8px">${nmTab.name} — ครึ่ง</span>${buildNokMilAengAdminTable(nmTab, '(ครึ่ง)')}`;
+      panels.appendChild(nmDiv);
+      return;
+    }
     const enc = encT(t); const div = document.createElement('div');
     div.className = 'type-panel'+(enc===curEnc?' active':''); div.id = 'mp-'+enc;
-    div.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">${t}</div>` + buildTypeTable(t); panels.appendChild(div);
+    div.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">${t}</div>` + buildTypeTable(t);
+    panels.appendChild(div);
   });
 }
 
