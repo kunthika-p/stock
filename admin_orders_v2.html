@@ -213,6 +213,8 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .type-btn-stk.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
 .type-panel{display:none}.type-panel.active{display:block}
 .stk-print-only-title{display:none}
+.stk-print-combined{display:none}
+.stk-section-row td{background:#eef3fb;font-weight:700;color:#1a3a5c;padding:3px 8px;text-align:left;border-color:#c7d8f0}
 .stk-btn-print{font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 14px;border-radius:6px;border:none;cursor:pointer;background:#059669;color:white;font-weight:600;margin-left:8px}
 .tbadge{display:inline-block;font-size:10px;border-radius:10px;padding:1px 6px;margin-left:4px;background:rgba(0,0,0,.12)}
 .tbadge.has{background:#16a34a;color:white}
@@ -305,6 +307,8 @@ table.list tr:hover td{background:#f8fbff}
   #tab-stock .stk-pair-l,#tab-stock .stk-pair-r{display:inline-block!important;width:49%!important;vertical-align:top}
   #tab-stock .stk-keep-together{page-break-inside:avoid}
   #tab-stock .stk-print-only-title{display:block!important;page-break-after:avoid}
+  #tab-stock .stk-screen-only{display:none!important}
+  #tab-stock .stk-print-combined{display:block!important}
   #tab-stock .stk-tbl{font-size:9.5pt!important;page-break-inside:avoid}
   #tab-stock .code-v{display:none!important}
   #tab-stock .stk-cell{width:58px!important;height:48px!important;text-align:left!important;padding-left:6px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -324,6 +328,7 @@ table.list tr:hover td{background:#f8fbff}
   #tab-stock .stk-compact .th-corner{padding:3px 5px!important;font-size:8pt!important}
   #tab-stock .stk-compact .td-row{padding:0 5px!important;font-size:8pt!important}
   #tab-stock .stk-compact .nut-sub-title{font-size:8pt!important;padding:3px 7px!important;margin-bottom:3px!important}
+  #tab-stock .stk-compact .stk-section-row td{font-size:8pt!important;padding:3px 5px!important}
   #stk-print-hdr{display:block!important;text-align:right;margin-bottom:4px;font-size:8pt;color:#444}
   #sum-print-hdr{display:block!important;margin-bottom:6px}
   #sum-print-hdr .phdr-title{font-size:11pt;font-weight:700}
@@ -2702,6 +2707,38 @@ function buildNokMilAengAdminTable(tabDef, suffix) {
   return h + '</tbody></table></div>';
 }
 
+function buildNokMilAengSection(tabDef, suffix) {
+  const rows = suffix === '(ตลอด)' ? tabDef.talotRows : tabDef.khruengRows;
+  const cols = tabDef.cols;
+  let h = '';
+  rows.forEach(row => {
+    h += `<tr><td class="td-row">${row}</td>`;
+    cols.forEach(col => {
+      const srcType = tabDef.colSrc[col] + ' ' + suffix;
+      const it = allItems.find(x => x.type === srcType && String(x.col) === String(col) && String(x.row) === String(row));
+      if (!it) { h += '<td class="stk-cell c-blocked"></td>'; return; }
+      const s = getStock(it.code);
+      const tk = getTank(it.code);
+      const cls = s.stock >= 20 ? 'c-ok' : s.stock > 0 ? 'c-low' : 'c-out';
+      const tkHtml = tk > 0 ? `<span class="tank-v">${tk}</span>` : '';
+      h += `<td class="stk-cell ${cls}">${tkHtml}<span class="stk-v">${s.stock}</span><span class="code-v">${it.code}</span></td>`;
+    });
+    h += '</tr>';
+  });
+  return h;
+}
+function buildNokMilAengCombinedTable(tabDef) {
+  const cols = tabDef.cols;
+  let h = '<div style="overflow-x:auto"><table class="stk-tbl"><thead><tr>';
+  h += `<th class="th-corner">ยาว \\ ขนาด</th>`;
+  cols.forEach(c => h += `<th class="th-col">${c}</th>`);
+  h += '</tr></thead><tbody>';
+  h += buildNokMilAengSection(tabDef, '(ตลอด)');
+  h += `<tr class="stk-section-row"><td colspan="${cols.length + 1}">ครึ่ง</td></tr>`;
+  h += buildNokMilAengSection(tabDef, '(ครึ่ง)');
+  return h + '</tbody></table></div>';
+}
+
 function buildMatrix() {
   const panels = document.getElementById('stk-matrix-panels');
   panels.innerHTML = '';
@@ -2759,8 +2796,11 @@ function buildMatrix() {
       nmDiv.id = 'mp-' + enc;
       nmDiv.innerHTML =
         `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">${nmTab.name}</div>` +
+        `<div class="stk-screen-only">` +
         `<span class="nut-sub-title" style="margin-bottom:8px">${nmTab.name} — ตลอด</span>${buildNokMilAengAdminTable(nmTab, '(ตลอด)')}` +
-        `<span class="nut-sub-title" style="margin-top:16px;margin-bottom:8px">${nmTab.name} — ครึ่ง</span>${buildNokMilAengAdminTable(nmTab, '(ครึ่ง)')}`;
+        `<span class="nut-sub-title" style="margin-top:16px;margin-bottom:8px">${nmTab.name} — ครึ่ง</span>${buildNokMilAengAdminTable(nmTab, '(ครึ่ง)')}` +
+        `</div>` +
+        `<div class="stk-print-combined">${buildNokMilAengCombinedTable(nmTab)}</div>`;
       panels.appendChild(nmDiv);
       return;
     }
