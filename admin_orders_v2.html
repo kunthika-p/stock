@@ -312,10 +312,10 @@ table.list tr:hover td{background:#f8fbff}
   #tab-stock .stk-tbl{font-size:9.5pt!important;page-break-inside:avoid}
   #tab-stock .stk-tbl th,#tab-stock .stk-tbl td{border:1px solid #64748b!important}
   #tab-stock .code-v{display:none!important}
-  #tab-stock .stk-cell{width:65px!important;height:48px!important;text-align:left!important;padding-left:6px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #tab-stock .stk-cell{width:var(--stk-cw,65px)!important;height:48px!important;text-align:left!important;padding-left:6px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #tab-stock .th-corner,#tab-stock .th-col{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #tab-stock .stk-v{font-size:11pt!important;margin-top:0!important}
-  #tab-stock .th-col{padding:3px 2px!important;font-size:9pt!important;width:65px!important}
+  #tab-stock .th-col{padding:3px 2px!important;font-size:9pt!important;width:var(--stk-cw,65px)!important}
   #tab-stock .th-corner{padding:3px 5px!important;font-size:9pt!important}
   #tab-stock .td-row{padding:0 5px!important;font-size:9pt!important}
   #tab-stock .nut-sub-title{font-size:9.5pt!important;padding:4px 9px!important;margin-bottom:5px!important;page-break-after:avoid}
@@ -324,9 +324,9 @@ table.list tr:hover td{background:#f8fbff}
   #tab-stock .stk-cell.c-out{background:linear-gradient(to right,#fee2e2 0 50%,#ffffff 50% 100%)!important}
   #tab-stock .stk-cell.c-blocked{background:linear-gradient(to right,#e5e7eb 0 50%,#ffffff 50% 100%)!important}
   #tab-stock .stk-compact .stk-tbl{font-size:8pt!important}
-  #tab-stock .stk-compact .stk-cell{width:59px!important;height:32px!important;text-align:left!important;padding-left:5px!important}
+  #tab-stock .stk-compact .stk-cell{width:var(--stk-cw,59px)!important;height:32px!important;text-align:left!important;padding-left:5px!important}
   #tab-stock .stk-compact .stk-v{font-size:9pt!important;margin-top:0!important}
-  #tab-stock .stk-compact .th-col{padding:2px 1px!important;font-size:8pt!important;width:59px!important}
+  #tab-stock .stk-compact .th-col{padding:2px 1px!important;font-size:8pt!important;width:var(--stk-cw,59px)!important}
   #tab-stock .stk-compact .th-corner{padding:2px 4px!important;font-size:8pt!important}
   #tab-stock .stk-compact .td-row{padding:0 4px!important;font-size:8pt!important}
   #tab-stock .stk-compact .nut-sub-title{font-size:8pt!important;padding:3px 7px!important;margin-bottom:3px!important}
@@ -2658,11 +2658,16 @@ function buildStockNav() {
   nav.innerHTML = html;
 }
 
-function buildTypeTable(t) {
+function stkColWidth(n, budget) {
+  budget = budget || 680;
+  return Math.min(120, Math.max(65, Math.floor((budget - 70) / n)));
+}
+function buildTypeTable(t, budget) {
   const m = MATRICES[t]; if (!m) return '<div class="empty">ไม่มีข้อมูล</div>';
   const typeAliases = MERGED_TYPES[t] || [t];
   const catItems = allItems.filter(x => typeAliases.includes(x.type));
-  let h = '<div style="overflow-x:auto"><table class="stk-tbl"><thead><tr>';
+  const stkW = stkColWidth(m.cols.length, budget);
+  let h = `<div style="overflow-x:auto;--stk-cw:${stkW}px"><table class="stk-tbl"><thead><tr>`;
   h += `<th class="th-corner">ยาว \\ ขนาด</th>`;
   m.cols.forEach(c => h += `<th class="th-col">${c}</th>`);
   h += '</tr></thead><tbody>';
@@ -2731,7 +2736,8 @@ function buildNokMilAengSection(tabDef, suffix) {
 }
 function buildNokMilAengCombinedTable(tabDef) {
   const cols = tabDef.cols;
-  let h = '<div style="overflow-x:auto"><table class="stk-tbl"><thead><tr>';
+  const stkW = stkColWidth(cols.length, 680);
+  let h = `<div style="overflow-x:auto;--stk-cw:${stkW}px"><table class="stk-tbl"><thead><tr>`;
   h += `<th class="th-corner">ยาว \\ ขนาด</th>`;
   cols.forEach(c => h += `<th class="th-col">${c}</th>`);
   h += '</tr></thead><tbody>';
@@ -2755,11 +2761,11 @@ function buildMatrix() {
       huaDiv.className = 'type-panel stk-compact'+(isHua?' active':'');
       huaDiv.id = 'mp-'+HUA_NUT_ENC;
       huaDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">หัวน็อต</div><div class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
-        <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล')}</div>
-        <div><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W')}</div>
+        <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล', 214)}</div>
+        <div><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W', 142)}</div>
         <div class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:16px">
-          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC')}</div>
-          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF')}</div>
+          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC', 142)}</div>
+          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF', 142)}</div>
         </div>
       </div>`;
       panels.appendChild(huaDiv);
@@ -2807,12 +2813,12 @@ function buildMatrix() {
       return;
     }
     const enc = encT(t); const div = document.createElement('div');
-    let extraCls = '';
+    let extraCls = '', pairBudget;
     if (t === 'น็อตเหลี่ยม W ไม่ควบหัว') extraCls = ' stk-new-page';
-    else if (t === 'น็อตหัวกลมเกลียว W') extraCls = ' stk-pair-l';
-    else if (t === 'สกรูเกลียวปล่อย') extraCls = ' stk-pair-r';
+    else if (t === 'น็อตหัวกลมเกลียว W') { extraCls = ' stk-pair-l'; pairBudget = 340; }
+    else if (t === 'สกรูเกลียวปล่อย') { extraCls = ' stk-pair-r'; pairBudget = 340; }
     div.className = 'type-panel'+extraCls+(enc===curEnc?' active':''); div.id = 'mp-'+enc;
-    div.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">${t}</div>` + buildTypeTable(t);
+    div.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">${t}</div>` + buildTypeTable(t, pairBudget);
     panels.appendChild(div);
   });
 }
