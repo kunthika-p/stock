@@ -307,6 +307,7 @@ table.list tr:hover td{background:#f8fbff}
   #tab-stock .stk-new-page{page-break-before:always}
   #tab-stock .stk-pair-l,#tab-stock .stk-pair-r{display:inline-block!important;width:49%!important;vertical-align:top}
   #tab-stock .stk-keep-together{page-break-inside:avoid}
+  #tab-stock #stk-hua-row,#tab-stock #stk-hua-ncnf-row{flex-wrap:nowrap!important}
   #tab-stock .stk-print-only-title{display:block!important;page-break-after:avoid;margin-bottom:4px!important}
   #tab-stock .stk-screen-only{display:none!important}
   #tab-stock .stk-print-combined{display:block!important}
@@ -2612,6 +2613,26 @@ async function loadStock() {
   }
 }
 
+// หัวน็อตกลุ่มมิล/W/NC/NF ต้องอยู่แถวเดียวหน้าเดียวกันตอนพิมพ์ — แทนที่จะเดาความกว้าง px
+// (ซึ่งพลาดมาหลายรอบ) ให้ browser วัดความกว้างจริงตอน beforeprint แล้วย่อ (zoom) ทั้งแถวลง
+// พอดีกับพื้นที่จริงที่เหลือ ถ้าล้น — วิธีนี้อ้างอิงค่าจริงที่ render ออกมา ไม่ใช่ค่าประมาณการ
+function fitStkHuaRow() {
+  const row = document.getElementById('stk-hua-row');
+  if (!row) return;
+  row.style.zoom = '1';
+  const avail = row.parentElement ? row.parentElement.clientWidth : 0;
+  const actual = row.scrollWidth;
+  if (avail > 0 && actual > avail) {
+    row.style.zoom = Math.max(0.5, avail / actual).toFixed(3);
+  }
+}
+function unfitStkHuaRow() {
+  const row = document.getElementById('stk-hua-row');
+  if (row) row.style.zoom = '';
+}
+window.addEventListener('beforeprint', fitStkHuaRow);
+window.addEventListener('afterprint', unfitStkHuaRow);
+
 function buildStockNav() {
   const nav = document.getElementById('stk-type-nav');
   const isHua = HUA_NUT.some(t => encT(t) === curEnc) || curEnc === HUA_NUT_ENC;
@@ -2761,12 +2782,12 @@ function buildMatrix() {
       const huaDiv = document.createElement('div');
       huaDiv.className = 'type-panel stk-compact stk-new-page'+(isHua?' active':'');
       huaDiv.id = 'mp-'+HUA_NUT_ENC;
-      huaDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">หัวน็อต</div><div class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start">
-        <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล', 190)}</div>
-        <div><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W', 130)}</div>
-        <div class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:10px">
-          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC', 130)}</div>
-          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF', 130)}</div>
+      huaDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">หัวน็อต</div><div id="stk-hua-row" class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start">
+        <div style="flex-shrink:0"><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล', 190)}</div>
+        <div style="flex-shrink:0"><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W', 130)}</div>
+        <div id="stk-hua-ncnf-row" class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:10px;flex-shrink:0">
+          <div style="flex-shrink:0"><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC', 130)}</div>
+          <div style="flex-shrink:0"><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF', 130)}</div>
         </div>
       </div>`;
       panels.appendChild(huaDiv);
@@ -2787,7 +2808,7 @@ function buildMatrix() {
     if (OTHER_TYPES.includes(t)) {
       if (otherDone) return; otherDone = true;
       const otherDiv = document.createElement('div');
-      otherDiv.className = 'type-panel'+(isOther?' active':'');
+      otherDiv.className = 'type-panel stk-compact'+(isOther?' active':'');
       otherDiv.id = 'mp-'+OTHER_ENC;
       otherDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">อื่นๆ</div><div class="stk-print-stack" style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
         <div><span class="nut-sub-title">หัวน็อตมิลแข็ง เกรด8</span>${buildTypeTable('หัวน็อตมิลแข็ง เกรด8')}</div>
