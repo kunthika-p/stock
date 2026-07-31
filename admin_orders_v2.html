@@ -2711,12 +2711,12 @@ function buildMatrix() {
     if (HUA_NUT.includes(t)) {
       if (huaDone) return; huaDone = true;
       const huaDiv = document.createElement('div');
-      huaDiv.className = 'type-panel'+(isHua?' active':'');
+      huaDiv.className = 'type-panel stk-compact'+(isHua?' active':'');
       huaDiv.id = 'mp-'+HUA_NUT_ENC;
-      huaDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">หัวน็อต</div><div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+      huaDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">หัวน็อต</div><div class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
         <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล')}</div>
         <div><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W')}</div>
-        <div class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:24px">
+        <div class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:16px">
           <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC')}</div>
           <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF')}</div>
         </div>
