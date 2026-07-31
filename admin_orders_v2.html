@@ -652,18 +652,6 @@ table.list tr:hover td{background:#f8fbff}
         <div class="ov-card amber"><div class="val" id="ov-low">—</div><div class="lbl">สต็อคต่ำ (&lt;20)</div></div>
         <div class="ov-card red"><div class="val" id="ov-out">—</div><div class="lbl">หมดสต็อค</div></div>
       </div>
-      <div style="background:white;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.09);overflow:hidden">
-        <div style="padding:14px 16px;font-size:15px;font-weight:700;color:#1a3a5c;border-bottom:1px solid #eee">สินค้าที่ต้องดูแล (น้อย + หมด)</div>
-        <div class="tbl-wrap"><table class="ov-tbl">
-          <thead><tr>
-            <th style="width:110px">รหัส</th>
-            <th>ชื่อสินค้า</th>
-            <th style="width:80px;text-align:center">สต็อค</th>
-            <th style="width:90px;text-align:center">สถานะ</th>
-          </tr></thead>
-          <tbody id="ovTbody"><tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa">⏳ กำลังโหลด...</td></tr></tbody>
-        </table></div>
-      </div>
     </div>
   </div>
 
@@ -1853,24 +1841,8 @@ async function loadOverview() {
     document.getElementById('ov-ok').textContent = ok;
     document.getElementById('ov-low').textContent = low;
     document.getElementById('ov-out').textContent = out;
-    const filtered = items.filter(i => (Number(i.stock)||0) < 20);
-    const tbody = document.getElementById('ovTbody');
-    if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#16a34a">✅ สต็อคปกติทุกรายการ</td></tr>'; return; }
-    tbody.innerHTML = filtered.map(i => {
-      const s = Number(i.stock)||0;
-      const [cls, lbl] = s <= 0 ? ['sb-out','หมด'] : s < 20 ? ['sb-low','ต่ำ'] : ['sb-ok','ปกติ'];
-      const name = buildName(i);
-      const code = (i.code !== undefined && i.code !== '' && !isNaN(Number(i.code)))
-        ? String(Number(i.code)).padStart(8, '0') : (i.code||'');
-      return `<tr>
-        <td style="font-family:monospace;font-size:12px">${code}</td>
-        <td style="text-align:left">${name}</td>
-        <td style="text-align:center;font-weight:700;color:#1a3a5c">${s}</td>
-        <td style="text-align:center"><span class="stk-badge ${cls}">${lbl}</span></td>
-      </tr>`;
-    }).join('');
   } catch(e) {
-    document.getElementById('ovTbody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:#dc2626">โหลดไม่ได้: '+e.message+' <button onclick="loadOverview()" style="margin-left:8px;padding:6px 14px;background:#1a3a5c;color:white;border:none;border-radius:6px;cursor:pointer;font-family:Sarabun,sans-serif">ลองใหม่</button></td></tr>';
+    console.error('loadOverview error:', e);
   }
 }
 
@@ -3119,11 +3091,11 @@ function renderPendingTable() {
       const nextGrade = nextCust ? ((CUST_MAP[nextCust]||{}).grade || '') : null;
       if (nextGrade !== grade) {
         // 2026-07-30: user แจ้งว่าตารางลายตา สีพาสเทลแยกตามกลุ่ม (GROUP_COLORS) ทำให้แถวสรุปนี้กลืนกับสีอื่นในตาราง
-        // เปลี่ยนเป็นสีส้มเข้มเดียวกันทุกกลุ่ม (ตัวเลือก C จาก mockup ที่ user เลือก) ให้เด่นแยกจากทุกอย่างในตารางชัดเจน
-        rows += `<tr class="pend-total-row" style="background:#FAC775;${hideStyle}">
-          <td colspan="6" style="text-align:right;font-weight:700;color:#412402;padding:4px 8px">เลือกแล้วในกลุ่ม ${grade||'—'}</td>
-          <td style="font-weight:700;color:#412402;text-align:center"><span id="grp-sel-sack-${gKey}">-</span></td>
-          <td style="font-weight:700;color:#412402;text-align:center"><span id="grp-sel-box-${gKey}">-</span></td>
+        // 2026-07-31: เปลี่ยนเป็นเหลืองเข้ม #fde68a (เฉด A จาก mockup ที่ user เลือก) เฉดเดียวกับพื้นเหลืองออเดอร์วันนี้ (#fffbeb) แต่เข้มขึ้น แยกจาก "รวมรถเที่ยวนี้" ที่เป็นเขียวแล้ว
+        rows += `<tr class="pend-total-row" style="background:#fde68a;${hideStyle}">
+          <td colspan="6" style="text-align:right;font-weight:700;color:#78350f;padding:4px 8px">เลือกแล้วในกลุ่ม ${grade||'—'}</td>
+          <td style="font-weight:700;color:#78350f;text-align:center"><span id="grp-sel-sack-${gKey}">-</span></td>
+          <td style="font-weight:700;color:#78350f;text-align:center"><span id="grp-sel-box-${gKey}">-</span></td>
           <td colspan="6"></td>
         </tr>`;
       }
@@ -3131,11 +3103,11 @@ function renderPendingTable() {
   });  // end sortedCusts.forEach
 
   // 2026-07-25: แถวรวม "รถเที่ยวนี้" — ตัดกลุ่มที่ปิดออก + นับเฉพาะรายการที่ติ๊ก checkbox เท่านั้น (ไม่ใช่รวมทุกออเดอร์ที่แสดง) — เรนเดอร์เสมอไม่ผูกกับ pendingSort
-  // 2026-07-30: เปลี่ยนเป็นสีส้มเข้มเดียวกับแถว "เลือกแล้วในกลุ่ม X" ตามที่ user ขอ (ให้เข้าชุดสีเดียวกัน เด่นเหมือนกัน)
-  rows += `<tr class="pend-total-row" style="background:#FAC775">
-    <td colspan="6" style="text-align:right;font-weight:700;font-size:12px;color:#412402;padding:3px 8px">รวมรถเที่ยวนี้ (กลุ่มที่เปิดอยู่)</td>
-    <td style="font-weight:700;color:#412402;text-align:center"><span id="route-total-sack">-</span></td>
-    <td style="font-weight:700;color:#412402;text-align:center"><span id="route-total-box">-</span></td>
+  // 2026-07-31: เปลี่ยนกลับเป็นสีเขียว #E1F5EE (เขียวเดิมที่เคยใช้ก่อนเปลี่ยนเป็นส้ม 07-30) ตามที่ user ขอ แยกจากแถว "เลือกแล้วในกลุ่ม X" ให้ไม่ลายตา
+  rows += `<tr class="pend-total-row" style="background:#E1F5EE">
+    <td colspan="6" style="text-align:right;font-weight:700;font-size:12px;color:#166534;padding:3px 8px">รวมรถเที่ยวนี้ (กลุ่มที่เปิดอยู่)</td>
+    <td style="font-weight:700;color:#166534;text-align:center"><span id="route-total-sack">-</span></td>
+    <td style="font-weight:700;color:#166534;text-align:center"><span id="route-total-box">-</span></td>
     <td colspan="6"></td>
   </tr>`;
 
