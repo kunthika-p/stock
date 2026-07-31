@@ -303,6 +303,7 @@ table.list tr:hover td{background:#f8fbff}
   .sum-print-hide,.ih-print-hide,.hist-print-hide{display:none!important}
   #tab-stock .legend,#tab-stock .type-nav-wrap,#tab-stock .card-title{display:none!important}
   #tab-stock .type-panel{display:block!important}
+  #tab-stock .card{padding:2px!important}
   #tab-stock .stk-new-page{page-break-before:always}
   #tab-stock .stk-pair-l,#tab-stock .stk-pair-r{display:inline-block!important;width:49%!important;vertical-align:top}
   #tab-stock .stk-keep-together{page-break-inside:avoid}
@@ -2760,12 +2761,12 @@ function buildMatrix() {
       const huaDiv = document.createElement('div');
       huaDiv.className = 'type-panel stk-compact stk-new-page'+(isHua?' active':'');
       huaDiv.id = 'mp-'+HUA_NUT_ENC;
-      huaDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">หัวน็อต</div><div class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
-        <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล', 214)}</div>
-        <div><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W', 142)}</div>
-        <div class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:16px">
-          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC', 142)}</div>
-          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF', 142)}</div>
+      huaDiv.innerHTML = `<div class="stk-print-only-title" style="font-size:15px;margin-bottom:8px">หัวน็อต</div><div class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start">
+        <div><span class="nut-sub-title">หัวน็อตมิล</span>${buildTypeTable('หัวน็อตมิล', 190)}</div>
+        <div><span class="nut-sub-title">หัวน็อตเกลียว W</span>${buildTypeTable('หัวน็อตเกลียว W', 130)}</div>
+        <div class="stk-keep-together" style="display:flex;flex-wrap:wrap;gap:10px">
+          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NC</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NC', 130)}</div>
+          <div><span class="nut-sub-title">หัวน็อตเกลียวหยาบ NF</span>${buildTypeTable('หัวน็อตเกลียวหยาบ NF', 130)}</div>
         </div>
       </div>`;
       panels.appendChild(huaDiv);
