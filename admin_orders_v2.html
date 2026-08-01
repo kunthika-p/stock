@@ -4710,7 +4710,7 @@ function anSetMainRangeMode(mode) {
   anRenderKpiCal(); // ปุ่ม pill (active state) เรนเดอร์อยู่ในนี้ด้วย ต้อง re-render คู่กันเสมอ
   const custRow = document.getElementById('an-main-custom-row');
   if (custRow) custRow.style.display = mode === 'custom' ? 'flex' : 'none';
-  if (mode !== 'custom') anRenderMainCharts();
+  if (mode !== 'custom') { anRenderMainCharts(); anRenderStackChart(); } // 2026-08-01: กราฟรายวันใช้ stackTypeNames จาก anMainRange ด้วย ต้อง re-render คู่กันกันตกยุค (legend เพี้ยน)
 }
 
 function anMainCustomApply() {
@@ -4719,6 +4719,7 @@ function anMainCustomApply() {
   if (!f || !t) return;
   anMainRange.from = f; anMainRange.to = t;
   anRenderMainCharts();
+  anRenderStackChart();
 }
 
 // ==== ส่วนยอดขายแยกตามลูกค้า (ผูกกับ anCustRange/anCustSearch แยกอิสระจากกราฟหลัก) ====
@@ -5032,6 +5033,7 @@ function anCalShiftMonth(dir) {
   anMainRange.mode = 'month';
   anRenderKpiCal();
   anRenderMainCharts();
+  anRenderStackChart(); // 2026-08-01: บั๊กที่เจอ — เลื่อนเดือนแล้วกราฟ "ยอดขายรายวัน" ด้านล่างไม่ตามไปด้วย เพราะไม่เคยเรียก re-render จุดนี้เลย
 }
 function anSelectCalDay(d) {
   anSelDay = d;
