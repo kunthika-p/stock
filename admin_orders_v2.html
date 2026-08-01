@@ -293,6 +293,8 @@ table.list tr:hover td{background:#f8fbff}
 .sum-tbl .num{text-align:center}
 .sum-tbl .sub-row td{background:#eef3fb;font-weight:700;color:#1a3a5c;border-color:#c7d8f0}
 .sum-grand{text-align:right;font-size:13px;padding:10px 2px 4px;border-top:2px solid #1a3a5c;margin-top:12px;font-weight:700;color:#1a3a5c}
+.truck-hdr{background:#eef3fb;color:#1a3a5c;font-weight:700;font-size:13px;padding:6px 10px;margin:14px 0 4px;border-radius:6px}
+.truck-section:first-child .truck-hdr{margin-top:0}
 #sum-print-hdr{display:none}
 #ih-print-hdr{display:none}
 #stk-print-hdr{display:none}
@@ -387,6 +389,7 @@ table.list tr:hover td{background:#f8fbff}
   .sum-tbl .num,#tab-summary .hist-tbl td{text-align:center!important}
   .sum-tbl .sub-row td,#tab-summary .hist-tbl tr.summary-row td{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 5px!important}
   .sum-grand{font-size:8pt!important;padding:4px 0 0!important;margin-top:4px!important;border-top:1px solid #333!important}
+  .truck-hdr{background:#eef3fb!important;color:#1a3a5c!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:9pt!important;padding:4px 6px!important;margin:0 0 2px!important}
 }
 
 /* ── Analytics Tab ── */
@@ -935,6 +938,8 @@ table.list tr:hover td{background:#f8fbff}
       <div class="sum-filter-row sum-print-hide">
         <label>ลูกค้า:</label>
         <select id="sum-cust-filter"><option value="">ทั้งหมด</option></select>
+        <label>คันรถ:</label>
+        <select id="sum-truck-filter"><option value="">ทั้งหมด</option></select>
         <label>กรองตาม:</label>
         <span id="sum-date-mode-wrap" style="display:inline-flex;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden">
           <button type="button" id="sum-mode-ordered" onclick="setSummaryDateMode('ordered')" style="padding:5px 10px;border:none;font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer">วันที่สั่ง</button>
@@ -1018,6 +1023,22 @@ table.list tr:hover td{background:#f8fbff}
     <div class="edit-actions">
       <button class="btn-cancel-edit" onclick="closeBulkDateModal()">ยกเลิก</button>
       <button class="btn-save" id="bulkDateSaveBtn" onclick="applyBulkDate()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2026-07-31: ฟีเจอร์ "ยืนยันเป็นชุดตามคันรถ" — modal ตั้งชื่อคันรถตอนกด "ยืนยันที่เลือก" (ไม่บังคับกรอก) -->
+<div class="edit-modal-bg" id="truckModalBg" onclick="if(event.target===this)closeTruckModal()">
+  <div class="edit-modal">
+    <h3>✅ ยืนยันที่เลือก</h3>
+    <div class="sub" id="truckModalSub"></div>
+    <div class="edit-field">
+      <label>ชื่อคันรถ (ไม่บังคับ)</label>
+      <input type="text" id="truckNameInput" placeholder="เช่น คันรถ 1" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmTruckModal();}">
+    </div>
+    <div class="edit-actions">
+      <button class="btn-cancel-edit" onclick="closeTruckModal()">ยกเลิก</button>
+      <button class="btn-save" onclick="confirmTruckModal()">✅ ยืนยัน</button>
     </div>
   </div>
 </div>
@@ -3296,6 +3317,9 @@ async function applyBulkDate() {
   if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 บันทึก'; }
 }
 
+// 2026-07-31: ฟีเจอร์ "ยืนยันเป็นชุดตามคันรถ" — เดิม bulkConfirm() ยิง POST เลยหลัง confirm() ธรรมดา
+// ตอนนี้เปลี่ยนเป็นเปิด modal ให้พิมพ์ชื่อคันรถก่อน (ไม่บังคับ) แล้วค่อยยิง POST ใน confirmTruckModal() แทน
+let _bulkConfirmItems = [];
 async function bulkConfirm() {
   const checked = [...document.querySelectorAll('.pend-chk:checked')];
   if (!checked.length) return;
@@ -3307,7 +3331,23 @@ async function bulkConfirm() {
     openEditModalByRow(missing[0].row);
     return;
   }
-  if (!confirm(`ยืนยัน ${checked.length} รายการ?`)) return;
+  _bulkConfirmItems = items;
+  document.getElementById('truckModalSub').textContent = `${checked.length} รายการ`;
+  document.getElementById('truckNameInput').value = '';
+  document.getElementById('truckModalBg').classList.add('open');
+  setTimeout(() => document.getElementById('truckNameInput').focus(), 50);
+}
+
+function closeTruckModal() {
+  document.getElementById('truckModalBg').classList.remove('open');
+  _bulkConfirmItems = [];
+}
+
+async function confirmTruckModal() {
+  const truck = (document.getElementById('truckNameInput').value || '').trim();
+  const items = _bulkConfirmItems;
+  document.getElementById('truckModalBg').classList.remove('open');
+  if (!items || !items.length) return;
   showToast('⏳ กำลังยืนยัน 0/' + items.length + ' รายการ...');
   try {
     const errors = [];
@@ -3317,7 +3357,7 @@ async function bulkConfirm() {
       showToast('⏳ กำลังยืนยัน ' + (i+1) + '/' + items.length + ' รายการ...');
       try {
         const res = await fetch(API, {
-          method: 'POST', body: JSON.stringify({action:'confirmOrder', row: item.row, code: item.code, qty: item.qty})
+          method: 'POST', body: JSON.stringify({action:'confirmOrder', row: item.row, code: item.code, qty: item.qty, truck})
         });
         const data = await res.json();
         if (!data.success) {
@@ -3334,8 +3374,9 @@ async function bulkConfirm() {
     if (errors.length) {
       showToast('⚠️ ยืนยัน ' + (items.length - errors.length) + '/' + items.length + ' รายการ (fail: ' + errors.length + ')', 'warn');
     } else {
-      showToast('✅ ยืนยัน ' + items.length + ' รายการแล้ว');
+      showToast('✅ ยืนยัน ' + items.length + ' รายการแล้ว' + (truck ? ' — '+truck : ''));
     }
+    _bulkConfirmItems = [];
     loadPending(); loadHistory();
     if (stockErrItems.length) showStockErrModal(stockErrItems[0]);
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
@@ -3779,13 +3820,16 @@ async function loadSummary() {
 function renderSummary() {
   const VALID_URG = ['ด่วน','จอง','เร่ง','ปกติ'];
   const UNIT_VALS = ['กล่อง','กระสอบ'];
-  const custFilter = document.getElementById('sum-cust-filter').value;
+  const custFilter  = document.getElementById('sum-cust-filter').value;
+  // 2026-07-31: ตัวกรอง "คันรถ" — ใช้ร่วมกับตัวกรองอื่นแบบ AND ทั้งหมด (ลูกค้า/คันรถ/ช่วงวันที่)
+  const truckFilter = document.getElementById('sum-truck-filter').value;
   const dateFrom   = document.getElementById('sum-date-from').value;
   const dateTo     = document.getElementById('sum-date-to').value;
 
   let rows = summaryData.filter(o => {
     const cust = resolveCust(o.customer || '(ไม่ระบุ)');
     if (custFilter && cust !== custFilter) return false;
+    if (truckFilter && (o.truck||'') !== truckFilter) return false;
     // 2026-07-13: ใช้ orderDateToInputISO() ตัวเดียวกับที่ getOrderDate()/fmtOrderDate() ใช้โชว์วันที่
     // เดิมมีโค้ด parse วันที่แยกเขียนเองตรงนี้ ตัด ISO string ด้วย split('T')[0] ตรงๆ ไม่ปรับ timezone
     // ทำให้ order ที่ timestamp ตกช่วงเที่ยงคืน-ตี 7 (เวลาไทย) คำนวณวันที่กรองผิดไปวันก่อนหน้า 1 วัน
@@ -3827,13 +3871,25 @@ function renderSummary() {
     }
   });
 
-  // group by customer
-  const grouped = {};
+  // 2026-07-31: ฟีเจอร์ "ยืนยันเป็นชุดตามคันรถ" — จัดกลุ่มตาม "คันรถ" ก่อน แล้วค่อยแยกลูกค้าในแต่ละคันรถเหมือนเดิม
+  // ออเดอร์เก่า/ที่ไม่ได้ผ่าน bulkConfirm จะไม่มี o.truck (ว่างเปล่า) รวมอยู่กลุ่มเดียวกัน (key='') เพื่อไม่กระทบพฤติกรรมเดิม
+  const truckGroups = {};
+  const truckKeys = [];
   rows.forEach(o => {
-    const c = resolveCust(o.customer || '(ไม่ระบุ)');
-    if (!grouped[c]) grouped[c] = [];
-    grouped[c].push(o);
+    const t = o.truck || '';
+    if (!truckGroups[t]) { truckGroups[t] = []; truckKeys.push(t); }
+    truckGroups[t].push(o);
   });
+  // เรียงคันรถตามลำดับยืนยันก่อน-หลัง (confirmed_date เร็วสุดของแต่ละคัน) — กลุ่มไม่มีคันรถ (legacy) ไว้บนสุดเสมอ
+  truckKeys.sort((a, b) => {
+    if (a === '' && b === '') return 0;
+    if (a === '') return -1;
+    if (b === '') return 1;
+    const ta = Math.min(...truckGroups[a].map(o => new Date(o.confirmed_date || o.timestamp || o.date || 0).getTime()));
+    const tb = Math.min(...truckGroups[b].map(o => new Date(o.confirmed_date || o.timestamp || o.date || 0).getTime()));
+    return ta - tb;
+  });
+  const totalCustCount = new Set(rows.map(o => resolveCust(o.customer || '(ไม่ระบุ)'))).size;
 
   let html = '';
   const printDate = new Date().toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -3845,15 +3901,19 @@ function renderSummary() {
   html += `<div class="sum-print-title" id="sum-print-hdr">
     <div style="display:flex;justify-content:space-between;align-items:baseline">
       <span class="phdr-title">ใบสรุปออเดอร์${dateFrom||dateTo?' &nbsp;·&nbsp; '+dateModeLabel+' '+(dateFrom||'')+(dateTo?' – '+dateTo:''):''}</span>
-      <span class="phdr-sub">พิมพ์: ${printDate} ${printTime} &nbsp;·&nbsp; ${Object.keys(grouped).length} ลูกค้า · ${rows.length} รายการ</span>
+      <span class="phdr-sub">พิมพ์: ${printDate} ${printTime} &nbsp;·&nbsp; ${totalCustCount} ลูกค้า · ${rows.length} รายการ</span>
     </div>
   </div>`;
 
-  html += `<table class="hist-tbl"><colgroup>
+  // 2026-07-31: colgroup/thead ย้ายมาเป็น template ใช้ซ้ำ เพราะแต่ละคันรถแยกเป็นคนละ <table> ต่อกัน
+  // (ตามบทเรียนเดิมจาก Matrix View print — page-break-before/inside/after เชื่อถือไม่ได้ 100% กลาง table เดียวกัน
+  // ต้องใช้วิธีแยก table คนละอันแล้ว page-break-before ที่ตัว wrapper div แทน)
+  const sumColgroup = `<colgroup>
     <col><col><col><col style="width:80px"><col style="width:80px"><col style="width:80px">
     <col style="width:55px"><col style="width:65px"><col style="width:100px"><col style="width:85px">
     <col style="width:80px"><col>
-  </colgroup><thead><tr>
+  </colgroup>`;
+  const sumThead = `<thead><tr>
     <th style="width:120px;font-size:11px">วันที่สั่ง</th>
     <th style="text-align:left">ลูกค้า</th>
     <th style="text-align:left;min-width:180px">ชื่อสินค้า</th>
@@ -3866,58 +3926,71 @@ function renderSummary() {
     <th>จัดส่ง</th>
     <th>สถานะ</th>
     <th style="text-align:left;min-width:120px">หมายเหตุ</th>
-  </tr></thead><tbody>`;
+  </tr></thead>`;
 
-  Object.entries(grouped).forEach(([cust, orders]) => {
-    const custInfo = CUST_MAP[cust];
-    const custCode = custInfo ? custInfo.code : '';
-    orders.sort((a, b) => {
-      const siA = allItems.find(x => x.code === a.code);
-      const siB = allItems.find(x => x.code === b.code);
-      const unitA = siA ? getUnit(resolveType(siA)) : (a.unit||'กก.');
-      const unitB = siB ? getUnit(resolveType(siB)) : (b.unit||'กก.');
-      const uA = unitA === 'กล่อง' ? 1 : 0;
-      const uB = unitB === 'กล่อง' ? 1 : 0;
-      if (uA !== uB) return uA - uB;
-      const tA = siA ? TYPES.indexOf(resolveType(siA)) : 999;
-      const tB = siB ? TYPES.indexOf(resolveType(siB)) : 999;
-      return tA - tB;
+  truckKeys.forEach((truck, truckIdx) => {
+    const grouped = {};
+    truckGroups[truck].forEach(o => {
+      const c = resolveCust(o.customer || '(ไม่ระบุ)');
+      if (!grouped[c]) grouped[c] = [];
+      grouped[c].push(o);
     });
-    let totalSack = 0, totalBox = 0;
-    orders.forEach((o, idx) => {
-      const si = allItems.find(x => x.code === o.code);
-      const isBox = si ? getUnit(resolveType(si)) === 'กล่อง' : (o.unit === 'กล่อง');
-      const qty = Number(o.qty) || 0;
-      if (isBox) totalBox += qty; else totalSack += qty;
-      const dateStr = getOrderDate(o);
-      const urgBg = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'}[o._urgency]||'#f3f4f6';
-      const _pi = getPriceInfo(custCode, o.code, '');
-      const discVal = (o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined) ? o.disc_pct : (_pi.disc_pct !== null ? _pi.disc_pct : '');
-      const _netRaw = (o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined) ? o.net_price : (_pi.net_price !== null ? _pi.net_price : '');
-      const netVal  = _netRaw !== '' ? Number(_netRaw).toFixed(2) : '';
-      html += `<tr class="${idx===0?'group-sep':''}">
-        <td style="font-size:11px;white-space:nowrap">${dateStr}</td>
-        <td class="td-cust">${idx===0?cust+(custCode?` <span class="sum-cust-code">${custCode}</span>`:''):''}</td>
-        <td class="td-name">${fmtName(o.name||o.code)}</td>
-        <td style="font-family:monospace;font-size:11px">${o.code||''}</td>
-        <td>${!isBox?qty:''}</td>
-        <td>${isBox?qty:''}</td>
-        <td style="text-align:center;font-size:12px">${discVal!==''&&discVal!==null?discVal+'%':''}</td>
-        <td style="text-align:center;font-size:12px">${netVal}</td>
-        <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
-        <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
-        <td>✅ ยืนยัน</td>
-        <td style="font-size:11px;color:#555">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
+
+    html += `<div class="truck-section" style="${truckIdx>0?'page-break-before:always':''}">`;
+    if (truck) html += `<div class="truck-hdr">${truck}</div>`;
+    html += `<table class="hist-tbl">${sumColgroup}${sumThead}<tbody>`;
+
+    Object.entries(grouped).forEach(([cust, orders]) => {
+      const custInfo = CUST_MAP[cust];
+      const custCode = custInfo ? custInfo.code : '';
+      orders.sort((a, b) => {
+        const siA = allItems.find(x => x.code === a.code);
+        const siB = allItems.find(x => x.code === b.code);
+        const unitA = siA ? getUnit(resolveType(siA)) : (a.unit||'กก.');
+        const unitB = siB ? getUnit(resolveType(siB)) : (b.unit||'กก.');
+        const uA = unitA === 'กล่อง' ? 1 : 0;
+        const uB = unitB === 'กล่อง' ? 1 : 0;
+        if (uA !== uB) return uA - uB;
+        const tA = siA ? TYPES.indexOf(resolveType(siA)) : 999;
+        const tB = siB ? TYPES.indexOf(resolveType(siB)) : 999;
+        return tA - tB;
+      });
+      let totalSack = 0, totalBox = 0;
+      orders.forEach((o, idx) => {
+        const si = allItems.find(x => x.code === o.code);
+        const isBox = si ? getUnit(resolveType(si)) === 'กล่อง' : (o.unit === 'กล่อง');
+        const qty = Number(o.qty) || 0;
+        if (isBox) totalBox += qty; else totalSack += qty;
+        const dateStr = getOrderDate(o);
+        const urgBg = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'}[o._urgency]||'#f3f4f6';
+        const _pi = getPriceInfo(custCode, o.code, '');
+        const discVal = (o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined) ? o.disc_pct : (_pi.disc_pct !== null ? _pi.disc_pct : '');
+        const _netRaw = (o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined) ? o.net_price : (_pi.net_price !== null ? _pi.net_price : '');
+        const netVal  = _netRaw !== '' ? Number(_netRaw).toFixed(2) : '';
+        html += `<tr class="${idx===0?'group-sep':''}">
+          <td style="font-size:11px;white-space:nowrap">${dateStr}</td>
+          <td class="td-cust">${idx===0?cust+(custCode?` <span class="sum-cust-code">${custCode}</span>`:''):''}</td>
+          <td class="td-name">${fmtName(o.name||o.code)}</td>
+          <td style="font-family:monospace;font-size:11px">${o.code||''}</td>
+          <td>${!isBox?qty:''}</td>
+          <td>${isBox?qty:''}</td>
+          <td style="text-align:center;font-size:12px">${discVal!==''&&discVal!==null?discVal+'%':''}</td>
+          <td style="text-align:center;font-size:12px">${netVal}</td>
+          <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
+          <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
+          <td>✅ ยืนยัน</td>
+          <td style="font-size:11px;color:#555">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
+        </tr>`;
+      });
+      html += `<tr class="summary-row">
+        <td colspan="4" style="text-align:right">รวม ${cust}</td>
+        <td>${totalSack||'-'}</td>
+        <td>${totalBox||'-'}</td>
+        <td colspan="6"></td>
       </tr>`;
     });
-    html += `<tr class="summary-row">
-      <td colspan="4" style="text-align:right">รวม ${cust}</td>
-      <td>${totalSack||'-'}</td>
-      <td>${totalBox||'-'}</td>
-      <td colspan="6"></td>
-    </tr>`;
+    html += `</tbody></table></div>`;
   });
-  html += `</tbody></table>`;
 
   let grandSack = 0, grandBox = 0;
   rows.forEach(o => {
@@ -3930,14 +4003,19 @@ function renderSummary() {
 
   document.getElementById('sum-body').innerHTML = html;
 
-  const totalCusts = Object.keys(grouped).length;
-  const statEl = document.getElementById('sum-stat'); statEl.textContent = `${totalCusts} ลูกค้า · ${rows.length} รายการ`; statEl.style.display='inline-block';
+  const statEl = document.getElementById('sum-stat'); statEl.textContent = `${totalCustCount} ลูกค้า · ${rows.length} รายการ`; statEl.style.display='inline-block';
 
   // populate customer dropdown if empty
   const sel = document.getElementById('sum-cust-filter');
   if (sel.options.length <= 1) {
     const names = [...new Set(summaryData.map(o=>resolveCust(o.customer||'(ไม่ระบุ)')))].sort((a,b)=>a.localeCompare(b,'th'));
     names.forEach(n => { const opt=document.createElement('option'); opt.value=n; opt.textContent=n; sel.appendChild(opt); });
+  }
+  // 2026-07-31: populate ตัวกรอง "คันรถ" — เฉพาะชื่อคันรถที่เคยบันทึกไว้จริง (ตัดค่าว่างของออเดอร์เก่า/ที่ไม่ได้ผ่าน bulkConfirm ออก)
+  const selT = document.getElementById('sum-truck-filter');
+  if (selT.options.length <= 1) {
+    const trucks = [...new Set(summaryData.map(o=>o.truck||'').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'th'));
+    trucks.forEach(t => { const opt=document.createElement('option'); opt.value=t; opt.textContent=t; selT.appendChild(opt); });
   }
 }
 
