@@ -3069,7 +3069,7 @@ function renderPendingTable() {
       const _stk = stockMap[o.code] || {stock:0};
       const _tank = tankMap[o.code] || 0;
       const _short = qty > (_stk.stock||0);
-      const rowStyle = hideStyle + (isToday ? ';background:#fffbeb' : '') + (_short ? ';background:#fef2f2' : '');
+      const rowStyle = hideStyle + (isToday ? ';background:#fffbeb' : '');
       const rowClass = (idx===0?'cust-sep ':'') + (isToday?'today-row':'');
       rows += `<tr class="${rowClass}" style="${rowStyle}">
         <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-group="${gKey}" data-cust="${custIdx}" data-sack="${!isBox?qty:0}" data-box="${isBox?qty:0}" onchange="updateBulkCount()"></td>
@@ -3079,7 +3079,7 @@ function renderPendingTable() {
         <td class="td-left" style="color:#374151">${fmtName(o.name||o.code)}</td>
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?qty:''}</td>
-        <td style="white-space:nowrap;font-size:11px;${_short?'background:#fecaca;color:#991b1b':'color:#0f6e56'}"><span style="font-size:10px">${_tank} ถัง</span><span style="color:${_short?'#c98a8a':'#9ca3af'};padding:0 3px">/</span><span style="font-weight:700">${_short?'เหลือ '+(_stk.stock||0):(_stk.stock||0)+' '+(isBox?'กล่อง':'กระสอบ')}</span></td>
+        <td style="white-space:nowrap;font-size:11px;background:#f6faff;color:${_short?'#991b1b':'#0f6e56'}"><span style="font-size:10px">${_tank} ถัง</span><span style="color:#9ca3af;padding:0 3px">/</span><span style="font-weight:700">${_short?'เหลือ '+(_stk.stock||0):(_stk.stock||0)+' '+(isBox?'กล่อง':'กระสอบ')}</span></td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _dv=(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)?o.disc_pct:(_pi.disc_pct!==null?_pi.disc_pct:'');return _dv!==''&&_dv!==null?_dv+'%':'';})()}</td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
         <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
@@ -4471,6 +4471,10 @@ let anOrdersCache = [], anCtMap = {}, anItemMap = {};
 let anMainRange = { mode: 'month', from: '', to: '' };
 // 2026-07-10: วันที่ที่เลือกในปฏิทิน KPI (null = วันนี้จริง) — คลิกวันในปฏิทินเพื่อดูยอดขายวันนั้นแทน "วันนี้"
 let anSelDay = null;
+// 2026-08-01: ปฏิทิน KPI เดิม fix เดือนปัจจุบันตายตัว ไม่มีปุ่มเปลี่ยนเดือนเลย (user แจ้ง "อยากเลือกเดือนได้")
+// anCalYear/anCalMonth = เดือนที่กำลังเปิดดูอยู่ในปฏิทิน (null = เดือนปัจจุบันจริง) แยกจาก YTD/"เดือนนี้" การ์ด KPI ซึ่งอิงเดือนปัจจุบันจริงเสมอไม่ขยับตาม
+let anCalYear = null, anCalMonth = null;
+let anCalOpen = false;
 // 2026-07-10: โหมดกราฟแท่งซ้อน "รายวัน"/"รายเดือน" (ตั้งต้นที่ "day" ตามที่ user ขอ) — คงค่าไว้ข้ามการ re-render จนกว่าจะโหลดข้อมูลใหม่
 let anStackMode = 'day';
 let anCustRange = { mode: 'month', from: '', to: '' };
@@ -4906,8 +4910,12 @@ function anBuildKpiCal() {
   const thisY = now.getFullYear();
   const thisM = now.getMonth();
   const prevMStart = new Date(thisY, thisM-1, 1);
-  const selDay = anSelDay || now.getDate();
-  const selDate = new Date(thisY, thisM, selDay);
+  // 2026-08-01: browseY/browseM = เดือนที่กำลังเปิดดูในปฏิทิน (จาก anCalYear/anCalMonth ถ้า user เปลี่ยนเดือนไว้ ไม่งั้นใช้เดือนปัจจุบัน)
+  // แยกจาก thisY/thisM ซึ่งใช้คำนวณ YTD/"เดือนนี้"/เดือนก่อนหน้าเสมอ ไม่ขยับตามการ browse
+  const browseY = anCalYear ?? thisY;
+  const browseM = anCalMonth ?? thisM;
+  const selDay = anSelDay || (browseY===thisY&&browseM===thisM ? now.getDate() : 1);
+  const selDate = new Date(browseY, browseM, selDay);
   const selPrevDate = new Date(selDate); selPrevDate.setDate(selDate.getDate()-1);
   const isRealToday = selDate.getDate()===now.getDate() && selDate.getMonth()===now.getMonth() && selDate.getFullYear()===now.getFullYear();
 
@@ -4924,7 +4932,8 @@ function anBuildKpiCal() {
     const amt = perUnit * qty;
     const dY=d.getFullYear(), dM=d.getMonth(), dd=d.getDate();
     if (dY===thisY) ytd+=amt;
-    if (dY===thisY&&dM===thisM) { mon+=amt; calDays.add(dd); }
+    if (dY===thisY&&dM===thisM) mon+=amt;
+    if (dY===browseY&&dM===browseM) calDays.add(dd);
     if (dY===prevMStart.getFullYear()&&dM===prevMStart.getMonth()) prevMon+=amt;
     if (dY===selDate.getFullYear()&&dM===selDate.getMonth()&&dd===selDate.getDate()) tod+=amt;
     if (dY===selPrevDate.getFullYear()&&dM===selPrevDate.getMonth()&&dd===selPrevDate.getDate()) selPrev+=amt;
@@ -4939,32 +4948,36 @@ function anBuildKpiCal() {
 
   function buildCal() {
     const DOW=['อา','จ','อ','พ','พฤ','ศ','ส'];
-    const first=new Date(thisY,thisM,1).getDay();
-    const days=new Date(thisY,thisM+1,0).getDate();
+    const first=new Date(browseY,browseM,1).getDay();
+    const days=new Date(browseY,browseM+1,0).getDate();
     const shift=first===0?6:first-1;
-    let h='<div class="an-cal-popup" id="an-cal-popup" style="display:none"><div class="an-cal-hdr"><div style="font-size:13px;font-weight:700">'+AN_THAI_MF[thisM]+' '+(thisY+543)+'</div></div><div class="an-cal-grid">';
+    let h='<div class="an-cal-popup" id="an-cal-popup" style="display:'+(anCalOpen?'block':'none')+'"><div class="an-cal-hdr">'
+      +'<button class="an-cal-nav" onclick="event.stopPropagation();anCalShiftMonth(-1)">‹</button>'
+      +'<div style="font-size:13px;font-weight:700">'+AN_THAI_MF[browseM]+' '+(browseY+543)+'</div>'
+      +'<button class="an-cal-nav" onclick="event.stopPropagation();anCalShiftMonth(1)">›</button>'
+      +'</div><div class="an-cal-grid">';
     DOW.forEach(d=>{h+='<div class="an-cal-dow">'+d+'</div>';});
     for(let i=0;i<shift;i++) h+='<div class="an-cal-day acd-other"></div>';
     for(let d=1;d<=days;d++){
-      const isTd=d===now.getDate()&&thisM===now.getMonth()&&thisY===now.getFullYear();
+      const isTd=d===now.getDate()&&browseM===now.getMonth()&&browseY===now.getFullYear();
       const isSel=d===selDay;
       const hasO=calDays.has(d);
       let cls='an-cal-day'+(isSel?' acd-sel':'')+(isTd?' acd-today':'')+(hasO?' acd-has':'');
-      h+='<div class="'+cls+'" onclick="anSelectCalDay('+d+')">'+d+'</div>';
+      h+='<div class="'+cls+'" onclick="event.stopPropagation();anSelectCalDay('+d+')">'+d+'</div>';
     }
     h+='</div><div style="margin-top:8px;display:flex;gap:12px;font-size:10px;color:#64748b"><span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#1a3a5c;margin-right:3px"></span>มีออเดอร์</span></div></div>';
     return h;
   }
 
-  const BY=thisY+543;
+  const BY=browseY+543;
   const dLbl = selDate.getDate()+' '+AN_THAI_M[selDate.getMonth()]+'.';
   const kpiTitle = isRealToday ? ('ยอดขายวันนี้ ('+dLbl+')') : ('ยอดขาย '+dLbl);
   const subLbl = isRealToday ? 'vs เมื่อวาน' : 'vs วันก่อนหน้า';
 
-  return '<button class="an-cal-btn" onclick="var p=document.getElementById(\'an-cal-popup\');p.style.display=p.style.display===\'block\'?\'none\':\'block\'">📅 <span>'+AN_THAI_MF[thisM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
+  return '<button class="an-cal-btn" onclick="anToggleCal()">📅 <span>'+AN_THAI_MF[browseM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
     buildCal()+
     '<div class="an-sales-kpi-row">'+
-      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">฿'+Math.round(ytd).toLocaleString()+'</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+AN_THAI_M[thisM]+'. '+BY+'</div></div>'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">฿'+Math.round(ytd).toLocaleString()+'</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+AN_THAI_M[thisM]+'. '+(thisY+543)+'</div></div>'+
       '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายเดือนนี้</div><div class="ask-val" style="color:#1a3a5c">฿'+Math.round(mon).toLocaleString()+'</div><div class="ask-sub">'+(pBadge(mon,prevMon)||'—')+' vs เดือนที่แล้ว</div></div>'+
       '<div class="an-sales-kpi"><div class="ask-lbl">'+kpiTitle+'</div><div class="ask-val" style="color:#1a3a5c">฿'+Math.round(tod).toLocaleString()+'</div><div class="ask-sub">'+(pBadge(tod,selPrev)||'—')+' '+subLbl+'</div></div>'+
     '</div>';
@@ -4973,8 +4986,26 @@ function anRenderKpiCal() {
   const el = document.getElementById('an-kpi-cal');
   if (el) el.innerHTML = anBuildKpiCal();
 }
+function anToggleCal() {
+  anCalOpen = !anCalOpen;
+  anRenderKpiCal();
+}
+// 2026-08-01: เปลี่ยนเดือนที่เปิดดูในปฏิทิน KPI (dir = -1 ก่อนหน้า / +1 ถัดไป) — เปิด popup ค้างไว้ต่อ (ไม่ปิดเวลาเปลี่ยนเดือน)
+// รีเซ็ต anSelDay เป็นวันที่ 1 ของเดือนใหม่กันวันที่เดิม (เช่น 31) ไม่มีอยู่จริงในเดือนที่เปลี่ยนไป
+function anCalShiftMonth(dir) {
+  const now = new Date();
+  const y = anCalYear ?? now.getFullYear();
+  const m = anCalMonth ?? now.getMonth();
+  const nd = new Date(y, m+dir, 1);
+  anCalYear = nd.getFullYear();
+  anCalMonth = nd.getMonth();
+  anSelDay = 1;
+  anCalOpen = true;
+  anRenderKpiCal();
+}
 function anSelectCalDay(d) {
   anSelDay = d;
+  anCalOpen = false;
   anRenderKpiCal();
 }
 
@@ -5113,6 +5144,7 @@ function anRenderSalesCharts(orders, items) {
   });
   anCustOpenRow = ''; anCustSearch = ''; anCustCurrentList = []; anCustShowAll = false;
   anSelDay = null; // รีเซ็ตกลับเป็น "วันนี้" ทุกครั้งที่โหลดข้อมูลใหม่จริง (ไม่รีเซ็ตตอน re-render จาก cache)
+  anCalYear = null; anCalMonth = null; anCalOpen = false; // 2026-08-01: รีเซ็ตปฏิทินกลับเดือนปัจจุบัน+ปิด popup ด้วยเหตุผลเดียวกัน
 
   el.innerHTML=
     '<div id="an-kpi-cal">'+anBuildKpiCal()+'</div>'+
