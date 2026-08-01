@@ -84,9 +84,10 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .pend-tbl td{padding:2px 8px;border:1px solid #e5e7eb;vertical-align:middle;text-align:center}
 .pend-tbl .td-left{text-align:left}
 .pend-tbl tr.cust-sep td{border-top:2px solid #2563a8}
-.pend-tbl tr:hover td{background:#f8fbff}
+.pend-tbl tr:hover td{background:#e6f1fb}
 .pend-tbl tr.pend-total-row:hover td{background:transparent}
 .pend-tbl tr.today-row:hover td{background:#fffbeb}
+.pend-tbl tr.short-row:hover td{background:#fcebeb}
 .pend-actions{display:flex;gap:5px;justify-content:center}
 .grade-badge{display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;font-size:12px;font-weight:700;text-align:center}
 .gb-A{background:#d1fae5;color:#065f46}.gb-B{background:#dbeafe;color:#1e40af}
@@ -3069,8 +3070,8 @@ function renderPendingTable() {
       const _stk = stockMap[o.code] || {stock:0};
       const _tank = tankMap[o.code] || 0;
       const _short = qty > (_stk.stock||0);
-      const rowStyle = hideStyle + (isToday ? ';background:#fffbeb' : '') + (_short ? ';background:#fef2f2' : '');
-      const rowClass = (idx===0?'cust-sep ':'') + (isToday?'today-row':'');
+      const rowStyle = hideStyle + (isToday ? ';background:#fffbeb' : '');
+      const rowClass = (idx===0?'cust-sep ':'') + (isToday?'today-row':'') + (_short?' short-row':'');
       rows += `<tr class="${rowClass}" style="${rowStyle}">
         <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-group="${gKey}" data-cust="${custIdx}" data-sack="${!isBox?qty:0}" data-box="${isBox?qty:0}" onchange="updateBulkCount()"></td>
         <td style="font-size:11px;white-space:nowrap"><span id="pend-date-${o.row}">${getOrderDate(o)}</span></td>
@@ -3079,7 +3080,7 @@ function renderPendingTable() {
         <td class="td-left" style="color:#374151">${fmtName(o.name||o.code)}</td>
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?qty:''}</td>
-        <td style="white-space:nowrap;font-size:11px;${_short?'background:#fecaca;color:#991b1b':'color:#374151'}"><span style="font-size:10px">${_tank} ถัง</span><span style="color:${_short?'#c98a8a':'#9ca3af'};padding:0 3px">/</span><span style="font-weight:700">${_short?'เหลือ '+(_stk.stock||0):(_stk.stock||0)+''}&nbsp;${isBox?'ก.':'กส.'}</span></td>
+        <td style="white-space:nowrap;font-size:11px;${_short?'color:#991b1b':'color:#374151'}"><span style="font-size:10px">${_tank} ถัง</span><span style="color:${_short?'#c98a8a':'#9ca3af'};padding:0 3px">/</span><span style="font-weight:700">${_short?'เหลือ '+(_stk.stock||0):(_stk.stock||0)+''}&nbsp;${isBox?'ก.':'กส.'}</span></td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _dv=(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)?o.disc_pct:(_pi.disc_pct!==null?_pi.disc_pct:'');return _dv!==''&&_dv!==null?_dv+'%':'';})()}</td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
         <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
