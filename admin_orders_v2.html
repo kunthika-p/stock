@@ -3069,7 +3069,7 @@ function renderPendingTable() {
       const _stk = stockMap[o.code] || {stock:0};
       const _tank = tankMap[o.code] || 0;
       const _short = qty > (_stk.stock||0);
-      const rowStyle = hideStyle + (isToday ? ';background:#fffbeb' : '');
+      const rowStyle = hideStyle + (isToday ? ';background:#fffbeb' : '') + (_short ? ';background:#fef2f2' : '');
       const rowClass = (idx===0?'cust-sep ':'') + (isToday?'today-row':'');
       rows += `<tr class="${rowClass}" style="${rowStyle}">
         <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-group="${gKey}" data-cust="${custIdx}" data-sack="${!isBox?qty:0}" data-box="${isBox?qty:0}" onchange="updateBulkCount()"></td>
@@ -3079,7 +3079,7 @@ function renderPendingTable() {
         <td class="td-left" style="color:#374151">${fmtName(o.name||o.code)}</td>
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?qty:''}</td>
-        <td style="white-space:nowrap;font-size:11px;background:#f6faff;color:${_short?'#991b1b':'#0f6e56'}"><span style="font-size:10px">${_tank} ถัง</span><span style="color:#9ca3af;padding:0 3px">/</span><span style="font-weight:700">${_short?'เหลือ '+(_stk.stock||0):(_stk.stock||0)+' '+(isBox?'กล่อง':'กระสอบ')}</span></td>
+        <td style="white-space:nowrap;font-size:11px;${_short?'background:#fecaca;color:#991b1b':'color:#374151'}"><span style="font-size:10px">${_tank} ถัง</span><span style="color:${_short?'#c98a8a':'#9ca3af'};padding:0 3px">/</span><span style="font-weight:700">${_short?'เหลือ '+(_stk.stock||0):(_stk.stock||0)+''}&nbsp;${isBox?'ก.':'กส.'}</span></td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _dv=(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)?o.disc_pct:(_pi.disc_pct!==null?_pi.disc_pct:'');return _dv!==''&&_dv!==null?_dv+'%':'';})()}</td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
         <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
@@ -3179,7 +3179,7 @@ function renderPendingTable() {
             <th style="text-align:left;min-width:150px">ชื่อสินค้า</th>
             <th style="width:70px">กระสอบ</th>
             <th style="width:70px">กล่อง</th>
-            <th style="width:110px;background:#eef3fb;color:#1a3a5c">สต็อคปัจจุบัน</th>
+            <th style="width:110px">สต็อคปัจจุบัน</th>
             <th style="width:55px;text-align:center">%ส่วนลด</th>
             <th style="width:65px;text-align:center">ราคาเน็ต</th>
             <th style="width:95px">ความเร่งด่วน</th>
@@ -4566,11 +4566,21 @@ function anResolveRange(r) {
   if (r.mode === 'quarter') return { from: new Date(thisY, thisM-2, 1), to: endOfToday };
   if (r.mode === 'half')    return { from: new Date(thisY, thisM-5, 1), to: endOfToday };
   if (r.mode === 'ytd')     return { from: new Date(thisY, 0, 1), to: endOfToday };
-  return { from: new Date(thisY, thisM, 1), to: endOfToday }; // month (default)
+  // month (default) — 2026-08-01: รวบตัวเลือกวันที่เป็นจุดเดียวตามที่ user ขอ — ใช้เดือนที่กำลัง browse
+  // อยู่ในปฏิทิน KPI (anCalYear/anCalMonth) แทนเดือนปัจจุบันตายตัว ให้กราฟ 2 อัน (ยอดขายแต่ละประเภท/สัดส่วนยอดขาย)
+  // ซิงค์กับปฏิทินด้านบนเสมอ (เดิมกราฟค้างที่เดือนจริงปัจจุบันแยกกันคนละสถานะกับปฏิทิน ทำให้ดูเหมือน 2 ตัวเลือกทับซ้อนกัน)
+  const bY = anCalYear ?? thisY, bM = anCalMonth ?? thisM;
+  const isCurMonth = bY===thisY && bM===thisM;
+  return { from: new Date(bY, bM, 1), to: isCurMonth ? endOfToday : new Date(bY, bM+1, 0, 23,59,59,999) };
 }
 
 function anRangeLabel(r) {
-  if (r.mode !== 'custom') return ({month:'เดือนนี้',quarter:'ไตรมาสนี้',half:'6 เดือน',ytd:'ปีนี้ (YTD)'})[r.mode] || 'เดือนนี้';
+  if (r.mode === 'month') {
+    const now = new Date();
+    const bY = anCalYear ?? now.getFullYear(), bM = anCalMonth ?? now.getMonth();
+    return AN_THAI_MF[bM]+' '+(bY+543);
+  }
+  if (r.mode !== 'custom') return ({quarter:'ไตรมาสนี้',half:'6 เดือน',ytd:'ปีนี้ (YTD)'})[r.mode] || '';
   const { from, to } = anResolveRange(r);
   return from.getDate()+' '+AN_THAI_M[from.getMonth()]+' '+(from.getFullYear()+543)+' – '+to.getDate()+' '+AN_THAI_M[to.getMonth()]+' '+(to.getFullYear()+543);
 }
@@ -4688,11 +4698,19 @@ function anRenderMainCharts() {
   if (el) el.innerHTML = anBuildMainCharts();
 }
 
-function anMainRangeChange(sel) {
-  anMainRange.mode = sel.value;
+// 2026-08-01: เดิมมี dropdown "เดือนนี้/ไตรมาสนี้/6เดือน/ปีนี้/กำหนดเอง" แยกอิสระจากปฏิทิน KPI ด้านบน
+// ทำให้ดูเหมือน 2 ตัวเลือกวันที่ทับซ้อนกัน (user ทักเรื่องนี้) — ตัด "เดือนนี้" ออกจาก dropdown (ปฏิทินคุมอยู่แล้ว)
+// เหลือปุ่มเล็กๆ (pill) 4 ปุ่มสำหรับโหมดดูรวมหลายเดือน วางแถวเดียวกับปุ่มปฏิทิน แทน anMainRangeChange เดิม
+function anMainPillBtn(mode, label) {
+  const on = anMainRange.mode === mode;
+  return '<button onclick="anSetMainRangeMode(\''+mode+'\')" style="padding:5px 12px;border-radius:14px;border:1px solid '+(on?'#1a3a5c':'#d8dfe8')+';background:'+(on?'#1a3a5c':'white')+';color:'+(on?'white':'#475569')+';font-size:12px;font-family:\'Sarabun\',sans-serif;cursor:pointer;white-space:nowrap">'+label+'</button>';
+}
+function anSetMainRangeMode(mode) {
+  anMainRange.mode = mode;
+  anRenderKpiCal(); // ปุ่ม pill (active state) เรนเดอร์อยู่ในนี้ด้วย ต้อง re-render คู่กันเสมอ
   const custRow = document.getElementById('an-main-custom-row');
-  if (custRow) custRow.style.display = sel.value === 'custom' ? 'flex' : 'none';
-  if (sel.value !== 'custom') anRenderMainCharts();
+  if (custRow) custRow.style.display = mode === 'custom' ? 'flex' : 'none';
+  if (mode !== 'custom') anRenderMainCharts();
 }
 
 function anMainCustomApply() {
@@ -4974,7 +4992,15 @@ function anBuildKpiCal() {
   const kpiTitle = isRealToday ? ('ยอดขายวันนี้ ('+dLbl+')') : ('ยอดขาย '+dLbl);
   const subLbl = isRealToday ? 'vs เมื่อวาน' : 'vs วันก่อนหน้า';
 
-  return '<button class="an-cal-btn" onclick="anToggleCal()">📅 <span>'+AN_THAI_MF[browseM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
+  return '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<button class="an-cal-btn" onclick="anToggleCal()">📅 <span>'+AN_THAI_MF[browseM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
+      '<span style="width:1px;height:20px;background:#e2e8f0"></span>'+
+      '<span style="font-size:12px;color:#94a3b8">ดูรวมหลายเดือน:</span>'+
+      anMainPillBtn('quarter','ไตรมาสนี้')+
+      anMainPillBtn('half','6 เดือน')+
+      anMainPillBtn('ytd','ปีนี้ (YTD)')+
+      anMainPillBtn('custom','กำหนดเอง...')+
+    '</div>'+
     buildCal()+
     '<div class="an-sales-kpi-row">'+
       '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">฿'+Math.round(ytd).toLocaleString()+'</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+AN_THAI_M[thisM]+'. '+(thisY+543)+'</div></div>'+
@@ -5001,7 +5027,11 @@ function anCalShiftMonth(dir) {
   anCalMonth = nd.getMonth();
   anSelDay = 1;
   anCalOpen = true;
+  // 2026-08-01: เลื่อนปฏิทิน = กลับมาโหมด "เดือน" อัตโนมัติ ให้กราฟยอดขายด้านล่าง (anMainRange) ซิงค์กับเดือนที่กำลังดูเสมอ
+  // (เผื่อก่อนหน้านี้สลับไปดูโหมดไตรมาส/6เดือน/ปีนี้/กำหนดเองค้างไว้)
+  anMainRange.mode = 'month';
   anRenderKpiCal();
+  anRenderMainCharts();
 }
 function anSelectCalDay(d) {
   anSelDay = d;
@@ -5016,6 +5046,9 @@ function anBuildStackChart() {
   const now = new Date();
   const thisY = now.getFullYear();
   const thisM = now.getMonth();
+  // 2026-08-01: โหมด "รายวัน" เดิม fix เดือนปัจจุบันตายตัวเหมือนกัน (บั๊กเดียวกับปฏิทิน KPI/กราฟหลัก) — ใช้เดือนที่กำลัง
+  // browse อยู่ (anCalYear/anCalMonth) แทน ให้ตรงกับปฏิทิน+กราฟหลักด้านบนเสมอ (โหมด "รายเดือน" ที่แสดงทั้งปียังคงอิงปีปัจจุบันเหมือนเดิม)
+  const browseY = anCalYear ?? thisY, browseM = anCalMonth ?? thisM;
   const isDay = anStackMode === 'day';
 
   const mainR = anResolveRange(anMainRange);
@@ -5024,11 +5057,11 @@ function anBuildStackChart() {
   let bars, title, sub;
 
   if (isDay) {
-    const daysInMonth = new Date(thisY, thisM+1, 0).getDate();
+    const daysInMonth = new Date(browseY, browseM+1, 0).getDate();
     const typeDay = {};
     anOrdersCache.forEach(o => {
       const d = anPDate(o); if (!d) return;
-      if (d.getFullYear()!==thisY || d.getMonth()!==thisM) return;
+      if (d.getFullYear()!==browseY || d.getMonth()!==browseM) return;
       const code = String(o.code||'').padStart(8,'0');
       const item = anItemMap[code];
       const qty = Number(o.qty)||0;
@@ -5050,9 +5083,10 @@ function anBuildStackChart() {
       });
     }
     bars = [];
-    for (let dd=1; dd<=daysInMonth; dd++) bars.push({ key:dd, lbl:String(dd), isCur: dd===now.getDate(), map:typeDay });
+    const isBrowseCurMonth = browseY===thisY && browseM===thisM;
+    for (let dd=1; dd<=daysInMonth; dd++) bars.push({ key:dd, lbl:String(dd), isCur: isBrowseCurMonth && dd===now.getDate(), map:typeDay });
     title = 'ยอดขายรายวัน แยกตามประเภท';
-    sub = '1-'+daysInMonth+' '+AN_THAI_M[thisM]+' '+(thisY+543)+' · บาท';
+    sub = '1-'+daysInMonth+' '+AN_THAI_M[browseM]+' '+(browseY+543)+' · บาท';
   } else {
     const yearMonths = [];
     for (let m=0; m<=11; m++) yearMonths.push({key:thisY+'-'+String(m+1).padStart(2,'0'), lbl:AN_THAI_M[m]});
@@ -5145,19 +5179,17 @@ function anRenderSalesCharts(orders, items) {
   anCustOpenRow = ''; anCustSearch = ''; anCustCurrentList = []; anCustShowAll = false;
   anSelDay = null; // รีเซ็ตกลับเป็น "วันนี้" ทุกครั้งที่โหลดข้อมูลใหม่จริง (ไม่รีเซ็ตตอน re-render จาก cache)
   anCalYear = null; anCalMonth = null; anCalOpen = false; // 2026-08-01: รีเซ็ตปฏิทินกลับเดือนปัจจุบัน+ปิด popup ด้วยเหตุผลเดียวกัน
+  anMainRange = { mode: 'month', from: '', to: '' }; // 2026-08-01: รีเซ็ตกราฟกลับโหมด "เดือน" (ตามปฏิทิน) ด้วยเหตุผลเดียวกัน
 
   el.innerHTML=
     '<div id="an-kpi-cal">'+anBuildKpiCal()+'</div>'+
-    '<div style="display:flex;align-items:center;gap:10px;margin:18px 0 10px;flex-wrap:wrap">'+
-      anRangeSelectHtml(anMainRange.mode, 'anMainRangeChange')+
-      '<div id="an-main-custom-row" style="display:'+(anMainRange.mode==='custom'?'flex':'none')+';gap:8px;align-items:center">'+
-        '<input type="date" id="an-main-from" value="'+anEsc(anMainRange.from||'')+'" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">'+
-        '<span style="font-size:12px;color:#94a3b8">ถึง</span>'+
-        '<input type="date" id="an-main-to" value="'+anEsc(anMainRange.to||'')+'" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">'+
-        '<button onclick="anMainCustomApply()" style="border:none;background:#1a3a5c;color:white;border-radius:8px;padding:7px 16px;font-size:12px;cursor:pointer;font-weight:700">ใช้ช่วงนี้</button>'+
-      '</div>'+
+    '<div id="an-main-custom-row" style="display:'+(anMainRange.mode==='custom'?'flex':'none')+';gap:8px;align-items:center;margin:10px 0">'+
+      '<input type="date" id="an-main-from" value="'+anEsc(anMainRange.from||'')+'" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">'+
+      '<span style="font-size:12px;color:#94a3b8">ถึง</span>'+
+      '<input type="date" id="an-main-to" value="'+anEsc(anMainRange.to||'')+'" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">'+
+      '<button onclick="anMainCustomApply()" style="border:none;background:#1a3a5c;color:white;border-radius:8px;padding:7px 16px;font-size:12px;cursor:pointer;font-weight:700">ใช้ช่วงนี้</button>'+
     '</div>'+
-    '<div class="an-sales-2col" id="an-main-charts"></div>'+
+    '<div class="an-sales-2col" id="an-main-charts" style="margin-top:14px"></div>'+
     '<div id="an-stack-container">'+anBuildStackChart()+'</div>'+
     '<div class="an-sales-2col" style="margin-top:20px" id="an-cust-body"></div>';
 
