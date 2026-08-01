@@ -3064,7 +3064,12 @@ function renderPendingTable() {
       // 2026-07-30: เทียบวันที่ออเดอร์กับวันนี้ — ตรงกันแปลว่าแอดวันนี้ ให้พื้นหลังทั้งแถวเป็นสีเหลืองอ่อน
       // (เดิมเขียว #E1F5EE เปลี่ยนเป็นเหลือง #fffbeb ให้ตรงกับสีที่ใช้ฝั่ง sale ตามที่ user ขอ)
       const isToday = orderDateToInputISO(o.timestamp || o.date) === todayISO;
-      const rowStyle = hideStyle + (isToday ? ';background:#fffbeb' : '');
+      // 2026-07-31: โชว์สต็อคปัจจุบัน (ถัง + กระสอบ/กล่อง) แทนคอลัมน์ "รหัส" เดิม — user แจ้งปัญหาจัดรถเสร็จ
+      // กดยืนยันแล้วเจอสต็อคไม่พอทีหลัง ต้องรื้อจัดใหม่ ให้เห็นสต็อคก่อนเลือกเข้าคันรถแทน
+      const _stk = stockMap[o.code] || {stock:0};
+      const _tank = tankMap[o.code] || 0;
+      const _short = qty > (_stk.stock||0);
+      const rowStyle = hideStyle + (isToday ? ';background:#fffbeb' : '') + (_short ? ';background:#fef2f2' : '');
       const rowClass = (idx===0?'cust-sep ':'') + (isToday?'today-row':'');
       rows += `<tr class="${rowClass}" style="${rowStyle}">
         <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-group="${gKey}" data-cust="${custIdx}" data-sack="${!isBox?qty:0}" data-box="${isBox?qty:0}" onchange="updateBulkCount()"></td>
@@ -3072,9 +3077,9 @@ function renderPendingTable() {
         <td>${idx===0?`<span class="grade-badge ${gbClass}">${grade||'—'}</span>`:''}</td>
         <td class="td-left" style="font-weight:700;color:#1a3a5c">${idx===0?cust:''}</td>
         <td class="td-left" style="color:#374151">${fmtName(o.name||o.code)}</td>
-        <td style="font-family:monospace;font-size:11px">${o.code}</td>
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?qty:''}</td>
+        <td style="white-space:nowrap;font-size:11px;${_short?'background:#fecaca;color:#991b1b':'color:#0f6e56'}"><span style="font-size:10px">${_tank} ถัง</span><span style="color:${_short?'#c98a8a':'#9ca3af'};padding:0 3px">/</span><span style="font-weight:700">${_short?'เหลือ '+(_stk.stock||0):(_stk.stock||0)+' '+(isBox?'กล่อง':'กระสอบ')}</span></td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _dv=(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)?o.disc_pct:(_pi.disc_pct!==null?_pi.disc_pct:'');return _dv!==''&&_dv!==null?_dv+'%':'';})()}</td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
         <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
@@ -3091,10 +3096,10 @@ function renderPendingTable() {
     });
 
     rows += `<tr class="pend-total-row" style="background:#f0f5ff;${hideStyle}">
-      <td colspan="6" style="text-align:right;font-size:11px;font-weight:700;color:#1a3a5c">รวม ${cust} (เลือกแล้ว)</td>
+      <td colspan="5" style="text-align:right;font-size:11px;font-weight:700;color:#1a3a5c">รวม ${cust} (เลือกแล้ว)</td>
       <td style="font-weight:700;color:#1a3a5c"><span id="cust-sel-sack-${custIdx}">-</span></td>
       <td style="font-weight:700;color:#7c3aed"><span id="cust-sel-box-${custIdx}">-</span></td>
-      <td colspan="6"></td>
+      <td colspan="7"></td>
     </tr>`;
     // 2026-07-25: แก้ตามที่ user ทักว่าเลขไม่ตรง — เดิมรวมลูกค้าที่ถูกซ่อน (กลุ่มปิดอยู่) เข้าไปด้วยแบบไม่บอกใคร
     // ทำให้ "รวมทั้งหมด" ไม่ตรงกับที่เห็นบนจอ ตอนนี้ตัดลูกค้าที่ถูกซ่อนออกจากผลรวมนี้ด้วย (นับเฉพาะที่แสดงอยู่จริง)
@@ -3114,10 +3119,10 @@ function renderPendingTable() {
         // 2026-07-30: user แจ้งว่าตารางลายตา สีพาสเทลแยกตามกลุ่ม (GROUP_COLORS) ทำให้แถวสรุปนี้กลืนกับสีอื่นในตาราง
         // 2026-07-31: เปลี่ยนเป็นเหลืองเข้ม #fde68a (เฉด A จาก mockup ที่ user เลือก) เฉดเดียวกับพื้นเหลืองออเดอร์วันนี้ (#fffbeb) แต่เข้มขึ้น แยกจาก "รวมรถเที่ยวนี้" ที่เป็นเขียวแล้ว
         rows += `<tr class="pend-total-row" style="background:#fde68a;${hideStyle}">
-          <td colspan="6" style="text-align:right;font-weight:700;color:#78350f;padding:4px 8px">เลือกแล้วในกลุ่ม ${grade||'—'}</td>
+          <td colspan="5" style="text-align:right;font-weight:700;color:#78350f;padding:4px 8px">เลือกแล้วในกลุ่ม ${grade||'—'}</td>
           <td style="font-weight:700;color:#78350f;text-align:center"><span id="grp-sel-sack-${gKey}">-</span></td>
           <td style="font-weight:700;color:#78350f;text-align:center"><span id="grp-sel-box-${gKey}">-</span></td>
-          <td colspan="6"></td>
+          <td colspan="7"></td>
         </tr>`;
       }
     }
@@ -3126,18 +3131,18 @@ function renderPendingTable() {
   // 2026-07-25: แถวรวม "รถเที่ยวนี้" — ตัดกลุ่มที่ปิดออก + นับเฉพาะรายการที่ติ๊ก checkbox เท่านั้น (ไม่ใช่รวมทุกออเดอร์ที่แสดง) — เรนเดอร์เสมอไม่ผูกกับ pendingSort
   // 2026-07-31: เปลี่ยนกลับเป็นสีเขียว #E1F5EE (เขียวเดิมที่เคยใช้ก่อนเปลี่ยนเป็นส้ม 07-30) ตามที่ user ขอ แยกจากแถว "เลือกแล้วในกลุ่ม X" ให้ไม่ลายตา
   rows += `<tr class="pend-total-row" style="background:#E1F5EE">
-    <td colspan="6" style="text-align:right;font-weight:700;font-size:12px;color:#166534;padding:3px 8px">รวมรถเที่ยวนี้ (กลุ่มที่เปิดอยู่)</td>
+    <td colspan="5" style="text-align:right;font-weight:700;font-size:12px;color:#166534;padding:3px 8px">รวมรถเที่ยวนี้ (กลุ่มที่เปิดอยู่)</td>
     <td style="font-weight:700;color:#166534;text-align:center"><span id="route-total-sack">-</span></td>
     <td style="font-weight:700;color:#166534;text-align:center"><span id="route-total-box">-</span></td>
-    <td colspan="6"></td>
+    <td colspan="7"></td>
   </tr>`;
 
   // 2026-07-30: user ขอให้ "รวมทั้งหมด (ที่แสดงอยู่)" อยู่ล่างสุดของตาราง — ย้ายมาเรนเดอร์หลัง "รวมรถเที่ยวนี้" แทนที่จะอยู่ก่อน (สลับลำดับ 2 แถวนี้)
   rows += `<tr class="pend-total-row" style="background:#1a3a5c;color:white">
-    <td colspan="6" style="text-align:right;font-weight:700;font-size:12px;padding:3px 8px">รวมทั้งหมด (ที่แสดงอยู่)</td>
+    <td colspan="5" style="text-align:right;font-weight:700;font-size:12px;padding:3px 8px">รวมทั้งหมด (ที่แสดงอยู่)</td>
     <td style="font-weight:700;color:#93c5fd;text-align:center">${totalSack||'-'}</td>
     <td style="font-weight:700;color:#c4b5fd;text-align:center">${totalBox||'-'}</td>
-    <td colspan="6"></td>
+    <td colspan="7"></td>
   </tr>`;
 
   const sortBtn = (label, val) => `<button onclick="pendingSort='${val}';renderPendingTable()" style="padding:5px 12px;border-radius:6px;border:1.5px solid ${pendingSort===val?'#1a3a5c':'#d1d5db'};background:${pendingSort===val?'#1a3a5c':'white'};color:${pendingSort===val?'white':'#555'};font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer">${label}</button>`;
@@ -3172,9 +3177,9 @@ function renderPendingTable() {
             <th style="width:30px">กลุ่ม</th>
             <th style="text-align:left;min-width:130px">ลูกค้า</th>
             <th style="text-align:left;min-width:150px">ชื่อสินค้า</th>
-            <th style="width:90px">รหัส</th>
             <th style="width:70px">กระสอบ</th>
             <th style="width:70px">กล่อง</th>
+            <th style="width:110px;background:#eef3fb;color:#1a3a5c">สต็อคปัจจุบัน</th>
             <th style="width:55px;text-align:center">%ส่วนลด</th>
             <th style="width:65px;text-align:center">ราคาเน็ต</th>
             <th style="width:95px">ความเร่งด่วน</th>
