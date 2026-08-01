@@ -119,6 +119,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 
 #hist-tbl th{border:1px solid rgba(255,255,255,0.5)}
 #hist-tbl td{border:1px solid #c0cfe0;padding:5px 7px}
+#hist-tbl tbody tr:hover td{background:#e6f1fb}
 
 /* สรุปออเดอร์ tab */
 .sum-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}
@@ -127,7 +128,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .sum-tbl tr.group-sep td{border-top:2px solid #2563a8}
 .sum-tbl .td-cust{font-weight:700;color:#1a3a5c;text-align:left}
 .sum-tbl .td-name{text-align:left;color:#374151}
-.sum-tbl tr:hover td{background:#f8fbff}
+.sum-tbl tr:hover td{background:#e6f1fb}
 .sum-tbl tr.trk-hl-row:hover td{background:transparent}
 .sum-tbl tr.trk-today-row td{border-color:#6ee7b7}
 .sum-tbl tr.summary-row td{background:#1a3a5c;color:white;font-weight:700;border:1px solid #0f2844}
@@ -1673,7 +1674,7 @@ function renderTracking() {
           // 2026-07-30 บั๊ก: เดิม sectionBg ส่งมาเป็นแค่ค่าสี ('#d1fae5') ไม่ใช่ CSS declaration เต็ม
           // ทำให้ rowStyle กลายเป็น style="#d1fae5" (ไม่มี "background:" นำหน้า) ซึ่งเป็น CSS ที่ไม่ถูกต้อง เบราว์เซอร์เลยไม่แสดงสีอะไรเลย (เฉพาะกลุ่มวันนี้/เขียว เพราะ pending มี prefix ถูกต้องอยู่แล้ว)
           const rowStyle = isPending ? 'background:#fffbeb' : (sectionBg ? 'background:'+sectionBg : '');
-          // แถวที่มีสีพื้นหลัง (pending เหลือง หรือ sectionBg เขียว) ต้องกัน .sum-tbl tr:hover td{background:#f8fbff} ทับสี — ใช้ class trk-hl-row คู่กับ CSS override ใหม่ (ไม่แตะ .sum-tbl tr:hover เดิมที่ตารางอื่นใช้ร่วมกัน)
+          // แถวที่มีสีพื้นหลัง (pending เหลือง หรือ sectionBg เขียว) ต้องกัน .sum-tbl tr:hover td{background:#e6f1fb} (08-01 เข้มขึ้นจาก #f8fbff เดิม) ทับสี — ใช้ class trk-hl-row คู่กับ CSS override ใหม่ (ไม่แตะ .sum-tbl tr:hover เดิมที่ตารางอื่นใช้ร่วมกัน)
           // 2026-07-30: user ทักว่าพื้นเขียวทำให้เส้นกรอบตาราง (#e5e7eb) กลืนมองไม่เห็น (สีเขียว d1fae5 กับสีเทาเส้นกรอบเดิมความสว่างใกล้กันเกินไป ต่างจากพื้นเหลือง/ขาวที่คอนทราสต์พอ) — เพิ่ม class trk-today-row เฉพาะกลุ่มวันนี้ ให้เส้นกรอบเข้มขึ้นเป็นสีเขียวเข้มกว่า (ไม่กระทบแถว pending/แถวขาวปกติ)
           const hlClasses = [];
           if (isPending || sectionBg) hlClasses.push('trk-hl-row');
