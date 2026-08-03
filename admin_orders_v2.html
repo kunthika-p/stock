@@ -3834,7 +3834,7 @@ function renderSummary() {
   let rows = summaryData.filter(o => {
     const cust = resolveCust(o.customer || '(ไม่ระบุ)');
     if (custFilter && cust !== custFilter) return false;
-    if (truckFilter && (o.truck||'') !== truckFilter) return false;
+    if (truckFilter && String(o.truck||'') !== truckFilter) return false;
     // 2026-07-13: ใช้ orderDateToInputISO() ตัวเดียวกับที่ getOrderDate()/fmtOrderDate() ใช้โชว์วันที่
     // เดิมมีโค้ด parse วันที่แยกเขียนเองตรงนี้ ตัด ISO string ด้วย split('T')[0] ตรงๆ ไม่ปรับ timezone
     // ทำให้ order ที่ timestamp ตกช่วงเที่ยงคืน-ตี 7 (เวลาไทย) คำนวณวันที่กรองผิดไปวันก่อนหน้า 1 วัน
@@ -3881,7 +3881,7 @@ function renderSummary() {
   const truckGroups = {};
   const truckKeys = [];
   rows.forEach(o => {
-    const t = o.truck || '';
+    const t = String(o.truck || '');
     if (!truckGroups[t]) { truckGroups[t] = []; truckKeys.push(t); }
     truckGroups[t].push(o);
   });
@@ -4019,7 +4019,7 @@ function renderSummary() {
   // 2026-07-31: populate ตัวกรอง "คันรถ" — เฉพาะชื่อคันรถที่เคยบันทึกไว้จริง (ตัดค่าว่างของออเดอร์เก่า/ที่ไม่ได้ผ่าน bulkConfirm ออก)
   const selT = document.getElementById('sum-truck-filter');
   if (selT.options.length <= 1) {
-    const trucks = [...new Set(summaryData.map(o=>o.truck||'').filter(Boolean))].sort((a,b)=>a.localeCompare(b,'th'));
+    const trucks = [...new Set(summaryData.map(o=>String(o.truck||'')).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'th'));
     trucks.forEach(t => { const opt=document.createElement('option'); opt.value=t; opt.textContent=t; selT.appendChild(opt); });
   }
 }
