@@ -4113,8 +4113,14 @@ switchTab = function(tab, btn) {
 
 async function anLoadData() {
   try {
+    // แก้ 2026-08-03: เดิมยิง getStock แล้วรอเสร็จก่อนค่อยยิง getOrders (เรียงต่อกัน เวลารวม = ผลบวกของทั้งคู่)
+    // เปลี่ยนเป็นเริ่มยิงทั้ง 2 คำขอพร้อมกันตั้งแต่ต้นฟังก์ชัน (fetch() เริ่มคำขอทันทีตอนเรียก ไม่ต้องรอ await)
+    // แล้วค่อย await แต่ละอันตอนถึงจุดที่ต้องใช้ข้อมูลจริง — ลำดับการประมวลผลข้างล่างเหมือนเดิมทุกจุด ไม่กระทบ logic
+    const sPromise = fetch(API + '?action=getStock');
+    const oPromise = fetch(API + '?action=getOrders');
+
     // Load stock data
-    const sRes = await fetch(API + '?action=getStock');
+    const sRes = await sPromise;
     const sData = await sRes.json();
     const items = sData.items || [];
     // KPI
@@ -4165,7 +4171,7 @@ async function anLoadData() {
       }).join('');
     }
     // --- Fetch confirmed orders for deep analytics ---
-    const oRes = await fetch(API + '?action=getOrders');
+    const oRes = await oPromise; // เริ่มยิงไปพร้อมกับ getStock ตั้งแต่ต้นฟังก์ชันแล้ว (ดูคอมเมนต์ด้านบน)
     const oData = await oRes.json();
     const allOrders = oData.orders || [];
     const orders = allOrders.filter(o => String(o.status) === 'confirmed');
