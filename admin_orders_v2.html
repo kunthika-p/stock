@@ -548,14 +548,17 @@ table.list tr:hover td{background:#f8fbff}
 
   <!-- Tab: ประวัติ -->
   <div class="tab-panel" id="tab-history">
-    <div class="hist-filter">
+    <div class="hist-filter" style="align-items:center">
       <input type="text" id="hist-q" placeholder="🔍 ค้นหาชื่อลูกค้า / สินค้า..." oninput="renderHistory()">
-      <select id="hist-urgency" onchange="renderHistory()">
-        <option value="">ทุกความเร่งด่วน</option>
-        <option value="ด่วน">🔴 ด่วน</option>
-        <option value="จอง">🟡 จอง</option>
-        <option value="ปกติ">🟢 ปกติ</option>
-      </select>
+      <label style="font-size:13px;color:#555;font-weight:600;white-space:nowrap">กรองตาม:</label>
+      <span id="hist-date-mode-wrap" style="display:inline-flex;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden">
+        <button type="button" id="hist-mode-ordered" onclick="setHistoryDateMode('ordered')" style="padding:6px 10px;border:none;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer">วันที่สั่ง</button>
+        <button type="button" id="hist-mode-confirmed" onclick="setHistoryDateMode('confirmed')" style="padding:6px 10px;border:none;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer">วันที่ยืนยัน</button>
+      </span>
+      <label style="font-size:13px;color:#555;font-weight:600;white-space:nowrap">จาก:</label>
+      <input type="date" id="hist-date-from" onchange="renderHistory()">
+      <label style="font-size:13px;color:#555;font-weight:600;white-space:nowrap">ถึง:</label>
+      <input type="date" id="hist-date-to" onchange="renderHistory()">
     </div>
     <div class="tbl-wrap">
       <table class="hist-tbl">
@@ -1721,7 +1724,7 @@ function switchTab(name, btn) {
   if (name === 'overview') loadOverview();
   if (name === 'stock') loadStock();
   if (name === 'pending') { if (!allItems.length) loadStock().then(loadPending); else loadPending(); }
-  if (name === 'history') loadHistory();
+  if (name === 'history') { setHistoryDateMode(historyDateMode); loadHistory(); }
   if (name === 'summary') initSummaryTab();
   if (name === 'itemhistory') {
     if (!allItems.length) loadStock();
@@ -3675,6 +3678,21 @@ async function saveEdit() {
 }
 
 // ---- History tab ----
+// 2026-08-03: โหมดกรองวันที่ในแท็บ "ประวัติ" — 'ordered' (ค่าเริ่มต้น) = กรองตาม "วันที่สั่ง" (date/timestamp)
+// 'confirmed' = กรองตาม "วันที่ยืนยัน" (confirmed_date) — pattern เดียวกับ summaryDateMode ในหน้าสรุปออเดอร์
+// แทนที่ dropdown "ทุกความเร่งด่วน" เดิมที่ยกเลิกไปตามคำขอ user
+let historyDateMode = 'ordered';
+function setHistoryDateMode(mode) {
+  historyDateMode = mode;
+  const ob = document.getElementById('hist-mode-ordered');
+  const cb = document.getElementById('hist-mode-confirmed');
+  ob.style.background = mode==='ordered' ? '#1a3a5c' : 'white';
+  ob.style.color = mode==='ordered' ? 'white' : '#555';
+  cb.style.background = mode==='confirmed' ? '#1a3a5c' : 'white';
+  cb.style.color = mode==='confirmed' ? 'white' : '#555';
+  if (historyData.length) renderHistory();
+}
+
 async function loadHistory() {
   if (!allItems.length) {
     try {
@@ -3719,10 +3737,17 @@ function renderHistory() {
     }
   });
   const q = (document.getElementById('hist-q').value||'').toLowerCase();
-  const urg = document.getElementById('hist-urgency').value;
+  const dateFrom = document.getElementById('hist-date-from').value;
+  const dateTo   = document.getElementById('hist-date-to').value;
   let filtered = historyData.filter(o => {
     if (q && !(o.customer+' '+o.name+' '+o.code).toLowerCase().includes(q)) return false;
-    if (urg && o._urgency !== urg) return false;
+    if (dateFrom || dateTo) {
+      const d = historyDateMode === 'confirmed'
+        ? orderDateToInputISO(o.confirmed_date)
+        : orderDateToInputISO(o.timestamp || o.date);
+      if (dateFrom && d < dateFrom) return false;
+      if (dateTo   && d > dateTo)   return false;
+    }
     return true;
   });
   const tbody = document.getElementById('historyTbody');
