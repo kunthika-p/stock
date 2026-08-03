@@ -575,7 +575,7 @@ table.list tr:hover td{background:#f8fbff}
           <th style="width:85px">จัดส่ง</th>
           <th style="width:80px">สถานะ</th>
           <th style="text-align:left;min-width:120px">หมายเหตุ</th>
-          <th style="width:60px;text-align:center" class="hist-print-hide">จัดการ</th>
+          <th style="width:95px;text-align:center" class="hist-print-hide">จัดการ</th>
         </tr></thead>
         <tbody id="historyTbody"></tbody>
       </table>
@@ -3505,7 +3505,8 @@ async function pullBackToPending(row, name, qty, unit) {
     const res = await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'restoreOrder', row }) });
     const data = await res.json();
     if (data.success) {
-      showToast('↩️ ดึงกลับไปรอยืนยันแล้ว');
+      showToast('🔙 ดึงกลับไปรอยืนยันแล้ว', 'warn');
+      setTimeout(clearWarnToast, 4000);
       loadHistory();
       loadStock();
       loadPending();
@@ -3784,9 +3785,9 @@ function renderHistory() {
         <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td class="${o.status==='confirmed'?'status-done':'status-rejected'}">${o.status==='confirmed'?'✅ ยืนยัน':'❌ ปฏิเสธ'}</td>
         <td style="font-size:11px;color:#666">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
-        <td style="text-align:center" class="hist-print-hide">${o.status==='confirmed'
-          ? `<button class="btn-reject" title="ยกเลิกออเดอร์ + คืนสต็อค" onclick="voidConfirmedOrderFromHistory(${o.row},'${(fmtName(o.name||o.code)||'').replace(/'/g,"\\'")}',${qty},'${isBox?'กล่อง':'กระสอบ'}')">↩️</button>
-            <button class="btn-reject" title="ดึงกลับไปรอยืนยัน" onclick="pullBackToPending(${o.row},'${(fmtName(o.name||o.code)||'').replace(/'/g,"\\'")}',${qty},'${isBox?'กล่อง':'กระสอบ'}')">🔙</button>`
+        <td style="text-align:center;white-space:nowrap" class="hist-print-hide">${o.status==='confirmed'
+          ? `<button class="btn-reject" style="padding:5px 7px" title="ยกเลิกออเดอร์ + คืนสต็อค" onclick="voidConfirmedOrderFromHistory(${o.row},'${(fmtName(o.name||o.code)||'').replace(/'/g,"\\'")}',${qty},'${isBox?'กล่อง':'กระสอบ'}')">↩️</button>
+            <button class="btn-reject" style="padding:5px 7px;margin-left:4px" title="ดึงกลับไปรอยืนยัน" onclick="pullBackToPending(${o.row},'${(fmtName(o.name||o.code)||'').replace(/'/g,"\\'")}',${qty},'${isBox?'กล่อง':'กระสอบ'}')">🔙</button>`
           : ''}</td>
       </tr>`;
     });
