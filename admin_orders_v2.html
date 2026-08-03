@@ -1223,6 +1223,12 @@ const CUST_CODE_MAP = Object.fromEntries(CUSTOMERS.map(c => [c.code, c]));
 function resolveCust(raw) { return CUST_MAP[raw] ? raw : (CUST_CODE_MAP[String(raw)]?.name || raw); }
 
 let stockMap = {}, tankMap = {}, allItems = [], historyData = [];
+// เพิ่ม 2026-08-03: cache แท็บ "ประวัติ" ไว้ต่อ session — เดิมทุกครั้งที่คลิกเข้าแท็บนี้ (แค่ดูเฉยๆ ไม่ได้ค้นหาอะไร)
+// จะดึงข้อมูลทั้งชีท orders ใหม่หมดทุกครั้ง (`getOrders&status=all`) เป็นภาระเซิร์ฟเวอร์ที่ไม่จำเป็น
+// ถ้าข้อมูลไม่ได้เปลี่ยนเลยตั้งแต่โหลดครั้งก่อน — ตอนนี้โหลดจริงแค่ครั้งแรกที่เข้าแท็บ ครั้งต่อไปใช้ข้อมูลเดิม
+// (renderHistory() ยังคงกรองตามช่องค้นหา/วันที่ปัจจุบันเหมือนเดิมทุกครั้ง แค่ไม่ต้องดึงข้อมูลใหม่จากเซิร์ฟเวอร์)
+// ทุกจุดที่ action เปลี่ยนแปลงข้อมูลจริง (ยืนยัน/ปฏิเสธ/ดึงกลับ) ต้องเรียก loadHistory(true) เพื่อบังคับดึงใหม่เสมอ
+let historyLoaded = false;
 
 function buildName(item) {
   const clean = v => { if (!v) return ''; const s = String(v); if (/^\d{4}-\d{2}-\d{2}T|GMT/.test(s) || s === 'STOCK') return ''; return s; };
@@ -3395,7 +3401,7 @@ async function confirmTruckModal() {
       showToast('✅ ยืนยัน ' + items.length + ' รายการแล้ว' + (truck ? ' — '+truck : ''));
     }
     _bulkConfirmItems = [];
-    loadPending(); loadHistory();
+    loadPending(); loadHistory(true);
     if (stockErrItems.length) showStockErrModal(stockErrItems[0]);
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
 }
@@ -3428,7 +3434,7 @@ async function confirmOrder(row, code, qty) {
       document.getElementById('pendingCount').textContent = pendingOrders.length;
       if (pendingOrders.length) renderPendingTable();
       else document.getElementById('pendingList').innerHTML = '<div class="empty">✅ ไม่มีคำสั่งซื้อรอยืนยัน</div>';
-      loadHistory();
+      loadHistory(true);
       loadStock();
     } else if (data.errorType === 'insufficient_stock') {
       const o = pendingOrders.find(x => x.row === row);
@@ -3482,7 +3488,7 @@ async function rejectOrder(row) {
       document.getElementById('pendingCount').textContent = pendingOrders.length;
       if (pendingOrders.length) renderPendingTable();
       else document.getElementById('pendingList').innerHTML = '<div class="empty">✅ ไม่มีคำสั่งซื้อรอยืนยัน</div>';
-      loadHistory();
+      loadHistory(true);
       loadStock();
     } else alert('เกิดข้อผิดพลาด: '+(data.error||'unknown'));
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
@@ -3499,7 +3505,7 @@ async function voidConfirmedOrderFromHistory(row, name, qty, unit) {
     const data = await res.json();
     if (data.success) {
       showToast('↩️ ยกเลิกออเดอร์ + คืนสต็อคแล้ว');
-      loadHistory();
+      loadHistory(true);
       loadStock();
     } else {
       showToast('⚠️ ' + (data.error || 'เกิดข้อผิดพลาด'), 'warn');
@@ -3517,7 +3523,7 @@ async function pullBackToPending(row, name, qty, unit) {
     if (data.success) {
       showToast('🔙 ดึงกลับไปรอยืนยันแล้ว', 'warn');
       setTimeout(clearWarnToast, 4000);
-      loadHistory();
+      loadHistory(true);
       loadStock();
       loadPending();
     } else {
@@ -3704,7 +3710,10 @@ function setHistoryDateMode(mode) {
   if (historyData.length) renderHistory();
 }
 
-async function loadHistory() {
+async function loadHistory(force) {
+  // force=true ใช้เฉพาะตอนหลัง action ที่เปลี่ยนแปลงข้อมูลจริง (ยืนยัน/ปฏิเสธ/ดึงกลับ) — ต้องดึงใหม่เสมอ
+  // ไม่ระบุ (undefined/false) = แค่เปิดแท็บมาดูเฉยๆ — ถ้าเคยโหลดแล้วในรอบ session นี้ ใช้ของเดิม ไม่ต้องดึงซ้ำ
+  if (historyLoaded && !force) { renderHistory(); return; }
   if (!allItems.length) {
     try {
       const sr = await fetch(API + '?action=getStock');
@@ -3720,6 +3729,7 @@ async function loadHistory() {
     const res = await fetch(API + '?action=getOrders&status=all');
     const data = await res.json();
     historyData = (data.orders||[]).filter(o => o.status === 'confirmed' || o.status === 'rejected');
+    historyLoaded = true;
     renderHistory();
   } catch(e) {}
 }
