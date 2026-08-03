@@ -3363,11 +3363,17 @@ async function confirmTruckModal() {
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
       showToast('⏳ กำลังยืนยัน ' + (i+1) + '/' + items.length + ' รายการ...');
+      // เพิ่ม 2026-08-03: วัดเวลา round-trip จริงจากฝั่ง browser (ไม่กระทบการทำงานเลย แค่ log ดูใน DevTools Console)
+      // เอาไว้เทียบกับ Duration ใน Apps Script Executions log — ถ้าตัวเลขต่างกันมาก แปลว่าเวลาที่หายไปอยู่ระหว่างทาง
+      // (เครือข่าย/คิวฝั่ง Google) ไม่ใช่ที่โค้ดฝั่งเซิร์ฟเวอร์เอง
+      const t0 = performance.now();
       try {
         const res = await fetch(API, {
           method: 'POST', body: JSON.stringify({action:'confirmOrder', row: item.row, code: item.code, qty: item.qty, truck})
         });
         const data = await res.json();
+        const roundTripSec = ((performance.now() - t0) / 1000).toFixed(2);
+        console.log('[bulkConfirm timing] #' + (i+1) + '/' + items.length + ' code=' + item.code + ' round-trip=' + roundTripSec + 's');
         if (!data.success) {
           errors.push(item.code + ': ' + (data.error||'fail'));
           if (data.errorType === 'insufficient_stock') {
@@ -3376,7 +3382,11 @@ async function confirmTruckModal() {
               needed: data.needed, available: data.available, unit: data.unit || 'กระสอบ'});
           }
         }
-      } catch(e2) { errors.push(item.code + ': ' + e2.message); }
+      } catch(e2) {
+        const roundTripSec = ((performance.now() - t0) / 1000).toFixed(2);
+        console.log('[bulkConfirm timing] #' + (i+1) + '/' + items.length + ' code=' + item.code + ' round-trip=' + roundTripSec + 's (ERROR: ' + e2.message + ')');
+        errors.push(item.code + ': ' + e2.message);
+      }
       if (i < items.length - 1) await new Promise(r => setTimeout(r, 300));
     }
     if (errors.length) {
