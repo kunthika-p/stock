@@ -3203,13 +3203,26 @@ function renderPendingTable() {
   updateGroupTotals();
 }
 
+// 2026-08-04: บั๊กร้ายแรงที่เจอ — เดิม select-all (checkbox หัวตาราง) ติ๊กให้ .pend-chk "ทุกตัวในหน้า"
+// รวมถึงแถวที่ถูกซ่อนไว้เพราะปิดปุ่ม "รถเที่ยวนี้วิ่งกลุ่ม" (custHidden, ดู renderPendingTable() บรรทัด custHidden)
+// ทำให้ลูกค้าที่ admin ตั้งใจปิดกลุ่มไว้ไม่ให้อยู่ในรถเที่ยวนี้ ถูกติ๊กเลือกและยืนยัน/ตัดสต็อคไปด้วยแบบไม่รู้ตัว
+// (ตัวเลข "เลือก N รายการ" ก็นับรวมของที่มองไม่เห็นด้วย ทำให้ admin ไม่มีทางสังเกตได้จากหน้าจอเลย)
+// แก้: ต้องเช็คเฉพาะ checkbox ของแถวที่ "แสดงอยู่จริง" เท่านั้น — ใช้ data-group เทียบ activeRouteGroups
+// ตรรกะเดียวกับ custHidden ใน renderPendingTable() เป๊ะๆ (gKey==='X' คือลูกค้าไม่มีกลุ่ม ไม่เคยถูกซ่อน)
+// ใช้ helper นี้ครอบทุกจุดที่อ่าน .pend-chk:checked (toggleAllPend/updateBulkCount/bulkConfirm/
+// openBulkDateModal/applyBulkDate) กันบั๊กแบบเดียวกันเกิดซ้ำจากจุดอื่น แม้ toggleAllPend จะเป็นต้นเหตุจริงจุดเดียว
+function isPendChkVisible(c) {
+  const g = c.getAttribute('data-group') || 'X';
+  return g === 'X' || activeRouteGroups.has(g);
+}
+
 function toggleAllPend(cb) {
-  document.querySelectorAll('.pend-chk').forEach(c => { c.checked = cb.checked; });
+  document.querySelectorAll('.pend-chk').forEach(c => { if (isPendChkVisible(c)) c.checked = cb.checked; });
   updateBulkCount();
 }
 
 function updateBulkCount() {
-  const checked = [...document.querySelectorAll('.pend-chk:checked')];
+  const checked = [...document.querySelectorAll('.pend-chk:checked')].filter(isPendChkVisible);
   const btn = document.getElementById('bulkBtn');
   const dateBtn = document.getElementById('bulkDateBtn');
   const cnt = document.getElementById('bulkCount');
@@ -3275,7 +3288,7 @@ function updateGroupTotals() {
 // สำคัญ: editOrder() ฝั่ง Code.gs เขียนทับ qty แบบไม่เช็คก่อนทุกครั้งที่เรียก (ต่างจาก field อื่นที่เช็ค undefined ก่อน)
 // จึงต้องแนบ qty (จาก data-qty ของ checkbox) ไปด้วยเสมอ ไม่งั้นจำนวนของออเดอร์จะหาย
 function openBulkDateModal() {
-  const checked = [...document.querySelectorAll('.pend-chk:checked')];
+  const checked = [...document.querySelectorAll('.pend-chk:checked')].filter(isPendChkVisible);
   if (!checked.length) return;
   document.getElementById('bulkDateModalSub').textContent = `${checked.length} รายการ`;
   const today = new Date();
@@ -3294,7 +3307,7 @@ async function applyBulkDate() {
   const dateIso = document.getElementById('bulkDateInput').value;
   if (!dateIso) { alert('กรุณาเลือกวันที่'); return; }
   const date = inputISOToOrderDate(dateIso);
-  const checked = [...document.querySelectorAll('.pend-chk:checked')];
+  const checked = [...document.querySelectorAll('.pend-chk:checked')].filter(isPendChkVisible);
   if (!checked.length) return;
   const items = checked.map(c => ({row: Number(c.dataset.row), code: c.dataset.code, qty: Number(c.dataset.qty)}));
   const saveBtn = document.getElementById('bulkDateSaveBtn');
@@ -3335,7 +3348,7 @@ async function applyBulkDate() {
 // ตอนนี้เปลี่ยนเป็นเปิด modal ให้พิมพ์ชื่อคันรถก่อน (ไม่บังคับ) แล้วค่อยยิง POST ใน confirmTruckModal() แทน
 let _bulkConfirmItems = [];
 async function bulkConfirm() {
-  const checked = [...document.querySelectorAll('.pend-chk:checked')];
+  const checked = [...document.querySelectorAll('.pend-chk:checked')].filter(isPendChkVisible);
   if (!checked.length) return;
   const items = checked.map(c => ({row: Number(c.dataset.row), code: c.dataset.code, qty: Number(c.dataset.qty)}));
   // 2026-07-14: เช็คราคาก่อนยืนยันแบบ bulk เหมือนกัน — ถ้ามีรายการไหนไม่มีราคา ไม่ยืนยันอะไรเลยสักอันจนกว่าจะกรอกให้ครบ
