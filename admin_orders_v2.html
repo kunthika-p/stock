@@ -4592,10 +4592,12 @@ function anDType(t) {
   return anVCategory(t);
 }
 
-// Parse order date — robust: ISO / D/M/Y Buddhist / M/D/Y CE / any separator
-// ใช้ o.date ก่อน ถ้าว่าง fallback ไป o.timestamp; แก้ปีพ.ศ.ที่ปนอยู่ใน ISO string ด้วย
+// Parse date สำหรับแท็บวิเคราะห์ข้อมูล — robust: ISO / D/M/Y Buddhist / M/D/Y CE / any separator
+// 2026-08-06: เปลี่ยนให้ยึด "วันที่ยืนยัน" (o.confirmed_date) เป็นหลักแทน "วันที่สั่ง" (o.date)
+// เหตุผล: ยอดขายควรรับรู้ตอนยืนยัน/ตัดสต็อคจริง ไม่ใช่ตอนเปิดออเดอร์ (ป้องกันยืนยันย้อนหลังแล้วยอดไปโป่งวันเก่า)
+// Fallback ไป o.date||o.timestamp เมื่อไม่มี confirmed_date (ออเดอร์เก่าก่อน 30/7/69 ที่ยังไม่มี field นี้) กันข้อมูลเก่าหายจากกราฟ
 function anPDate(o) {
-  const raw = o.date || o.timestamp;
+  const raw = o.confirmed_date || o.date || o.timestamp;
   if (!raw) return null;
   const s = String(raw).trim();
   if (s.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(s)) {
