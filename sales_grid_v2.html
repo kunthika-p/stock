@@ -282,12 +282,12 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
     <div class="price-row" style="margin-top:14px">
       <div class="field" id="fieldDiscPct">
         <label>% ส่วนลด</label>
-        <input type="number" id="inputDiscPct" placeholder="—" min="0" max="100" step="0.1">
+        <input type="number" id="inputDiscPct" placeholder="—" min="0" max="100" step="0.1" oninput="clearOppositePriceField('disc')">
         <p class="field-hint" id="hintDiscPct"></p>
       </div>
       <div class="field" id="fieldNetPrice">
         <label>ราคา Net (บาท/หน่วย)</label>
-        <input type="number" id="inputNetPrice" placeholder="—" min="0" step="0.01">
+        <input type="number" id="inputNetPrice" placeholder="—" min="0" step="0.01" oninput="clearOppositePriceField('net')">
         <p class="field-hint" id="hintNetPrice"></p>
       </div>
     </div>
@@ -958,6 +958,29 @@ function openModal(code, name, type) {
   }
 
   document.getElementById('modalBg').classList.add('open');
+}
+
+// 2026-08-06: กันบั๊ก net_price + disc_pct ค้างพร้อมกัน (เจอเคสจริง code 04081212 โง้วกิ้มง้วน 2535 —
+// getRevenuePerUnit() ใน admin_orders_v2.html ให้ราคาเน็ตชนะเสมอเมื่อมีทั้งคู่ ทำให้ยอดขายผิดเงียบๆ ไม่มี error โชว์)
+// บังคับ mutual-exclusive ที่ระดับ UI แทนที่จะหวังพึ่งพนักงานจำเองว่าต้องลบอีกช่องทิ้งทุกครั้ง —
+// เรียกจาก oninput ของ #inputDiscPct/#inputNetPrice เท่านั้น (ไม่กระทบตอน prefill อัตโนมัติจาก
+// getPriceInfo()/item ที่บันทึกไว้แล้ว เพราะการตั้งค่า .value ด้วย JS ไม่ trigger 'input' event)
+function clearOppositePriceField(which) {
+  const discInput = document.getElementById('inputDiscPct');
+  const netInput = document.getElementById('inputNetPrice');
+  const hintDisc = document.getElementById('hintDiscPct');
+  const hintNet = document.getElementById('hintNetPrice');
+  const fieldDisc = document.getElementById('fieldDiscPct');
+  const fieldNet = document.getElementById('fieldNetPrice');
+  if (which === 'disc' && discInput.value !== '') {
+    netInput.value = '';
+    hintNet.textContent = '';
+    fieldNet.classList.remove('field-auto');
+  } else if (which === 'net' && netInput.value !== '') {
+    discInput.value = '';
+    hintDisc.textContent = '';
+    fieldDisc.classList.remove('field-auto');
+  }
 }
 
 // 2026-07-29: อัปเดตราคา Net ทันทีที่เลือก/เปลี่ยนตัวเลือกชุบขาว/ชุบรุ้ง — บวกจาก modalBaseNetPrice เสมอ
