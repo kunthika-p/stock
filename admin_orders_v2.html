@@ -2920,7 +2920,11 @@ function inputISOToOrderDate(iso) {
 }
 
 let pendingOrders = [];
-let pendingSort = 'customer';
+// 2026-08-06: user ขอเปลี่ยน default sort ของหน้ารอยืนยันเป็น "กลุ่ม" ก่อน (เดิม 'customer')
+// ตามที่ยืนยันผ่าน mockup — เรียงตามกลุ่ม A→B→C→D ก่อน แล้วค่อยเรียงชื่อลูกค้า A-Z ภายในกลุ่มเดียวกัน
+let pendingSort = 'grade';
+// 2026-08-06: ช่องค้นหารหัสสินค้า/ชื่อสินค้า/ชื่อลูกค้าในช่องเดียว (ยืนยันผ่าน mockup) — กรองรวมกับ pendingSort ได้ (AND)
+let pendingSearch = '';
 // 2026-07-25: กลุ่มเส้นทางรถที่ "เปิด" อยู่ตอนนี้ (สำหรับรถเที่ยวที่วิ่งได้หลายกลุ่มพร้อมกัน เช่น A+B)
 // เปิดทุกกลุ่มไว้เป็นค่าเริ่มต้นเสมอ (ไม่ซ่อนอะไรจนกว่า user จะกดปิดเอง) — ไม่ผูกกับ pendingSort เลย ใช้ได้ทุกโหมดเรียง
 let activeRouteGroups = new Set(['A','B','C','D']);
@@ -2965,6 +2969,13 @@ const GROUP_COLORS = {A:{bg:'#d1fae5',text:'#065f46'},B:{bg:'#dbeafe',text:'#1e4
 function renderPendingTable() {
   const orders = pendingOrders;
   if (!orders.length) return;
+
+  // 2026-08-06: renderPendingTable rebuild innerHTML ทั้งก้อนทุกครั้ง (เหมือน sort/filter button เดิม) —
+  // ถ้าไม่ทำอะไร ช่องค้นหาจะเสีย focus/cursor ทุกครั้งที่พิมพ์ทีละตัวอักษร เพราะ input ถูกสร้างใหม่
+  // เก็บ focus + ตำแหน่ง cursor ไว้ก่อน แล้ว restore กลับหลัง render เสร็จ (ดูท้ายฟังก์ชัน)
+  const _searchEl = document.getElementById('pendSearchInput');
+  const _searchHadFocus = _searchEl && document.activeElement === _searchEl;
+  const _searchCaret = _searchHadFocus ? _searchEl.selectionStart : null;
 
   // 2026-07-30: ไฮไลท์แถวออเดอร์ของ "วันนี้" ให้ user ดูออกง่ายๆด้วยสายตาว่าอันไหนแอดวันนี้ vs ค้างเก่า
   // ใช้ local getters (เหมือน orderDateToInputISO()) ไม่ใช้ toISOString() กัน timezone เพี้ยนวันข้ามคืน
@@ -3012,6 +3023,16 @@ function renderPendingTable() {
     visibleOrders = orders.filter(o => orderDateToInputISO(o.timestamp||o.date) === todayISO);
   }
 
+  // 2026-08-06: ช่องค้นหารหัสสินค้า/ชื่อสินค้า/ชื่อลูกค้าในช่องเดียว — กรองซ้อนกับ urgency/date filter ด้านบนได้ (AND)
+  if (pendingSearch && pendingSearch.trim()) {
+    const _q = pendingSearch.trim().toLowerCase();
+    visibleOrders = visibleOrders.filter(o =>
+      String(o.code||'').toLowerCase().includes(_q) ||
+      String(o.name||'').toLowerCase().includes(_q) ||
+      String(o.customer||'').toLowerCase().includes(_q)
+    );
+  }
+
   // จัดกลุ่มตามลูกค้า
   const grouped = {};
   visibleOrders.forEach(o => {
@@ -3025,10 +3046,13 @@ function renderPendingTable() {
   if (pendingSort === 'customer') {
     sortedCusts.sort((a,b) => a.localeCompare(b,'th'));
   } else if (pendingSort === 'grade') {
+    // 2026-08-06: user ขอให้เรียงตามกลุ่ม A→B→C→D ก่อน แล้วในกลุ่มเดียวกันเรียงชื่อลูกค้า A-Z ต่อ (secondary sort)
+    // ยืนยันผ่าน mockup แล้ว — เดิมกลุ่มเดียวกันเรียงตามลำดับที่เจอในข้อมูล ไม่ได้เรียง A-Z ซ้อน
     sortedCusts.sort((a,b) => {
       const ga = (CUST_MAP[a]||{}).grade||'';
       const gb = (CUST_MAP[b]||{}).grade||'';
-      return (gradeOrder2[ga]??4)-(gradeOrder2[gb]??4);
+      const gDiff = (gradeOrder2[ga]??4)-(gradeOrder2[gb]??4);
+      return gDiff !== 0 ? gDiff : a.localeCompare(b,'th');
     });
   } else if (pendingSort === 'urgency') {
     sortedCusts.sort((a,b) => {
@@ -3049,7 +3073,8 @@ function renderPendingTable() {
 
   // 2026-07-30: empty state ตอนกรองแล้วไม่เหลือรายการเลย (เช่น กด "ความเร่งด่วน" แต่ไม่มีออเดอร์ด่วนค้างอยู่)
   if (!sortedCusts.length) {
-    const emptyMsg = pendingSort === 'urgency' ? 'ไม่มีออเดอร์ด่วนค้างอยู่'
+    const emptyMsg = (pendingSearch && pendingSearch.trim()) ? 'ไม่พบรายการที่ตรงกับคำค้นหา'
+      : pendingSort === 'urgency' ? 'ไม่มีออเดอร์ด่วนค้างอยู่'
       : pendingSort === 'date' ? 'ไม่มีออเดอร์ที่แอดวันนี้'
       : 'ไม่มีรายการ';
     rows += `<tr><td colspan="14" style="padding:24px;color:#9ca3af;font-size:13px">${emptyMsg}</td></tr>`;
@@ -3166,17 +3191,22 @@ function renderPendingTable() {
     <div class="pend-wrap">
       <div style="padding:10px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#f8fbff;border-bottom:1px solid #e5e7eb">
         <span style="font-size:13px;font-weight:700;color:#1a3a5c">เรียงตาม:</span>
-        ${sortBtn('ลูกค้า A-Z','customer')}
         ${sortBtn('กลุ่ม','grade')}
+        ${sortBtn('ลูกค้า A-Z','customer')}
         ${sortBtn('ความเร่งด่วน','urgency')}
         ${sortBtn('วันที่ล่าสุด','date')}
+        <span style="width:1px;align-self:stretch;background:#d1d5db;margin:0 4px"></span>
+        <span style="font-size:12px;color:#555">รถเที่ยวนี้วิ่งกลุ่ม:</span>
+        ${routeBtn('A')}${routeBtn('B')}${routeBtn('C')}${routeBtn('D')}
         <span style="margin-left:auto;font-size:12px;color:#555" id="bulkCount"></span>
         <button id="bulkDateBtn" onclick="openBulkDateModal()" style="display:none;padding:5px 14px;background:#2563a8;color:white;border:none;border-radius:6px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer">📅 เปลี่ยนวันที่ที่เลือก</button>
         <button id="bulkBtn" onclick="bulkConfirm()" style="display:none;padding:5px 14px;background:#16a34a;color:white;border:none;border-radius:6px;font-family:'Sarabun',sans-serif;font-size:12px;font-weight:700;cursor:pointer">✅ ยืนยันที่เลือก</button>
       </div>
-      <div style="padding:8px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fff;border-bottom:1px solid #e5e7eb">
-        <span style="font-size:12px;color:#555">รถเที่ยวนี้วิ่งกลุ่ม:</span>
-        ${routeBtn('A')}${routeBtn('B')}${routeBtn('C')}${routeBtn('D')}
+      <div style="padding:8px 12px;background:#fff;border-bottom:1px solid #e5e7eb">
+        <div style="position:relative;max-width:420px">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:#9ca3af">🔍</span>
+          <input id="pendSearchInput" type="text" value="${(pendingSearch||'').replace(/"/g,'&quot;')}" placeholder="ค้นหารหัสสินค้า / ชื่อสินค้า / ชื่อลูกค้า..." oninput="pendingSearch=this.value;renderPendingTable()" style="width:100%;padding:6px 10px 6px 30px;border:1px solid #d1d5db;border-radius:6px;font-family:'Sarabun',sans-serif;font-size:13px;box-sizing:border-box">
+        </div>
       </div>
       <div style="overflow-x:auto">
         <table class="pend-tbl">
@@ -3201,6 +3231,14 @@ function renderPendingTable() {
       </div>
     </div>`;
   updateGroupTotals();
+  // 2026-08-06: restore focus + cursor position ของช่องค้นหา หลัง rebuild innerHTML (ดูคอมเมนต์ต้นฟังก์ชัน)
+  if (_searchHadFocus) {
+    const _newSearchEl = document.getElementById('pendSearchInput');
+    if (_newSearchEl) {
+      _newSearchEl.focus();
+      if (_searchCaret !== null) _newSearchEl.setSelectionRange(_searchCaret, _searchCaret);
+    }
+  }
 }
 
 // 2026-08-04: บั๊กร้ายแรงที่เจอ — เดิม select-all (checkbox หัวตาราง) ติ๊กให้ .pend-chk "ทุกตัวในหน้า"
