@@ -86,8 +86,11 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .modal-actions-3 .ma-lbl{font-size:11px;color:#888;text-align:center;visibility:hidden}
 .modal-actions-3 .ma-lbl.show{visibility:visible}
 .price-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.price-row.has-extra{grid-template-columns:1fr 1fr 1fr}
 .field-auto input{background:var(--color-bg-auto,#f0f7ff);font-weight:500}
 .field-hint{font-size:11px;color:#999;margin:3px 0 0}
+.btn-toggle-flag{width:100%;padding:9px 6px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:#374151;font-family:'Sarabun',sans-serif}
+.btn-toggle-flag.active{background:#dbeafe;border-color:#2563a8;color:#1e40af}
 .btn-cancel{flex:1;padding:13px;border:1.5px solid #d1d5db;border-radius:8px;background:white;font-size:15px;font-family:'Sarabun',sans-serif;cursor:pointer;color:#555}
 .btn-confirm{flex:2;padding:13px;border:none;border-radius:8px;background:#2563a8;color:white;font-size:15px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
 .btn-delivery{padding:13px;border:1.5px solid #2563a8;border-radius:8px;background:white;color:#2563a8;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:600;cursor:pointer}
@@ -279,7 +282,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
         <button class="btn-confirm" id="btnAddCart" onclick="addToCart()">✅ เพิ่มรายการ</button>
       </div>
     </div>
-    <div class="price-row" style="margin-top:14px">
+    <div class="price-row" id="priceRow" style="margin-top:14px">
       <div class="field" id="fieldDiscPct">
         <label>% ส่วนลด</label>
         <input type="number" id="inputDiscPct" placeholder="—" min="0" max="100" step="0.1" oninput="clearOppositePriceField('disc')">
@@ -290,14 +293,18 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
         <input type="number" id="inputNetPrice" placeholder="—" min="0" step="0.01" oninput="clearOppositePriceField('net')">
         <p class="field-hint" id="hintNetPrice"></p>
       </div>
-    </div>
-    <div class="field" id="fieldPlating" style="display:none">
-      <label>ชุบพิเศษ</label>
-      <select id="inputPlating" onchange="updateNetForPlating()">
-        <option value="">ไม่ชุบ</option>
-        <option value="ชุบขาว">ชุบขาว (+5 บาท/กก.)</option>
-        <option value="ชุบรุ้ง">ชุบรุ้ง (+5 บาท/กก.)</option>
-      </select>
+      <div class="field" id="fieldPlating" style="display:none;margin-bottom:0">
+        <label>ชุบพิเศษ</label>
+        <select id="inputPlating" onchange="updateNetForPlating()">
+          <option value="">ไม่ชุบ</option>
+          <option value="ชุบขาว">ชุบขาว (+5)</option>
+          <option value="ชุบรุ้ง">ชุบรุ้ง (+5)</option>
+        </select>
+      </div>
+      <div class="field" id="fieldBill" style="display:none;margin-bottom:0">
+        <label>บิล</label>
+        <button type="button" class="btn-toggle-flag" id="inputBill" onclick="toggleBillFlag()">ปกติ</button>
+      </div>
     </div>
     <div class="field">
       <label>หมายเหตุ (ถ้ามี)</label>
@@ -495,6 +502,8 @@ let selectedDelivery = 'หน้าร้าน';
 const PLATING_CUSTOMER_CODE = '00205';
 const PLATING_SURCHARGE = 5;
 let modalBaseNetPrice = null;
+// 2026-08-07: ปุ่มทอกเกิล "บิล" เฉพาะลูกค้าประวิทย์สลักภัณฑ์ (code 13700) — ไม่มีผลต่อราคา แค่บันทึกค่า 'X'/'' ไปกับออเดอร์
+const BILL_CUSTOMER_CODE = '13700';
 // จุดจัดส่งพิเศษของลูกค้า (นอกเหนือจากหน้าร้านซึ่งเป็นค่าเริ่มต้นเสมอ) — รองรับหลายจุดต่อลูกค้าในอนาคต
 const CUST_DELIVERY = {
   "04102": ["พระราม 2"],
@@ -938,6 +947,11 @@ function openModal(code, name, type) {
   document.getElementById('inputPlating').value = '';
   modalBaseNetPrice = null;
 
+  // 2026-08-07: ปุ่ม "บิล" — โชว์เฉพาะลูกค้าประวิทย์สลักภัณฑ์ รีเซ็ตทุกครั้งที่เปิดโมดัลเพิ่มรายการใหม่
+  document.getElementById('fieldBill').style.display = customerCode === BILL_CUSTOMER_CODE ? '' : 'none';
+  setBillFlag(false);
+  document.getElementById('priceRow').classList.toggle('has-extra', customerCode === PLATING_CUSTOMER_CODE || customerCode === BILL_CUSTOMER_CODE);
+
   if (customerCode) {
     const pi = getPriceInfo(customerCode, code, type);
     modalBaseNetPrice = pi.net_price;
@@ -991,6 +1005,19 @@ function updateNetForPlating() {
   document.getElementById('inputNetPrice').value = modalBaseNetPrice + (platingVal ? PLATING_SURCHARGE : 0);
 }
 
+// 2026-08-07: ปุ่มทอกเกิล "บิล" — ไม่กระทบราคาเลย แค่สลับข้อความ/สถานะปุ่ม on<->off
+// on = ขึ้น 'X' (เก็บเป็น bill='X' ตอนบันทึก), off = ขึ้น 'ปกติ' (bill='')
+function setBillFlag(on) {
+  const btn = document.getElementById('inputBill');
+  if (!btn) return;
+  btn.textContent = on ? 'X' : 'ปกติ';
+  btn.classList.toggle('active', on);
+}
+function toggleBillFlag() {
+  const btn = document.getElementById('inputBill');
+  setBillFlag(btn.textContent.trim() !== 'X');
+}
+
 // เปิด modal เต็มเพื่อแก้ไขรายการที่มีอยู่แล้ว (ในตะกร้า หรือในประวัติที่รอส่ง Admin)
 // ต่างจาก openModal() ตรงที่ prefill ค่าจากตัว item เอง (ไม่ใช่จากการ lookup ใน cart ด้วย code)
 function openItemModalFrom(item, mode) {
@@ -1042,6 +1069,11 @@ function openItemModalFrom(item, mode) {
   modalBaseNetPrice = (item.net_price !== null && item.net_price !== undefined)
     ? (item.plating ? item.net_price - PLATING_SURCHARGE : item.net_price)
     : null;
+
+  // 2026-08-07: ปุ่ม "บิล" — prefill จากรายการเดิม
+  document.getElementById('fieldBill').style.display = customerCode === BILL_CUSTOMER_CODE ? '' : 'none';
+  setBillFlag(item.bill === 'X');
+  document.getElementById('priceRow').classList.toggle('has-extra', customerCode === PLATING_CUSTOMER_CODE || customerCode === BILL_CUSTOMER_CODE);
 
   document.getElementById('modalBg').classList.add('open');
 }
@@ -1172,6 +1204,9 @@ function addToCart() {
   // 2026-07-29: ชุบขาว/ชุบรุ้ง — netVal ที่อ่านมาข้างบนรวมค่าชุบ +5 ไว้แล้วถ้ามี (updateNetForPlating() คำนวณสดตอนเลือก)
   const platingEl = document.getElementById('inputPlating');
   const plating = platingEl ? platingEl.value : '';
+  // 2026-08-07: ปุ่ม "บิล" — อ่านสถานะจากข้อความปุ่ม ('X' = ติ๊ก, อื่นๆ = ไม่ติ๊ก)
+  const billEl = document.getElementById('inputBill');
+  const bill = (billEl && billEl.textContent.trim() === 'X') ? 'X' : '';
 
   // แก้ไขรายการในประวัติที่รอส่ง Admin (stagedOrders) — อัปเดตของเดิม ไม่สร้างรายการใหม่
   if (modalEditMode && modalEditMode.type === 'staged') {
@@ -1184,6 +1219,7 @@ function addToCart() {
       o.net_price = net_price;
       o.delivery = selectedDelivery;
       o.plating = plating;
+      o.bill = bill;
       // 2026-07-10: บันทึกผลเปลี่ยนขนาดถ้ามี (sizeChangeNewCode ต่างจากของเดิม)
       if (sizeChangeNewCode && sizeChangeNewCode !== sizeChangeOrigCode) {
         o.code = sizeChangeNewCode;
@@ -1211,6 +1247,7 @@ function addToCart() {
     c.net_price = net_price;
     c.delivery = selectedDelivery;
     c.plating = plating;
+    c.bill = bill;
     closeModalDirect();
     updateCartBar();
     renderCartItems();
@@ -1229,7 +1266,7 @@ function addToCart() {
     customer: customerName, code: selectedCode, name: fmtName(selectedName),
     qty, unit, urgency: selectedItemUrgency, note,
     date: new Date().toLocaleDateString('th-TH'),
-    disc_pct, net_price, delivery: selectedDelivery, plating
+    disc_pct, net_price, delivery: selectedDelivery, plating, bill
   });
   closeModalDirect();
   showToast('✅ เพิ่มใน ประวัติ แล้ว กรุณายืนยันก่อนส่ง Admin');
@@ -1368,7 +1405,7 @@ async function submitAllOrders() {
       qty: item.qty, unit: item.unit, urgency: item.urgency,
       note: item.note || note || '', date,
       disc_pct: item.disc_pct, net_price: item.net_price,
-      delivery: item.delivery || 'หน้าร้าน', plating: item.plating || ''
+      delivery: item.delivery || 'หน้าร้าน', plating: item.plating || '', bill: item.bill || ''
     });
   });
   cart = [];
@@ -1420,7 +1457,7 @@ function renderSalesHistory() {
         <td style="text-align:center;font-size:12px">${o.disc_pct!==null&&o.disc_pct!==undefined&&o.disc_pct!==''?o.disc_pct+'%':''}</td>
         <td style="text-align:center;font-size:12px">${o.net_price!==null&&o.net_price!==undefined?o.net_price:''}</td>
         <td style="text-align:center"><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
-        <td style="font-size:12px;color:#666">${o.note||''}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
+        <td style="font-size:12px;color:#666">${o.note||''}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล]</span>':''}</td>
         <td>
           <div style="display:flex;gap:4px">
             <button onclick="salesEditOrder('${o.id}')" style="background:white;border:1.5px solid #d97706;color:#d97706;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✏️</button>
@@ -1506,7 +1543,7 @@ async function confirmAllToAdmin() {
         method: 'POST',
         body: JSON.stringify({ action:'newOrder', code:o.code, name:o.name,
           customer:o.customer, qty:o.qty, unit:o.unit, urgency:o.urgency, note:o.note, date:o.date,
-          disc_pct:o.disc_pct, net_price:o.net_price, delivery:o.delivery||'หน้าร้าน', plating:o.plating||'', batchId })
+          disc_pct:o.disc_pct, net_price:o.net_price, delivery:o.delivery||'หน้าร้าน', plating:o.plating||'', bill:o.bill||'', batchId })
       });
       const data = await res.json();
       if (data.error) throw new Error('สินค้า ' + o.code + ': ' + data.error);
@@ -1724,7 +1761,7 @@ function renderTracking() {
         <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;color:#333">${urgLbl[o._urgency]||o._urgency||'ปกติ'}</span></td>
         <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td><span style="background:${statBg[o.status]||'#f3f4f6'};color:${statTxt[o.status]||'#555'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${statLbl[o.status]||o.status||''}</span></td>
-        <td style="font-size:11px;color:#666">${o._note||''}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
+        <td style="font-size:11px;color:#666">${o._note||''}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล]</span>':''}</td>
       </tr>`;
         });
       });
