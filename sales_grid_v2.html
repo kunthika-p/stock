@@ -927,7 +927,27 @@ function openModal(code, name, type) {
   const urgencyMap = {'ปกติ':'sel-normal','จอง':'sel-medium','ด่วน':'sel-urgent'};
   document.querySelector('#itemUrgencyOpts .' + (urgencyMap[selectedItemUrgency]||'sel-normal')).classList.add('selected');
 
+  // 2026-07-29: ชุบขาว/ชุบรุ้ง — โชว์เฉพาะลูกค้ากิ้มง้วนฟาสเทนเนอร์ รีเซ็ตทุกครั้งที่เปิดโมดัลเพิ่มรายการใหม่
+  document.getElementById('fieldPlating').style.display = customerCode === PLATING_CUSTOMER_CODE ? '' : 'none';
+  document.getElementById('inputPlating').value = '';
+
+  // 2026-08-07: ปุ่ม "บิล" — โชว์เฉพาะลูกค้าประวิทย์สลักภัณฑ์ รีเซ็ตทุกครั้งที่เปิดโมดัลเพิ่มรายการใหม่
+  document.getElementById('fieldBill').style.display = customerCode === BILL_CUSTOMER_CODE ? '' : 'none';
+  setBillFlag(false);
+  document.getElementById('priceRow').classList.toggle('has-extra', customerCode === PLATING_CUSTOMER_CODE || customerCode === BILL_CUSTOMER_CODE);
+
   // populate % ส่วนลด และ ราคา Net จาก CUST_PRICES
+  applyAutoPriceToModal(customerCode, code, type);
+
+  document.getElementById('modalBg').classList.add('open');
+}
+
+// 2026-08-07: ดึงราคา default ของลูกค้า+สินค้ามาเติมช่อง %ส่วนลด/ราคาเน็ตในโมดัล — แยกออกมาเป็นฟังก์ชันกลาง
+// ใช้ทั้งตอนเปิดโมดัลใหม่ (openModal) และตอนกด "เปลี่ยนขนาด" (sizeSelectItem) — เคลียร์ทั้งสองช่องก่อนเสมอ
+// กันค่าเก่าจากรหัสสินค้าก่อนหน้าค้างอยู่ (เจอบั๊กจริง: มงคลชัย เปลี่ยนขนาดจาก 5/8 NC (เงื่อนไขราคาเน็ต) เป็น 3/8 NC
+// (เงื่อนไข %ส่วนลด) แต่ราคาเน็ตเดิมไม่ถูกเคลียร์ ค้างอยู่พร้อมกับ %ส่วนลดที่กรอกใหม่ — getRevenuePerUnit() เช็คราคาเน็ตก่อนเสมอ
+// แต่หมวดนี้ไซส์ 3/8 ไม่มี mapping ราคาเน็ต เลย return null ทันที ทำให้ออเดอร์นี้หายไปจากยอดขายเงียบๆ)
+function applyAutoPriceToModal(custCode, code, type) {
   const discInput = document.getElementById('inputDiscPct');
   const netInput = document.getElementById('inputNetPrice');
   const hintDisc = document.getElementById('hintDiscPct');
@@ -941,37 +961,25 @@ function openModal(code, name, type) {
   hintNet.textContent = '';
   fieldDisc.classList.remove('field-auto');
   fieldNet.classList.remove('field-auto');
-
-  // 2026-07-29: ชุบขาว/ชุบรุ้ง — โชว์เฉพาะลูกค้ากิ้มง้วนฟาสเทนเนอร์ รีเซ็ตทุกครั้งที่เปิดโมดัลเพิ่มรายการใหม่
-  document.getElementById('fieldPlating').style.display = customerCode === PLATING_CUSTOMER_CODE ? '' : 'none';
-  document.getElementById('inputPlating').value = '';
   modalBaseNetPrice = null;
 
-  // 2026-08-07: ปุ่ม "บิล" — โชว์เฉพาะลูกค้าประวิทย์สลักภัณฑ์ รีเซ็ตทุกครั้งที่เปิดโมดัลเพิ่มรายการใหม่
-  document.getElementById('fieldBill').style.display = customerCode === BILL_CUSTOMER_CODE ? '' : 'none';
-  setBillFlag(false);
-  document.getElementById('priceRow').classList.toggle('has-extra', customerCode === PLATING_CUSTOMER_CODE || customerCode === BILL_CUSTOMER_CODE);
-
-  if (customerCode) {
-    const pi = getPriceInfo(customerCode, code, type);
-    modalBaseNetPrice = pi.net_price;
-    if (pi.disc_pct !== null) {
-      discInput.value = pi.disc_pct;
-      hintDisc.textContent = 'ดึงอัตโนมัติ แก้ได้';
-      fieldDisc.classList.add('field-auto');
-    } else {
-      hintDisc.textContent = 'ไม่มีข้อมูล';
-    }
-    if (pi.net_price !== null) {
-      netInput.value = pi.net_price;
-      hintNet.textContent = 'ดึงอัตโนมัติ แก้ได้';
-      fieldNet.classList.add('field-auto');
-    } else {
-      hintNet.textContent = 'ไม่มีข้อมูล';
-    }
+  if (!custCode) return;
+  const pi = getPriceInfo(custCode, code, type);
+  modalBaseNetPrice = pi.net_price;
+  if (pi.disc_pct !== null) {
+    discInput.value = pi.disc_pct;
+    hintDisc.textContent = 'ดึงอัตโนมัติ แก้ได้';
+    fieldDisc.classList.add('field-auto');
+  } else {
+    hintDisc.textContent = 'ไม่มีข้อมูล';
   }
-
-  document.getElementById('modalBg').classList.add('open');
+  if (pi.net_price !== null) {
+    netInput.value = pi.net_price;
+    hintNet.textContent = 'ดึงอัตโนมัติ แก้ได้';
+    fieldNet.classList.add('field-auto');
+  } else {
+    hintNet.textContent = 'ไม่มีข้อมูล';
+  }
 }
 
 // 2026-08-06: กันบั๊ก net_price + disc_pct ค้างพร้อมกัน (เจอเคสจริง code 04081212 โง้วกิ้มง้วน 2535 —
@@ -1150,6 +1158,9 @@ function sizeSelectItem(idx) {
   const msg = document.getElementById('sizeMsg');
   msg.style.color = '#16a34a';
   msg.textContent = item.code !== sizeChangeOrigCode ? '✓ เปลี่ยนจากเดิม: ' + fmtName(sizeChangeOrigName) : '';
+
+  // 2026-08-07: เปลี่ยนขนาด → รีเฟรชราคาให้ตรงเงื่อนไขสินค้าใหม่เสมอ (กันราคาเน็ต/%ส่วนลดของรหัสเดิมค้าง)
+  applyAutoPriceToModal(customerCode, item.code, sizeChangeType);
 }
 function sizeSearchBlur() {
   setTimeout(() => {

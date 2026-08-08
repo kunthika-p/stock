@@ -1001,11 +1001,11 @@ table.list tr:hover td{background:#f8fbff}
     </div>
     <div class="edit-field">
       <label>%ส่วนลด <span style="font-size:11px;color:#888">(ว่าง = ไม่เปลี่ยน)</span></label>
-      <input type="number" id="editDiscInput" min="0" max="100" step="0.1" placeholder="เช่น 25">
+      <input type="number" id="editDiscInput" min="0" max="100" step="0.1" placeholder="เช่น 25" oninput="clearOppositeEditPriceField('disc')">
     </div>
     <div class="edit-field">
       <label>ราคา Net (บาท/กก.) <span style="font-size:11px;color:#888">(ว่าง = ไม่เปลี่ยน)</span></label>
-      <input type="number" id="editNetInput" min="0" step="0.01" placeholder="เช่น 85.50">
+      <input type="number" id="editNetInput" min="0" step="0.01" placeholder="เช่น 85.50" oninput="clearOppositeEditPriceField('net')">
     </div>
     <div class="edit-actions">
       <button class="btn-cancel-edit" onclick="closeEditModal()">ยกเลิก</button>
@@ -3586,6 +3586,12 @@ async function pullBackToPending(row, name, qty, unit) {
 let editingRow = null;
 // 2026-07-10: state สำหรับช่อง "เปลี่ยนขนาด" ใน edit modal — pattern เดียวกับ si-search/siSearch() ในแท็บรับสินค้าเข้า
 let editingType = '', editingOrigCode = '', editingOrigName = '', editingNewCode = null, editingNewName = null;
+// 2026-08-07: รหัสลูกค้าของออเดอร์ที่กำลังแก้ — ใช้ตอนรีเฟรชราคาอัตโนมัติเมื่อเปลี่ยนขนาด (ดู editSizeSelectItem)
+let editingCustCode = '';
+// 2026-08-07: จำว่าตอนเปิดโมดัล ออเดอร์นี้เคยมี disc_pct/net_price อยู่ก่อนไหม — ใช้ตัดสินตอนบันทึกว่า
+// ช่องที่ตอนนี้ว่างเปล่าหมายถึง "ไม่แตะ" (ไม่เคยมีค่ามาก่อน) หรือ "ต้องล้างค่าเดิมทิ้งจริงๆ" (เคยมีค่าแล้วถูกเคลียร์)
+// ดู saveEdit() — backend เดิม data.disc_pct/net_price = null แปลว่า "ไม่เปลี่ยน" เสมอ ทำให้ blank ไม่เคยล้างค่าจริงได้เลย
+let editingHadDisc = false, editingHadNet = false;
 let editSizeSearchResults = [], editSizeSearchIdx = -1;
 
 function populateEditSizeSelect() {
@@ -3653,7 +3659,37 @@ function editSizeSelectItem(idx) {
   const msg = document.getElementById('editSizeMsg');
   msg.style.color = '#16a34a';
   msg.textContent = item.code !== editingOrigCode ? '✓ เปลี่ยนจากเดิม: ' + editingOrigName : '';
+
+  // 2026-08-07: เปลี่ยนขนาด → รีเฟรชราคาให้ตรงเงื่อนไขสินค้าใหม่เสมอ (กันราคาเน็ต/%ส่วนลดของรหัสเดิมค้าง —
+  // เจอบั๊กจริง: มงคลชัย เปลี่ยนขนาดจาก 5/8 NC (เงื่อนไขราคาเน็ต) เป็น 3/8 NC (เงื่อนไข %ส่วนลด) แต่ราคาเน็ตเดิมไม่ถูกเคลียร์
+  // ทำให้ getRevenuePerUnit() เช็คราคาเน็ตก่อนเสมอ เจอไซส์ 3/8 ไม่มี mapping ราคาเน็ต return null ทันที ออเดอร์หายจากยอดขายเงียบๆ)
+  const discInput = document.getElementById('editDiscInput');
+  const netInput = document.getElementById('editNetInput');
+  const pi = getPriceInfo(editingCustCode, item.code, editingType);
+  discInput.value = pi.disc_pct !== null ? pi.disc_pct : '';
+  netInput.value = pi.net_price !== null ? pi.net_price : '';
+  msg.textContent += (pi.disc_pct !== null || pi.net_price !== null)
+    ? ' — อัปเดตราคาอัตโนมัติตามสินค้าใหม่แล้ว' : ' — ไม่มีราคาอัตโนมัติสำหรับสินค้านี้ กรุณากรอกเอง';
+  const priceWarn = document.getElementById('editPriceWarn');
+  if (priceWarn) priceWarn.style.display = (discInput.value !== '' || netInput.value !== '') ? 'none' : 'block';
 }
+
+// 2026-08-07: บังคับ mutual-exclusive %ส่วนลด/ราคาเน็ต ระดับ UI ในโมดัลแก้ไขออเดอร์ฝั่ง Admin
+// (pattern เดียวกับ clearOppositePriceField() ใน sales_grid_v2.html ที่ทำไปแล้วเมื่อ 08-06 — ฝั่ง Admin ยังไม่มี
+// เกราะกันนี้เลย ทำให้เกิดเคสจริง: มงคลชัย พิมพ์ %ส่วนลดใหม่โดยไม่ได้ลบราคาเน็ตเดิมทิ้ง ค้างพร้อมกันทั้งสองช่อง)
+// เรียกจาก oninput เท่านั้น (ไม่กระทบตอน prefill อัตโนมัติจาก openEditModalByRow()/editSizeSelectItem() เพราะตั้งค่า
+// .value ด้วย JS ไม่ trigger 'input' event) — คู่กับ editingHadDisc/editingHadNet ใน saveEdit() ที่ทำให้การเคลียร์ช่องนี้
+// ส่งค่า '' (ล้างจริง) แทน null (ไม่เปลี่ยน) ไปที่ backend
+function clearOppositeEditPriceField(which) {
+  const discInput = document.getElementById('editDiscInput');
+  const netInput = document.getElementById('editNetInput');
+  if (which === 'disc' && discInput.value !== '') {
+    netInput.value = '';
+  } else if (which === 'net' && netInput.value !== '') {
+    discInput.value = '';
+  }
+}
+
 // กันเผื่อ user พิมพ์ค้นหาแล้วคลิกออกโดยไม่เลือกจาก dropdown (ไม่กด Enter/คลิกรายการ)
 // ดีดกลับไปค่าที่ยืนยันแล้วล่าสุดเสมอ (ของเดิม หรือรายการที่เพิ่งเลือกไปก่อนหน้า) กัน input ค้างเป็นข้อความที่ไม่ตรงกับ code จริง
 function editSizeSearchBlur() {
@@ -3674,14 +3710,17 @@ function openEditModalByRow(row) {
   editingOrigName = o.name;
   editingNewCode = null;
   editingNewName = null;
+  editingCustCode = (CUSTOMERS.find(c => c.name === o.customer) || {}).code || '';
   populateEditSizeSelect();
   document.getElementById('editModalSub').textContent = `รหัส: ${o.code}`;
   document.getElementById('editDateInput').value = orderDateToInputISO(o.timestamp || o.date);
   document.getElementById('editQtyLabel').textContent = `จำนวน (${o._unit||'กระสอบ'})`;
   document.getElementById('editQtyInput').value = o.qty;
   document.getElementById('editNoteInput').value = o._note || '';
-  document.getElementById('editDiscInput').value = (o.disc_pct !== '' && o.disc_pct !== null && o.disc_pct !== undefined) ? o.disc_pct : '';
-  document.getElementById('editNetInput').value = (o.net_price !== '' && o.net_price !== null && o.net_price !== undefined) ? o.net_price : '';
+  editingHadDisc = o.disc_pct !== '' && o.disc_pct !== null && o.disc_pct !== undefined;
+  editingHadNet  = o.net_price !== '' && o.net_price !== null && o.net_price !== undefined;
+  document.getElementById('editDiscInput').value = editingHadDisc ? o.disc_pct : '';
+  document.getElementById('editNetInput').value = editingHadNet ? o.net_price : '';
   const priceWarn = document.getElementById('editPriceWarn');
   if (priceWarn) priceWarn.style.display = hasPriceSet(o) ? 'none' : 'block';
   setEditUrg(o._urgency || 'ปกติ');
@@ -3711,8 +3750,11 @@ async function saveEdit() {
   const urgency = urgBtn ? urgBtn.dataset.urg : 'ปกติ';
   const _discRaw = document.getElementById('editDiscInput').value.trim();
   const _netRaw  = document.getElementById('editNetInput').value.trim();
-  const disc_pct  = _discRaw !== '' ? Number(_discRaw)  : null;
-  const net_price = _netRaw  !== '' ? Number(_netRaw)   : null;
+  // 2026-08-07: เดิม blank -> null แปลว่า "ไม่เปลี่ยน" เสมอ (ดู editOrder() ฝั่ง Code.gs) ทำให้ล้างค่าเก่าทิ้งจริงไม่ได้เลย
+  // แม้จะเคลียร์ช่องในหน้าจอแล้วก็ตาม (เจอบั๊กจริงจากเคสมงคลชัย net_price ค้าง) — ถ้าช่องนี้เคยมีค่าตอนเปิดโมดัล (editingHad*)
+  // แล้วตอนนี้ว่างเปล่า ให้ส่ง '' (explicit clear) แทน null (no-op) เพื่อสั่งให้ backend ล้างคอลัมน์นั้นทิ้งจริงๆ
+  const disc_pct  = _discRaw !== '' ? Number(_discRaw)  : (editingHadDisc ? '' : null);
+  const net_price = _netRaw  !== '' ? Number(_netRaw)   : (editingHadNet  ? '' : null);
   if (!qty || qty < 1) { alert('กรุณาใส่จำนวนที่ถูกต้อง'); return; }
   // 2026-07-10: ไม่ต้องกัน save แยกอีกแล้ว — editSizeSearchBlur() ดีดข้อความกลับเป็นค่าที่ยืนยันแล้วเสมอตอนออกจากช่องนี้
   // (editingNewCode ตั้งค่าได้เฉพาะตอนคลิกเลือกจาก dropdown เท่านั้น พิมพ์เฉยๆ ไม่ทำให้ค่าเปลี่ยน)
