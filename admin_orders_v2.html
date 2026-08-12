@@ -1891,10 +1891,10 @@ async function loadOverviewDeepAnalytics(items) {
       if (!salesMap[code]) salesMap[code] = {name: o.name||'', type: itemTypeMap[code] || o.type || '', totalQty: 0, orderCount: 0, lastDate: null};
       salesMap[code].totalQty += qty;
       salesMap[code].orderCount++;
-      const d = (o.timestamp||o.date) ? new Date(o.timestamp||o.date) : null;
+      const d = anPDate(o);
       if (d && !isNaN(d) && (!salesMap[code].lastDate || d > salesMap[code].lastDate)) salesMap[code].lastDate = d;
     });
-    const allDates = orders.map(o => (o.timestamp||o.date) ? new Date(o.timestamp||o.date) : null).filter(d => d && !isNaN(d));
+    const allDates = orders.map(o => anPDate(o)).filter(d => d && !isNaN(d));
     const oldestDate = allDates.length ? new Date(Math.min(...allDates.map(d=>d.getTime()))) : new Date();
     const daysPeriod = Math.max(1, Math.round((Date.now() - oldestDate.getTime()) / 86400000));
 
@@ -1902,11 +1902,16 @@ async function loadOverviewDeepAnalytics(items) {
     // (เดือนปฏิทินก่อนหน้าเดือนปัจจุบัน) ตามที่ user ขอ — สำหรับให้ทีม planning เอาไปวางแผนการผลิต/จำนวน
     // ยอดสะสมเดิมเอนเอียงไปทางสินค้าที่ขายมานาน ไม่สะท้อนเทรนด์ล่าสุด ส่วนค้างสต็อค/ใกล้หมด ยังใช้ salesMap
     // (ทั้งหมด) เหมือนเดิม เพราะเป็นคนละคำถาม ไม่ผูกกับเดือนไหน
+    // แก้บั๊ก 2026-08-12: เดิมใช้ new Date(o.date) ตรงๆ — o.date ในชีทเก็บเป็น "D/M/พ.ศ." เช่น "1/7/2569"
+    // new Date() ตีความแบบสหรัฐ (M/D/Y) ผิดทั้งวัน/เดือน แถมอ่านปี 2569 เป็น ค.ศ. ตรงๆ (ไม่ลบ 543) ทำให้ได้วันที่
+    // ผิดเพี้ยนไปเป็นปี 2569 ค.ศ. (อนาคตไกลมาก) หลุดจากช่วงเดือนที่กรองทุกออเดอร์ (หมวด "หัวน็อต" หายไปทั้งหมวด)
+    // ใช้ anPDate() แทน — ฟังก์ชัน parse วันที่ที่มีอยู่แล้วในไฟล์นี้ (ใช้กับกราฟยอดขายสินค้าอยู่แล้ว) รองรับ
+    // D/M/พ.ศ. + แปลง พ.ศ.→ค.ศ. ถูกต้อง และยึด confirmed_date เป็นหลักถ้ามี (fallback ไป date ถ้าไม่มี)
     const now = new Date();
     const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
     const prevMonthStart = new Date(prevMonthEnd.getFullYear(), prevMonthEnd.getMonth(), 1);
     const prevMonthOrders = orders.filter(o => {
-      const d = (o.timestamp||o.date) ? new Date(o.timestamp||o.date) : null;
+      const d = anPDate(o);
       return d && !isNaN(d) && d >= prevMonthStart && d <= prevMonthEnd;
     });
     const prevSalesMap = {};
