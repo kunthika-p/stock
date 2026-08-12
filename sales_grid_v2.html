@@ -1468,7 +1468,7 @@ function renderSalesHistory() {
         <td style="text-align:center;font-size:12px">${o.disc_pct!==null&&o.disc_pct!==undefined&&o.disc_pct!==''?o.disc_pct+'%':''}</td>
         <td style="text-align:center;font-size:12px">${o.net_price!==null&&o.net_price!==undefined?o.net_price:''}</td>
         <td style="text-align:center"><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
-        <td style="font-size:12px;color:#666">${o.note||''}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล]</span>':''}</td>
+        <td style="font-size:12px;color:#666">${o.note||''}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล X]</span>':''}</td>
         <td>
           <div style="display:flex;gap:4px">
             <button onclick="salesEditOrder('${o.id}')" style="background:white;border:1.5px solid #d97706;color:#d97706;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✏️</button>
@@ -1772,7 +1772,7 @@ function renderTracking() {
         <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;color:#333">${urgLbl[o._urgency]||o._urgency||'ปกติ'}</span></td>
         <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td><span style="background:${statBg[o.status]||'#f3f4f6'};color:${statTxt[o.status]||'#555'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${statLbl[o.status]||o.status||''}</span></td>
-        <td style="font-size:11px;color:#666">${o._note||''}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล]</span>':''}</td>
+        <td style="font-size:11px;color:#666">${o._note||''}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล X]</span>':''}</td>
       </tr>`;
         });
       });
