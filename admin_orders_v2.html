@@ -658,6 +658,45 @@ table.list tr:hover td{background:#f8fbff}
         <div class="ov-card amber"><div class="val" id="ov-low">—</div><div class="lbl">สต็อคต่ำ (&lt;20)</div></div>
         <div class="ov-card red"><div class="val" id="ov-out">—</div><div class="lbl">หมดสต็อค</div></div>
       </div>
+      <!-- 2026-08-12: ย้ายมาจากแท็บ "วิเคราะห์ข้อมูล" (เดิมล็อก password) ตามที่ user ขอ — เปิดสาธารณะได้
+           เพราะไม่มีตัวเลขยอดขาย/รายได้เลย มีแค่จำนวน/สต็อค (ยอดขายบาท ยังอยู่หลัง password เดิมในแท็บวิเคราะห์ข้อมูล) -->
+      <div class="an-charts" style="margin-top:16px">
+        <div class="an-card" style="grid-column:1/-1">
+          <div class="an-card-title">📊 สต็อครวมแต่ละประเภท</div>
+          <div id="an-chart-qty"></div>
+          <div id="an-chart-sku" style="display:none"></div>
+        </div>
+      </div>
+      <div class="an-info">💡 ข้อมูลดึงจาก Google Sheet real-time ทุกครั้งที่เปิด tab</div>
+      <div class="an-feat-section">
+        <div class="an-section" style="margin-top:16px">วิเคราะห์เชิงลึก (จากออเดอร์ที่ยืนยันแล้ว)</div>
+        <div id="an-orders-loading" style="text-align:center;padding:16px;font-size:12px;color:#94a3b8">⏳ กำลังโหลดข้อมูลออเดอร์...</div>
+        <div id="an-features" style="display:none">
+          <div style="display:flex;border:1px solid #d8dfe8;border-radius:8px;overflow:hidden;width:fit-content;margin-bottom:14px">
+            <button id="an-feat-tab-velocity" onclick="anSetFeatTab('velocity')" style="border:none;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;background:#1a3a5c;color:white">⚡ ขายดี</button>
+            <button id="an-feat-tab-dead" onclick="anSetFeatTab('dead')" style="border:none;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#64748b">☠️ ค้างสต็อค</button>
+            <button id="an-feat-tab-stockout" onclick="anSetFeatTab('stockout')" style="border:none;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#64748b">🚨 ใกล้หมด</button>
+          </div>
+          <div id="an-feat-panel-velocity" class="an-feat-grid" style="grid-template-columns:1fr">
+            <div class="an-feat-card">
+              <div class="an-feat-title" id="an-feat-title-velocity">⚡ สินค้าขายดีสุด — แยกตามหมวด (Top 3/หมวด)</div>
+              <div id="an-velocity"></div>
+            </div>
+          </div>
+          <div id="an-feat-panel-dead" class="an-feat-grid" style="display:none">
+            <div class="an-feat-card" style="grid-column:1/-1">
+              <div class="an-feat-title">☠️ Dead stock — ค้างสต็อคนาน</div>
+              <div id="an-dead"></div>
+            </div>
+          </div>
+          <div id="an-feat-panel-stockout" class="an-feat-grid" style="display:none">
+            <div class="an-feat-card" style="grid-column:1/-1">
+              <div class="an-feat-title">🚨 Stockout alert — คาดการณ์วันหมด</div>
+              <div id="an-stockout"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1111,78 +1150,8 @@ table.list tr:hover td{background:#f8fbff}
         <div class="an-kpi amber"><div class="ak-icon">⚠️</div><div class="ak-val" id="an-low">—</div><div class="ak-lbl">ใกล้หมด (≤10)</div></div>
         <div class="an-kpi red"><div class="ak-icon">🚨</div><div class="ak-val" id="an-empty">—</div><div class="ak-lbl">หมดแล้ว</div></div>
       </div>
-      <div class="an-charts">
-        <div class="an-card" style="grid-column:1/-1">
-          <div class="an-card-title">📊 สต็อครวมแต่ละประเภท</div>
-          <!-- 2026-07-10: ยกเลิกปุ่มสลับ "จำนวน SKU" ตามที่ user ขอ เหลือแค่มุมมอง "จำนวนกระสอบ" อย่างเดียว
-               (เดิมมี toggle 2 ปุ่ม qty/sku — ตัดปุ่มออก โค้ดคำนวณ #an-chart-sku ใน anLoadData()/anToggleChart()
-               ยังเหลือไว้เป็น dead code เผื่ออยากเอากลับมาทีหลัง ไม่ได้ลบทิ้ง) -->
-          <div id="an-chart-qty"></div>
-          <div id="an-chart-sku" style="display:none"></div>
-        </div>
-        <!-- 2026-07-10: ยกเลิกการ์ด "สินค้าใกล้หมดที่สุด" ตามที่ user ขอ — comment out ทั้ง block ไม่ลบทิ้ง
-             (โค้ดคำนวณ lowItems / #an-low-list ใน anLoadData() ~บรรทัด 3387-3398 ยังเหลืออยู่เป็น dead code)
-        <div class="an-card">
-          <div class="an-card-title">🚨 สินค้าใกล้หมดที่สุด</div>
-          <div id="an-low-list"><div class="an-loading">กำลังโหลด...</div></div>
-        </div>
-        -->
-      </div>
-      <div class="an-info">💡 ข้อมูลดึงจาก Google Sheet real-time ทุกครั้งที่เปิด tab</div>
-      <!-- 6 Analytics Features -->
-      <div class="an-feat-section">
-        <div class="an-section" style="margin-top:16px">วิเคราะห์เชิงลึก (จากออเดอร์ที่ยืนยันแล้ว)</div>
-        <div id="an-orders-loading" style="text-align:center;padding:16px;font-size:12px;color:#94a3b8">⏳ กำลังโหลดข้อมูลออเดอร์...</div>
-        <div id="an-features" style="display:none">
-          <!-- 2026-07-11: "รวบพื้นที่" ตามข้อเสนอที่ user ยืนยันแล้ว — เปลี่ยน 3 การ์ด ⚡/☠️/🚨 จากเรียงต่อกันตลอด
-               เป็นแท็บสลับดูทีละอัน (ปุ่มสไตล์เดียวกับ toggle รายวัน/รายเดือนของกราฟแท่งซ้อน — พื้นเข้ม #1a3a5c ตอนเลือกอยู่) -->
-          <div style="display:flex;border:1px solid #d8dfe8;border-radius:8px;overflow:hidden;width:fit-content;margin-bottom:14px">
-            <button id="an-feat-tab-velocity" onclick="anSetFeatTab('velocity')" style="border:none;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;background:#1a3a5c;color:white">⚡ ขายดี</button>
-            <button id="an-feat-tab-dead" onclick="anSetFeatTab('dead')" style="border:none;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#64748b">☠️ ค้างสต็อค</button>
-            <button id="an-feat-tab-stockout" onclick="anSetFeatTab('stockout')" style="border:none;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#64748b">🚨 ใกล้หมด</button>
-          </div>
-          <div id="an-feat-panel-velocity" class="an-feat-grid" style="grid-template-columns:1fr">
-            <div class="an-feat-card">
-              <div class="an-feat-title">⚡ สินค้าขายดีสุด — แยกตามหมวด (Top 3/หมวด)</div>
-              <div id="an-velocity"></div>
-            </div>
-          </div>
-          <div id="an-feat-panel-dead" class="an-feat-grid" style="display:none">
-            <div class="an-feat-card" style="grid-column:1/-1">
-              <div class="an-feat-title">☠️ Dead stock — ค้างสต็อคนาน</div>
-              <div id="an-dead"></div>
-            </div>
-          </div>
-          <div id="an-feat-panel-stockout" class="an-feat-grid" style="display:none">
-            <div class="an-feat-card" style="grid-column:1/-1">
-              <div class="an-feat-title">🚨 Stockout alert — คาดการณ์วันหมด</div>
-              <div id="an-stockout"></div>
-            </div>
-          </div>
-          <!-- 2026-07-11: ยกเลิกการ์ด "Seasonal pattern" ตามที่ user ยืนยันแล้ว — ซ้ำกับกราฟ
-               "ยอดขายรายวัน/รายเดือน แยกตามประเภท" (item 17) ที่ละเอียดกว่า comment ไว้ ไม่ลบทิ้ง
-               ต้อง comment เรียก anRenderSeasonal(orders) ใน anLoadData() ด้วย กัน null.innerHTML พัง -->
-          <!--
-          <div class="an-feat-grid">
-            <div class="an-feat-card" style="grid-column:1/-1">
-              <div class="an-feat-title">📅 Seasonal pattern — ยอดขายรายเดือน</div>
-              <div id="an-seasonal"></div>
-            </div>
-          </div>
-          -->
-          <!-- 2026-07-10: ยกเลิกการ์ด "Stock turnover" ตามที่ user ขอ — รวมระดับหมวดเท่านั้น ไม่แยกรายไซส์
-               ซ้ำกับ Dead stock/Stockout alert ที่ actionable กว่า + daysPeriod ที่ใช้คำนวณยังมีบั๊กแฝงเรื่อง parse วันที่
-               (ดู MEMORY item 6) comment ไว้ ไม่ลบทิ้ง เผื่อกลับมาทำใหม่แบบแยกรายชิ้นในอนาคต -->
-          <!--
-          <div class="an-feat-grid">
-            <div class="an-feat-card">
-              <div class="an-feat-title">🔄 Stock turnover — อัตราหมุนเวียนต่อประเภท</div>
-              <div id="an-turnover"></div>
-            </div>
-          </div>
-          -->
-        </div>
-      </div>
+      <!-- 2026-08-12: กราฟ "สต็อครวมแต่ละประเภท" + "วิเคราะห์เชิงลึก" ย้ายไปหน้า "ภาพรวม" (tab-overview) แล้ว
+           ตามที่ user ขอ — ไม่มีตัวเลขยอดขาย/รายได้เลยในทั้ง 2 ส่วนนี้ เลยเปิดสาธารณะได้ ไม่ต้องรอ password -->
     </div>
   </div>
 </div>
@@ -1855,6 +1824,7 @@ function renderItemHistoryReport(data) {
 }
 
 // ── ภาพรวม ────────────────────────────────────────────────────
+let overviewDeepLoaded = false;
 async function loadOverview() {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 20000);
@@ -1872,8 +1842,89 @@ async function loadOverview() {
     document.getElementById('ov-ok').textContent = ok;
     document.getElementById('ov-low').textContent = low;
     document.getElementById('ov-out').textContent = out;
+    if (!overviewDeepLoaded) { overviewDeepLoaded = true; loadOverviewDeepAnalytics(items); }
   } catch(e) {
     console.error('loadOverview error:', e);
+  }
+}
+
+// 2026-08-12: ย้ายจากแท็บ "วิเคราะห์ข้อมูล" (ล็อก password) มาไว้หน้า "ภาพรวม" แทน ตามที่ user ยืนยัน —
+// เฉพาะกราฟ "สต็อครวมแต่ละประเภท" + "วิเคราะห์เชิงลึก" (ขายดี/ค้างสต็อค/ใกล้หมด) ไม่มีตัวเลขยอดขาย/รายได้เลย
+// เปิดให้ทุกคนเห็นได้ ไม่ต้องกรอกรหัสผ่าน (คนละส่วนกับ "ยอดขายสินค้า" ที่ยัง confidential อยู่หลัง password เดิม)
+// โหลดครั้งเดียวต่อ session (overviewDeepLoaded guard) กันยิง getOrders ซ้ำทุกครั้งที่กลับมาแท็บภาพรวม
+async function loadOverviewDeepAnalytics(items) {
+  try {
+    // Chart: qty per type
+    const typeMap = {};
+    items.forEach(x => {
+      const t = String(x.type||'อื่นๆ');
+      if (!typeMap[t]) typeMap[t] = { qty: 0, sku: 0 };
+      typeMap[t].qty += Number(x.stock) || 0;
+      typeMap[t].sku++;
+    });
+    const types = Object.entries(typeMap).sort((a,b) => b[1].qty - a[1].qty).slice(0,8);
+    const maxQty = Math.max(...types.map(t=>t[1].qty)) || 1;
+    const maxSku = Math.max(...types.map(t=>t[1].sku)) || 1;
+    const colors = ['#1d4ed8','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#dbeafe','#eff6ff'];
+    const mkBar = (label, val, max, color) =>
+      `<div class="an-bar-item"><div class="an-bar-lbl" title="${label}">${label}</div>` +
+      `<div class="an-bar-track"><div class="an-bar-fill" style="width:${Math.max(8,Math.round(val/max*100))}%;background:${color}">` +
+      `<span>${val.toLocaleString()}</span></div></div></div>`;
+    document.getElementById('an-chart-qty').innerHTML =
+      types.map((t,i) => mkBar(t[0], t[1].qty, maxQty, colors[i])).join('');
+    document.getElementById('an-chart-sku').innerHTML =
+      [...types].sort((a,b)=>b[1].sku-a[1].sku).map((t,i) => mkBar(t[0], t[1].sku+' SKU', maxSku, colors[i])).join('');
+
+    const oRes = await fetch(API + '?action=getOrders');
+    const oData = await oRes.json();
+    const allOrders = oData.orders || [];
+    const orders = allOrders.filter(o => String(o.status) === 'confirmed');
+    document.getElementById('an-orders-loading').style.display = 'none';
+    document.getElementById('an-features').style.display = 'block';
+    // lookup type จริงจาก items (stock) — sheet "orders" ไม่มีคอลัมน์ "type" (o.type จาก API เป็น undefined เสมอ)
+    const itemTypeMap = {};
+    items.forEach(it => { itemTypeMap[String(it.code||'').padStart(8,'0')] = it.type || ''; });
+    const salesMap = {};
+    orders.forEach(o => {
+      const code = String(o.code || '').padStart(8,'0');
+      const qty = Number(o.qty) || 0;
+      if (!salesMap[code]) salesMap[code] = {name: o.name||'', type: itemTypeMap[code] || o.type || '', totalQty: 0, orderCount: 0, lastDate: null};
+      salesMap[code].totalQty += qty;
+      salesMap[code].orderCount++;
+      const d = (o.timestamp||o.date) ? new Date(o.timestamp||o.date) : null;
+      if (d && !isNaN(d) && (!salesMap[code].lastDate || d > salesMap[code].lastDate)) salesMap[code].lastDate = d;
+    });
+    const allDates = orders.map(o => (o.timestamp||o.date) ? new Date(o.timestamp||o.date) : null).filter(d => d && !isNaN(d));
+    const oldestDate = allDates.length ? new Date(Math.min(...allDates.map(d=>d.getTime()))) : new Date();
+    const daysPeriod = Math.max(1, Math.round((Date.now() - oldestDate.getTime()) / 86400000));
+
+    // 2026-08-12: "ขายดี" เปลี่ยนฐานคำนวณจากยอดสะสมทั้งหมด (ตั้งแต่เริ่มเก็บข้อมูล) เป็นยอดเฉพาะ "เดือนที่แล้ว"
+    // (เดือนปฏิทินก่อนหน้าเดือนปัจจุบัน) ตามที่ user ขอ — สำหรับให้ทีม planning เอาไปวางแผนการผลิต/จำนวน
+    // ยอดสะสมเดิมเอนเอียงไปทางสินค้าที่ขายมานาน ไม่สะท้อนเทรนด์ล่าสุด ส่วนค้างสต็อค/ใกล้หมด ยังใช้ salesMap
+    // (ทั้งหมด) เหมือนเดิม เพราะเป็นคนละคำถาม ไม่ผูกกับเดือนไหน
+    const now = new Date();
+    const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+    const prevMonthStart = new Date(prevMonthEnd.getFullYear(), prevMonthEnd.getMonth(), 1);
+    const prevMonthOrders = orders.filter(o => {
+      const d = (o.timestamp||o.date) ? new Date(o.timestamp||o.date) : null;
+      return d && !isNaN(d) && d >= prevMonthStart && d <= prevMonthEnd;
+    });
+    const prevSalesMap = {};
+    prevMonthOrders.forEach(o => {
+      const code = String(o.code || '').padStart(8,'0');
+      const qty = Number(o.qty) || 0;
+      if (!prevSalesMap[code]) prevSalesMap[code] = {name: o.name||'', type: itemTypeMap[code] || o.type || '', totalQty: 0, orderCount: 0};
+      prevSalesMap[code].totalQty += qty;
+      prevSalesMap[code].orderCount++;
+    });
+    const monthLabel = prevMonthStart.toLocaleDateString('th-TH', {month:'long', year:'numeric'});
+    const velTitleEl = document.getElementById('an-feat-title-velocity');
+    if (velTitleEl) velTitleEl.textContent = '⚡ สินค้าขายดีสุดเดือน' + monthLabel + ' — แยกตามหมวด (Top 3/หมวด)';
+    anRenderVelocity(prevSalesMap, prevMonthOrders.length);
+    anRenderDeadStock(items, salesMap);
+    anRenderStockout(items, salesMap, daysPeriod);
+  } catch(e) {
+    console.error('loadOverviewDeepAnalytics error:', e);
   }
 }
 
@@ -4246,26 +4297,8 @@ async function anLoadData() {
     document.getElementById('an-instock').textContent = inStock + ' (' + Math.round(inStock/total*100) + '%)';
     document.getElementById('an-low').textContent     = lowStock;
     document.getElementById('an-empty').textContent   = empty;
-    // Chart: qty per type
-    const typeMap = {};
-    items.forEach(x => {
-      const t = String(x.type||'อื่นๆ');
-      if (!typeMap[t]) typeMap[t] = { qty: 0, sku: 0 };
-      typeMap[t].qty += Number(x.stock) || 0;
-      typeMap[t].sku++;
-    });
-    const types = Object.entries(typeMap).sort((a,b) => b[1].qty - a[1].qty).slice(0,8);
-    const maxQty = Math.max(...types.map(t=>t[1].qty)) || 1;
-    const maxSku = Math.max(...types.map(t=>t[1].sku)) || 1;
-    const colors = ['#1d4ed8','#2563eb','#3b82f6','#60a5fa','#93c5fd','#bfdbfe','#dbeafe','#eff6ff'];
-    const mkBar = (label, val, max, color) =>
-      `<div class="an-bar-item"><div class="an-bar-lbl" title="${label}">${label}</div>` +
-      `<div class="an-bar-track"><div class="an-bar-fill" style="width:${Math.max(8,Math.round(val/max*100))}%;background:${color}">` +
-      `<span>${val.toLocaleString()}</span></div></div></div>`;
-    document.getElementById('an-chart-qty').innerHTML =
-      types.map((t,i) => mkBar(t[0], t[1].qty, maxQty, colors[i])).join('');
-    document.getElementById('an-chart-sku').innerHTML =
-      [...types].sort((a,b)=>b[1].sku-a[1].sku).map((t,i) => mkBar(t[0], t[1].sku+' SKU', maxSku, colors[i])).join('');
+    // 2026-08-12: กราฟ "สต็อครวมแต่ละประเภท" ย้ายไปคำนวณที่ loadOverviewDeepAnalytics() แทน
+    // (ย้ายทั้ง HTML+logic ไปหน้า "ภาพรวม" ตามที่ user ขอ ไม่ต้องรอปลดล็อก password แล้ว)
     // Low stock list (top 5, stock > 0 and <= 5)
     // 2026-07-10: การ์ด "สินค้าใกล้หมดที่สุด" (#an-low-list) ถูก comment ออกจาก HTML แล้วตามที่ user ขอ
     // เพิ่ม guard "if (lowEl)" กันพัง — ถ้าไม่ guard ตรงนี้จะ error (setting innerHTML ของ null) แล้วทำให้
@@ -4297,33 +4330,10 @@ async function anLoadData() {
       console.log('[Analytics] statuses found:', [...new Set(allOrders.map(o=>o.status))]);
       console.log('[Analytics] sample order:', JSON.stringify(allOrders[0]));
     }
-    document.getElementById('an-orders-loading').style.display = 'none';
-    document.getElementById('an-features').style.display = 'block';
-    // 2026-07-10: sheet "orders" ไม่มีคอลัมน์ "type" เลย (ดู ORDER_COLS ใน Code.gs) — o.type จาก API เป็น undefined เสมอ
-    // เดิม Velocity (ตอน ABC percentile) ไม่ได้ใช้ .type เลยจึงไม่เคยเจอบั๊กนี้ พอเปลี่ยนมาแยกตามหมวดถึงพังเงียบๆ
-    // (ทุกอย่างตกไปอยู่ 'อื่นๆ' เพราะ anVCategory('') return 'อื่นๆ') — แก้โดย lookup type จริงจาก items (stock)
-    // ตาม pattern เดียวกับ anCtMap ที่ใช้ในส่วน "ยอดขายแยกตามประเภท" ของลูกค้าอยู่แล้ว (บรรทัด ~4085)
-    const itemTypeMap = {};
-    items.forEach(it => { itemTypeMap[String(it.code||'').padStart(8,'0')] = it.type || ''; });
-    // Build salesMap: code -> {name, type, totalQty, lastDate}
-    const salesMap = {};
-    orders.forEach(o => {
-      const code = String(o.code || '').padStart(8,'0');
-      const qty = Number(o.qty) || 0;
-      if (!salesMap[code]) salesMap[code] = {name: o.name||'', type: itemTypeMap[code] || o.type || '', totalQty: 0, orderCount: 0, lastDate: null};
-      salesMap[code].totalQty += qty;
-      salesMap[code].orderCount++;
-      const d = (o.timestamp||o.date) ? new Date(o.timestamp||o.date) : null;
-      if (d && !isNaN(d) && (!salesMap[code].lastDate || d > salesMap[code].lastDate)) salesMap[code].lastDate = d;
-    });
-    const allDates = orders.map(o => (o.timestamp||o.date) ? new Date(o.timestamp||o.date) : null).filter(d => d && !isNaN(d));
-    const oldestDate = allDates.length ? new Date(Math.min(...allDates.map(d=>d.getTime()))) : new Date();
-    const daysPeriod = Math.max(1, Math.round((Date.now() - oldestDate.getTime()) / 86400000));
-    anRenderVelocity(salesMap, orders.length);
-    anRenderDeadStock(items, salesMap);
-    // 2026-07-11: ยกเลิกการ์ด "Seasonal pattern" แล้ว (element #an-seasonal ไม่มีในหน้าแล้ว) — ไม่เรียก anRenderSeasonal() อีกต่อไป กันพัง null.innerHTML
-    // 2026-07-10: ยกเลิกการ์ด "Stock turnover" แล้ว (element #an-turnover ไม่มีในหน้าแล้ว) — ไม่เรียก anRenderTurnover() อีกต่อไป กันพัง null.innerHTML
-    anRenderStockout(items, salesMap, daysPeriod);
+    // 2026-08-12: "วิเคราะห์เชิงลึก" (ขายดี/ค้างสต็อค/ใกล้หมด — an-orders-loading/an-features/salesMap/
+    // anRenderVelocity/anRenderDeadStock/anRenderStockout) ย้ายไป loadOverviewDeepAnalytics() แทน
+    // (ย้าย HTML+logic ไปหน้า "ภาพรวม" ตามที่ user ขอ ไม่มีตัวเลขยอดขาย/รายได้ในส่วนนี้เลย จึงเปิดสาธารณะได้)
+    // ส่วน "ยอดขายสินค้า" (บาท, confidential) ด้านล่างนี้ยังคงอยู่หลัง password เหมือนเดิม ไม่ได้ย้าย
     anRenderSalesCharts(orders, items);
   } catch(e) {
     console.error('Analytics error:', e);
@@ -4383,7 +4393,7 @@ const AN_VCAT_COLORS = {
 function anRenderVelocity(salesMap, totalOrders) {
   const el = document.getElementById('an-velocity');
   const rows = Object.entries(salesMap);
-  if (rows.length === 0) { anNoData('an-velocity'); return; }
+  if (rows.length === 0) { anNoData('an-velocity', 'ไม่มีออเดอร์ที่ยืนยันแล้วในเดือนที่แล้ว'); return; }
   // เดิม: top10 รวมทุกหมวดจัดกลุ่ม ABC ตาม percentile — เปลี่ยนเป็น top3 แยกตามหมวด (2026-07-10)
   // เหตุผล: totalQty หน่วยนับไม่เท่ากันข้ามหมวด (ดู BOX_TYPES — บางหมวดนับเป็น "กล่อง" บางหมวดนับเป็น "กระสอบ")
   // เทียบ top10 รวมข้ามหมวดแบบเดิมจึงเทียบกันไม่ตรง แยกตามหมวดแล้วในหมวดเดียวกันหน่วยจะสอดคล้องกันเอง
@@ -4396,7 +4406,7 @@ function anRenderVelocity(salesMap, totalOrders) {
     catMap[cat].push(Object.assign({code: code}, v));
   });
   const cats = AN_VCAT_ORDER.filter(c => catMap[c] && catMap[c].length);
-  if (cats.length === 0) { anNoData('an-velocity'); return; }
+  if (cats.length === 0) { anNoData('an-velocity', 'ไม่มีออเดอร์ที่ยืนยันแล้วในเดือนที่แล้ว'); return; }
   // 2026-07-10 (v4): เพิ่ม % เทียบกับยอดรวมทั้งหมวด (ทุกรายการในหมวด ไม่ใช่แค่ top3) ต่อท้ายจำนวน
   // % ต่ำ (เช่น top3 รวมกันไม่ถึง 20%) เป็นเรื่องปกติในหมวดที่มีจำนวนไซส์/ขนาดย่อยเยอะ (เช่น น็อตเหลี่ยมเกลียว W
   // มีถึง ~100 ไซส์) ยอดขายเลยกระจายตัว ไม่ได้แปลว่าคำนวณผิด — ดูสัดส่วนเทียบ MATRICES จำนวนไซส์ต่อหมวดประกอบ
