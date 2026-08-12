@@ -715,11 +715,11 @@ function buildNokMilAengSalesTable(tabDef, suffix) {
       if (!item) { html += `<td class="stk-cell blocked"></td>`; return; }
       const hasStock = Number(item.stock) > 0;
       const cls = hasStock ? 'has' : 'out';
-      const tick = hasStock ? '✅' : '❌';
+      const tick = renderTick(item, srcType, col);
       const nm = (srcType + ' ' + col + ' ' + row).replace(/'/g,"\\'");
       const tp = srcType.replace(/'/g,"\\'");
       const onclk = `onclick="openModal('${item.code}','${nm}','${tp}')"`;
-      html += `<td class="stk-cell ${cls}" ${onclk}><span class="cell-tick">${tick}</span><span class="cell-code">${item.code}</span></td>`;
+      html += `<td class="stk-cell ${cls}" ${onclk}>${tick}<span class="cell-code">${item.code}</span></td>`;
     });
     html += '</tr>';
   });
@@ -754,11 +754,11 @@ function renderAll() {
             if (!item) { html2 += `<td class="stk-cell blocked"></td>`; return; }
             const hasStock = Number(item.stock) > 0;
             const cls = hasStock ? 'has' : 'out';
-            const tick = hasStock ? '✅' : '❌';
+            const tick = renderTick(item, ht, col);
             const nm = (ht+' '+col+' '+r).replace(/'/g,"\\'");
             const t2 = ht.replace(/'/g,"\\'");
             const onclick2 = `onclick="openModal('${item.code}','${nm}','${t2}')"`;
-            html2 += `<td class="stk-cell ${cls}" ${onclick2}><span class="cell-tick">${tick}</span><span class="cell-code">${item.code}</span></td>`;
+            html2 += `<td class="stk-cell ${cls}" ${onclick2}>${tick}<span class="cell-code">${item.code}</span></td>`;
           });
           html2 += '</tr>';
         });
@@ -808,11 +808,11 @@ function renderAll() {
             if (!item) { html3 += `<td class="stk-cell blocked"></td>`; return; }
             const hasStock = Number(item.stock) > 0;
             const cls = hasStock ? 'has' : 'out';
-            const tick = hasStock ? '✅' : '❌';
+            const tick = renderTick(item, ot, col);
             const nm3 = (ot+' '+col+' '+r3).replace(/'/g,"\\'");
             const t3 = ot.replace(/'/g,"\\'");
             const onclick3 = `onclick="openModal('${item.code}','${nm3}','${t3}')"`;
-            html3 += `<td class="stk-cell ${cls}" ${onclick3}><span class="cell-tick">${tick}</span><span class="cell-code">${item.code}</span></td>`;
+            html3 += `<td class="stk-cell ${cls}" ${onclick3}>${tick}<span class="cell-code">${item.code}</span></td>`;
           });
           html3 += '</tr>';
         });
@@ -849,12 +849,12 @@ function renderAll() {
           } else {
             const hasStock = Number(item.stock) > 0;
             const cls = hasStock ? 'has' : 'out';
-            const tick = hasStock ? '✅' : '❌';
+            const tick = renderTick(item, resolveType(item), col);
             const name = (type+' '+col+' '+row).replace(/'/g,"\'");
             const _rtype = resolveType(item);
             const onclick = `onclick="openModal('${item.code}','${name}','${_rtype}')"`;
             html += `<td class="stk-cell ${cls}" ${onclick}>
-              <span class="cell-tick">${tick}</span>
+              ${tick}
               <span class="cell-code"${codeStyle}>${item.code}</span>
             </td>`;
           }
@@ -864,13 +864,12 @@ function renderAll() {
       html += '</tbody></table></div>';
     } else {
       html += items.map(item => {
-        const hasStock = Number(item.stock) > 0;
-        const tick = hasStock ? '✅' : '❌';
         const _rtype = resolveType(item);
+        const tick = renderTick(item, _rtype, item.col);
         const onclick = `onclick="openModal('${item.code}','${item.type}','${_rtype}')"`;
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0" ${onclick}>
           <span style="font-size:13px;color:#1a3a5c;font-weight:600">${item.code}</span>
-          <span style="font-size:20px">${tick}</span>
+          ${tick}
         </div>`;
       }).join('');
     }
@@ -886,6 +885,20 @@ function resolveType(item) {
 }
 function getUnit(type) {
   return BOX_TYPES.includes(type) ? 'กล่อง' : 'กระสอบ';
+}
+
+// 2026-08-12: เกณฑ์สต็อคต่ำ — โชว์ตัวเลขคงเหลือจริงแทน ✅ ตามที่ user ขอ
+// กระสอบ < 20, กล่อง < 100, ยกเว้นคอลัมน์ "M24 P3.0" (น็อตมิลแข็ง M14-M24 ทุกความยาว) ใช้ < 10 แทนเกณฑ์กล่องปกติ
+function lowStockThreshold(type, col) {
+  if (col === 'M24 P3.0') return 10;
+  return getUnit(type) === 'กล่อง' ? 100 : 20;
+}
+// สีส้ม = ต่ำกว่าเกณฑ์แต่ยังสั่งได้ (>0), สีแดง = หมดสต็อคจริง (0) — เซลล์สต็อคปกติยังขึ้น ✅ เหมือนเดิม
+function renderTick(item, type, col) {
+  const stock = Number(item.stock) || 0;
+  if (stock <= 0) return '<span class="cell-tick" style="font-size:16px;font-weight:700;color:#dc2626">0</span>';
+  if (stock < lowStockThreshold(type, col)) return '<span class="cell-tick" style="font-size:16px;font-weight:700;color:#c2410c">' + stock + '</span>';
+  return '<span class="cell-tick">✅</span>';
 }
 
 // ---- Modal ----
