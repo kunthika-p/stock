@@ -3119,7 +3119,7 @@ function renderPendingTable() {
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
         <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
         <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
-        <td style="font-size:11px;color:#666">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
+        <td style="font-size:11px;color:#666">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล]</span>':''}</td>
         <td>
           <div class="pend-actions">
             <button class="btn-confirm" onclick="confirmOrder(${o.row},'${o.code}',${qty})">✅</button>
@@ -3898,7 +3898,7 @@ function renderHistory() {
         <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
         <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td class="${o.status==='confirmed'?'status-done':'status-rejected'}">${o.status==='confirmed'?'✅ ยืนยัน':'❌ ปฏิเสธ'}</td>
-        <td style="font-size:11px;color:#666">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
+        <td style="font-size:11px;color:#666">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล]</span>':''}</td>
         <td style="text-align:center;white-space:nowrap" class="hist-print-hide">${o.status==='confirmed'
           ? `<button class="btn-reject" style="padding:5px 7px" title="ยกเลิกออเดอร์ + คืนสต็อค" onclick="voidConfirmedOrderFromHistory(${o.row},'${(fmtName(o.name||o.code)||'').replace(/'/g,"\\'")}',${qty},'${isBox?'กล่อง':'กระสอบ'}')">↩️</button>
             <button class="btn-reject" style="padding:5px 7px;margin-left:4px" title="ดึงกลับไปรอยืนยัน" onclick="pullBackToPending(${o.row},'${(fmtName(o.name||o.code)||'').replace(/'/g,"\\'")}',${qty},'${isBox?'กล่อง':'กระสอบ'}')">🔙</button>`
@@ -4143,7 +4143,7 @@ function renderSummary() {
           <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
           <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
           <td>✅ ยืนยัน</td>
-          <td style="font-size:11px;color:#555">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}</td>
+          <td style="font-size:11px;color:#555">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล]</span>':''}</td>
         </tr>`;
       });
       html += `<tr class="summary-row">
