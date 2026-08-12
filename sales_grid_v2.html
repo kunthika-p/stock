@@ -138,6 +138,29 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .sum-tbl tr.trk-today-row td{border-color:#6ee7b7}
 .sum-tbl tr.summary-row td{background:#1a3a5c;color:white;font-weight:700;border:1px solid #0f2844}
 .sum-tbl tr.summary-row:hover td{background:#1a3a5c}
+
+/* 2026-08-12: ปุ่มพิมพ์ — สไตล์เดียวกับ admin_orders_v2.html (พื้นเขียว) ตามที่ user ขอ */
+.print-btn{font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 14px;border-radius:6px;border:none;cursor:pointer;background:#059669;color:white;font-weight:600;margin-left:8px;white-space:nowrap}
+#hist-print-hdr,#trk-print-hdr{display:none}
+
+/* 2026-08-12: ฟังก์ชันพิมพ์เอกสาร — ตั้งค่าหน้ากระดาษ/สไตล์เดียวกับ admin_orders_v2.html (เดียวกันเป๊ะ:
+   @page margin, font ตอนพิมพ์, ซ่อนปุ่ม/filter/nav, โชว์หัวกระดาษ phdr-title/phdr-sub, ตารางเส้นเข้ม+หัวตารางสีน้ำเงิน) */
+@media print {
+  *{box-sizing:border-box}
+  @page{margin:4mm 5mm}
+  body{font-size:8pt;font-family:'Sarabun',sans-serif}
+  .header,.customer-bar,#salesTabNav,.cart-bar,.toast,#sales-tab-order{display:none!important}
+  .hist-print-hide,.trk-print-hide{display:none!important}
+  #hist-print-hdr,#trk-print-hdr{display:block!important;margin-bottom:6px}
+  .phdr-title{font-size:11pt;font-weight:700}
+  .phdr-sub{font-size:7.5pt;color:#444}
+  #sales-tab-history,#sales-tab-tracking{padding:0!important;max-width:none!important}
+  #hist-tbl,.sum-tbl{font-size:7pt!important;border-collapse:collapse!important;width:100%!important}
+  #hist-tbl th,.sum-tbl thead th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:3px 5px!important;font-size:7pt!important}
+  #hist-tbl td,.sum-tbl td{padding:2px 5px!important;line-height:1.25!important;border:0.5px solid #ccc!important}
+  .sum-tbl tr.summary-row td{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sum-tbl tr[style]{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
@@ -163,7 +186,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 </div>
 
 <!-- Tab nav -->
-<div style="display:flex;background:white;border-bottom:2px solid #e0e0e0;overflow-x:auto">
+<div id="salesTabNav" style="display:flex;background:white;border-bottom:2px solid #e0e0e0;overflow-x:auto">
   <button id="tab-btn-order" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:700;color:#1a3a5c;border-bottom:3px solid #1a3a5c;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('order',this)">🛒 สั่งสินค้า</button>
   <button id="tab-btn-history" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:500;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('history',this)">📋 ประวัติ <span id="sales-hist-count" style="background:#dc2626;color:white;border-radius:10px;font-size:11px;padding:1px 6px;margin-left:3px;display:none"></span></button>
   <button id="tab-btn-tracking" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:500;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('tracking',this)">📦 ติดตามออเดอร์</button>
@@ -184,10 +207,14 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 
 <!-- Tab: ประวัติ -->
 <div id="sales-tab-history" style="display:none;padding:16px;max-width:1400px;margin:0 auto">
+  <div id="hist-print-hdr" style="display:none">
+    <span class="phdr-title">คำสั่งซื้อที่รอส่ง Admin — STIC</span><br>
+    <span class="phdr-sub" id="hist-print-sub"></span>
+  </div>
   <div style="background:white;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.09);overflow:hidden;margin-bottom:16px">
-    <div style="padding:14px 16px;font-size:15px;font-weight:700;color:#1a3a5c;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
-      <span>📋 คำสั่งซื้อที่รอส่ง Admin</span>
-      <span id="sales-hist-count2" style="font-size:13px;font-weight:400;color:#888"></span>
+    <div class="hist-print-hide" style="padding:14px 16px;font-size:15px;font-weight:700;color:#1a3a5c;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center">
+      <span>📋 คำสั่งซื้อที่รอส่ง Admin <span id="sales-hist-count2" style="font-size:13px;font-weight:400;color:#888"></span></span>
+      <button class="print-btn" onclick="printSalesHistory()">🖨️ พิมพ์</button>
     </div>
     <div style="overflow-x:auto">
       <table id="hist-tbl" style="width:100%;border-collapse:collapse;font-size:12px;min-width:850px">
@@ -203,7 +230,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
           <th style="padding:5px 7px;text-align:center">ราคาเน็ต</th>
           <th style="padding:5px 7px;text-align:center">จัดส่ง</th>
           <th style="padding:5px 7px;text-align:left">หมายเหตุ</th>
-          <th style="padding:5px 7px;width:90px">จัดการ</th>
+          <th class="hist-print-hide" style="padding:5px 7px;width:90px">จัดการ</th>
         </tr></thead>
         <tbody id="sales-hist-tbody">
           <tr><td colspan="12" style="text-align:center;color:#aaa;padding:24px">ยังไม่มีคำสั่งซื้อ</td></tr>
@@ -211,16 +238,20 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
       </table>
     </div>
   </div>
-  <button id="sales-confirm-all-btn" onclick="confirmAllToAdmin()" disabled
+  <button id="sales-confirm-all-btn" onclick="confirmAllToAdmin()" disabled class="hist-print-hide"
     style="width:100%;background:#16a34a;color:white;border:none;border-radius:12px;padding:16px;font-size:16px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer;opacity:.6">
     ✅ ยืนยันส่งทั้งหมดไปที่ Admin
   </button>
-  <p style="text-align:center;font-size:12px;color:#9ca3af;margin-top:8px">กดปุ่มนี้เมื่อต้องการส่งคำสั่งซื้อทั้งหมดให้ Admin ดำเนินการ</p>
+  <p class="hist-print-hide" style="text-align:center;font-size:12px;color:#9ca3af;margin-top:8px">กดปุ่มนี้เมื่อต้องการส่งคำสั่งซื้อทั้งหมดให้ Admin ดำเนินการ</p>
 </div>
 
 <!-- Tab: ติดตามออเดอร์ -->
 <div id="sales-tab-tracking" style="display:none;padding:16px;max-width:1400px;margin:0 auto">
-  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;background:white;padding:12px 16px;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.09)">
+  <div id="trk-print-hdr" style="display:none">
+    <span class="phdr-title">ติดตามออเดอร์ — STIC</span><br>
+    <span class="phdr-sub" id="trk-print-sub"></span>
+  </div>
+  <div class="trk-print-hide" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;background:white;padding:12px 16px;border-radius:10px;box-shadow:0 1px 5px rgba(0,0,0,.09)">
     <select id="trk-cust-filter" style="padding:7px 10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:'Sarabun',sans-serif">
       <option value="">ทุกลูกค้า</option>
     </select>
@@ -236,6 +267,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
     <input type="date" id="trk-date-to" style="padding:6px 10px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:'Sarabun',sans-serif">
     <button onclick="renderTracking()" style="padding:7px 16px;background:#1a3a5c;color:white;border:none;border-radius:8px;font-size:13px;font-family:'Sarabun',sans-serif;font-weight:600;cursor:pointer">🔍 แสดง</button>
     <span id="trk-stat" style="font-size:12px;color:#555;display:none;margin-left:4px"></span>
+    <button class="print-btn" onclick="printTracking()">🖨️ พิมพ์</button>
   </div>
   <div style="overflow-x:auto">
     <div id="trk-body"></div>
@@ -1491,7 +1523,7 @@ function renderSalesHistory() {
         <td style="text-align:center;font-size:12px">${o.net_price!==null&&o.net_price!==undefined?o.net_price:''}</td>
         <td style="text-align:center"><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td style="font-size:12px;color:#666">${o.note||''}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล X]</span>':''}</td>
-        <td>
+        <td class="hist-print-hide">
           <div style="display:flex;gap:4px">
             <button onclick="salesEditOrder('${o.id}')" style="background:white;border:1.5px solid #d97706;color:#d97706;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✏️</button>
             <button onclick="salesDeleteOrder('${o.id}')" style="background:white;border:1.5px solid #dc2626;color:#dc2626;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer">✕</button>
@@ -1515,6 +1547,15 @@ function renderSalesHistory() {
   document.getElementById('sales-hist-count2').textContent = stagedOrders.length + ' รายการ';
   const btn = document.getElementById('sales-confirm-all-btn');
   if (btn) btn.style.opacity = stagedOrders.length ? '1' : '.6';
+}
+
+// 2026-08-12: พิมพ์แท็บ "ประวัติ" — เหมือน pattern ih-print-hdr ใน admin_orders_v2.html (ตั้งวันที่พิมพ์ก่อนเรียก print)
+function printSalesHistory() {
+  const printDate = new Date().toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const printTime = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  const sub = document.getElementById('hist-print-sub');
+  if (sub) sub.textContent = stagedOrders.length + ' รายการ  ·  พิมพ์: ' + printDate + ' ' + printTime;
+  window.print();
 }
 
 function salesDeleteOrder(id) {
@@ -1632,6 +1673,15 @@ async function loadTracking() {
     }
   }
   renderTracking();
+}
+
+// 2026-08-12: พิมพ์แท็บ "ติดตามออเดอร์" — เหมือน pattern ih-print-hdr ใน admin_orders_v2.html
+function printTracking() {
+  const printDate = new Date().toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const printTime = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  const sub = document.getElementById('trk-print-sub');
+  if (sub) sub.textContent = 'พิมพ์: ' + printDate + ' ' + printTime;
+  window.print();
 }
 
 function renderTracking() {
