@@ -52,6 +52,8 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .stk-cell.has:hover{background:#a7f3d0}
 .stk-cell.has.locked{background:#d1fae5;cursor:not-allowed;opacity:.6}
 .stk-cell.out{background:#fee2e2;cursor:pointer}
+.stk-cell.low{background:#fef9c3;cursor:pointer}
+.stk-cell.low:hover{background:#fde68a}
 .stk-cell.blocked{background:#e5e7eb}
 .cell-tick{font-size:20px;display:block}
 .cell-code{font-size:9px;color:#666;font-family:'Courier New',monospace;letter-spacing:0.5px}
@@ -714,7 +716,7 @@ function buildNokMilAengSalesTable(tabDef, suffix) {
       const item = allItems.find(p => p.type === srcType && String(p.col) === String(col) && String(p.row) === String(row));
       if (!item) { html += `<td class="stk-cell blocked"></td>`; return; }
       const hasStock = Number(item.stock) > 0;
-      const cls = hasStock ? 'has' : 'out';
+      const cls = stockCellClass(item, srcType, col);
       const tick = renderTick(item, srcType, col);
       const nm = (srcType + ' ' + col + ' ' + row).replace(/'/g,"\\'");
       const tp = srcType.replace(/'/g,"\\'");
@@ -753,7 +755,7 @@ function renderAll() {
             const item = htItems.find(p => String(p.col)===String(col) && String(p.row)===String(r));
             if (!item) { html2 += `<td class="stk-cell blocked"></td>`; return; }
             const hasStock = Number(item.stock) > 0;
-            const cls = hasStock ? 'has' : 'out';
+            const cls = stockCellClass(item, ht, col);
             const tick = renderTick(item, ht, col);
             const nm = (ht+' '+col+' '+r).replace(/'/g,"\\'");
             const t2 = ht.replace(/'/g,"\\'");
@@ -807,7 +809,7 @@ function renderAll() {
             const item = otItems.find(p => String(p.col)===String(col) && String(p.row)===String(r3));
             if (!item) { html3 += `<td class="stk-cell blocked"></td>`; return; }
             const hasStock = Number(item.stock) > 0;
-            const cls = hasStock ? 'has' : 'out';
+            const cls = stockCellClass(item, ot, col);
             const tick = renderTick(item, ot, col);
             const nm3 = (ot+' '+col+' '+r3).replace(/'/g,"\\'");
             const t3 = ot.replace(/'/g,"\\'");
@@ -848,7 +850,7 @@ function renderAll() {
             html += `<td class="stk-cell blocked"></td>`;
           } else {
             const hasStock = Number(item.stock) > 0;
-            const cls = hasStock ? 'has' : 'out';
+            const cls = stockCellClass(item, resolveType(item), col);
             const tick = renderTick(item, resolveType(item), col);
             const name = (type+' '+col+' '+row).replace(/'/g,"\'");
             const _rtype = resolveType(item);
@@ -896,9 +898,16 @@ function lowStockThreshold(type, col) {
 // สีส้ม = ต่ำกว่าเกณฑ์แต่ยังสั่งได้ (>0), สีแดง = หมดสต็อคจริง (0) — เซลล์สต็อคปกติยังขึ้น ✅ เหมือนเดิม
 function renderTick(item, type, col) {
   const stock = Number(item.stock) || 0;
-  if (stock <= 0) return '<span class="cell-tick" style="font-size:16px;font-weight:700;color:#dc2626">0</span>';
-  if (stock < lowStockThreshold(type, col)) return '<span class="cell-tick" style="font-size:16px;font-weight:700;color:#c2410c">' + stock + '</span>';
+  if (stock <= 0) return '<span class="cell-tick" style="font-size:16px;font-weight:700;color:#991b1b">0</span>';
+  if (stock < lowStockThreshold(type, col)) return '<span class="cell-tick" style="font-size:16px;font-weight:700;color:#1a3a5c">' + stock + '</span>';
   return '<span class="cell-tick">✅</span>';
+}
+// พื้นหลังเซลล์: ปกติ=เขียว(has), สต็อคต่ำแต่ยังสั่งได้=เหลือง(low), หมดสต็อค=แดง(out) — ตามที่ user ยืนยัน 08-12
+function stockCellClass(item, type, col) {
+  const stock = Number(item.stock) || 0;
+  if (stock <= 0) return 'out';
+  if (stock < lowStockThreshold(type, col)) return 'low';
+  return 'has';
 }
 
 // ---- Modal ----
