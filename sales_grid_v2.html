@@ -141,7 +141,7 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 
 /* 2026-08-12: ปุ่มพิมพ์ — สไตล์เดียวกับ admin_orders_v2.html (พื้นเขียว) ตามที่ user ขอ */
 .print-btn{font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 14px;border-radius:6px;border:none;cursor:pointer;background:#059669;color:white;font-weight:600;margin-left:8px;white-space:nowrap}
-#hist-print-hdr,#trk-print-hdr{display:none}
+#hist-print-hdr,#trk-print-hdr,#stock-print-hdr{display:none}
 
 /* 2026-08-12: ฟังก์ชันพิมพ์เอกสาร — ตั้งค่าหน้ากระดาษ/สไตล์เดียวกับ admin_orders_v2.html (เดียวกันเป๊ะ:
    @page margin, font ตอนพิมพ์, ซ่อนปุ่ม/filter/nav, โชว์หัวกระดาษ phdr-title/phdr-sub, ตารางเส้นเข้ม+หัวตารางสีน้ำเงิน) */
@@ -149,9 +149,10 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
   *{box-sizing:border-box}
   @page{margin:4mm 5mm}
   body{font-size:8pt;font-family:'Sarabun',sans-serif}
-  .header,.customer-bar,#salesTabNav,.cart-bar,.toast,#sales-tab-order{display:none!important}
+  .header,.customer-bar,#salesTabNav,.cart-bar,.toast{display:none!important}
+  body:not(.printing-stock) #sales-tab-order{display:none!important}
   .hist-print-hide,.trk-print-hide{display:none!important}
-  #hist-print-hdr,#trk-print-hdr{display:block!important;margin-bottom:6px}
+  #hist-print-hdr,#trk-print-hdr,#stock-print-hdr{display:block!important;margin-bottom:6px}
   .phdr-title{font-size:11pt;font-weight:700}
   .phdr-sub{font-size:7.5pt;color:#444}
   #sales-tab-history,#sales-tab-tracking{padding:0!important;max-width:none!important}
@@ -160,6 +161,18 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
   #hist-tbl td,.sum-tbl td{padding:2px 5px!important;line-height:1.25!important;border:0.5px solid #ccc!important}
   .sum-tbl tr.summary-row td{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .sum-tbl tr[style]{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* 2026-08-13: พิมพ์ตารางสต็อค (แท็บสั่งสินค้า) — ใช้ body.printing-stock toggle กันชนกับพิมพ์ประวัติ/ติดตามออเดอร์ */
+  body.printing-stock #sales-tab-history,body.printing-stock #sales-tab-tracking{display:none!important}
+  #sales-tab-order #stock-toolbar,#sales-tab-order #typeNav{display:none!important}
+  #sales-tab-order{padding:0!important}
+  #sales-tab-order .content{padding:0!important}
+  #sales-tab-order .tbl-wrap{box-shadow:none!important;padding:4px 0!important;margin-bottom:10px!important;page-break-inside:avoid}
+  #sales-tab-order table.stk{width:100%!important;font-size:7.5pt!important}
+  #sales-tab-order .th-corner,#sales-tab-order .th-col{font-size:7.5pt!important;padding:3px 2px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #sales-tab-order .td-row{font-size:7.5pt!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #sales-tab-order .stk-cell{height:26px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #sales-tab-order .cell-tick{font-size:10pt!important}
+  #sales-tab-order .cell-code{font-size:6.5pt!important}
 }
 </style>
 </head>
@@ -194,10 +207,17 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 
 <!-- Tab: สั่งสินค้า -->
 <div id="sales-tab-order">
+<div id="stock-print-hdr" style="display:none">
+  <span class="phdr-title">ตารางสต็อคสินค้า — STIC</span><br>
+  <span class="phdr-sub" id="stock-print-sub"></span>
+</div>
+<div id="stock-toolbar" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
 <div class="legend">
   <span><span class="ld" style="background:#d1fae5;border:1px solid #ccc"></span>✅ มีสินค้า (กดสั่งได้)</span>
   <span><span class="ld" style="background:#fee2e2;border:1px solid #ccc"></span>❌ หมด</span>
   <span><span class="ld" style="background:#e5e7eb;border:1px solid #ccc"></span>— ไม่มีรายการ</span>
+</div>
+<button class="print-btn" onclick="printStock()" style="margin-right:12px">🖨️ พิมพ์</button>
 </div>
 <div class="type-nav-wrap" id="typeNav"></div>
 <div class="content" id="content">
@@ -1557,6 +1577,17 @@ function printSalesHistory() {
   if (sub) sub.textContent = stagedOrders.length + ' รายการ  ·  พิมพ์: ' + printDate + ' ' + printTime;
   window.print();
 }
+
+// 2026-08-13: พิมพ์ตารางสต็อค (แท็บสั่งสินค้า) — ทุกหมวดต่อกัน, page setup/หัวกระดาษ pattern เดียวกับข้างบน
+function printStock() {
+  const printDate = new Date().toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const printTime = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  const sub = document.getElementById('stock-print-sub');
+  if (sub) sub.textContent = 'พิมพ์: ' + printDate + ' ' + printTime;
+  document.body.classList.add('printing-stock');
+  window.print();
+}
+window.addEventListener('afterprint', () => document.body.classList.remove('printing-stock'));
 
 function salesDeleteOrder(id) {
   stagedOrders = stagedOrders.filter(o => String(o.id) !== String(id));
