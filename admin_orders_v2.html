@@ -3072,14 +3072,14 @@ function renderPendingTable() {
       const rowStyle = hideStyle + (isToday ? ';background:#fffbeb' : '') + (_short ? ';background:#fef2f2' : '');
       const rowClass = (idx===0?'cust-sep ':'') + (isToday?'today-row':'') + (_short?' short-row':'');
       rows += `<tr class="${rowClass}" style="${rowStyle}">
-        <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-group="${gKey}" data-cust="${custIdx}" data-sack="${!isBox?qty:0}" data-box="${isBox?qty:0}" onchange="updateBulkCount()"></td>
+        <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-group="${gKey}" data-cust="${custIdx}" data-sack="${!isBox?qty:0}" data-box="${isBox?qty:0}" onchange="updateBulkCount();recalcPendStockPreview()"></td>
         <td style="font-size:11px;white-space:nowrap"><span id="pend-date-${o.row}">${getOrderDate(o)}</span></td>
         <td>${idx===0?`<span class="grade-badge ${gbClass}">${grade||'—'}</span>`:''}</td>
         <td class="td-left" style="font-weight:700;color:#1a3a5c">${idx===0?cust:''}</td>
         <td class="td-left" style="color:#374151">${fmtName(o.name||o.code)}</td>
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?qty:''}</td>
-        <td style="white-space:nowrap;font-size:11px;${_short?'background:#fecaca;color:#991b1b':'color:#374151'}"><span style="font-size:10px">${_tank} ถัง</span><span style="color:${_short?'#c98a8a':'#9ca3af'};padding:0 3px">/</span><span style="font-weight:700">${_short?'เหลือ '+(_stk.stock||0):(_stk.stock||0)+''}&nbsp;${isBox?'ก.':'กส.'}</span></td>
+        <td class="pend-stock-cell" data-code="${o.code}" data-basestock="${_stk.stock||0}" data-qty="${qty}" data-unit="${isBox?'ก.':'กส.'}" style="white-space:nowrap;font-size:11px;${_short?'background:#fecaca;color:#991b1b':'color:#374151'}"><span style="font-size:10px">${_tank} ถัง</span><span style="color:${_short?'#c98a8a':'#9ca3af'};padding:0 3px">/</span><span class="pend-stock-remain" style="font-weight:700">${_short?'เหลือ '+(_stk.stock||0):(_stk.stock||0)+''}&nbsp;${isBox?'ก.':'กส.'}</span></td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _dv=(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)?o.disc_pct:(_pi.disc_pct!==null?_pi.disc_pct:'');return _dv!==''&&_dv!==null?_dv+'%':'';})()}</td>
         <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
         <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
@@ -3223,6 +3223,50 @@ function isPendChkVisible(c) {
 function toggleAllPend(cb) {
   document.querySelectorAll('.pend-chk').forEach(c => { if (isPendChkVisible(c)) c.checked = cb.checked; });
   updateBulkCount();
+  recalcPendStockPreview();
+}
+
+// 2026-08-14: พรีวิวสต็อคคงเหลือแบบสดตามรายการที่ติ๊กในหน้ารอยืนยัน — ช่วยเห็นว่าสินค้ารหัสเดียวกัน
+// ที่ลูกค้าหลายคนสั่งพร้อมกัน ถ้าติ๊กยืนยันตามที่เลือกแล้วจะพอหรือไม่พอ (ไม่ตัดสต็อคจริง แค่พรีวิว)
+// ตัวเลขถัง (ซ้ายของ "/") ไม่ถูกหักเลยตามที่ user ยืนยัน — หักเฉพาะตัวเลข "เหลือ" ฝั่งขวา
+// รวมยอดติ๊กข้ามทุกกลุ่ม/ทุกลูกค้าทั้งหน้า (ไม่ใช่แค่ในกลุ่มเดียวกัน) ตามที่ user ยืนยัน
+// นับเฉพาะ checkbox ที่ "แสดงอยู่จริง" (isPendChkVisible) ให้ตรงกับตรรกะเดียวกับ updateBulkCount/bulkConfirm
+function recalcPendStockPreview() {
+  const cellsByCode = {};
+  document.querySelectorAll('.pend-stock-cell').forEach(td => {
+    const code = td.getAttribute('data-code');
+    (cellsByCode[code] = cellsByCode[code] || []).push(td);
+  });
+  Object.keys(cellsByCode).forEach(code => {
+    const chks = [...document.querySelectorAll(`.pend-chk[data-code="${code}"]`)].filter(isPendChkVisible);
+    let used = 0;
+    chks.forEach(c => { if (c.checked) used += Number(c.getAttribute('data-qty')) || 0; });
+    cellsByCode[code].forEach(td => {
+      const base = Number(td.getAttribute('data-basestock')) || 0;
+      const unit = td.getAttribute('data-unit');
+      const ownQty = Number(td.getAttribute('data-qty')) || 0;
+      const remainSpan = td.querySelector('.pend-stock-remain');
+      if (!remainSpan) return;
+      if (used > 0) {
+        const remaining = base - used;
+        if (remaining < 0) {
+          remainSpan.innerHTML = `ขาด ${Math.abs(remaining)}&nbsp;${unit}`;
+          td.style.background = '#fecaca';
+          td.style.color = '#991b1b';
+        } else {
+          remainSpan.innerHTML = `เหลือ ${remaining}&nbsp;${unit}`;
+          td.style.background = '';
+          td.style.color = '#166534';
+        }
+      } else {
+        // ไม่มีรายการติ๊กของรหัสนี้เลย — คืนกลับสภาพเดิม (เช็คแบบ static เดิม: ออเดอร์แถวนี้เกินสต็อครวมไหม)
+        const shortStatic = ownQty > base;
+        remainSpan.innerHTML = shortStatic ? `เหลือ ${base}&nbsp;${unit}` : `${base}&nbsp;${unit}`;
+        td.style.background = shortStatic ? '#fecaca' : '';
+        td.style.color = shortStatic ? '#991b1b' : '#374151';
+      }
+    });
+  });
 }
 
 function updateBulkCount() {
