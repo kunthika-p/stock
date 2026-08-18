@@ -471,7 +471,29 @@ table.list tr:hover td{background:#f8fbff}
 .an-cal-day.acd-sel::after{background:#93c5fd}
 .an-cal-day.acd-today{border:1px solid #93c5fd;color:#1d4ed8;font-weight:600}
 .an-cal-day.acd-other,.an-cal-day.acd-none{color:#cbd5e1;cursor:default}
-.an-sales-2col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:18px}
+.an-sales-2col{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch;margin-bottom:18px}
+/* 2026-08-18: เพิ่มมุมมองฝั่งขาย — ลูกค้าที่เงียบนาน / แนวโน้มยอดขายต่อลูกค้า (mockup confirm แล้วหลายรอบกับ user ก่อนขึ้นโค้ดจริง) */
+.an-col-stack{display:flex;flex-direction:column;gap:16px}
+.an-col-stack > .an-card:last-child{flex:1;display:flex;flex-direction:column}
+.an-kpi-mini{display:inline-flex;align-items:center;gap:10px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:7px 11px;margin-bottom:10px}
+.an-kpi-mini .n{font-size:19px;font-weight:800;color:#dc2626}
+.an-kpi-mini .t{font-size:10.5px;color:#991b1b;line-height:1.3}
+.an-churn-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid #f1f5f9;font-size:12px}
+.an-churn-row:last-child{border-bottom:none}
+.an-churn-name{font-weight:700;color:#1e293b}
+.an-churn-sub{font-size:10px;color:#94a3b8}
+.an-days-val{font-size:12px;font-weight:700;color:#dc2626;white-space:nowrap}
+.an-sort-row{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.an-sort-btn{padding:4px 10px;border-radius:12px;font-size:10.5px;font-weight:700;border:1.5px solid #e2e8f0;background:white;cursor:pointer;color:#64748b;font-family:'Sarabun',sans-serif}
+.an-sort-btn.active{background:#1a3a5c;color:white;border-color:#1a3a5c}
+.an-trend-row{display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px solid #f1f5f9}
+.an-trend-row:last-child{border-bottom:none}
+.an-trend-name{font-size:12px;font-weight:700;color:#1e293b;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.an-trend-amt{font-size:11.5px;font-weight:700;color:#1e293b;text-align:right;white-space:nowrap}
+.an-chg-badge{display:inline-flex;align-items:center;font-size:10.5px;font-weight:800;border-radius:5px;padding:2px 6px;white-space:nowrap}
+.an-chg-up{color:#15803d;background:#dcfce7}
+.an-chg-down{color:#b91c1c;background:#fee2e2}
+.an-spark-wrap{display:flex;justify-content:center}
 /* bar chart */
 .anb-group{display:flex;align-items:flex-end;gap:10px;height:100px;padding:0 4px}
 .anb-wrap{display:flex;flex-direction:column;align-items:center;flex:1;gap:6px}
@@ -1104,20 +1126,11 @@ table.list tr:hover td{background:#f8fbff}
 
     <!-- dashboard -->
     <div id="an-dash" class="an-dash">
-      <div class="an-section">KPI สต็อคสินค้า</div>
-      <div class="an-kpi-row">
-        <div class="an-kpi blue"><div class="ak-icon">📦</div><div class="ak-val" id="an-total">—</div><div class="ak-lbl">รหัสสินค้าทั้งหมด</div></div>
-        <div class="an-kpi green"><div class="ak-icon">✅</div><div class="ak-val" id="an-instock">—</div><div class="ak-lbl">มีสต็อค</div></div>
-        <div class="an-kpi amber"><div class="ak-icon">⚠️</div><div class="ak-val" id="an-low">—</div><div class="ak-lbl">ใกล้หมด (≤10)</div></div>
-        <div class="an-kpi red"><div class="ak-icon">🚨</div><div class="ak-val" id="an-empty">—</div><div class="ak-lbl">หมดแล้ว</div></div>
-      </div>
-      <div class="an-charts" style="margin-top:16px">
-        <div class="an-card" style="grid-column:1/-1">
-          <div class="an-card-title">📊 สต็อครวมแต่ละประเภท</div>
-          <div id="an-chart-qty"></div>
-          <div id="an-chart-sku" style="display:none"></div>
-        </div>
-      </div>
+      <!-- 2026-08-18: "KPI สต็อคสินค้า" + "สต็อครวมแต่ละประเภท" ย้ายไปอยู่ในคอลัมน์ขวาของ #an-cust-body แทน
+           (ต่อจาก "ลูกค้าเก่งที่สุดต่อหมวด" + "แนวโน้มยอดขายต่อลูกค้า" — mockup confirm กับ user แล้ว)
+           สร้างเป็น HTML string ใน anRenderSalesCharts() ตอนนี้ ไม่ได้อยู่ static ตรงนี้อีกต่อไป — ids #an-total/
+           #an-instock/#an-low/#an-empty/#an-chart-qty/#an-chart-sku ยังใช้ชื่อเดิมทุกตัว แค่ย้ายที่ประกาศ
+           (การเขียนค่าใน anLoadData() ก็ย้ายไปทำหลังเรียก anRenderSalesCharts() แล้วเช่นกัน ดูคอมเมนต์ตรงนั้น) -->
       <div class="an-info">💡 ข้อมูลดึงจาก Google Sheet real-time ทุกครั้งที่เปิด tab</div>
       <div class="an-feat-section">
         <div class="an-section" style="margin-top:16px">วิเคราะห์เชิงลึก (จากออเดอร์ที่ยืนยันแล้ว)</div>
@@ -1158,7 +1171,7 @@ table.list tr:hover td{background:#f8fbff}
 
 const API = "https://script.google.com/macros/s/AKfycbxZR82Tn7lBL23y7pL1YF5VtmFwhrx0hsomoM_Oq4ThanbOcOQayP1Vf4-1BD_UfVk/exec";
 
-const MATRICES = {"น็อตเหลี่ยมเกลียว W": {"cols": ["1/4", "5/16", "3/8", "7/16", "1/2", "5/8 W", "3/4 W"], "rows": ["1/2", "5/8", "3/4", "1", "1.1/4", "1.1/2", "1.3/4", "2", "2.1/2", "3", "3.1/2", "4", "4.1/2", "5", "6", "3.1/2 ค."]}, "น็อตหัวกลมเกลียว W": {"cols": ["1/4", "5/16", "3/8", "1/2"], "rows": ["1", "1.1/4", "1.1/2", "2 ค.", "2.1/2", "3", "3.1/2", "4", "4.1/2", "5", "5.1/2", "6", "6.1/2", "7", "7.1/2", "8", "8.1/2", "9", "10", "11", "12"]}, "สกรูเกลียวปล่อย": {"cols": ["1/4", "5/16", "3/8"], "rows": ["1.1/2", "2", "2.1/2", "3", "3.1/2", "4"]}, "หัวน็อตมิล": {"cols": ["ขาว", "ดำ"], "rows": ["M3", "M4", "M5", "M6 (p1.0 ขอบ10)", "M8 (p1.25 ขอบ12)", "M8 (p1.25 ขอบ13)", "M10 (p1.25 ขอบ14)", "M10 (p1.5 ขอบ14)", "M10 (p1.25 ขอบ17)", "M10 (p1.5 ขอบ17)", "M12 (p1.25 ขอบ17)", "M12 (p1.5 ขอบ17)", "M12 (p1.75 ขอบ19", "M14 (p1.5 ขอบ22)", "M14 (p2.0 ขอบ22)", "M16 (p1.5 ขอบ24)", "M16 (p2.0 ขอบ24)", "M18 (p1.5 ขอบ27)", "M18 (p2.5 ขอบ27)", "M20 (p2.5 ขอบ30)", "M22 (p2.5 ขอบ32)", "M24"]}, "หัวน็อตเกลียวหยาบ NC": {"cols": ["STOCK"], "rows": ["1/4", "5/16", "3/8", "7/16", "1/2", "9/16", "5/8", "3/4", "7/8", "1"]}, "หัวน็อตเกลียวหยาบ NF": {"cols": ["STOCK"], "rows": ["1/4", "5/16", "3/8", "7/16", "1/2", "9/16", "5/8", "3/4"]}, "หัวน็อตเกลียว W": {"cols": ["STOCK"], "rows": ["3/16", "1/4 (ขอบ10)", "1/4 (ขอบ11)", "5/16 (ขอบ12.5)", "5/16 (ขอบ14)", "3/8", "7/16", "1/2", "5/8", "3/4", "7/8", "1"]}, "สกรูมิลขาว": {"cols": ["M5", "M6", "M8", "M10", "M12"], "rows": ["10", "12", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70", "75", "80", "90", "100"]}, "น็อตเหลี่ยม NC": {"cols": ["1/4", "5/16", "3/8", "7/16", "1/2", "9/16", "5/8 NC", "3/4 NC", "7/8 NC", "1 NC"], "rows": ["1/2", "5/8", "3/4", "1", "1.1/4", "1.1/2", "2", "2.1/2", "3", "3.1/2", "4", "4.1/2", "5", "5.1/2", "6", "6.1/2", "7", "8"]}, "น็อตเหลี่ยม NF": {"cols": ["1/4", "5/16", "3/8", "7/16", "1/2", "9/16"], "rows": ["1/2", "5/8", "3/4", "1", "1.1/4", "1.1/2", "2", "2.1/2", "3", "3.1/2", "4"]}, "น็อตแข็ง M6-M16 (ตลอด)": {"cols": ["M6 P1.0", "M8 P1.25", "M10 P1.5", "M12 P1.75", "M14 P2.0", "M16 P2.0"], "rows": ["10", "12", "16", "20", "25", "30", "35", "40", "45", "50"]}, "น็อตแข็ง M6-M16 (ครึ่ง)": {"cols": ["M6 P1.0", "M8 P1.25", "M10 P1.5", "M12 P1.75", "M14 P2.0", "M16 P2.0"], "rows": ["40", "45", "50", "55", "60", "65", "70", "75", "80", "85", "90", "100", "110", "120", "130", "140", "150"]}, "น็อตแข็ง M18-M30 (ตลอด)": {"cols": ["M18 P2.5", "M20 P2.5", "M22 P2.5", "M24 P3.0", "M12 P1.5"], "rows": ["40", "45", "50", "60", "55", "65", "25", "30", "35"]}, "น็อตแข็ง M18-M30 (ครึ่ง)": {"cols": ["M18 P2.5", "M20 P2.5", "M22 P2.5", "M24 P3.0", "M30 P3.5", "M12 P1.5"], "rows": ["55", "60", "65", "70", "75", "80", "90", "100", "85", "110", "120", "130", "140", "150", "45", "50"]}, "น็อตแข็งเกลียวมิล (ตลอด)": {"cols": ["M10 P1.25", "M12 P1.25", "M14 P1.5", "M16 P1.5", "M18 P1.5"], "rows": ["20", "25", "30", "35", "40", "45", "50", "55", "60"]}, "น็อตแข็งเกลียวมิล (ครึ่ง)": {"cols": ["M10 P1.25", "M12 P1.25", "M14 P1.5", "M16 P1.5", "M18 P1.5"], "rows": ["45", "50", "55", "60", "65", "70", "75", "80", "90", "100", "40", "120"]}, "น็อตเหลี่ยม W ไม่ควบหัว": {"cols": ["1/4", "5/16", "3/8", "7/16", "1/2"], "rows": ["1/2", "5/8", "3/4", "1", "1.1/4", "1.1/2", "1.3/4", "2", "2.1/2", "3", "3.1/2", "4"]}, "หัวน็อตมิลแข็ง เกรด8": {"cols": ["STOCK"], "rows": ["M6", "M8", "M10", "M12", "M14", "M16", "M18", "M20", "M22", "M24"]}, "Spring Washer": {"cols": ["STOCK"], "rows": ["M3", "M4", "M5", "M6", "M8", "M10", "M12", "M14", "M16", "M18", "M20", "M24"]}, "หัวน็อตมิลแข็ง OVERSIZE": {"cols": ["STOCK"], "rows": ["M6", "M8", "M10", "M12", "M14", "M16", "M18", "M20", "M22", "M24"]}};
+const MATRICES = {"น็อตเหลี่ยมเกลียว W": {"cols": ["1/4", "5/16", "3/8", "7/16", "1/2", "5/8 W", "3/4 W"], "rows": ["1/2", "5/8", "3/4", "1", "1.1/4", "1.1/2", "1.3/4", "2", "2.1/2", "3", "3.1/2", "4", "4.1/2", "5", "6", "3.1/2 ค."]}, "น็อตหัวกลมเกลียว W": {"cols": ["1/4", "5/16", "3/8", "1/2"], "rows": ["1", "1.1/4", "1.1/2", "2 ค.", "2.1/2", "3", "3.1/2", "4", "4.1/2", "5", "5.1/2", "6", "6.1/2", "7", "7.1/2", "8", "8.1/2", "9", "10", "11", "12"]}, "สกรูเกลียวปล่อย": {"cols": ["1/4", "5/16", "3/8"], "rows": ["1.1/2", "2", "2.1/2", "3", "3.1/2", "4"]}, "หัวน็อตมิล": {"cols": ["ขาว", "ดำ"], "rows": ["M3", "M4", "M5", "M6 (p1.0 ขอบ10)", "M8 (p1.25 ขอบ12)", "M8 (p1.25 ขอบ13)", "M10 (p1.25 ขอบ14)", "M10 (p1.5 ขอบ14)", "M10 (p1.25 ขอบ17)", "M10 (p1.5 ขอบ17)", "M12 (p1.25 ขอบ17)", "M12 (p1.5 ขอบ17)", "M12 (p1.75 ขอบ19", "M14 (p1.5 ขอบ22)", "M14 (p2.0 ขอบ22)", "M16 (p1.5 ขอบ24)", "M16 (p2.0 ขอบ24)", "M18 (p1.5 ขอบ27)", "M18 (p2.5 ขอบ27)", "M20 (p2.5 ขอบ30)", "M22 (p2.5 ขอบ32)", "M24"]}, "หัวน็อตเกลียวหยาบ NC": {"cols": ["STOCK"], "rows": ["1/4", "5/16", "3/8", "7/16", "1/2", "9/16", "5/8", "3/4", "7/8", "1"]}, "หัวน็อตเกลียวหยาบ NF": {"cols": ["STOCK"], "rows": ["1/4", "5/16", "3/8", "7/16", "1/2", "9/16", "5/8", "3/4"]}, "หัวน็อตเกลียว W": {"cols": ["STOCK"], "rows": ["3/16", "1/4 (ขอบ10)", "1/4 (ขอบ11)", "5/16 (ขอบ12.5)", "5/16 (ขอบ14)", "3/8", "7/16", "1/2", "5/8", "3/4", "7/8", "1"]}, "สกรูมิลขาว": {"cols": ["M5", "M6", "M8", "M10", "M12"], "rows": ["10", "12", "15", "20", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70", "75", "80", "90", "100"]}, "น็อตเหลี่ยม NC": {"cols": ["1/4", "5/16", "3/8", "7/16", "1/2", "9/16", "5/8 NC", "3/4 NC", "7/8 NC", "1 NC"], "rows": ["1/2", "5/8", "3/4", "1", "1.1/4", "1.1/2", "2", "2.1/2", "3", "3.1/2", "4", "4.1/2", "5", "5.1/2", "6", "6.1/2", "7", "8"]}, "น็อตเหลี่ยม NF": {"cols": ["1/4", "5/16", "3/8", "7/16", "1/2", "9/16"], "rows": ["1/2", "5/8", "3/4", "1", "1.1/4", "1.1/2", "2", "2.1/2", "3", "3.1/2", "4"]}, "น็อตแข็ง M6-M16 (ตลอด)": {"cols": ["M6 P1.0", "M8 P1.25", "M10 P1.5", "M12 P1.75", "M14 P2.0", "M16 P2.0"], "rows": ["10", "12", "16", "20", "25", "30", "35", "40", "45", "50"]}, "น็อตแข็ง M6-M16 (ครึ่ง)": {"cols": ["M6 P1.0", "M8 P1.25", "M10 P1.5", "M12 P1.75", "M14 P2.0", "M16 P2.0"], "rows": ["40", "45", "50", "55", "60", "65", "70", "75", "80", "85", "90", "100", "110", "120", "130", "140", "150"]}, "น็อตแข็ง M18-M30 (ตลอด)": {"cols": ["M18 P2.5", "M20 P2.5", "M22 P2.5", "M24 P3.0", "M12 P1.5"], "rows": ["40", "45", "50", "60", "55", "65", "25", "30", "35"]}, "น็อตแข็ง M18-M30 (ครึ่ง)": {"cols": ["M18 P2.5", "M20 P2.5", "M22 P2.5", "M24 P3.0", "M30 P3.5", "M12 P1.5"], "rows": ["55", "60", "65", "70", "75", "80", "90", "100", "85", "110", "120", "130", "140", "150", "45", "50"]}, "น็อตแข็งเกลียวมิล (ตลอด)": {"cols": ["M10 P1.25", "M12 P1.25", "M14 P1.5", "M16 P1.5", "M18 P1.5"], "rows": ["20", "25", "30", "35", "40", "45", "50", "55", "60"]}, "น็อตแข็งเกลียวมิล (ครึ่ง)": {"cols": ["M10 P1.25", "M12 P1.25", "M14 P1.5", "M16 P1.5", "M18 P1.5"], "rows": ["45", "50", "55", "60", "65", "70", "75", "80", "90", "100", "40", "120"]}, "น็อตเหลี่ยม W ไม่ควบหัว": {"cols": ["1/4", "5/16", "3/8", "1/2"], "rows": ["1/2", "5/8", "3/4", "1", "1.1/4", "1.1/2", "2", "2.1/2", "3", "3.1/2", "4"]}, "หัวน็อตมิลแข็ง เกรด8": {"cols": ["STOCK"], "rows": ["M6", "M8", "M10", "M12", "M14", "M16", "M18", "M20", "M22", "M24"]}, "Spring Washer": {"cols": ["STOCK"], "rows": ["M3", "M4", "M5", "M6", "M8", "M10", "M12", "M14", "M16", "M18", "M20", "M24"]}, "หัวน็อตมิลแข็ง OVERSIZE": {"cols": ["STOCK"], "rows": ["M6", "M8", "M10", "M12", "M14", "M16", "M18", "M20", "M22", "M24"]}};
 const TYPES = ["น็อตเหลี่ยมเกลียว W", "น็อตหัวกลมเกลียว W", "สกรูเกลียวปล่อย", "หัวน็อตมิล", "หัวน็อตเกลียวหยาบ NC", "หัวน็อตเกลียวหยาบ NF", "หัวน็อตเกลียว W", "สกรูมิลขาว", "น็อตเหลี่ยม NC", "น็อตเหลี่ยม NF", "__NOK_MIL_AENG_M6M12__", "__NOK_MIL_AENG_M14M24__", "น็อตเหลี่ยม W ไม่ควบหัว", "หัวน็อตมิลแข็ง เกรด8", "Spring Washer", "หัวน็อตมิลแข็ง OVERSIZE"];
 const MERGED_TYPES = {"น็อตเหลี่ยมเกลียว W":["น็อตเหลี่ยมเกลียว W","น็อตเหลี่ยม W (ใหญ่)","น็อตเหลี่ยมเกลียว W 7/16x3 1/2 ครึ่ง"],"น็อตเหลี่ยม NC":["น็อตเหลี่ยม NC","น็อตเหลี่ยม NC (ใหญ่)"]};
 const BOX_TYPES = ["สกรูมิลขาว","น็อตเหลี่ยม NC","น็อตเหลี่ยม NF","น็อตแข็ง M6-M16 (ตลอด)","น็อตแข็ง M6-M16 (ครึ่ง)","น็อตแข็ง M18-M30 (ตลอด)","น็อตแข็ง M18-M30 (ครึ่ง)","น็อตแข็งเกลียวมิล (ตลอด)","น็อตแข็งเกลียวมิล (ครึ่ง)","Spring Washer","หัวน็อตมิลแข็ง OVERSIZE","หัวน็อตมิลแข็ง เกรด8"]; // 2026-07-13: เกรด8 เดิมเป็นกระสอบ user ยืนยันแก้เป็นกล่อง (ตรงกับตารางราคา NET บรรจุกล่อง/ตัว)
@@ -4251,10 +4264,11 @@ async function anLoadData() {
     const inStock  = items.filter(x => Number(x.stock) > 0).length;
     const lowStock = items.filter(x => Number(x.stock) > 0 && Number(x.stock) <= 10).length;
     const empty    = items.filter(x => Number(x.stock) === 0).length;
-    document.getElementById('an-total').textContent   = total;
-    document.getElementById('an-instock').textContent = inStock + ' (' + Math.round(inStock/total*100) + '%)';
-    document.getElementById('an-low').textContent     = lowStock;
-    document.getElementById('an-empty').textContent   = empty;
+    // 2026-08-18: เขียนค่า #an-total/#an-instock/#an-low/#an-empty ย้ายไปทำหลัง anRenderSalesCharts() ด้านล่าง
+    // เพราะ element พวกนี้ย้ายไปประกาศใน HTML string ของ anRenderSalesCharts() แล้ว (ดูคอมเมนต์ตรงนั้น) —
+    // ถ้าเขียนตรงนี้เหมือนเดิม element จะยังไม่มีอยู่จริงใน DOM (getElementById คืน null) แล้ว throw ทำให้
+    // โค้ดที่เหลือทั้งฟังก์ชัน (Velocity/ยอดขายบาท ฯลฯ) หยุดทำงานไปด้วย — ค่า total/inStock/lowStock/empty
+    // ยังคงคำนวณตรงนี้เหมือนเดิม แค่ "เขียนลง DOM" ย้ายไปท้ายฟังก์ชันแทน
     // Low stock list (top 5, stock > 0 and <= 5)
     // 2026-07-10: การ์ด "สินค้าใกล้หมดที่สุด" (#an-low-list) ถูก comment ออกจาก HTML แล้วตามที่ user ขอ
     // เพิ่ม guard "if (lowEl)" กันพัง — ถ้าไม่ guard ตรงนี้จะ error (setting innerHTML ของ null) แล้วทำให้
@@ -4305,10 +4319,8 @@ async function anLoadData() {
       `<div class="an-bar-item"><div class="an-bar-lbl" title="${label}">${label}</div>` +
       `<div class="an-bar-track"><div class="an-bar-fill" style="width:${Math.max(8,Math.round(val/max*100))}%;background:${color}">` +
       `<span>${val.toLocaleString()}</span></div></div></div>`;
-    document.getElementById('an-chart-qty').innerHTML =
-      types.map((t,i) => mkBar(t[0], t[1].qty, maxQty, anColors[i])).join('');
-    document.getElementById('an-chart-sku').innerHTML =
-      [...types].sort((a,b)=>b[1].sku-a[1].sku).map((t,i) => mkBar(t[0], t[1].sku+' SKU', maxSku, anColors[i])).join('');
+    // 2026-08-18: เขียนค่า #an-chart-qty/#an-chart-sku ย้ายไปทำหลัง anRenderSalesCharts() ด้านล่างเช่นกัน (เหตุผลเดียวกับ #an-total ด้านบน)
+    // ตัวแปร types/maxQty/maxSku/anColors/mkBar ยังอยู่ใน scope เดิม ใช้ต่อท้ายฟังก์ชันได้ปกติ
 
     document.getElementById('an-orders-loading').style.display = 'none';
     document.getElementById('an-features').style.display = 'block';
@@ -4352,6 +4364,18 @@ async function anLoadData() {
     anRenderStockout(items, salesMap, daysPeriod);
     // ส่วน "ยอดขายสินค้า" (บาท, confidential) ด้านล่างนี้ยังคงอยู่หลัง password เหมือนเดิม
     anRenderSalesCharts(orders, items);
+    // 2026-08-18: เขียนค่า KPI สต็อคสินค้า + กราฟสต็อครวมแต่ละประเภท "หลัง" anRenderSalesCharts()
+    // เพราะ element #an-total/#an-instock/#an-low/#an-empty/#an-chart-qty/#an-chart-sku ตอนนี้อยู่ใน
+    // HTML string ที่ anRenderSalesCharts() เพิ่งสร้างขึ้น (ย้ายมาจากคอลัมน์ขวาของ #an-cust-body) — ต้องรอ
+    // ให้ DOM element มีอยู่จริงก่อนค่อยเขียน ไม่งั้น getElementById คืน null แล้ว error
+    document.getElementById('an-total').textContent   = total;
+    document.getElementById('an-instock').textContent = inStock + ' (' + Math.round(inStock/total*100) + '%)';
+    document.getElementById('an-low').textContent     = lowStock;
+    document.getElementById('an-empty').textContent   = empty;
+    document.getElementById('an-chart-qty').innerHTML =
+      types.map((t,i) => mkBar(t[0], t[1].qty, maxQty, anColors[i])).join('');
+    document.getElementById('an-chart-sku').innerHTML =
+      [...types].sort((a,b)=>b[1].sku-a[1].sku).map((t,i) => mkBar(t[0], t[1].sku+' SKU', maxSku, anColors[i])).join('');
   } catch(e) {
     console.error('Analytics error:', e);
   }
@@ -4677,6 +4701,11 @@ let anCustSearchTimer = null;
 let anCustSortField = 'revenue'; // name | revenue | orders | avg
 let anCustSortDesc = true;
 let anCustShowAll = false; // 2026-07-11: ตารางลูกค้าทั้งหมดยาวเกินไป (40 ราย) เริ่มโชว์แค่ top 10 กดปุ่มค่อยกางครบ
+
+// 2026-08-18: state สำหรับ "ลูกค้าที่เงียบนาน" + "แนวโน้มยอดขายต่อลูกค้า" (mockup confirm กับ user แล้วหลายรอบ)
+const AN_CHURN_DAYS = 30; // เกณฑ์วันคงที่เท่ากันทุกคน (user เลือกแบบนี้แทนแบบ % ของรอบสั่งซื้อปกติต่อคน — ปรับตัวเลขนี้ได้ตรงๆ
+let anTrendSort = 'amount'; // amount(ยอดเดือนนี้) | up(โตสุดก่อน) | down(ร่วงสุดก่อน)
+let anTrendShowAll = false;
 
 // จัดกลุ่มประเภทสินค้าให้อ่านง่าย
 // 2026-07-11 (รอบ 3, ตามที่ user ยืนยัน): เลิกดูแลชุดหมวดแยกของตัวเอง เปลี่ยนไปใช้ anVCategory() (Velocity, 9 หมวด
@@ -5073,11 +5102,158 @@ function anBuildCatChampCard() {
     '</table>';
 }
 
+// ===== 2026-08-18: "ลูกค้าที่เงียบนาน" (churn alert) =====
+// ใช้ anOrdersCache ทั้งหมด (ไม่กรองตามช่วงเวลาที่เลือกในตาราง "ยอดขายแยกตามลูกค้า" — จงใจ เพราะจุดประสงค์คือหา
+// "วันที่สั่งล่าสุดจริง" ของลูกค้าแต่ละคนไม่ว่าจะนานแค่ไหนแล้ว ไม่ใช่ยอดขายในช่วงที่เลือกดู) เกณฑ์เป็นตัวเลขวันคงที่
+// เท่ากันทุกคน (AN_CHURN_DAYS) ตามที่ user เลือกแทนแบบเทียบ % ของรอบสั่งซื้อปกติต่อคน (เคยเสนอ mockup ให้ดูทั้ง 2 แบบ)
+function anComputeChurn() {
+  const lastByCust = {};
+  anOrdersCache.forEach(o => {
+    const cust = o.customer || 'ไม่ระบุ';
+    const d = anPDate(o);
+    if (!d || isNaN(d)) return;
+    if (!lastByCust[cust] || d > lastByCust[cust]) lastByCust[cust] = d;
+  });
+  const now = new Date();
+  const list = Object.entries(lastByCust).map(([name, lastDate]) => {
+    const days = Math.floor((now - lastDate) / 86400000);
+    return { name, lastDate, days };
+  }).filter(c => c.days >= AN_CHURN_DAYS);
+  list.sort((a,b) => b.days - a.days);
+  return list;
+}
+
+function anBuildChurnCard() {
+  const list = anComputeChurn();
+  let h = '<div class="an-card-title">🚨 ลูกค้าที่เงียบนาน</div>'+
+    '<div style="font-size:11px;color:#94a3b8;margin-bottom:14px">ไม่มีออเดอร์ยืนยันเกิน '+AN_CHURN_DAYS+' วัน</div>';
+  if (!list.length) {
+    h += '<div style="font-size:12.5px;color:#16a34a;text-align:center;padding:20px 0">✅ ไม่มีลูกค้าที่เงียบนานเกิน '+AN_CHURN_DAYS+' วันตอนนี้</div>';
+    return h;
+  }
+  h += '<div class="an-kpi-mini"><div class="n">'+list.length+'</div><div class="t">รายที่เข้าเกณฑ์<br>ตอนนี้</div></div>';
+  list.forEach(c => {
+    const dateLbl = c.lastDate.toLocaleDateString('th-TH', {day:'numeric', month:'short'});
+    h += '<div class="an-churn-row">'+
+      '<div><div class="an-churn-name">'+anEsc(c.name)+'</div><div class="an-churn-sub">สั่งล่าสุด '+dateLbl+'</div></div>'+
+      '<span class="an-days-val">'+c.days+' วัน</span>'+
+    '</div>';
+  });
+  return h;
+}
+
+// ===== 2026-08-18: "แนวโน้มยอดขายต่อลูกค้า" (6 เดือนย้อนหลัง, ท็อป 5 + ปุ่มเรียงลำดับ) =====
+// คำนวณราคาเต็มด้วย getRevenuePerUnit() เหมือนจุดอื่นในระบบเสมอ (ดู CRITICAL RULES ใน memory — ห้ามใช้ qty ดิบ)
+// บักเก็ตตามเดือนปฏิทินจริง (ไม่ใช่ 30 วันย้อนหลัง) อิงจาก anPDate(o) (= confirmed_date เป็นหลัก) ตัวเดียวกับ anAggregate()
+function anComputeCustomerTrend() {
+  const now = new Date();
+  const monthKeys = []; // เก่า -> ใหม่, index 5 = เดือนนี้
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    monthKeys.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'));
+  }
+  const byCustMonth = {}; // { custName: { 'YYYY-MM': revenue } }
+  anOrdersCache.forEach(o => {
+    const d = anPDate(o); if (!d || isNaN(d)) return;
+    const mk = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    if (!monthKeys.includes(mk)) return; // นอกช่วง 6 เดือนล่าสุด ข้าม
+    const code = String(o.code||'').padStart(8,'0');
+    const item = anItemMap[code];
+    const qty = Number(o.qty)||0;
+    const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price, o.plating) : null;
+    if (perUnit === null) return;
+    const amt = perUnit * qty;
+    const cust = o.customer || 'ไม่ระบุ';
+    if (!byCustMonth[cust]) byCustMonth[cust] = {};
+    byCustMonth[cust][mk] = (byCustMonth[cust][mk]||0) + amt;
+  });
+  const list = Object.entries(byCustMonth).map(([name, months]) => {
+    const vals = monthKeys.map(mk => Math.round(months[mk]||0));
+    const thisMonth = vals[5], prevMonth = vals[4];
+    const pctChange = prevMonth > 0 ? Math.round((thisMonth-prevMonth)/prevMonth*100) : (thisMonth>0 ? 100 : 0);
+    return { name, vals, thisMonth, pctChange };
+  }).filter(c => c.vals.some(v => v > 0)); // ตัดลูกค้าที่ไม่มียอดเลยใน 6 เดือนนี้ออก
+  return list;
+}
+
+// SVG sparkline ง่ายๆ ไม่พึ่ง library (ตามแนวทางเดิมของไฟล์นี้ — ดู anb-* / an-donut-* ที่ไม่ใช้ chart lib เหมือนกัน)
+function anSparklineSvg(vals) {
+  const w = 78, h = 26, pad = 3;
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const range = (max - min) || 1;
+  const trendUp = vals[vals.length-1] >= vals[0];
+  const color = trendUp ? '#16a34a' : '#dc2626';
+  const pts = vals.map((v,i) => {
+    const x = pad + (i/(vals.length-1)) * (w - pad*2);
+    const y = h - pad - ((v - min)/range) * (h - pad*2);
+    return [x,y];
+  });
+  const pathD = pts.map((p,i)=> (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const circles = pts.map((p,i)=>'<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+(i===pts.length-1?3:2)+'" fill="'+color+'"><title>฿'+anFmtBaht(vals[i])+'</title></circle>').join('');
+  return '<svg width="'+w+'" height="'+h+'"><path d="'+pathD+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+circles+'</svg>';
+}
+
+function anBuildTrendCard() {
+  let list = anComputeCustomerTrend();
+  if (anTrendSort === 'amount') list.sort((a,b) => b.thisMonth - a.thisMonth);
+  else if (anTrendSort === 'up') list.sort((a,b) => b.pctChange - a.pctChange);
+  else if (anTrendSort === 'down') list.sort((a,b) => a.pctChange - b.pctChange);
+  const total = list.length;
+  const display = anTrendShowAll ? list : list.slice(0,5);
+
+  let h = '<div class="an-card-title">📈 แนวโน้มยอดขายต่อลูกค้า</div>'+
+    '<div style="font-size:11px;color:#94a3b8;margin-bottom:14px">'+(anTrendShowAll?'ทั้งหมด':'ท็อป 5')+' · เทียบเดือนนี้กับเดือนก่อน</div>'+
+    '<div class="an-sort-row">'+
+      '<button class="an-sort-btn'+(anTrendSort==='amount'?' active':'')+'" onclick="anSetTrendSort(\'amount\')">ยอดเดือนนี้</button>'+
+      '<button class="an-sort-btn'+(anTrendSort==='up'?' active':'')+'" onclick="anSetTrendSort(\'up\')">โตสุดก่อน</button>'+
+      '<button class="an-sort-btn'+(anTrendSort==='down'?' active':'')+'" onclick="anSetTrendSort(\'down\')">ร่วงสุดก่อน</button>'+
+    '</div>';
+  if (!display.length) {
+    h += '<div class="an-no-data">ยังไม่มีข้อมูลยอดขายใน 6 เดือนล่าสุด</div>';
+    return h;
+  }
+  display.forEach(c => {
+    const chgCls = c.pctChange >= 0 ? 'an-chg-up' : 'an-chg-down';
+    const chgSign = c.pctChange >= 0 ? '▲' : '▼';
+    h += '<div class="an-trend-row">'+
+      '<div class="an-trend-name" title="'+anEsc(c.name)+'">'+anEsc(c.name)+'</div>'+
+      '<div class="an-spark-wrap">'+anSparklineSvg(c.vals)+'</div>'+
+      '<div class="an-trend-amt">฿'+anFmtBaht(c.thisMonth)+'</div>'+
+      '<span class="an-chg-badge '+chgCls+'">'+chgSign+Math.abs(c.pctChange)+'%</span>'+
+    '</div>';
+  });
+  if (total > 5) {
+    h += '<button onclick="anTrendShowAllToggle()" style="width:100%;margin-top:8px;padding:10px;border-radius:8px;border:1px solid #d8dfe8;background:white;color:#1a3a5c;font-size:12px;font-weight:700;cursor:pointer">'+
+      (anTrendShowAll ? 'ย่อกลับ' : 'ดูทั้งหมด ('+total+' ราย)')+
+    '</button>';
+  }
+  return h;
+}
+
+function anRefreshTrendCard() {
+  const el = document.getElementById('an-trend-card');
+  if (el) el.innerHTML = anBuildTrendCard();
+}
+
+function anSetTrendSort(mode) {
+  anTrendSort = mode;
+  anRefreshTrendCard();
+}
+
+function anTrendShowAllToggle() {
+  anTrendShowAll = !anTrendShowAll;
+  anRefreshTrendCard();
+}
+
+// 2026-08-18: แยก render เป็น 2 target element (ซ้าย/ขวา) แทนการเขียน el เดียวที่มี 2 การ์ดต่อกัน —
+// เพราะฝั่งขวาตอนนี้มี "แนวโน้มยอดขายต่อลูกค้า" + "KPI สต็อคสินค้า" ต่อท้าย "ลูกค้าเก่งที่สุดต่อหมวด" อยู่ด้วย
+// (คนละ container กัน render อิสระจากกัน) ถ้ายังเขียน el เดียวเหมือนเดิมจะไปทับของที่ต่อท้ายไว้ทุกครั้งที่เปลี่ยนช่วงเวลา
 function anRenderCustomerSection() {
-  const el = document.getElementById('an-cust-body');
-  if (!el) return;
-  el.innerHTML = '<div class="an-card">'+anBuildCustomerControls()+'<div id="an-cust-results">'+anBuildCustomerResults()+'</div></div>'+
-    '<div class="an-card">'+anBuildCatChampCard()+'</div>';
+  const leftEl = document.getElementById('an-cust-left-body');
+  const rightEl = document.getElementById('an-cust-right-body');
+  if (!leftEl || !rightEl) return;
+  leftEl.innerHTML = '<div class="an-card">'+anBuildCustomerControls()+'<div id="an-cust-results">'+anBuildCustomerResults()+'</div></div>';
+  rightEl.innerHTML = '<div class="an-card">'+anBuildCatChampCard()+'</div>';
 }
 
 // re-render เฉพาะผลลัพธ์ (top5+ตาราง) โดยไม่แตะช่องค้นหา/dropdown เพื่อไม่ให้ focus หลุดตอนพิมพ์ค้นหา
@@ -5376,6 +5552,7 @@ function anRenderSalesCharts(orders, items) {
   anSelDay = null; // รีเซ็ตกลับเป็น "วันนี้" ทุกครั้งที่โหลดข้อมูลใหม่จริง (ไม่รีเซ็ตตอน re-render จาก cache)
   anCalYear = null; anCalMonth = null; anCalOpen = false; // 2026-08-01: รีเซ็ตปฏิทินกลับเดือนปัจจุบัน+ปิด popup ด้วยเหตุผลเดียวกัน
   anMainRange = { mode: 'month', from: '', to: '' }; // 2026-08-01: รีเซ็ตกราฟกลับโหมด "เดือน" (ตามปฏิทิน) ด้วยเหตุผลเดียวกัน
+  anTrendSort = 'amount'; anTrendShowAll = false; // 2026-08-18: รีเซ็ตแนวโน้มยอดต่อลูกค้ากลับ default ด้วยเหตุผลเดียวกัน
 
   el.innerHTML=
     '<div id="an-kpi-cal">'+anBuildKpiCal()+'</div>'+
@@ -5387,7 +5564,32 @@ function anRenderSalesCharts(orders, items) {
     '</div>'+
     '<div class="an-sales-2col" id="an-main-charts" style="margin-top:14px"></div>'+
     '<div id="an-stack-container">'+anBuildStackChart()+'</div>'+
-    '<div class="an-sales-2col" style="margin-top:20px" id="an-cust-body"></div>';
+    // 2026-08-18: mockup confirm กับ user แล้วหลายรอบก่อนขึ้นโค้ดจริง (v5.1) — โครงผัง:
+    // ซ้าย: ยอดขายแยกตามลูกค้า(เดิม) -> ลูกค้าที่เงียบนาน(ใหม่)
+    // ขวา: ลูกค้าเก่งที่สุดต่อหมวด(เดิม) -> แนวโน้มยอดขายต่อลูกค้า(ใหม่) -> KPI สต็อคสินค้า(เดิม ย้ายมา) + สต็อครวมแต่ละประเภท(เดิม ติดกัน)
+    // .an-col-stack ยืดการ์ดสุดท้ายของแต่ละฝั่งให้จบเสมอกัน (ดู CSS) กันที่ว่างเวลาจำนวนแถวสองฝั่งไม่เท่ากัน
+    '<div class="an-sales-2col" style="margin-top:20px">'+
+      '<div class="an-col-stack">'+
+        '<div id="an-cust-left-body"></div>'+
+        '<div class="an-card">'+anBuildChurnCard()+'</div>'+
+      '</div>'+
+      '<div class="an-col-stack">'+
+        '<div id="an-cust-right-body"></div>'+
+        '<div class="an-card" id="an-trend-card">'+anBuildTrendCard()+'</div>'+
+        '<div class="an-card">'+
+          '<div class="an-card-title">📦 KPI สต็อคสินค้า</div>'+
+          '<div class="an-kpi-row" style="margin-bottom:16px">'+
+            '<div class="an-kpi blue"><div class="ak-icon">📦</div><div class="ak-val" id="an-total">—</div><div class="ak-lbl">รหัสสินค้าทั้งหมด</div></div>'+
+            '<div class="an-kpi green"><div class="ak-icon">✅</div><div class="ak-val" id="an-instock">—</div><div class="ak-lbl">มีสต็อค</div></div>'+
+            '<div class="an-kpi amber"><div class="ak-icon">⚠️</div><div class="ak-val" id="an-low">—</div><div class="ak-lbl">ใกล้หมด (≤10)</div></div>'+
+            '<div class="an-kpi red"><div class="ak-icon">🚨</div><div class="ak-val" id="an-empty">—</div><div class="ak-lbl">หมดแล้ว</div></div>'+
+          '</div>'+
+          '<div class="an-card-title" style="font-size:12.5px">📊 สต็อครวมแต่ละประเภท</div>'+
+          '<div id="an-chart-qty"></div>'+
+          '<div id="an-chart-sku" style="display:none"></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
 
   anRenderMainCharts();
   anRenderCustomerSection();
