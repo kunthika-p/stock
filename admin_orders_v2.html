@@ -4878,6 +4878,12 @@ function anResolveRange(r) {
   if (r.mode === 'quarter') return { from: new Date(thisY, thisM-2, 1), to: endOfToday };
   if (r.mode === 'half')    return { from: new Date(thisY, thisM-5, 1), to: endOfToday };
   if (r.mode === 'ytd')     return { from: new Date(thisY, 0, 1), to: endOfToday };
+  // 2026-09-01: 'prevmonth' — เดือนก่อนหน้าเดือนที่กำลัง browse อยู่ (ใช้ anCalYear/anCalMonth เหมือน 'month' ด้านล่าง
+  // เพื่อให้ "เดือนที่แล้ว" ขยับตามปฏิทินด้านบนเสมอเหมือน "เดือนนี้" ไม่ใช่ล็อคเดือนจริงปัจจุบันตายตัว)
+  if (r.mode === 'prevmonth') {
+    const pbY = anCalYear ?? thisY, pbM = anCalMonth ?? thisM;
+    return { from: new Date(pbY, pbM-1, 1), to: new Date(pbY, pbM, 0, 23,59,59,999) };
+  }
   // month (default) — 2026-08-01: รวบตัวเลือกวันที่เป็นจุดเดียวตามที่ user ขอ — ใช้เดือนที่กำลัง browse
   // อยู่ในปฏิทิน KPI (anCalYear/anCalMonth) แทนเดือนปัจจุบันตายตัว ให้กราฟ 2 อัน (ยอดขายแต่ละประเภท/สัดส่วนยอดขาย)
   // ซิงค์กับปฏิทินด้านบนเสมอ (เดิมกราฟค้างที่เดือนจริงปัจจุบันแยกกันคนละสถานะกับปฏิทิน ทำให้ดูเหมือน 2 ตัวเลือกทับซ้อนกัน)
@@ -4891,6 +4897,12 @@ function anRangeLabel(r) {
     const now = new Date();
     const bY = anCalYear ?? now.getFullYear(), bM = anCalMonth ?? now.getMonth();
     return AN_THAI_MF[bM]+' '+(bY+543);
+  }
+  if (r.mode === 'prevmonth') {
+    const now = new Date();
+    const bY = anCalYear ?? now.getFullYear(), bM = anCalMonth ?? now.getMonth();
+    const p = new Date(bY, bM-1, 1);
+    return AN_THAI_MF[p.getMonth()]+' '+(p.getFullYear()+543);
   }
   if (r.mode !== 'custom') return ({quarter:'ไตรมาสนี้',half:'6 เดือน',ytd:'ปีนี้ (YTD)'})[r.mode] || '';
   const { from, to } = anResolveRange(r);
@@ -4935,7 +4947,9 @@ function anTopTypes(byType) {
 }
 
 function anRangeSelectHtml(mode, onchangeFn) {
-  const opts = [['month','เดือนนี้'],['quarter','ไตรมาสนี้ (3 เดือน)'],['half','6 เดือน'],['ytd','ปีนี้ (YTD)'],['custom','กำหนดเอง...']];
+  // 2026-09-01: ตัดตัวเลือก 'ไตรมาสนี้'/'6 เดือน' ออกจาก dropdown นี้ตามที่ user ขอ เพิ่ม 'เดือนที่แล้ว' แทน
+  // (โหมด quarter/half ยังใช้ได้ปกติใน anResolveRange/anRangeLabel เพราะปุ่มไตรมาส/6เดือนด้านบนสุดของหน้า (anMainRange) ยังใช้อยู่ คนละตัวกับ dropdown นี้)
+  const opts = [['month','เดือนนี้'],['prevmonth','เดือนที่แล้ว'],['ytd','ปีนี้ (YTD)'],['custom','กำหนดเอง...']];
   let h = '<select onchange="'+onchangeFn+'(this)" style="border:1px solid #d8dfe8;border-radius:8px;padding:8px 14px;font-size:13px;color:#1a3a5c;font-weight:700;background:white">';
   opts.forEach(([v,l]) => { h += '<option value="'+v+'"'+(mode===v?' selected':'')+'>'+l+'</option>'; });
   return h + '</select>';
