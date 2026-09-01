@@ -1143,7 +1143,24 @@ table.list tr:hover td{background:#f8fbff}
           </div>
           <div id="an-feat-panel-velocity" class="an-feat-grid" style="grid-template-columns:1fr">
             <div class="an-feat-card">
-              <div class="an-feat-title" id="an-feat-title-velocity">⚡ สินค้าขายดีสุด — แยกตามหมวด (Top 3/หมวด)</div>
+              <!-- 2026-09-01: เพิ่ม dropdown เลือกช่วงวัน (เดิมล็อก "เดือนที่แล้ว" ตายตัว) — mockup confirm กับ user แล้ว (v10) -->
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px">
+                <div class="an-feat-title" id="an-feat-title-velocity" style="margin-bottom:0">⚡ สินค้าขายดีสุด — แยกตามหมวด (Top 3/หมวด)</div>
+                <select id="an-vel-range" onchange="anSetVelRange(this.value)" style="border:1px solid #d8dfe8;border-radius:8px;padding:7px 12px;font-size:12.5px;font-family:'Sarabun',sans-serif;color:#334155;background:white">
+                  <option value="month">เดือนนี้</option>
+                  <option value="prevmonth" selected>เดือนที่แล้ว</option>
+                  <option value="quarter">ไตรมาสนี้ (3 เดือน)</option>
+                  <option value="half">6 เดือน</option>
+                  <option value="ytd">ปีนี้ (YTD)</option>
+                  <option value="custom">กำหนดเอง...</option>
+                </select>
+              </div>
+              <div id="an-vel-custom-row" style="display:none;gap:8px;align-items:center;margin:10px 0;background:#f8fafc;border:1px solid #eef1f5;border-radius:8px;padding:10px 12px;flex-wrap:wrap">
+                <input type="date" id="an-vel-from" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">
+                <span style="font-size:12px;color:#94a3b8">ถึง</span>
+                <input type="date" id="an-vel-to" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">
+                <button onclick="anVelCustomApply()" style="border:none;background:#1a3a5c;color:white;border-radius:8px;padding:7px 16px;font-size:12px;cursor:pointer;font-weight:700">ใช้ช่วงนี้</button>
+              </div>
               <div id="an-velocity"></div>
             </div>
           </div>
@@ -4342,37 +4359,23 @@ async function anLoadData() {
     const oldestDate = allDates.length ? new Date(Math.min(...allDates.map(d=>d.getTime()))) : new Date();
     const daysPeriod = Math.max(1, Math.round((Date.now() - oldestDate.getTime()) / 86400000));
 
-    const anNow = new Date();
-    const prevMonthEnd = new Date(anNow.getFullYear(), anNow.getMonth(), 0, 23, 59, 59);
-    const prevMonthStart = new Date(prevMonthEnd.getFullYear(), prevMonthEnd.getMonth(), 1);
-    const prevMonthOrders = orders.filter(o => {
-      const d = anPDate(o);
-      return d && !isNaN(d) && d >= prevMonthStart && d <= prevMonthEnd;
-    });
-    const prevSalesMap = {};
-    prevMonthOrders.forEach(o => {
-      const code = String(o.code || '').padStart(8,'0');
-      const qty = Number(o.qty) || 0;
-      if (!prevSalesMap[code]) prevSalesMap[code] = {name: o.name||'', type: itemTypeMap[code] || o.type || '', totalQty: 0, orderCount: 0};
-      prevSalesMap[code].totalQty += qty;
-      prevSalesMap[code].orderCount++;
-    });
-    const monthLabel = prevMonthStart.toLocaleDateString('th-TH', {month:'long', year:'numeric'});
-    const velTitleEl = document.getElementById('an-feat-title-velocity');
-    if (velTitleEl) velTitleEl.textContent = '⚡ สินค้าขายดีสุดเดือน' + monthLabel + ' — แยกตามหมวด (Top 3/หมวด)';
-    anRenderVelocity(prevSalesMap, prevMonthOrders.length);
+    // 2026-09-01: รีเซ็ต anVelRange กลับ default "เดือนที่แล้ว" ทุกครั้งที่โหลดข้อมูลใหม่จริง
+    // เหมือน anMainRange/anTrendSort ด้านล่าง (ดู anRenderSalesCharts) — ไม่ persist ข้ามการโหลดข้อมูลรอบใหม่
+    anVelRange = { mode: 'prevmonth', from: '', to: '' };
+    const anVelRangeSel = document.getElementById('an-vel-range');
+    if (anVelRangeSel) anVelRangeSel.value = 'prevmonth';
+    const anVelCustomRowEl = document.getElementById('an-vel-custom-row');
+    if (anVelCustomRowEl) anVelCustomRowEl.style.display = 'none';
+    anRecomputeVelocity(orders, itemTypeMap);
     anRenderDeadStock(items, salesMap);
     anRenderStockout(items, salesMap, daysPeriod);
     // ส่วน "ยอดขายสินค้า" (บาท, confidential) ด้านล่างนี้ยังคงอยู่หลัง password เหมือนเดิม
     anRenderSalesCharts(orders, items);
-    // 2026-08-18: เขียนค่า KPI สต็อคสินค้า + กราฟสต็อครวมแต่ละประเภท "หลัง" anRenderSalesCharts()
-    // เพราะ element #an-total/#an-instock/#an-low/#an-empty/#an-chart-qty/#an-chart-sku ตอนนี้อยู่ใน
-    // HTML string ที่ anRenderSalesCharts() เพิ่งสร้างขึ้น (ย้ายมาจากคอลัมน์ขวาของ #an-cust-body) — ต้องรอ
-    // ให้ DOM element มีอยู่จริงก่อนค่อยเขียน ไม่งั้น getElementById คืน null แล้ว error
-    document.getElementById('an-total').textContent   = total;
-    document.getElementById('an-instock').textContent = inStock + ' (' + Math.round(inStock/total*100) + '%)';
-    document.getElementById('an-low').textContent     = lowStock;
-    document.getElementById('an-empty').textContent   = empty;
+    // 2026-08-18: เขียนค่ากราฟสต็อครวมแต่ละประเภท "หลัง" anRenderSalesCharts()
+    // เพราะ element #an-chart-qty/#an-chart-sku ตอนนี้อยู่ใน HTML string ที่ anRenderSalesCharts() เพิ่งสร้างขึ้น
+    // (ย้ายมาจากคอลัมน์ขวาของ #an-cust-body) — ต้องรอให้ DOM element มีอยู่จริงก่อนค่อยเขียน ไม่งั้น getElementById คืน null แล้ว error
+    // 2026-09-01: เอาการเขียนค่า #an-total/#an-instock/#an-low/#an-empty ออก เพราะเอาการ์ด "KPI สต็อคสินค้า" ออกแล้ว
+    // (ตัวแปร total/inStock/lowStock/empty ด้านบนยังคำนวณอยู่เหมือนเดิม แค่ไม่มี element ให้เขียนแล้ว — เก็บไว้เผื่ออ้างอิงในอนาคต)
     document.getElementById('an-chart-qty').innerHTML =
       types.map((t,i) => mkBar(t[0], t[1].qty, maxQty, anColors[i])).join('');
     document.getElementById('an-chart-sku').innerHTML =
@@ -4466,6 +4469,76 @@ function anRenderVelocity(salesMap, totalOrders) {
           return '<tr><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + v.name + '">' + v.name + '</td><td style="text-align:right;font-weight:600;white-space:nowrap">' + v.totalQty.toLocaleString() + ' ' + unit + ' <span style="color:#94a3b8;font-weight:400">(' + pct + '%)</span></td></tr>';
         }).join('') + '</tbody></table></div>';
     }).join('') + '</div>';
+}
+// 2026-09-01: ตัวเลือกช่วงวันสำหรับการ์ด "⚡ ขายดี" (เดิมล็อก "เดือนที่แล้ว" ตายตัวจาก prevMonthStart/prevMonthEnd
+// คงที่ใน anLoadData()) — mockup confirm กับ user แล้ว (mockup_velocity_daterange_v10.html) — ใช้ dropdown เหมือน
+// pattern anCustRange/anMainRange ที่มีอยู่แล้ว — ไม่แตะ "☠️ ค้างสต็อค"/"🚨 ใกล้หมด" เพราะ logic เดิมนับจาก
+// "ไม่มีออเดอร์ N วัน"/อัตราขายเฉลี่ยทั้งช่วงข้อมูล ไม่ใช่ช่วงปฏิทิน ไม่เข้ากับ date-range แบบนี้
+function anVelComputeRange(r) {
+  const now = new Date();
+  if (r.mode === 'month') {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return { start, end: now, label: 'เดือน' + now.toLocaleDateString('th-TH', {month:'long', year:'numeric'}) + ' (ถึงวันนี้)' };
+  }
+  if (r.mode === 'quarter') {
+    const start = new Date(now.getFullYear(), now.getMonth()-2, 1);
+    return { start, end: now, label: 'ไตรมาสนี้ (3 เดือนล่าสุด)' };
+  }
+  if (r.mode === 'half') {
+    const start = new Date(now.getFullYear(), now.getMonth()-5, 1);
+    return { start, end: now, label: '6 เดือนล่าสุด' };
+  }
+  if (r.mode === 'ytd') {
+    const start = new Date(now.getFullYear(), 0, 1);
+    return { start, end: now, label: 'ตั้งแต่ต้นปี ถึง ' + now.toLocaleDateString('th-TH', {month:'long', year:'numeric'}) };
+  }
+  if (r.mode === 'custom') {
+    if (!r.from || !r.to) return null;
+    const start = new Date(r.from + 'T00:00:00');
+    const end = new Date(r.to + 'T23:59:59');
+    // ใช้ฟอร์แมต พ.ศ. เดียวกับ anRangeLabel() ที่มีอยู่แล้ว (AN_THAI_M + ปี+543) ไม่ใช่ DD/MM/YYYY ค.ศ.
+    const lbl = start.getDate()+' '+AN_THAI_M[start.getMonth()]+' '+(start.getFullYear()+543)+' – '+end.getDate()+' '+AN_THAI_M[end.getMonth()]+' '+(end.getFullYear()+543);
+    return { start, end, label: lbl };
+  }
+  // default: 'prevmonth' — เดือนที่แล้ว (พฤติกรรมเดิมของระบบก่อนมี dropdown)
+  const end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+  const start = new Date(end.getFullYear(), end.getMonth(), 1);
+  return { start, end, label: 'เดือน' + start.toLocaleDateString('th-TH', {month:'long', year:'numeric'}) };
+}
+function anRecomputeVelocity(orders, itemTypeMap) {
+  if (orders) anVelOrdersCache = orders;
+  if (itemTypeMap) anVelTypeMap = itemTypeMap;
+  const range = anVelComputeRange(anVelRange);
+  if (!range) return; // custom mode รอ user กรอกวันที่ให้ครบก่อน (ดู anVelCustomApply)
+  const periodOrders = anVelOrdersCache.filter(o => {
+    const d = anPDate(o);
+    return d && !isNaN(d) && d >= range.start && d <= range.end;
+  });
+  const salesMap = {};
+  periodOrders.forEach(o => {
+    const code = String(o.code || '').padStart(8,'0');
+    const qty = Number(o.qty) || 0;
+    if (!salesMap[code]) salesMap[code] = {name: o.name||'', type: anVelTypeMap[code] || o.type || '', totalQty: 0, orderCount: 0};
+    salesMap[code].totalQty += qty;
+    salesMap[code].orderCount++;
+  });
+  const velTitleEl = document.getElementById('an-feat-title-velocity');
+  if (velTitleEl) velTitleEl.textContent = '⚡ สินค้าขายดีสุด' + range.label + ' — แยกตามหมวด (Top 3/หมวด)';
+  anRenderVelocity(salesMap, periodOrders.length);
+}
+function anSetVelRange(mode) {
+  anVelRange.mode = mode;
+  const customRow = document.getElementById('an-vel-custom-row');
+  if (mode === 'custom') { if (customRow) customRow.style.display = 'flex'; return; } // รอกด "ใช้ช่วงนี้"
+  if (customRow) customRow.style.display = 'none';
+  anRecomputeVelocity();
+}
+function anVelCustomApply() {
+  const from = document.getElementById('an-vel-from').value;
+  const to = document.getElementById('an-vel-to').value;
+  if (!from || !to) { alert('เลือกวันที่ให้ครบทั้ง 2 ช่องก่อน'); return; }
+  anVelRange.from = from; anVelRange.to = to;
+  anRecomputeVelocity();
 }
 function anRenderDeadStock(items, salesMap) {
   const DEAD_DAYS = 90;
@@ -4685,6 +4758,9 @@ const AN_COLORS = ['#1a3a5c','#d97706','#ca8a04','#16a34a','#9333ea','#e11d48'];
 const AN_THAI_M  = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 const AN_THAI_MF = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 let anOrdersCache = [], anCtMap = {}, anItemMap = {};
+// 2026-09-01: state สำหรับตัวเลือกช่วงวันการ์ด "⚡ ขายดี" — anVelOrdersCache/anVelTypeMap แคชจาก anLoadData()
+// ให้ anSetVelRange()/anVelCustomApply() re-render ได้ทันทีโดยไม่ fetch ใหม่ (เหมือน pattern anOrdersCache เดิม)
+let anVelRange = { mode: 'prevmonth', from: '', to: '' }, anVelOrdersCache = [], anVelTypeMap = {};
 let anMainRange = { mode: 'month', from: '', to: '' };
 // 2026-07-10: วันที่ที่เลือกในปฏิทิน KPI (null = วันนี้จริง) — คลิกวันในปฏิทินเพื่อดูยอดขายวันนั้นแทน "วันนี้"
 let anSelDay = null;
@@ -4707,6 +4783,14 @@ let anCustShowAll = false; // 2026-07-11: ตารางลูกค้าท�
 const AN_CHURN_DAYS = 30; // เกณฑ์วันคงที่เท่ากันทุกคน (user เลือกแบบนี้แทนแบบ % ของรอบสั่งซื้อปกติต่อคน — ปรับตัวเลขนี้ได้ตรงๆ
 let anTrendSort = 'amount'; // amount(ยอดเดือนนี้) | up(โตสุดก่อน) | down(ร่วงสุดก่อน)
 let anTrendShowAll = false;
+
+// 2026-09-01: state สำหรับการ์ด "ยอดขายแยกตามหมวดต่อลูกค้า" (mockup confirm แล้ว v8/v9) — คีย์ชื่อ/รหัสลูกค้าเองเท่านั้น
+// ห้ามโชว์ลิสต์ลูกค้าเต็มเด็ดขาด (ตามที่ user ยืนยัน) — anCatRevMatches มีค่าเฉพาะตอนพิมพ์แล้วเจอมากกว่า 1 รายเท่านั้น
+let anCatRevCust = null;    // ชื่อลูกค้าที่เลือกอยู่ (ตรงกับ key ของ CUST_MAP) หรือ null ถ้ายังไม่เลือก
+let anCatRevQuery = '';     // ข้อความล่าสุดที่พิมพ์ค้นหา (เก็บไว้โชว์ในกล่องข้อความข้ามการ re-render)
+let anCatRevMsg = '';       // ข้อความแจ้งผลค้นหา (error/สถานะ)
+let anCatRevMatches = null; // รายชื่อที่ match มากกว่า 1 ราย (โชว์เฉพาะรายที่ match เท่านั้น ไม่ใช่ลิสต์เต็ม)
+let anCatRevTab = 'heat';   // 'heat' (heatmap รายเดือน) | 'rank' (สรุปแรงค์หมวด)
 
 // จัดกลุ่มประเภทสินค้าให้อ่านง่าย
 // 2026-07-11 (รอบ 3, ตามที่ user ยืนยัน): เลิกดูแลชุดหมวดแยกของตัวเอง เปลี่ยนไปใช้ anVCategory() (Velocity, 9 หมวด
@@ -5101,6 +5185,193 @@ function anBuildCatChampCard() {
       '</tr></thead>'+
       '<tbody>'+rows+'</tbody>'+
     '</table>';
+}
+
+// ===== 2026-09-01: การ์ด "ยอดขายแยกตามหมวดต่อลูกค้า" — ทั้งปีย้อนหลัง 12 เดือน =====
+// mockup confirm กับ user แล้ว (mockup_customer_yearly_category_v8.html + ตำแหน่งจริง mockup_analytics_tab_position_v9.html)
+// ใช้หมวดจริง 8 หมวดของเว็บ (AN_VCAT_ORDER/AN_VCAT_COLORS/anVCategory()) — ชุดเดียวกับการ์ด "ลูกค้าเก่งที่สุดต่อหมวด"/"⚡ ขายดี"
+// ไม่ได้สร้างระบบจัดหมวดใหม่ซ้ำ (ตาม CRITICAL RULES) — ใช้ anOrdersCache/anCtMap/anItemMap เดิมจาก anRenderSalesCharts()
+// ไม่ fetch ข้อมูลใหม่ — คีย์ชื่อ/รหัสลูกค้าเองเท่านั้น ไม่มีลิสต์ชื่อลูกค้าให้เลือกเลย (ต่างจาก "ยอดขายแยกตามลูกค้า" ด้านบน
+// ที่โชว์ตารางลูกค้าทั้งหมดเป็นค่าเริ่มต้น) ตามที่ user ยืนยันชัดเจนหลายรอบ
+
+function anCatRevMonths() {
+  const now = new Date();
+  const out = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    out.push({ y: d.getFullYear(), m: d.getMonth(), label: AN_THAI_M[d.getMonth()] + (d.getFullYear()+543).toString().slice(-2) });
+  }
+  return out;
+}
+
+function anCatRevAggregate(custName) {
+  const months = anCatRevMonths();
+  const idxOf = {};
+  months.forEach((mo,i) => { idxOf[mo.y+'-'+mo.m] = i; });
+  const data = {};
+  AN_VCAT_ORDER.forEach(cat => { data[cat] = new Array(12).fill(0); });
+  const rangeStart = new Date(months[0].y, months[0].m, 1);
+  const rangeEnd = new Date(months[11].y, months[11].m+1, 0, 23,59,59,999);
+  anOrdersCache.forEach(o => {
+    if ((o.customer||'') !== custName) return;
+    const d = anPDate(o); if (!d || isNaN(d) || d < rangeStart || d > rangeEnd) return;
+    const key = d.getFullYear()+'-'+d.getMonth();
+    if (!(key in idxOf)) return;
+    const code = String(o.code||'').padStart(8,'0');
+    const item = anItemMap[code];
+    const qty = Number(o.qty)||0;
+    const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price, o.plating) : null;
+    if (perUnit === null) return;
+    const amt = perUnit * qty;
+    const cat = anVCategory(anCtMap[code]);
+    data[cat][idxOf[key]] += amt;
+  });
+  return { months, data };
+}
+
+function anCatRevRenderHeat(months, data) {
+  let h = '<div style="display:flex;gap:18px;align-items:center;margin-bottom:12px;flex-wrap:wrap;font-size:12px;color:#334155;font-weight:600">'+
+    '<div style="display:flex;align-items:center;gap:7px"><span style="width:24px;height:15px;border-radius:4px;background:#1a3a5c;display:inline-block"></span> เดือนขายมากสุด (ต่อหมวด)</div>'+
+    '<div style="display:flex;align-items:center;gap:7px"><span style="width:24px;height:15px;border-radius:4px;background:#dbeafe;border:1px solid #b6cbe8;display:inline-block"></span> เดือนขายน้อยสุด (ต่อหมวด)</div>'+
+    '<div style="display:flex;align-items:center;gap:7px"><span style="width:24px;height:15px;border-radius:4px;background:#fff;border:1px solid #d8dfe8;display:inline-block"></span> เดือนอื่นๆ</div>'+
+  '</div>';
+  h += '<div style="overflow-x:auto"><div style="display:grid;grid-template-columns:150px repeat(12,64px) 88px;gap:4px;align-items:stretch;min-width:min-content">';
+  h += '<div></div>' + months.map(mo=>'<div style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px">'+mo.label+'</div>').join('') +
+    '<div style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px">รวม</div>';
+  AN_VCAT_ORDER.forEach(cat => {
+    const rowVals = data[cat];
+    const rowTotal = rowVals.reduce((a,b)=>a+b,0);
+    h += '<div style="font-size:11.5px;color:#334155;font-weight:700;display:flex;align-items:center">'+cat+'</div>';
+    if (rowTotal === 0) {
+      rowVals.forEach(()=> { h += '<div style="border-radius:6px;padding:9px 2px 7px;text-align:center;font-size:10.5px;font-weight:700;color:#cbd5e1;background:#fff;border:1px solid #eef1f5">–</div>'; });
+    } else {
+      const rowMax = Math.max(...rowVals), rowMin = Math.min(...rowVals);
+      const maxIdx = rowVals.indexOf(rowMax), minIdx = rowVals.lastIndexOf(rowMin);
+      rowVals.forEach((v,mi) => {
+        let bg='#fff', col='#1e293b', bd='#e2e8f0', tag='';
+        if (rowMax !== rowMin && mi===maxIdx) { bg='#1a3a5c'; col='#fff'; bd='#1a3a5c'; tag='<span style="display:block;font-size:7.5px;font-weight:700;margin-top:2px;opacity:.85">สูงสุด</span>'; }
+        else if (rowMax !== rowMin && mi===minIdx) { bg='#dbeafe'; col='#1a3a5c'; bd='#b6cbe8'; tag='<span style="display:block;font-size:7.5px;font-weight:700;margin-top:2px;opacity:.85">ต่ำสุด</span>'; }
+        h += '<div title="'+anEsc(cat+' · '+months[mi].label+': ฿'+Math.round(v).toLocaleString())+'" style="border-radius:6px;padding:9px 2px 7px;text-align:center;font-size:10.5px;font-weight:700;color:'+col+';background:'+bg+';border:1px solid '+bd+'">'+anFmtBaht(v)+tag+'</div>';
+      });
+    }
+    h += '<div style="background:#f8fafc;border-radius:6px;padding:9px 5px;text-align:right;font-size:11px;font-weight:700;color:#1a3a5c;border:1px solid #eef1f5">'+anFmtBaht(rowTotal)+'</div>';
+  });
+  h += '</div></div>';
+  return h;
+}
+
+function anCatRevRenderRank(months, data) {
+  const totals = AN_VCAT_ORDER.map(cat => ({cat, total: data[cat].reduce((a,b)=>a+b,0)})).sort((a,b)=>b.total-a.total);
+  const grand = totals.reduce((s,t)=>s+t.total,0) || 1;
+  const mx = totals[0].total || 1;
+  let h = '<div style="display:flex;flex-direction:column;gap:12px">';
+  totals.forEach((t,i) => {
+    const isTop = i===0 && t.total>0;
+    const isBottom = i===totals.length-1 && t.total < totals[0].total;
+    const pct = Math.round(t.total/grand*100);
+    const w = t.total>0 ? Math.max(6, Math.round(t.total/mx*100)) : 2;
+    const fillColor = isTop ? '#1a3a5c' : (isBottom ? '#dbeafe' : '#cbd5e1');
+    const valColor = isTop ? '#fff' : '#1e293b';
+    const numColor = isTop ? '#1a3a5c' : (isBottom ? '#7a95b3' : '#94a3b8');
+    const tag = isTop ? 'ขายดีที่สุด' : (isBottom ? 'ขายน้อยที่สุด' : '');
+    const tagColor = isTop ? '#1a3a5c' : '#5f7896';
+    h += '<div style="display:flex;align-items:center;gap:12px">'+
+      '<div style="width:22px;font-size:14px;font-weight:700;color:'+numColor+';flex-shrink:0;text-align:center">'+(i+1)+'</div>'+
+      '<div style="width:190px;font-size:13px;color:#334155;font-weight:600;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+t.cat+'">'+t.cat+'</div>'+
+      '<div style="flex:1;background:#f1f5f9;border-radius:6px;height:26px;position:relative;overflow:hidden"><div style="height:100%;border-radius:6px;background:'+fillColor+';display:flex;align-items:center;justify-content:flex-end;padding-right:8px;width:'+w+'%"><span style="font-size:11px;font-weight:700;color:'+valColor+'">฿'+Math.round(t.total).toLocaleString()+'</span></div></div>'+
+      '<div style="width:50px;text-align:right;font-size:11.5px;color:#64748b;font-weight:600;flex-shrink:0">'+pct+'%</div>'+
+      '<div style="width:90px;font-size:10.5px;font-weight:700;flex-shrink:0;color:'+tagColor+'">'+tag+'</div>'+
+    '</div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+function anBuildCatRevCard() {
+  let h = '<div class="an-card-title" style="margin-bottom:2px">ยอดขายแยกตามหมวดต่อลูกค้า</div>'+
+    '<div style="font-size:11px;color:#94a3b8;margin-bottom:14px">ทั้งปีย้อนหลัง 12 เดือน — พิมพ์ชื่อหรือรหัสลูกค้าเพื่อดู</div>'+
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px">'+
+      '<input type="text" id="an-catrev-input" placeholder="พิมพ์ชื่อหรือรหัสลูกค้า แล้วกด Enter" value="'+anEsc(anCatRevCust || anCatRevQuery)+'" onkeydown="if(event.key===\'Enter\')anCatRevSearch()" style="border:1.5px solid #d8dfe8;border-radius:8px;padding:9px 12px;font-size:13px;width:260px;font-family:inherit">'+
+      '<button onclick="anCatRevSearch()" style="border:none;background:#1a3a5c;color:white;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">ค้นหา</button>'+
+      (anCatRevCust ? '<button onclick="anCatRevClear()" style="border:1px solid #d8dfe8;background:#f8fafc;color:#64748b;border-radius:7px;padding:8px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit">✕ ล้าง</button>' : '')+
+    '</div>';
+  if (anCatRevMsg) h += '<div style="font-size:11.5px;color:'+(anCatRevMatches ? '#94a3b8' : '#dc2626')+';margin-bottom:10px">'+anEsc(anCatRevMsg)+'</div>';
+  if (anCatRevMatches && anCatRevMatches.length) {
+    h += '<div style="border:1.5px solid #d8dfe8;border-radius:10px;margin-bottom:14px;overflow:hidden">'+
+      anCatRevMatches.map(function(cu){
+        return '<div onclick="anCatRevSelectCustomer(\''+cu.code+'\')" style="padding:9px 14px;font-size:12.5px;color:#334155;cursor:pointer;display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid #f1f5f9" onmouseover="this.style.background=\'#f0f4f8\'" onmouseout="this.style.background=\'\'">'+
+          '<span>'+anEsc(cu.name)+'</span><span style="color:#94a3b8;font-weight:600">'+anEsc(cu.code)+'</span></div>';
+      }).join('')+
+    '</div>';
+  }
+  if (!anCatRevCust) {
+    h += '<div style="padding:40px 20px;text-align:center;color:#94a3b8;font-size:13px;border:1.5px dashed #d8dfe8;border-radius:10px">ยังไม่ได้เลือกลูกค้า<br><b style="color:#64748b">พิมพ์ชื่อหรือรหัสลูกค้าด้านบนแล้วกด Enter</b></div>';
+    return h;
+  }
+  const { months, data } = anCatRevAggregate(anCatRevCust);
+  const custInfo = CUST_MAP[anCatRevCust] || {};
+  const grandTotal = AN_VCAT_ORDER.reduce((s,cat)=> s + data[cat].reduce((a,b)=>a+b,0), 0);
+  h += '<div style="display:flex;align-items:baseline;gap:10px;margin:4px 0 14px;flex-wrap:wrap">'+
+      '<div style="font-size:16px;font-weight:700;color:#1a3a5c">'+anEsc(anCatRevCust)+'</div>'+
+      '<div style="font-size:12px;color:#94a3b8;font-weight:600">รหัส '+anEsc(custInfo.code||'')+'</div>'+
+      '<div style="font-size:12.5px;color:#64748b">รวมทั้งปี: <b style="color:#1a3a5c;font-size:14px">฿'+Math.round(grandTotal).toLocaleString()+'</b></div>'+
+    '</div>';
+  h += '<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">'+
+      ['heat','rank'].map(function(tb){
+        const active = anCatRevTab===tb;
+        const label = tb==='heat' ? '1) Heatmap รายเดือน (ทั้งปี)' : '2) สรุปแรงค์หมวด (ทั้งปี)';
+        const sub = tb==='heat' ? 'ดูแนวโน้มเดือนไหนสูง/ต่ำ ต่อหมวด' : 'ดูรวดเดียวว่าหมวดไหนเก่ง/ไม่เก่ง';
+        return '<button onclick="anCatRevSetTab(\''+tb+'\')" style="flex:1;min-width:180px;padding:11px 10px;border-radius:10px;border:1.5px solid '+(active?'#1a3a5c':'#d8dfe8')+';background:'+(active?'#1a3a5c':'white')+';color:'+(active?'white':'#64748b')+';font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;text-align:center;line-height:1.3">'+label+'<span style="display:block;font-weight:400;font-size:10.5px;opacity:.85;margin-top:2px">'+sub+'</span></button>';
+      }).join('')+
+    '</div>';
+  h += anCatRevTab==='heat' ? anCatRevRenderHeat(months, data) : anCatRevRenderRank(months, data);
+  return h;
+}
+
+function anCatRevRender() {
+  const el = document.getElementById('an-catrev-container');
+  if (el) el.innerHTML = anBuildCatRevCard();
+}
+
+function anCatRevSetTab(tab) {
+  anCatRevTab = tab;
+  anCatRevRender();
+}
+
+function anCatRevSelectCustomer(code) {
+  const cu = CUST_CODE_MAP[code];
+  if (!cu) return;
+  anCatRevCust = cu.name;
+  anCatRevQuery = cu.name;
+  anCatRevMatches = null;
+  anCatRevMsg = '';
+  anCatRevTab = 'heat';
+  anCatRevRender();
+}
+
+function anCatRevClear() {
+  anCatRevCust = null;
+  anCatRevQuery = '';
+  anCatRevMatches = null;
+  anCatRevMsg = '';
+  anCatRevTab = 'heat';
+  anCatRevRender();
+}
+
+function anCatRevSearch() {
+  const inputEl = document.getElementById('an-catrev-input');
+  const q = (inputEl ? inputEl.value : '').trim();
+  anCatRevQuery = q;
+  anCatRevMatches = null;
+  if (!q) { anCatRevMsg = 'พิมพ์ชื่อหรือรหัสลูกค้าก่อนกดค้นหา'; anCatRevRender(); return; }
+  if (CUST_CODE_MAP[q]) { anCatRevSelectCustomer(q); return; }
+  const ql = q.toLowerCase();
+  const matches = CUSTOMERS.filter(function(cu){ return cu.name.toLowerCase().includes(ql) || cu.code.includes(q); });
+  if (matches.length === 1) { anCatRevSelectCustomer(matches[0].code); return; }
+  if (matches.length === 0) { anCatRevMsg = 'ไม่พบลูกค้าที่ตรงกับ "'+q+'"'; anCatRevRender(); return; }
+  anCatRevMsg = 'เจอ '+matches.length+' รายที่ตรงกับ "'+q+'" — เลือกรายที่ต้องการ';
+  anCatRevMatches = matches;
+  anCatRevRender();
 }
 
 // ===== 2026-08-18: "ลูกค้าที่เงียบนาน" (churn alert) =====
@@ -5554,6 +5825,7 @@ function anRenderSalesCharts(orders, items) {
   anCalYear = null; anCalMonth = null; anCalOpen = false; // 2026-08-01: รีเซ็ตปฏิทินกลับเดือนปัจจุบัน+ปิด popup ด้วยเหตุผลเดียวกัน
   anMainRange = { mode: 'month', from: '', to: '' }; // 2026-08-01: รีเซ็ตกราฟกลับโหมด "เดือน" (ตามปฏิทิน) ด้วยเหตุผลเดียวกัน
   anTrendSort = 'amount'; anTrendShowAll = false; // 2026-08-18: รีเซ็ตแนวโน้มยอดต่อลูกค้ากลับ default ด้วยเหตุผลเดียวกัน
+  anCatRevCust = null; anCatRevQuery = ''; anCatRevMsg = ''; anCatRevMatches = null; anCatRevTab = 'heat'; // 2026-09-01: รีเซ็ตการ์ดยอดขายแยกตามหมวดต่อลูกค้ากลับ default ด้วยเหตุผลเดียวกัน
 
   el.innerHTML=
     '<div id="an-kpi-cal">'+anBuildKpiCal()+'</div>'+
@@ -5565,6 +5837,7 @@ function anRenderSalesCharts(orders, items) {
     '</div>'+
     '<div class="an-sales-2col" id="an-main-charts" style="margin-top:14px"></div>'+
     '<div id="an-stack-container">'+anBuildStackChart()+'</div>'+
+    '<div class="an-card" id="an-catrev-container" style="margin-top:14px">'+anBuildCatRevCard()+'</div>'+
     // 2026-08-18: mockup confirm กับ user แล้วหลายรอบก่อนขึ้นโค้ดจริง (v5.1) — โครงผัง:
     // ซ้าย: ยอดขายแยกตามลูกค้า(เดิม) -> ลูกค้าที่เงียบนาน(ใหม่)
     // ขวา: ลูกค้าเก่งที่สุดต่อหมวด(เดิม) -> แนวโน้มยอดขายต่อลูกค้า(ใหม่) -> KPI สต็อคสินค้า(เดิม ย้ายมา) + สต็อครวมแต่ละประเภท(เดิม ติดกัน)
@@ -5577,14 +5850,10 @@ function anRenderSalesCharts(orders, items) {
       '<div class="an-col-stack">'+
         '<div id="an-cust-right-body"></div>'+
         '<div class="an-card" id="an-trend-card">'+anBuildTrendCard()+'</div>'+
+        // 2026-09-01: เอา "📦 KPI สต็อคสินค้า" (an-kpi-row 4 ช่อง) ออกทั้งบล็อกตามที่ user ขอ ("ไม่ได้ใช้ประโยชน์อะไร")
+        // — "📊 สต็อครวมแต่ละประเภท" การ์ดเดียวกันยังคงอยู่เหมือนเดิม (ids #an-chart-qty/#an-chart-sku ไม่เปลี่ยน)
+        // ดู anLoadData() ด้านล่าง ที่เคยเขียนค่า #an-total/#an-instock/#an-low/#an-empty ก็เอาออกไปด้วยเช่นกัน (element ไม่มีแล้ว)
         '<div class="an-card">'+
-          '<div class="an-card-title">📦 KPI สต็อคสินค้า</div>'+
-          '<div class="an-kpi-row" style="margin-bottom:16px">'+
-            '<div class="an-kpi blue"><div class="ak-icon">📦</div><div class="ak-val" id="an-total">—</div><div class="ak-lbl">รหัสสินค้าทั้งหมด</div></div>'+
-            '<div class="an-kpi green"><div class="ak-icon">✅</div><div class="ak-val" id="an-instock">—</div><div class="ak-lbl">มีสต็อค</div></div>'+
-            '<div class="an-kpi amber"><div class="ak-icon">⚠️</div><div class="ak-val" id="an-low">—</div><div class="ak-lbl">ใกล้หมด (≤10)</div></div>'+
-            '<div class="an-kpi red"><div class="ak-icon">🚨</div><div class="ak-val" id="an-empty">—</div><div class="ak-lbl">หมดแล้ว</div></div>'+
-          '</div>'+
           '<div class="an-card-title" style="font-size:12.5px">📊 สต็อครวมแต่ละประเภท</div>'+
           '<div id="an-chart-qty"></div>'+
           '<div id="an-chart-sku" style="display:none"></div>'+
