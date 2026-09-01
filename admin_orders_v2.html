@@ -4788,6 +4788,8 @@ let anCatRevQuery = '';     // ข้อความล่าสุดที่�
 let anCatRevMsg = '';       // ข้อความแจ้งผลค้นหา (error/สถานะ)
 let anCatRevMatches = null; // รายชื่อที่ match มากกว่า 1 ราย (โชว์เฉพาะรายที่ match เท่านั้น ไม่ใช่ลิสต์เต็ม)
 let anCatRevTab = 'heat';   // 'heat' (heatmap รายเดือน) | 'rank' (สรุปแรงค์หมวด)
+let anCatRevAuto = false;   // 2026-09-01: true = anCatRevCust ถูกเลือกอัตโนมัติ (ลูกค้าอันดับ 1 ยอดขายทั้งปีสูงสุด)
+                            // ไม่ใช่ user คีย์ค้นหาเอง — ใช้ตัดสินใจว่าจะโชว์ badge "อัตโนมัติ" หรือไม่ (ยกเลิกทันทีที่ user ค้นหา/ล้างเอง)
 
 // จัดกลุ่มประเภทสินค้าให้อ่านง่าย
 // 2026-07-11 (รอบ 3, ตามที่ user ยืนยัน): เลิกดูแลชุดหมวดแยกของตัวเอง เปลี่ยนไปใช้ anVCategory() (Velocity, 9 หมวด
@@ -5201,6 +5203,30 @@ function anCatRevMonths() {
   return out;
 }
 
+// 2026-09-01: หาลูกค้าอันดับ 1 (ยอดขายรวมทั้งปีย้อนหลัง 12 เดือน สูงสุด) ให้โชว์เป็นค่าเริ่มต้นอัตโนมัติตอนเปิดแท็บ
+// วิเคราะห์ข้อมูลครั้งแรก (แทนกล่องว่างเปล่า "ยังไม่ได้เลือกลูกค้า") — user ขอ ("คนที่เข้ามาดูบทวิเคราะห์จะได้พอเห็นว่ามันจะเป็นยังไง")
+// ใช้ข้อมูลจริงเสมอ ไม่ใช่ตัวเลขสมมติ — ช่วง 12 เดือนเดียวกับที่การ์ดใช้แสดงผล (ไม่ผูกกับ anCustRange ของการ์ด "ยอดขายแยกตามลูกค้า"
+// ซึ่งเป็นคนละช่วงเวลา default "เดือนนี้") คืนค่า null ถ้าไม่มีออเดอร์ที่คำนวณยอดขายได้เลยในช่วงนี้ (fallback กลับไปกล่องว่างตามเดิม)
+function anCatRevAutoCustomer() {
+  const months = anCatRevMonths();
+  const rangeStart = new Date(months[0].y, months[0].m, 1);
+  const rangeEnd = new Date(months[11].y, months[11].m+1, 0, 23,59,59,999);
+  const totals = {};
+  anOrdersCache.forEach(o => {
+    const d = anPDate(o); if (!d || isNaN(d) || d < rangeStart || d > rangeEnd) return;
+    const cust = o.customer || ''; if (!cust) return;
+    const code = String(o.code||'').padStart(8,'0');
+    const item = anItemMap[code];
+    const qty = Number(o.qty)||0;
+    const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price, o.plating) : null;
+    if (perUnit === null) return;
+    totals[cust] = (totals[cust]||0) + perUnit*qty;
+  });
+  let best = null, bestAmt = 0;
+  Object.entries(totals).forEach(([name, amt]) => { if (amt > bestAmt) { best = name; bestAmt = amt; } });
+  return best;
+}
+
 function anCatRevAggregate(custName) {
   const months = anCatRevMonths();
   const idxOf = {};
@@ -5313,6 +5339,10 @@ function anBuildCatRevCard() {
       '<div style="font-size:12px;color:#94a3b8;font-weight:600">รหัส '+anEsc(custInfo.code||'')+'</div>'+
       '<div style="font-size:12.5px;color:#64748b">รวมทั้งปี: <b style="color:#1a3a5c;font-size:14px">฿'+Math.round(grandTotal).toLocaleString()+'</b></div>'+
     '</div>';
+  if (anCatRevAuto) {
+    h += '<div style="display:inline-flex;align-items:center;gap:6px;background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:6px 12px;font-size:11.5px;color:#92400e;font-weight:600;margin-bottom:14px">'+
+      '📌 โชว์อัตโนมัติ — ลูกค้าที่มียอดขายทั้งปีสูงสุด (คีย์ชื่อ/รหัสลูกค้าอื่นด้านบนเพื่อดูรายอื่น)</div>';
+  }
   h += '<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">'+
       ['heat','rank'].map(function(tb){
         const active = anCatRevTab===tb;
@@ -5343,6 +5373,7 @@ function anCatRevSelectCustomer(code) {
   anCatRevMatches = null;
   anCatRevMsg = '';
   anCatRevTab = 'heat';
+  anCatRevAuto = false; // 2026-09-01: user เลือกเอง (จากค้นหา หรือคลิกในลิสต์ match) ไม่ใช่ auto แล้ว เอา badge "อัตโนมัติ" ออก
   anCatRevRender();
 }
 
@@ -5352,6 +5383,7 @@ function anCatRevClear() {
   anCatRevMatches = null;
   anCatRevMsg = '';
   anCatRevTab = 'heat';
+  anCatRevAuto = false; // 2026-09-01: user กดล้างเอง กลับไปกล่องว่างเปล่าจริงๆ ไม่ auto-select ลูกค้าอันดับ 1 กลับมาอีก
   anCatRevRender();
 }
 
@@ -5360,6 +5392,7 @@ function anCatRevSearch() {
   const q = (inputEl ? inputEl.value : '').trim();
   anCatRevQuery = q;
   anCatRevMatches = null;
+  anCatRevAuto = false; // 2026-09-01: user กดค้นหาเองแล้ว (ไม่ว่าผลจะเจอกี่ราย) เอา badge "อัตโนมัติ" ออกจากลูกค้าที่โชว์ค้างอยู่
   if (!q) { anCatRevMsg = 'พิมพ์ชื่อหรือรหัสลูกค้าก่อนกดค้นหา'; anCatRevRender(); return; }
   if (CUST_CODE_MAP[q]) { anCatRevSelectCustomer(q); return; }
   const ql = q.toLowerCase();
@@ -5822,7 +5855,11 @@ function anRenderSalesCharts(orders, items) {
   anCalYear = null; anCalMonth = null; anCalOpen = false; // 2026-08-01: รีเซ็ตปฏิทินกลับเดือนปัจจุบัน+ปิด popup ด้วยเหตุผลเดียวกัน
   anMainRange = { mode: 'month', from: '', to: '' }; // 2026-08-01: รีเซ็ตกราฟกลับโหมด "เดือน" (ตามปฏิทิน) ด้วยเหตุผลเดียวกัน
   anTrendSort = 'amount'; anTrendShowAll = false; // 2026-08-18: รีเซ็ตแนวโน้มยอดต่อลูกค้ากลับ default ด้วยเหตุผลเดียวกัน
-  anCatRevCust = null; anCatRevQuery = ''; anCatRevMsg = ''; anCatRevMatches = null; anCatRevTab = 'heat'; // 2026-09-01: รีเซ็ตการ์ดยอดขายแยกตามหมวดต่อลูกค้ากลับ default ด้วยเหตุผลเดียวกัน
+  // 2026-09-01: หาลูกค้าอันดับ 1 (ยอดขายทั้งปีสูงสุด) มาโชว์อัตโนมัติแทนกล่องว่าง — ใช้ anOrdersCache/anItemMap/anCtMap
+  // ที่เพิ่ง set ไว้ด้านบนในฟังก์ชันนี้แล้ว (ไม่ต้อง fetch ใหม่) — คืน null ถ้าไม่มีข้อมูลเลย ก็กลับไปกล่องว่างตามเดิมปกติ
+  const anCatRevDefault = anCatRevAutoCustomer();
+  anCatRevCust = anCatRevDefault; anCatRevQuery = anCatRevDefault || ''; anCatRevMsg = ''; anCatRevMatches = null; anCatRevTab = 'heat';
+  anCatRevAuto = !!anCatRevDefault; // 2026-09-01: true = ยังไม่ได้ user ค้นหาเอง โชว์ badge "อัตโนมัติ" จนกว่าจะค้นหา/ล้างเอง
 
   el.innerHTML=
     '<div id="an-kpi-cal">'+anBuildKpiCal()+'</div>'+
