@@ -5275,11 +5275,16 @@ function anCatRevRenderHeat(months, data) {
     if (rowMax === 0) {
       rowVals.forEach(()=> { h += '<div style="border-radius:6px;padding:10px 2px;text-align:center;font-size:12px;font-weight:400;color:#cbd5e1;background:#fff;border:1px solid #eef1f5'+(isGrand ? ';border-top:2px solid #d8dfe8' : '')+'">–</div>'; });
     } else {
-      const maxIdx = rowVals.indexOf(rowMax), minIdx = rowVals.lastIndexOf(rowMin);
+      // 2026-09-01: ไฮไลท์ "เดือนขายน้อยสุด" ต้องมาจากเดือนที่ "มีขายจริง" เท่านั้น ห้ามชี้ไปเดือนที่ไม่มีขายเลย (0/–)
+      // เดิมใช้ rowMin ของทุกเดือนรวม 0 ด้วย พอเดือนไหน 0 หลายเดือน จะดันไปไฮไลท์ช่อง "–" ซึ่งดูผิดสังเกตุ (ไฮไลท์ช่องว่าง)
+      const nonZeroVals = rowVals.filter(v => v > 0);
+      const rowMinNZ = nonZeroVals.length ? Math.min(...nonZeroVals) : null;
+      const maxIdx = rowVals.indexOf(rowMax);
+      const minIdx = rowMinNZ !== null ? rowVals.lastIndexOf(rowMinNZ) : -1;
       rowVals.forEach((v,mi) => {
         let bg='#fff', col='#1e293b', bd='#e2e8f0';
         if (rowMax !== rowMin && mi===maxIdx) { bg='#1a3a5c'; col='#fff'; bd='#1a3a5c'; }
-        else if (rowMax !== rowMin && mi===minIdx) { bg='#dbeafe'; col='#1a3a5c'; bd='#b6cbe8'; }
+        else if (rowMinNZ !== null && rowMinNZ !== rowMax && mi===minIdx) { bg='#dbeafe'; col='#1a3a5c'; bd='#b6cbe8'; }
         const extraBorder = isGrand ? ';border-top:2px solid #d8dfe8' : '';
         const fw = isGrand ? '800' : '700';
         const fs = isGrand ? '12.5px' : '12px';
