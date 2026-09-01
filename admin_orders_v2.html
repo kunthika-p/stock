@@ -4371,15 +4371,12 @@ async function anLoadData() {
     anRenderStockout(items, salesMap, daysPeriod);
     // ส่วน "ยอดขายสินค้า" (บาท, confidential) ด้านล่างนี้ยังคงอยู่หลัง password เหมือนเดิม
     anRenderSalesCharts(orders, items);
-    // 2026-08-18: เขียนค่ากราฟสต็อครวมแต่ละประเภท "หลัง" anRenderSalesCharts()
-    // เพราะ element #an-chart-qty/#an-chart-sku ตอนนี้อยู่ใน HTML string ที่ anRenderSalesCharts() เพิ่งสร้างขึ้น
-    // (ย้ายมาจากคอลัมน์ขวาของ #an-cust-body) — ต้องรอให้ DOM element มีอยู่จริงก่อนค่อยเขียน ไม่งั้น getElementById คืน null แล้ว error
-    // 2026-09-01: เอาการเขียนค่า #an-total/#an-instock/#an-low/#an-empty ออก เพราะเอาการ์ด "KPI สต็อคสินค้า" ออกแล้ว
-    // (ตัวแปร total/inStock/lowStock/empty ด้านบนยังคำนวณอยู่เหมือนเดิม แค่ไม่มี element ให้เขียนแล้ว — เก็บไว้เผื่ออ้างอิงในอนาคต)
-    document.getElementById('an-chart-qty').innerHTML =
-      types.map((t,i) => mkBar(t[0], t[1].qty, maxQty, anColors[i])).join('');
-    document.getElementById('an-chart-sku').innerHTML =
-      [...types].sort((a,b)=>b[1].sku-a[1].sku).map((t,i) => mkBar(t[0], t[1].sku+' SKU', maxSku, anColors[i])).join('');
+    // 2026-08-18: เดิมเขียนค่ากราฟสต็อครวมแต่ละประเภท "หลัง" anRenderSalesCharts() ตรงนี้ (element #an-chart-qty/
+    // #an-chart-sku อยู่ใน HTML string ที่ anRenderSalesCharts() สร้าง ต้องรอให้มีอยู่จริงก่อนค่อยเขียน)
+    // 2026-09-01: เอาการเขียนค่า #an-total/#an-instock/#an-low/#an-empty ออกไปแล้วรอบก่อน (เอาการ์ด "KPI สต็อคสินค้า" ออก)
+    // ตอนนี้เอาการเขียนค่า #an-chart-qty/#an-chart-sku ออกด้วยเช่นกัน เพราะเอาการ์ด "สต็อครวมแต่ละประเภท" ออกทั้งบล็อกแล้ว
+    // (element ไม่มีแล้ว ไม่งั้น getElementById คืน null แล้ว error ทำให้โค้ดที่เหลือใน try block หยุดทำงาน)
+    // ตัวแปร types/maxQty/maxSku/anColors/mkBar ด้านบนยังคำนวณอยู่เหมือนเดิม แค่ไม่มี element ให้เขียนแล้ว — เก็บไว้เผื่ออ้างอิงในอนาคต
   } catch(e) {
     console.error('Analytics error:', e);
   }
@@ -5243,18 +5240,18 @@ function anCatRevRenderHeat(months, data) {
     const rowTotal = rowVals.reduce((a,b)=>a+b,0);
     h += '<div style="font-size:11.5px;color:#334155;font-weight:700;display:flex;align-items:center">'+cat+'</div>';
     if (rowTotal === 0) {
-      rowVals.forEach(()=> { h += '<div style="border-radius:6px;padding:9px 2px 7px;text-align:center;font-size:10.5px;font-weight:700;color:#cbd5e1;background:#fff;border:1px solid #eef1f5">–</div>'; });
+      rowVals.forEach(()=> { h += '<div style="border-radius:6px;padding:13px 3px;text-align:center;font-size:13.5px;font-weight:400;color:#cbd5e1;background:#fff;border:1px solid #eef1f5">–</div>'; });
     } else {
       const rowMax = Math.max(...rowVals), rowMin = Math.min(...rowVals);
       const maxIdx = rowVals.indexOf(rowMax), minIdx = rowVals.lastIndexOf(rowMin);
       rowVals.forEach((v,mi) => {
-        let bg='#fff', col='#1e293b', bd='#e2e8f0', tag='';
-        if (rowMax !== rowMin && mi===maxIdx) { bg='#1a3a5c'; col='#fff'; bd='#1a3a5c'; tag='<span style="display:block;font-size:7.5px;font-weight:700;margin-top:2px;opacity:.85">สูงสุด</span>'; }
-        else if (rowMax !== rowMin && mi===minIdx) { bg='#dbeafe'; col='#1a3a5c'; bd='#b6cbe8'; tag='<span style="display:block;font-size:7.5px;font-weight:700;margin-top:2px;opacity:.85">ต่ำสุด</span>'; }
-        h += '<div title="'+anEsc(cat+' · '+months[mi].label+': ฿'+Math.round(v).toLocaleString())+'" style="border-radius:6px;padding:9px 2px 7px;text-align:center;font-size:10.5px;font-weight:700;color:'+col+';background:'+bg+';border:1px solid '+bd+'">'+anFmtBaht(v)+tag+'</div>';
+        let bg='#fff', col='#1e293b', bd='#e2e8f0';
+        if (rowMax !== rowMin && mi===maxIdx) { bg='#1a3a5c'; col='#fff'; bd='#1a3a5c'; }
+        else if (rowMax !== rowMin && mi===minIdx) { bg='#dbeafe'; col='#1a3a5c'; bd='#b6cbe8'; }
+        h += '<div title="'+anEsc(cat+' · '+months[mi].label+': ฿'+Math.round(v).toLocaleString())+'" style="border-radius:6px;padding:13px 3px;text-align:center;font-size:13.5px;font-weight:700;color:'+col+';background:'+bg+';border:1px solid '+bd+'">'+anFmtBaht(v)+'</div>';
       });
     }
-    h += '<div style="background:#f8fafc;border-radius:6px;padding:9px 5px;text-align:right;font-size:11px;font-weight:700;color:#1a3a5c;border:1px solid #eef1f5">'+anFmtBaht(rowTotal)+'</div>';
+    h += '<div style="background:#f8fafc;border-radius:6px;padding:11px 5px;text-align:right;font-size:12px;font-weight:700;color:#1a3a5c;border:1px solid #eef1f5">'+anFmtBaht(rowTotal)+'</div>';
   });
   h += '</div></div>';
   return h;
@@ -5849,15 +5846,13 @@ function anRenderSalesCharts(orders, items) {
       '</div>'+
       '<div class="an-col-stack">'+
         '<div id="an-cust-right-body"></div>'+
+        // 2026-09-01: เอา "📦 KPI สต็อคสินค้า" ออกทั้งบล็อกตามที่ user ขอไปแล้วรอบก่อน ("ไม่ได้ใช้ประโยชน์อะไร")
+        // ตอนนี้ user ขอเอา "📊 สต็อครวมแต่ละประเภท" (การ์ดเดียวกันเดิม) ออกด้วยเช่นกัน ("ยกเลิกไปเลยไม่ได้ใช้")
+        // เลยเอาทั้งการ์ดออก ไม่เหลืออะไรของ KPI สต็อคสินค้าเดิมในคอลัมน์ขวาแล้ว — คอลัมน์ขวาเหลือ 2 การ์ด
+        // (ลูกค้าเก่งที่สุดต่อหมวด + แนวโน้มยอดขายต่อลูกค้า) .an-col-stack CSS เดิมจะ stretch การ์ดสุดท้าย
+        // (ตอนนี้คือ an-trend-card) ให้จบเสมอกับฝั่งซ้ายอัตโนมัติอยู่แล้ว ไม่ต้องแก้ CSS เพิ่ม
+        // ดู anLoadData() ด้านล่าง ที่เคยเขียนค่า #an-chart-qty/#an-chart-sku ก็เอาออกไปด้วยเช่นกัน (element ไม่มีแล้ว)
         '<div class="an-card" id="an-trend-card">'+anBuildTrendCard()+'</div>'+
-        // 2026-09-01: เอา "📦 KPI สต็อคสินค้า" (an-kpi-row 4 ช่อง) ออกทั้งบล็อกตามที่ user ขอ ("ไม่ได้ใช้ประโยชน์อะไร")
-        // — "📊 สต็อครวมแต่ละประเภท" การ์ดเดียวกันยังคงอยู่เหมือนเดิม (ids #an-chart-qty/#an-chart-sku ไม่เปลี่ยน)
-        // ดู anLoadData() ด้านล่าง ที่เคยเขียนค่า #an-total/#an-instock/#an-low/#an-empty ก็เอาออกไปด้วยเช่นกัน (element ไม่มีแล้ว)
-        '<div class="an-card">'+
-          '<div class="an-card-title" style="font-size:12.5px">📊 สต็อครวมแต่ละประเภท</div>'+
-          '<div id="an-chart-qty"></div>'+
-          '<div id="an-chart-sku" style="display:none"></div>'+
-        '</div>'+
       '</div>'+
     '</div>';
 
