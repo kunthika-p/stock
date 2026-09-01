@@ -5707,8 +5707,9 @@ function anBuildKpiCal() {
       '<button class="an-cal-btn" onclick="anToggleCal()">📅 <span>'+AN_THAI_MF[browseM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
       '<span style="width:1px;height:20px;background:#e2e8f0"></span>'+
       '<span style="font-size:12px;color:#94a3b8">ดูรวมหลายเดือน:</span>'+
-      anMainPillBtn('quarter','ไตรมาสนี้')+
-      anMainPillBtn('half','6 เดือน')+
+      // 2026-09-01: สลับปุ่มให้ตรงกับ dropdown การ์ด "ยอดขายแยกตามลูกค้า" ตามที่ user ขอ — ตัด "ไตรมาสนี้"/"6 เดือน" ออก เพิ่ม "เดือนที่แล้ว" แทน
+      // (เดือนนี้ผูกกับปุ่มปฏิทิน 📅 อยู่แล้ว ไม่ต้องมีปุ่มแยก) ใช้ mode 'prevmonth' เดียวกับที่มีอยู่แล้วใน anResolveRange/anRangeLabel ไม่ต้องเพิ่ม logic ใหม่
+      anMainPillBtn('prevmonth','เดือนที่แล้ว')+
       anMainPillBtn('ytd','ปีนี้ (YTD)')+
       anMainPillBtn('custom','กำหนดเอง...')+
     '</div>'+
