@@ -5258,27 +5258,40 @@ function anCatRevRenderHeat(months, data) {
     '<div style="display:flex;align-items:center;gap:7px"><span style="width:24px;height:15px;border-radius:4px;background:#dbeafe;border:1px solid #b6cbe8;display:inline-block"></span> เดือนขายน้อยสุด (ต่อหมวด)</div>'+
     '<div style="display:flex;align-items:center;gap:7px"><span style="width:24px;height:15px;border-radius:4px;background:#fff;border:1px solid #d8dfe8;display:inline-block"></span> เดือนอื่นๆ</div>'+
   '</div>';
-  h += '<div style="overflow-x:auto"><div style="display:grid;grid-template-columns:150px repeat(12,64px) 88px;gap:4px;align-items:stretch;min-width:min-content">';
+  h += '<div style="overflow-x:auto"><div style="display:grid;grid-template-columns:150px repeat(12,96px) 116px;gap:4px;align-items:stretch;min-width:min-content">';
   h += '<div></div>' + months.map(mo=>'<div style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px">'+mo.label+'</div>').join('') +
     '<div style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px">รวม</div>';
-  AN_VCAT_ORDER.forEach(cat => {
-    const rowVals = data[cat];
+
+  function renderRow(label, rowVals, isGrand) {
     const rowTotal = rowVals.reduce((a,b)=>a+b,0);
-    h += '<div style="font-size:11.5px;color:#334155;font-weight:700;display:flex;align-items:center">'+cat+'</div>';
-    if (rowTotal === 0) {
-      rowVals.forEach(()=> { h += '<div style="border-radius:6px;padding:13px 3px;text-align:center;font-size:13.5px;font-weight:400;color:#cbd5e1;background:#fff;border:1px solid #eef1f5">–</div>'; });
+    const labelStyle = 'font-size:11.5px;color:#334155;font-weight:700;display:flex;align-items:center'+(isGrand ? ';color:#1a3a5c;font-weight:800;border-top:2px solid #d8dfe8;padding-top:4px' : '');
+    h += '<div style="'+labelStyle+'">'+label+'</div>';
+    const rowMax = Math.max(...rowVals), rowMin = Math.min(...rowVals);
+    if (rowMax === 0) {
+      rowVals.forEach(()=> { h += '<div style="border-radius:6px;padding:13px 4px;text-align:center;font-size:13px;font-weight:400;color:#cbd5e1;background:#fff;border:1px solid #eef1f5'+(isGrand ? ';border-top:2px solid #d8dfe8' : '')+'">–</div>'; });
     } else {
-      const rowMax = Math.max(...rowVals), rowMin = Math.min(...rowVals);
       const maxIdx = rowVals.indexOf(rowMax), minIdx = rowVals.lastIndexOf(rowMin);
       rowVals.forEach((v,mi) => {
         let bg='#fff', col='#1e293b', bd='#e2e8f0';
         if (rowMax !== rowMin && mi===maxIdx) { bg='#1a3a5c'; col='#fff'; bd='#1a3a5c'; }
         else if (rowMax !== rowMin && mi===minIdx) { bg='#dbeafe'; col='#1a3a5c'; bd='#b6cbe8'; }
-        h += '<div title="'+anEsc(cat+' · '+months[mi].label+': ฿'+Math.round(v).toLocaleString())+'" style="border-radius:6px;padding:13px 3px;text-align:center;font-size:13.5px;font-weight:700;color:'+col+';background:'+bg+';border:1px solid '+bd+'">'+anFmtBaht(v)+'</div>';
+        const extraBorder = isGrand ? ';border-top:2px solid #d8dfe8' : '';
+        const fw = isGrand ? '800' : '700';
+        const fs = isGrand ? '13.5px' : '13px';
+        h += '<div title="'+anEsc(label+' · '+months[mi].label+': ฿'+Math.round(v).toLocaleString())+'" style="border-radius:6px;padding:13px 4px;text-align:center;font-size:'+fs+';font-weight:'+fw+';color:'+col+';background:'+bg+';border:1px solid '+bd+extraBorder+'">'+Math.round(v).toLocaleString()+'</div>';
       });
     }
-    h += '<div style="background:#f8fafc;border-radius:6px;padding:11px 5px;text-align:right;font-size:12px;font-weight:700;color:#1a3a5c;border:1px solid #eef1f5">'+anFmtBaht(rowTotal)+'</div>';
-  });
+    const totalExtraBorder = isGrand ? ';border-top:2px solid #d8dfe8' : '';
+    const totalFs = isGrand ? '13px' : '12px';
+    h += '<div style="background:#f8fafc;border-radius:6px;padding:11px 5px;text-align:right;font-size:'+totalFs+';font-weight:700;color:#1a3a5c;border:1px solid #eef1f5'+totalExtraBorder+'">'+Math.round(rowTotal).toLocaleString()+'</div>';
+  }
+
+  // แถวหมวด — ไม่รวม "อื่นๆ" (โชว์เป็นแถว "รวม" รวมเข้าไปแทนด้านล่าง ไม่ทิ้งข้อมูล)
+  AN_VCAT_ORDER.filter(cat => cat !== 'อื่นๆ').forEach(cat => renderRow(cat, data[cat], false));
+  // แถว "รวม" — ผลรวมทุกหมวดต่อเดือน (รวม "อื่นๆ" ด้วยถ้ามีข้อมูลจริง) แทนที่แถว "อื่นๆ" เดิมที่ปกติไม่มียอดขาย
+  const grandVals = months.map((mo, mi) => AN_VCAT_ORDER.reduce((s, cat) => s + data[cat][mi], 0));
+  renderRow('รวม', grandVals, true);
+
   h += '</div></div>';
   return h;
 }
