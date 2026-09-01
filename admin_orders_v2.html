@@ -5283,7 +5283,8 @@ function anCatRevRenderHeat(months, data) {
         const extraBorder = isGrand ? ';border-top:2px solid #d8dfe8' : '';
         const fw = isGrand ? '800' : '700';
         const fs = isGrand ? '12.5px' : '12px';
-        h += '<div title="'+anEsc(label+' · '+months[mi].label+': ฿'+Math.round(v).toLocaleString())+'" style="border-radius:6px;padding:10px 2px;text-align:center;font-size:'+fs+';font-weight:'+fw+';color:'+col+';background:'+bg+';border:1px solid '+bd+extraBorder+';white-space:nowrap">'+Math.round(v).toLocaleString()+'</div>';
+        const cellText = v===0 ? '–' : Math.round(v).toLocaleString();
+        h += '<div title="'+anEsc(label+' · '+months[mi].label+': ฿'+Math.round(v).toLocaleString())+'" style="border-radius:6px;padding:10px 2px;text-align:center;font-size:'+fs+';font-weight:'+fw+';color:'+col+';background:'+bg+';border:1px solid '+bd+extraBorder+';white-space:nowrap">'+cellText+'</div>';
       });
     }
     const totalExtraBorder = isGrand ? ';border-top:2px solid #d8dfe8' : '';
