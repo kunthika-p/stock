@@ -5033,9 +5033,7 @@ function anMainPillBtn(mode, label) {
 }
 function anSetMainRangeMode(mode) {
   anMainRange.mode = mode;
-  anRenderKpiCal(); // ปุ่ม pill (active state) เรนเดอร์อยู่ในนี้ด้วย ต้อง re-render คู่กันเสมอ
-  const custRow = document.getElementById('an-main-custom-row');
-  if (custRow) custRow.style.display = mode === 'custom' ? 'flex' : 'none';
+  anRenderKpiCal(); // ปุ่ม pill (active state) + ช่องกำหนดเอง (ถ้าเลือก custom) เรนเดอร์อยู่ในนี้ด้วยกันแล้ว 2026-09-01
   if (mode !== 'custom') { anRenderMainCharts(); anRenderStackChart(); } // 2026-08-01: กราฟรายวันใช้ stackTypeNames จาก anMainRange ด้วย ต้อง re-render คู่กันกันตกยุค (legend เพี้ยน)
 }
 
@@ -5639,17 +5637,8 @@ function anBuildKpiCal() {
   const thisY = now.getFullYear();
   const thisM = now.getMonth();
   const prevMStart = new Date(thisY, thisM-1, 1);
-  // 2026-08-01: browseY/browseM = เดือนที่กำลังเปิดดูในปฏิทิน (จาก anCalYear/anCalMonth ถ้า user เปลี่ยนเดือนไว้ ไม่งั้นใช้เดือนปัจจุบัน)
-  // แยกจาก thisY/thisM ซึ่งใช้คำนวณ YTD/"เดือนนี้"/เดือนก่อนหน้าเสมอ ไม่ขยับตามการ browse
-  const browseY = anCalYear ?? thisY;
-  const browseM = anCalMonth ?? thisM;
-  const selDay = anSelDay || (browseY===thisY&&browseM===thisM ? now.getDate() : 1);
-  const selDate = new Date(browseY, browseM, selDay);
-  const selPrevDate = new Date(selDate); selPrevDate.setDate(selDate.getDate()-1);
-  const isRealToday = selDate.getDate()===now.getDate() && selDate.getMonth()===now.getMonth() && selDate.getFullYear()===now.getFullYear();
 
-  let ytd=0, mon=0, tod=0, prevMon=0, selPrev=0;
-  const calDays = new Set();
+  let ytd=0, mon=0, prevMon=0;
   let excludedLines = 0, excludedQty = 0;
   orders.forEach(o => {
     const d = anPDate(o); if (!d) return;
@@ -5659,13 +5648,10 @@ function anBuildKpiCal() {
     const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price, o.plating) : null;
     if (perUnit === null) { excludedLines++; excludedQty += qty; return; }
     const amt = perUnit * qty;
-    const dY=d.getFullYear(), dM=d.getMonth(), dd=d.getDate();
+    const dY=d.getFullYear(), dM=d.getMonth();
     if (dY===thisY) ytd+=amt;
     if (dY===thisY&&dM===thisM) mon+=amt;
-    if (dY===browseY&&dM===browseM) calDays.add(dd);
     if (dY===prevMStart.getFullYear()&&dM===prevMStart.getMonth()) prevMon+=amt;
-    if (dY===selDate.getFullYear()&&dM===selDate.getMonth()&&dd===selDate.getDate()) tod+=amt;
-    if (dY===selPrevDate.getFullYear()&&dM===selPrevDate.getMonth()&&dd===selPrevDate.getDate()) selPrev+=amt;
   });
   if (excludedLines) console.log('[Analytics revenue] ข้ามคำนวณ '+excludedLines+' รายการ (ไม่มีข้อมูลราคา เช่น มิลแข็ง/Spring Washer/OVERSIZE) รวม '+excludedQty+' หน่วย');
 
@@ -5675,45 +5661,22 @@ function anBuildKpiCal() {
     return '<span class="'+(p>=0?'ask-up':'ask-dn')+'">'+(p>=0?'↑':'↓')+' '+Math.abs(p)+'%</span>';
   }
 
-  function buildCal() {
-    const DOW=['อา','จ','อ','พ','พฤ','ศ','ส'];
-    const first=new Date(browseY,browseM,1).getDay();
-    const days=new Date(browseY,browseM+1,0).getDate();
-    const shift=first===0?6:first-1;
-    let h='<div class="an-cal-popup" id="an-cal-popup" style="display:'+(anCalOpen?'block':'none')+'"><div class="an-cal-hdr">'
-      +'<button class="an-cal-nav" onclick="event.stopPropagation();anCalShiftMonth(-1)">‹</button>'
-      +'<div style="font-size:13px;font-weight:700">'+AN_THAI_MF[browseM]+' '+(browseY+543)+'</div>'
-      +'<button class="an-cal-nav" onclick="event.stopPropagation();anCalShiftMonth(1)">›</button>'
-      +'</div><div class="an-cal-grid">';
-    DOW.forEach(d=>{h+='<div class="an-cal-dow">'+d+'</div>';});
-    for(let i=0;i<shift;i++) h+='<div class="an-cal-day acd-other"></div>';
-    for(let d=1;d<=days;d++){
-      const isTd=d===now.getDate()&&browseM===now.getMonth()&&browseY===now.getFullYear();
-      const isSel=d===selDay;
-      const hasO=calDays.has(d);
-      let cls='an-cal-day'+(isSel?' acd-sel':'')+(isTd?' acd-today':'')+(hasO?' acd-has':'');
-      h+='<div class="'+cls+'" onclick="event.stopPropagation();anSelectCalDay('+d+')">'+d+'</div>';
-    }
-    h+='</div><div style="margin-top:8px;display:flex;gap:12px;font-size:10px;color:#64748b"><span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#1a3a5c;margin-right:3px"></span>มีออเดอร์</span></div></div>';
-    return h;
-  }
-
-  const BY=browseY+543;
-  const dLbl = selDate.getDate()+' '+AN_THAI_M[selDate.getMonth()]+'.';
-  const kpiTitle = isRealToday ? ('ยอดขายวันนี้ ('+dLbl+')') : ('ยอดขาย '+dLbl);
-  const subLbl = isRealToday ? 'vs เมื่อวาน' : 'vs วันก่อนหน้า';
+  // 2026-09-01: เอาปุ่มปฏิทิน 📅 (เลื่อนดูเดือนอื่นๆ) ออกทั้งหมดตามที่ user ขอ — เหลือปุ่มเดียวกันหมด 4 ปุ่ม เดือนนี้/เดือนที่แล้ว/YTD/กำหนดเอง
+  // anCalYear/anCalMonth ไม่ถูกตั้งค่าอีกต่อไป (popup ปฏิทินถูกลบออกจากแถวนี้) จึงเป็น null เสมอ ทำให้ ?? thisY/thisM fallback ใน anResolveRange ทำงานถูกต้องอัตโนมัติ โดยไม่ต้องแก้ resolver
+  // ช่องวันที่ "กำหนดเอง..." ย้ายมาต่อท้ายแถวปุ่มเดียวกัน (เดิมอยู่แถวแยก #an-main-custom-row ซึ่งถูกลบออกจาก caller แล้ว)
+  const customInputs = anMainRange.mode === 'custom' ?
+      ('<input type="date" id="an-main-from" value="'+anEsc(anMainRange.from||'')+'" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">'+
+       '<span style="font-size:12px;color:#94a3b8">ถึง</span>'+
+       '<input type="date" id="an-main-to" value="'+anEsc(anMainRange.to||'')+'" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">'+
+       '<button onclick="anMainCustomApply()" style="border:none;background:#1a3a5c;color:white;border-radius:8px;padding:7px 16px;font-size:12px;cursor:pointer;font-weight:700">ใช้ช่วงนี้</button>') : '';
 
   return '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
-      '<button class="an-cal-btn" onclick="anToggleCal()">📅 <span>'+AN_THAI_MF[browseM]+' '+BY+'</span> <span style="font-size:11px;color:#94a3b8">▾</span></button>'+
-      '<span style="width:1px;height:20px;background:#e2e8f0"></span>'+
-      '<span style="font-size:12px;color:#94a3b8">ดูรวมหลายเดือน:</span>'+
-      // 2026-09-01: สลับปุ่มให้ตรงกับ dropdown การ์ด "ยอดขายแยกตามลูกค้า" ตามที่ user ขอ — ตัด "ไตรมาสนี้"/"6 เดือน" ออก เพิ่ม "เดือนที่แล้ว" แทน
-      // (เดือนนี้ผูกกับปุ่มปฏิทิน 📅 อยู่แล้ว ไม่ต้องมีปุ่มแยก) ใช้ mode 'prevmonth' เดียวกับที่มีอยู่แล้วใน anResolveRange/anRangeLabel ไม่ต้องเพิ่ม logic ใหม่
+      anMainPillBtn('month','เดือนนี้')+
       anMainPillBtn('prevmonth','เดือนที่แล้ว')+
       anMainPillBtn('ytd','ปีนี้ (YTD)')+
       anMainPillBtn('custom','กำหนดเอง...')+
+      customInputs+
     '</div>'+
-    buildCal()+
     '<div class="an-sales-kpi-row">'+
       '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">฿'+Math.round(ytd).toLocaleString()+'</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+AN_THAI_M[thisM]+'. '+(thisY+543)+'</div></div>'+
       '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายเดือนที่แล้ว</div><div class="ask-val" style="color:#1a3a5c">฿'+Math.round(prevMon).toLocaleString()+'</div><div class="ask-sub">'+AN_THAI_M[prevMStart.getMonth()]+'. '+(prevMStart.getFullYear()+543)+'</div></div>'+
@@ -5902,12 +5865,6 @@ function anRenderSalesCharts(orders, items) {
 
   el.innerHTML=
     '<div id="an-kpi-cal">'+anBuildKpiCal()+'</div>'+
-    '<div id="an-main-custom-row" style="display:'+(anMainRange.mode==='custom'?'flex':'none')+';gap:8px;align-items:center;margin:10px 0">'+
-      '<input type="date" id="an-main-from" value="'+anEsc(anMainRange.from||'')+'" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">'+
-      '<span style="font-size:12px;color:#94a3b8">ถึง</span>'+
-      '<input type="date" id="an-main-to" value="'+anEsc(anMainRange.to||'')+'" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">'+
-      '<button onclick="anMainCustomApply()" style="border:none;background:#1a3a5c;color:white;border-radius:8px;padding:7px 16px;font-size:12px;cursor:pointer;font-weight:700">ใช้ช่วงนี้</button>'+
-    '</div>'+
     '<div class="an-sales-2col" id="an-main-charts" style="margin-top:14px"></div>'+
     '<div id="an-stack-container">'+anBuildStackChart()+'</div>'+
     '<div class="an-card" id="an-catrev-container" style="margin-top:14px">'+anBuildCatRevCard()+'</div>'+
