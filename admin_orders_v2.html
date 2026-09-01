@@ -4216,9 +4216,14 @@ function renderSummary() {
     names.forEach(n => { const opt=document.createElement('option'); opt.value=n; opt.textContent=n; sel.appendChild(opt); });
   }
   // 2026-07-31: populate ตัวกรอง "คันรถ" — เฉพาะชื่อคันรถที่เคยบันทึกไว้จริง (ตัดค่าว่างของออเดอร์เก่า/ที่ไม่ได้ผ่าน bulkConfirm ออก)
+  // 2026-09-01: กรองเฉพาะรูปแบบมาตรฐาน "เที่ยวที่N" (เที่ยวที่1, เที่ยวที่2, เที่ยวที่3, ...) เท่านั้น — ตัดค่าเก่าที่พิมพ์ไม่ตรงรูปแบบออกจาก dropdown
+  // (เช่น "1","2","คันที่1","คันที่2","คันที่3","คันรถ1","เที่ยว1","เที่ยว 1","เที่ยว 2","เที่ยว2") ไม่ได้แก้ไขข้อมูลออเดอร์เก่าเลย แค่ไม่โชว์เป็นตัวเลือกกรอง
+  // ไม่ล็อคจำนวน — ถ้าอนาคตมีข้อมูลจริง "เที่ยวที่3"/"เที่ยวที่4" จะโผล่ในตัวเลือกเองอัตโนมัติ ไม่ต้องแก้โค้ดเพิ่ม เรียงตามเลขจริง (ไม่ใช่เรียงตามตัวอักษร กัน "เที่ยวที่10" โผล่มาก่อน "เที่ยวที่2")
   const selT = document.getElementById('sum-truck-filter');
   if (selT.options.length <= 1) {
-    const trucks = [...new Set(summaryData.map(o=>String(o.truck||'')).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'th'));
+    const tripRe = /^เที่ยวที่(\d+)$/;
+    const trucks = [...new Set(summaryData.map(o=>String(o.truck||'')).filter(t => tripRe.test(t)))]
+      .sort((a,b) => parseInt(a.match(tripRe)[1],10) - parseInt(b.match(tripRe)[1],10));
     trucks.forEach(t => { const opt=document.createElement('option'); opt.value=t; opt.textContent=t; selT.appendChild(opt); });
   }
 }
@@ -5690,8 +5695,8 @@ function anBuildKpiCal() {
     buildCal()+
     '<div class="an-sales-kpi-row">'+
       '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายตั้งแต่ต้นปี (YTD)</div><div class="ask-val" style="color:#1e293b">฿'+Math.round(ytd).toLocaleString()+'</div><div class="ask-sub">ม.ค. – '+now.getDate()+' '+AN_THAI_M[thisM]+'. '+(thisY+543)+'</div></div>'+
+      '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายเดือนที่แล้ว</div><div class="ask-val" style="color:#1a3a5c">฿'+Math.round(prevMon).toLocaleString()+'</div><div class="ask-sub">'+AN_THAI_M[prevMStart.getMonth()]+'. '+(prevMStart.getFullYear()+543)+'</div></div>'+
       '<div class="an-sales-kpi"><div class="ask-lbl">ยอดขายเดือนนี้</div><div class="ask-val" style="color:#1a3a5c">฿'+Math.round(mon).toLocaleString()+'</div><div class="ask-sub">'+(pBadge(mon,prevMon)||'—')+' vs เดือนที่แล้ว</div></div>'+
-      '<div class="an-sales-kpi"><div class="ask-lbl">'+kpiTitle+'</div><div class="ask-val" style="color:#1a3a5c">฿'+Math.round(tod).toLocaleString()+'</div><div class="ask-sub">'+(pBadge(tod,selPrev)||'—')+' '+subLbl+'</div></div>'+
     '</div>';
 }
 function anRenderKpiCal() {
