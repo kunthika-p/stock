@@ -3516,9 +3516,7 @@ function hasPriceSet(o) {
 async function confirmOrder(row, code, qty) {
   const oChk = pendingOrders.find(x => x.row === row);
   if (oChk && !hasPriceSet(oChk)) {
-    // 2026-09-05 DEBUG ชั่วคราว: แนบข้อมูลดิบไปกับข้อความเตือนเพื่อหาสาเหตุที่ยังติดอยู่บนเครื่อง user จริง — ลบออกหลังหาสาเหตุเจอ
-    const custMatch = CUSTOMERS.find(c => c.name === oChk.customer);
-    showToast('⚠️ ยังไม่มีราคา [DEBUG row=' + row + ' cust="' + oChk.customer + '"(len' + oChk.customer.length + ') match=' + JSON.stringify(custMatch) + ' isAdj=' + isAdjustCustomer(oChk) + ' disc=' + JSON.stringify(oChk.disc_pct) + ' net=' + JSON.stringify(oChk.net_price) + ']', 'warn');
+    showToast('⚠️ ออเดอร์นี้ยังไม่มีราคา กรุณากรอก %ส่วนลด หรือ ราคา Net ก่อน', 'warn');
     openEditModalByRow(row);
     return;
   }
@@ -5905,6 +5903,5 @@ function anRenderSalesCharts(orders, items) {
 }
 
 </script>
-<div style="position:fixed;bottom:4px;left:4px;background:#111;color:#0f0;font:11px monospace;padding:2px 6px;border-radius:4px;z-index:99999;opacity:0.85">BUILD 2026-09-05-1435-DEBUG</div>
 </body>
 </html>
