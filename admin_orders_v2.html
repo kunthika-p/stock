@@ -3500,7 +3500,14 @@ async function confirmTruckModal() {
 // 2026-07-14: บังคับต้องมีราคา (disc_pct หรือ net_price อย่างน้อย 1 อย่าง) ก่อนยืนยันออเดอร์ได้ — sale ยังกด
 // สั่งของได้ตามปกติ ไม่บล็อกตอนสั่ง แต่พอมาถึงขั้น admin กดยืนยัน ถ้ายังไม่มีราคาจะเด้งไปหน้ากรอกราคาแทนทันที
 // (กันเคสแบบ checkRoundHeadPricing_20260714 เจอ — ออเดอร์ยืนยันแล้วแต่ไม่มีราคา หายจากยอดขายเงียบๆ)
+// 2026-09-05: ลูกค้า dummy "แสงไทย" (code 00000) — บัญชีตั้งออเดอร์ปรับสต็อคเวลานับสต็อคหน้างานไม่ตรงกับระบบ
+// ไม่มีราคา/ส่วนลดจริงโดยตั้งใจ (แค่ปรับจำนวน) เลยต้องยกเว้นให้ผ่านเงื่อนไข hasPriceSet() ด้านล่างได้ ไม่งั้นยืนยันออเดอร์ไม่ได้เลย
+const ADJUST_CUSTOMER_CODE = '00000';
+function isAdjustCustomer(o) {
+  return (CUSTOMERS.find(c => c.name === o.customer) || {}).code === ADJUST_CUSTOMER_CODE;
+}
 function hasPriceSet(o) {
+  if (isAdjustCustomer(o)) return true;
   const hasDisc = o.disc_pct !== '' && o.disc_pct !== null && o.disc_pct !== undefined;
   const hasNet  = o.net_price !== '' && o.net_price !== null && o.net_price !== undefined;
   return hasDisc || hasNet;
