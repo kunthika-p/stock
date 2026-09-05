@@ -3147,10 +3147,11 @@ function renderPendingTable() {
       if (nextGrade !== grade) {
         // 2026-07-30: user แจ้งว่าตารางลายตา สีพาสเทลแยกตามกลุ่ม (GROUP_COLORS) ทำให้แถวสรุปนี้กลืนกับสีอื่นในตาราง
         // 2026-07-31: เปลี่ยนเป็นเหลืองเข้ม #fde68a (เฉด A จาก mockup ที่ user เลือก) เฉดเดียวกับพื้นเหลืองออเดอร์วันนี้ (#fffbeb) แต่เข้มขึ้น แยกจาก "รวมรถเที่ยวนี้" ที่เป็นเขียวแล้ว
-        rows += `<tr class="pend-total-row" style="background:#fde68a;${hideStyle}">
-          <td colspan="5" style="text-align:right;font-weight:700;color:#78350f;padding:4px 8px">เลือกแล้วในกลุ่ม ${grade||'—'}</td>
-          <td style="font-weight:700;color:#78350f;text-align:center"><span id="grp-sel-sack-${gKey}">-</span></td>
-          <td style="font-weight:700;color:#78350f;text-align:center"><span id="grp-sel-box-${gKey}">-</span></td>
+        // 2026-09-05: user แจ้งว่า #fde68a สดเกินไป ขัดกับ mood ภาพรวม — ทำ mockup เทียบหลายเฉด user เลือก #fef9c3 (เหลืองอ่อนเฉดเดียวกับป้ายกลุ่ม C ที่มีอยู่แล้วในตาราง — ไม่เพิ่มสีใหม่เข้าระบบ) confirm แล้ว
+        rows += `<tr class="pend-total-row" style="background:#fef9c3;${hideStyle}">
+          <td colspan="5" style="text-align:right;font-weight:700;color:#92400e;padding:4px 8px">เลือกแล้วในกลุ่ม ${grade||'—'}</td>
+          <td style="font-weight:700;color:#92400e;text-align:center"><span id="grp-sel-sack-${gKey}">-</span></td>
+          <td style="font-weight:700;color:#92400e;text-align:center"><span id="grp-sel-box-${gKey}">-</span></td>
           <td colspan="7"></td>
         </tr>`;
       }
