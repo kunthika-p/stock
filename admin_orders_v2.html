@@ -404,9 +404,10 @@ table.list tr:hover td{background:#f8fbff}
   #tab-analytics button{display:none!important}
   #tab-analytics input,#tab-analytics select{display:none!important}
   #tab-analytics .an-info{display:none!important}
-  /* บังคับโชว์ panel ที่ปกติซ่อนด้วยปุ่ม toggle บนจอ (ค้างสต็อค/ใกล้หมด, Top5 สรุปทั้งปี/กระจุกตัว) ให้ครบทุกข้อมูลตอนพิมพ์ */
+  /* บังคับโชว์ panel ที่ปกติซ่อนด้วยปุ่ม toggle บนจอ (ค้างสต็อค/ใกล้หมด, Top5 กระจุกตัว) ให้ครบทุกข้อมูลตอนพิมพ์
+     2026-09-08: ตัดแท็บ "สรุปทั้งปี" (#an-top5-panel-y) ออกแล้ว — คอลัมน์ "ติด Top5" ย้ายไปรวมในตาราง "ยอดขายแยกตามลูกค้า" แทน (ปกติแสดงอยู่แล้ว ไม่ต้องบังคับโชว์) */
   #tab-analytics .an-feat-grid{display:grid!important}
-  #tab-analytics #an-top5-panel-y,#tab-analytics #an-top5-panel-c{display:block!important}
+  #tab-analytics #an-top5-panel-c{display:block!important}
   /* ตาราง/การ์ดที่ปกติจำกัดความสูงไว้เลื่อนดูบนจอ (ยอดขายแยกตามลูกค้า, Top5 สรุปทั้งปี) ให้พิมพ์ยาวเต็มไม่ตัดข้อมูล */
   #tab-analytics .an-cust-scroll{max-height:none!important;overflow:visible!important}
   #tab-analytics .an-cust-scroll thead th{position:static!important}
@@ -565,6 +566,24 @@ table.list tr:hover td{background:#f8fbff}
 .an-top5-tag.core{background:#dcfce7;color:#15803d}
 .an-top5-tag.few{background:#fef9c3;color:#a16207}
 .an-top5-tag.never{background:#f1f5f9;color:#94a3b8}
+
+/* 2026-09-08 (part 5): ยุบแท็บ "สรุปทั้งปี" ของ Top5 widget เข้าเป็นคอลัมน์ "ติด Top5 (Nด)" ในตาราง "ยอดขายแยกตามลูกค้า"
+   (mockup v1-v6 confirm แล้ว) — ป้ายวางบรรทัดล่างของตัวเลขเสมอ กันตัวเลขขยับซ้าย-ขวาไม่นิ่ง, และเปลี่ยนปุ่มเรียงลำดับ
+   หัวตารางจากคลิกหัวข้อสลับ asc/desc ตรงๆ เป็นไอคอน ▾ ท้ายชื่อหัวข้อเสมอ กดแล้วเด้งเมนูเลือกทิศทาง */
+.top5-cell{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-height:19px;justify-content:center}
+.top5-cell .an-top5-tag{margin-left:0}
+.an-th-inner{display:flex;align-items:center;gap:4px;position:relative;white-space:nowrap}
+.an-sort-ic{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:5px;cursor:pointer;flex-shrink:0;opacity:.6;transition:opacity .12s,transform .15s}
+.an-sort-ic i{font-size:12px}
+.an-sort-ic:hover{opacity:1;background:rgba(255,255,255,.16)}
+.an-sort-ic.active{opacity:1;background:rgba(255,209,102,.22)}
+.an-sort-ic.dir-asc{transform:rotate(180deg)}
+.an-sort-menu{position:absolute;top:26px;background:white;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 6px 18px rgba(15,32,60,.18);min-width:140px;z-index:10;overflow:hidden;font-weight:400}
+.an-sort-menu.left{left:0}
+.an-sort-menu.right{right:0}
+.an-sort-menu button{display:block;width:100%;text-align:left;padding:9px 12px;border:none;background:white;color:#334155;font-size:12.5px;font-family:'Sarabun',sans-serif;cursor:pointer}
+.an-sort-menu button:hover{background:#f1f5f9}
+.an-sort-menu button.on{color:#1a3a5c;font-weight:700;background:#f8fafc}
 
 /* 2026-09-08 (part 2): รวม "แนวโน้มยอดขายต่อลูกค้า" เข้าตาราง "ยอดขายแยกตามลูกค้า" + คู่การ์ด เงียบนาน/เก่งที่สุดต่อหมวด
    จับคู่ความสูงกันเอง (mockup confirm แล้ว v4) */
@@ -4847,8 +4866,9 @@ let anCustSearch = '';
 let anCustOpenRow = '';
 let anCustCurrentList = [];
 let anCustSearchTimer = null;
-let anCustSortField = 'revenue'; // name | revenue | orders | avg
+let anCustSortField = 'revenue'; // revenue | pct | months | avg (2026-09-08: จำกัดคอลัมน์ที่เรียงได้เหลือ 4 คอลัมน์ ตามที่ user ขอ — name/orders ไม่ให้เรียงแล้ว)
 let anCustSortDesc = true;
+let anCustSortMenuOpen = null; // 2026-09-08: คีย์คอลัมน์ที่ dropdown เรียงลำดับกำลังเปิดอยู่ (null = ปิดหมด) — ใช้กับปุ่มไอคอน ▾ ท้ายหัวข้อ
 let anCustShowAll = false; // 2026-07-11: ตารางลูกค้าทั้งหมดยาวเกินไป (40 ราย) เริ่มโชว์แค่ top 10 กดปุ่มค่อยกางครบ
 
 // 2026-08-18: state สำหรับ "ลูกค้าที่เงียบนาน" + "แนวโน้มยอดขายต่อลูกค้า" (mockup confirm กับ user แล้วหลายรอบ)
@@ -5143,9 +5163,13 @@ function anBuildCustomerResults() {
   // อิง 6 เดือนปฏิทินล่าสุดเสมอ ไม่ผูกกับ anCustRange ที่เลือกด้านบน (ตั้งใจ พฤติกรรมเดิมของการ์ดแนวโน้ม)
   const anTrendMap = {};
   anComputeCustomerTrend().forEach(t => { anTrendMap[t.name] = t; });
+  // 2026-09-08: รวมคอลัมน์ "ติด Top5 (Nด)" เข้ามาจากแท็บ "สรุปทั้งปี" ของ Top5 widget ที่ยุบไปแล้ว — คำนวณจากหน้าต่าง
+  // N เดือนล่าสุดที่มีข้อมูลจริงเสมอ (anTop5StatsMap) ไม่ผูกกับ anCustRange ด้านบน (คนละช่วงเวลาตั้งใจ เหมือนคอลัมน์แนวโน้ม)
+  const { map: anTop5Map, N: anTop5N } = anTop5StatsMap();
   let list = Object.entries(byCust).map(([name,v])=>{
     const t = anTrendMap[name] || null;
-    return {name, revenue:v.revenue, orders:v.orders, avg: v.orders ? Math.round(v.revenue/v.orders) : 0, trendVals: t ? t.vals : null, pctChange: t ? t.pctChange : null};
+    const t5 = anTop5Map[name] || { months: 0, rank: 9999 };
+    return {name, revenue:v.revenue, orders:v.orders, avg: v.orders ? Math.round(v.revenue/v.orders) : 0, trendVals: t ? t.vals : null, pctChange: t ? t.pctChange : null, months: t5.months, top5Rank: t5.rank};
   });
   if (anCustSearch.trim()) {
     const q = anCustSearch.trim().toLowerCase();
@@ -5172,7 +5196,7 @@ function anBuildCustomerResults() {
 
   let rows = '';
   if (!list.length) {
-    rows = '<tr><td colspan="6" style="padding:16px;text-align:center;color:#94a3b8;font-size:12px">ไม่พบลูกค้าในช่วงเวลานี้'+(anCustSearch?' หรือคำค้นหา':'')+'</td></tr>';
+    rows = '<tr><td colspan="7" style="padding:16px;text-align:center;color:#94a3b8;font-size:12px">ไม่พบลูกค้าในช่วงเวลานี้'+(anCustSearch?' หรือคำค้นหา':'')+'</td></tr>';
   } else {
     list.forEach((c,i) => {
       const open = anCustOpenRow === c.name;
@@ -5180,11 +5204,16 @@ function anBuildCustomerResults() {
       const rankBadge = isRevDesc ? '<span class="an-cust-rank'+(isTop5?' top':'')+'">'+(i+1)+'</span>' : '';
       const sparkCell = c.trendVals ? '<div class="an-spark-wrap">'+anSparklineSvg(c.trendVals)+'</div>' : '<div style="text-align:center;color:#cbd5e1;font-size:11px">—</div>';
       const pctCell = c.pctChange===null ? '<span style="color:#cbd5e1">—</span>' : '<span class="an-chg-badge '+(c.pctChange>=0?'an-chg-up':'an-chg-down')+'">'+(c.pctChange>=0?'▲':'▼')+Math.abs(c.pctChange)+'%</span>';
+      // 2026-09-08: ป้าย (แกนหลัก/ยอดมาจากไม่กี่เดือน) วางบรรทัดล่างของ "X/N" เสมอ (ไม่ต่อท้ายบรรทัดเดียวกัน) กัน
+      // ตัวเลขขยับซ้าย-ขวาไม่นิ่งเวลาบางแถวมีป้ายบางแถวไม่มี — user ทักเรื่องนี้ไว้
+      const top5TagH = anTop5Tag(c.months, anTop5N, c.top5Rank);
+      const top5Cell = '<div class="top5-cell"><span>'+c.months+'/'+anTop5N+'</span>'+top5TagH+'</div>';
       rows += '<tr style="cursor:pointer;background:'+(open?'#eef2f7':(isTop5?'#fffbeb':(i%2?'#f8fafc':'white')))+'" onclick="anCustToggleRow('+i+')">'+
         '<td style="padding:10px 14px;color:#1a3a5c;font-weight:700"><i class="ti ti-chevron-'+(open?'down':'right')+'" style="font-size:12px;margin-right:6px" aria-hidden="true"></i>'+rankBadge+anEsc(c.name)+'</td>'+
         '<td style="padding:10px 14px;text-align:right;font-weight:700">฿'+Math.round(c.revenue).toLocaleString()+'</td>'+
         '<td style="padding:10px 14px">'+sparkCell+'</td>'+
         '<td style="padding:10px 14px;text-align:right">'+pctCell+'</td>'+
+        '<td style="padding:10px 14px;text-align:right;color:#64748b">'+top5Cell+'</td>'+
         '<td style="padding:10px 14px;text-align:right;color:#64748b">'+c.orders+'</td>'+
         '<td style="padding:10px 14px;text-align:right;color:#64748b">฿'+c.avg.toLocaleString()+'</td></tr>';
       if (open) {
@@ -5201,34 +5230,68 @@ function anBuildCustomerResults() {
             '<div style="width:110px;text-align:right;font-size:12px;font-weight:700;color:#1a3a5c">฿'+Math.round(q).toLocaleString()+' <span style="color:#94a3b8;font-weight:400">('+w+'%)</span></div></div>';
         });
         detail += '</div>';
-        rows += '<tr><td colspan="6" style="padding:0"><div style="padding:20px 18px;background:#f8fafc;border-top:1px solid #eef1f5">'+detail+'</div></td></tr>';
+        rows += '<tr><td colspan="7" style="padding:0"><div style="padding:20px 18px;background:#f8fafc;border-top:1px solid #eef1f5">'+detail+'</div></td></tr>';
       }
     });
   }
 
+  // 2026-09-08: จำกัดคอลัมน์ที่เรียงได้เหลือ 4 คอลัมน์ตามที่ user ขอ (ยอดขาย/% เทียบเดือนก่อน/ติด Top5/เฉลี่ยฯ) —
+  // ตัด ลูกค้า(ก-ฮ)/จำนวนออเดอร์ ออก ส่วน "แนวโน้ม 6 เดือน" ไม่มีปุ่มเรียงเองเลย ให้พ่วงไปกับ "ยอดขาย" (มีโน้ตกำกับใต้หัวข้อแทน)
+  // dir: 'desc'|'asc' คือทิศเริ่มต้นที่โชว์ก่อนในเมนู dropdown (ไม่ใช่ค่า sort ปัจจุบัน)
   const custSortCols = [
-    ['name','ลูกค้า','left','min-width:170px',true],
-    ['revenue','ยอดขาย','right','width:100px',true],
-    [null,'แนวโน้ม 6 เดือน','center','width:100px',false],
-    ['pct','% เทียบเดือนก่อน','right','width:120px',true],
-    ['orders','จำนวนออเดอร์','right','width:100px',true],
-    ['avg','เฉลี่ย/ออเดอร์','right','width:110px',true]
+    ['name',   'ลูกค้า',            'left',   'min-width:170px', null],
+    ['revenue','ยอดขาย',            'right',  'width:100px',     ['desc','asc']],
+    [null,     'แนวโน้ม 6 เดือน',    'center', 'width:100px',     null, '(เรียงตามยอดขาย)'],
+    ['pct',    '% เทียบเดือนก่อน',   'right',  'width:120px',     ['desc','asc']],
+    ['months', 'ติด Top5 ('+anTop5N+'ด)', 'right', 'width:150px', ['desc','asc']],
+    ['orders', 'จำนวนออเดอร์',       'right',  'width:100px',     null],
+    ['avg',    'เฉลี่ย/ออเดอร์',     'right',  'width:110px',     ['desc','asc']]
   ];
+  const sortDirLabel = { desc: 'มาก → น้อย', asc: 'น้อย → มาก' };
   let theadH = '';
-  custSortCols.forEach(([key,label,align,w,sortable],i)=>{
+  custSortCols.forEach(([key,label,align,w,dirs,sub],i)=>{
     const rad = i===0 ? 'border-radius:6px 0 0 0;' : i===custSortCols.length-1 ? 'border-radius:0 6px 0 0;' : '';
-    if (!sortable) {
-      theadH += '<th style="background:#1a3a5c;color:white;padding:9px 14px;text-align:'+align+';font-weight:600;'+w+';'+rad+'">'+label+'</th>';
+    const subH = sub ? '<div style="font-size:9px;font-weight:400;color:rgba(255,255,255,.65);margin-top:1px">'+sub+'</div>' : '';
+    if (!dirs) {
+      theadH += '<th style="background:#1a3a5c;color:white;padding:9px 14px;text-align:'+align+';font-weight:600;'+w+';'+rad+'"><div class="an-th-inner">'+label+'</div>'+subH+'</th>';
       return;
     }
+    // 2026-09-08: เปลี่ยนจากคลิกหัวข้อสลับ asc/desc ตรงๆ เป็นไอคอน ▾ (ti-chevron-down, หมุนทิศตามทิศที่เลือก) ท้ายชื่อ
+    // หัวข้อเสมอทุกคอลัมน์ (ไม่สลับหน้า-หลัง) กดแล้วเด้งเมนูให้เลือก "มาก→น้อย"/"น้อย→มาก" — user ขอเปลี่ยนจากไอคอนเดิม
     const active = anCustSortField === key;
-    const icon = active ? '<i class="ti ti-chevron-'+(anCustSortDesc?'down':'up')+'" style="font-size:13px;margin-left:4px;vertical-align:-2px" aria-hidden="true"></i>' : '';
-    theadH += '<th onclick="anCustSortChange(\''+key+'\')" style="background:#1a3a5c;color:white;padding:9px 14px;text-align:'+align+';font-weight:600;cursor:pointer;user-select:none;'+w+';'+rad+'">'+label+icon+'</th>';
+    const menuOpen = anCustSortMenuOpen === key;
+    const iconCls = 'an-sort-ic'+(active?' active':'')+(active && anCustSortDesc===false ? ' dir-asc':'');
+    const icon = '<span class="'+iconCls+'" onclick="anCustSortMenuToggle(\''+key+'\',event)"><i class="ti ti-chevron-down" aria-hidden="true"></i></span>';
+    let menu = '';
+    if (menuOpen) {
+      const side = align === 'right' ? 'right' : 'left';
+      menu = '<div class="an-sort-menu '+side+'" onclick="event.stopPropagation()">'+
+        dirs.map(d => '<button class="'+((active && (anCustSortDesc===(d==='desc')))?'on':'')+'" onclick="anCustSortApply(\''+key+'\',\''+d+'\')">'+sortDirLabel[d]+((active && (anCustSortDesc===(d==='desc')))?' ✓':'')+'</button>').join('')+
+      '</div>';
+    }
+    theadH += '<th style="background:#1a3a5c;color:white;padding:9px 14px;text-align:'+align+';font-weight:600;'+w+';'+rad+'"><div class="an-th-inner" style="justify-content:'+(align==='right'?'flex-end':(align==='center'?'center':'flex-start'))+'">'+label+icon+menu+'</div>'+subH+'</th>';
   });
 
   return '<div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:10px">ลูกค้าทั้งหมด <span style="font-size:11px;color:#94a3b8;font-weight:400">'+list.length+' ราย'+(isRevDesc?' · ไฮไลท์เหลือง = ท็อป 5':'')+'</span></div>'+
     '<div class="an-cust-scroll"><table style="border-collapse:collapse;font-size:13px;width:100%"><thead><tr>'+theadH+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
+
+// 2026-09-08: เปิด/ปิดเมนู dropdown เรียงลำดับที่หัวคอลัมน์ (แทนที่การคลิกหัวข้อสลับ asc/desc ตรงๆ แบบเดิม)
+function anCustSortMenuToggle(key, ev) {
+  if (ev) ev.stopPropagation();
+  anCustSortMenuOpen = (anCustSortMenuOpen === key) ? null : key;
+  anRefreshCustomerResults();
+}
+function anCustSortApply(field, dir) {
+  anCustSortField = field;
+  anCustSortDesc = (dir === 'desc');
+  anCustSortMenuOpen = null;
+  anRefreshCustomerResults();
+}
+// ปิดเมนู sort ถ้าคลิกที่อื่นนอกตาราง (ตามแพทเทิร์นเดิมของไฟล์นี้ที่ใช้กับ ih-drop dropdown)
+document.addEventListener('click', () => {
+  if (anCustSortMenuOpen) { anCustSortMenuOpen = null; anRefreshCustomerResults(); }
+});
 
 /* 2026-09-08: โค้ดเดิมก่อนแก้ตาม mockup v11 (กราฟแท่ง Top5 + ตาราง capped 10 แถว + ปุ่ม "ดูทั้งหมด") เก็บไว้อ้างอิงตาม CRITICAL RULES
    ("แก้โค้ดที่มีฟังก์ชัน/modal เดิมถูกแทนที่: เก็บของเดิมไว้เป็น dead code แทนการลบ") — ไม่ได้ถูกเรียกใช้แล้ว ไม่มีผลต่อการทำงาน
@@ -5289,6 +5352,8 @@ function anCustShowAllToggle_OLD_pre20260908() {
 }
 */
 
+// 2026-09-08: ไม่ได้ผูกกับ onclick หัวตารางแล้ว (เปลี่ยนไปใช้ anCustSortMenuToggle/anCustSortApply ผ่านไอคอน ▾ dropdown
+// แทน) เก็บฟังก์ชันนี้ไว้เผื่อใช้อ้างอิง/เรียกจากที่อื่นในอนาคต ยังทำงานได้ปกติถ้ามีคนเรียก ไม่ใช่ dead code จริงๆ
 function anCustSortChange(field) {
   if (anCustSortField === field) { anCustSortDesc = !anCustSortDesc; }
   else { anCustSortField = field; anCustSortDesc = true; }
@@ -5346,6 +5411,23 @@ function anCatRevMonths() {
     out.push({ y: d.getFullYear(), m: d.getMonth(), label: AN_THAI_M[d.getMonth()] + (d.getFullYear()+543).toString().slice(-2) });
   }
   return out;
+}
+
+// 2026-09-08: จำนวนเดือนที่ "มีข้อมูลออเดอร์จริง" นับจากเดือนแรกสุดที่มีออเดอร์ในระบบถึงเดือนปัจจุบัน (สูงสุด 12)
+// ใช้แทนการนับ 12 เดือนตายตัวสำหรับ Top5 widget/คอลัมน์ "ติด Top5" — user ทัก ("ตอนนี้เข้าเดือนที่3 เอง...
+// อยากให้โชว์แค่เท่าที่มี") ตอนระบบเพิ่งเริ่มใช้ยังไม่ครบ 12 เดือน ตัวหารจะขยับขึ้นเองทุกเดือนจนครบ 12 แล้วกลายเป็น
+// หน้าต่างเลื่อน (rolling) 12 เดือนล่าสุดตลอดไปตามเดิม ไม่ใช่นับตามปีปฏิทิน
+function anTop5AvailableMonths() {
+  let earliest = null;
+  anOrdersCache.forEach(o => {
+    const d = anPDate(o);
+    if (!d || isNaN(d)) return;
+    if (!earliest || d < earliest) earliest = d;
+  });
+  if (!earliest) return 12; // ไม่มีออเดอร์เลย — กันพัง fallback กลับไปแบบเดิม
+  const now = new Date();
+  const months = (now.getFullYear() - earliest.getFullYear()) * 12 + (now.getMonth() - earliest.getMonth()) + 1;
+  return Math.max(1, Math.min(12, months));
 }
 
 // 2026-09-01: หาลูกค้าอันดับ 1 (ยอดขายรวมทั้งปีย้อนหลัง 12 เดือน สูงสุด) ให้โชว์เป็นค่าเริ่มต้นอัตโนมัติตอนเปิดแท็บ
@@ -5788,7 +5870,10 @@ function anRenderCustomerSection() {
 // ===== 2026-09-08: "🏆 Top5 ลูกค้า" — full-width widget ใต้การ์ด "ยอดขายแยกตามลูกค้า"/"ลูกค้าที่เงียบนาน" (mockup confirm แล้ว v11, 09-07) =====
 // ใช้ anCatRevMonths() ตัวเดิม (ไม่สร้างระบบเดือน rolling ซ้ำ ตาม CRITICAL RULES) — ไม่ผูกกับ anCustRange ของการ์ด "ยอดขายแยกตามลูกค้า" (คนละช่วงเวลาตั้งใจ)
 function anTop5MonthlyData() {
-  const months = anCatRevMonths();
+  // 2026-09-08: ตัดให้เหลือเฉพาะ N เดือนล่าสุดที่มีข้อมูลจริง (แทนที่จะตายตัว 12 เดือนเสมอ) — ดู anTop5AvailableMonths()
+  const allMonths = anCatRevMonths();
+  const N = anTop5AvailableMonths();
+  const months = allMonths.slice(12 - N);
   const now = new Date();
   return months.map((mo, i) => {
     const isCurrent = i === months.length - 1;
@@ -5812,16 +5897,41 @@ function anTop5AnnualData(monthlyData) {
   return Object.entries(byCust).map(([name,v])=>({name, revenue:v.revenue, months: monthCount[name]||0})).sort((a,b)=>b.revenue-a.revenue);
 }
 
-function anTop5Tag(months, rank) {
+/* 2026-09-08: เวอร์ชันเดิม (เกณฑ์ตัวเลขตายตัว ≥8/=0/≤4 บนฐาน 12 เดือนเสมอ) เก็บไว้อ้างอิงตาม CRITICAL RULES
+   ไม่ได้ถูกเรียกใช้แล้ว — แทนที่ด้วย anTop5Tag(months, N, rank) ด้านล่าง ที่ใช้สัดส่วนแทนเลขตายตัว
+   (รองรับ N < 12 ตอนระบบเพิ่งเริ่มใช้งาน) และตัดป้าย "นานๆที"/"ไม่เคยติด Top5 รายเดือน" ออกตามที่ user ขอ
+   (ไม่ให้ insight เพิ่มจากตัวเลข X/N ที่โชว์อยู่แล้ว)
+function anTop5Tag_OLD_pre20260908(months, rank) {
   if (months >= 8) return '<span class="an-top5-tag core">แกนหลัก</span>';
   if (months === 0) return '<span class="an-top5-tag never">ไม่เคยติด Top5 รายเดือน</span>';
   if (months <= 4) return '<span class="an-top5-tag '+(rank<5?'few':'never')+'">'+(rank<5?'ยอดมาจากไม่กี่เดือน':'นานๆที')+'</span>';
   return '';
 }
+*/
+// 2026-09-08: เกณฑ์เป็นสัดส่วนของ N (ไม่ใช่เลขตายตัวบนฐาน 12) — ≥67% = แกนหลัก, ≤33% (และติดท็อป5 ยอดขายรวมด้วย) = ยอดมาจากไม่กี่เดือน
+// ถ้า N < 6 เดือน (ข้อมูลยังน้อยเกินจะสรุปได้แม่นๆ) ยังไม่ขึ้นป้ายเลย โชว์แค่ตัวเลข X/N เฉยๆไปก่อน — user confirm แนวทางนี้แล้ว (09-08)
+function anTop5Tag(months, N, rank) {
+  if (N < 6) return '';
+  // เทียบด้วยการคูณไขว้ (months/N >= 2/3, months/N <= 1/3) แทนเลขทศนิยม 0.67/0.33 — ป้องกันปัญหาความแม่นยำ
+  // ทศนิยม (0.6666... ปัดเป็น 0.67 แล้วเทียบ >=0.67 จะเท็จผิดพลาด ทำให้ 8/12 หลุดเกณฑ์ "แกนหลัก" ไปเฉยๆ)
+  if (months * 3 >= N * 2) return '<span class="an-top5-tag core">แกนหลัก</span>';
+  if (months * 3 <= N && rank < 5) return '<span class="an-top5-tag few">ยอดมาจากไม่กี่เดือน</span>';
+  return '';
+}
+
+// 2026-09-08: สรุปสถิติ "ติด Top5 กี่เดือน" ต่อลูกค้า (คำนวณจากหน้าต่าง N เดือนล่าสุดที่มีข้อมูลจริงเสมอ ไม่ผูกกับ
+// anCustRange ของตาราง "ยอดขายแยกตามลูกค้า" — คนละช่วงเวลาตั้งใจ เหมือนคอลัมน์ "แนวโน้ม 6 เดือน") ใช้ทั้งในตาราง
+// "ยอดขายแยกตามลูกค้า" (คอลัมน์ที่ยุบมารวมจากแท็บ "สรุปทั้งปี" เดิม) และเผื่ออนาคตถ้าจะเอาไปใช้ที่อื่นอีก
+function anTop5StatsMap() {
+  const monthly = anTop5MonthlyData();
+  const annual = anTop5AnnualData(monthly);
+  const map = {};
+  annual.forEach((c,i) => { map[c.name] = { months: c.months, rank: i }; });
+  return { map, N: monthly.length };
+}
 
 function anBuildTop5Widget() {
   const monthly = anTop5MonthlyData();
-  const annual = anTop5AnnualData(monthly);
 
   let mgrid = '';
   monthly.forEach(mo => {
@@ -5831,14 +5941,19 @@ function anBuildTop5Widget() {
     mgrid += '<div class="an-top5-mcard'+(mo.isCurrent?' cur':'')+'"><div class="mt">'+mo.label+(mo.isCurrent?' <span class="now">เดือนนี้</span>':'')+'</div>'+rowsH+'</div>';
   });
 
+  /* 2026-09-08: แท็บ "🏆 สรุปทั้งปี" (annual/annualRows) ถูกยุบย้ายไปเป็นคอลัมน์ "ติด Top5 (Nด)" ในตาราง
+     "ยอดขายแยกตามลูกค้า" แทนแล้ว (ดู anBuildCustomerResults()) — เก็บโค้ดเดิมไว้อ้างอิงตาม CRITICAL RULES
+     ไม่ได้ถูกเรียกใช้แล้ว ไม่มีผลต่อการทำงาน
+  const annual = anTop5AnnualData(monthly);
   const annualRows = annual.length
     ? annual.map((c,i)=>
         '<tr style="background:'+(i<5?'#fffbeb':(i%2?'#f8fafc':'white'))+'">'+
           '<td style="padding:9px 14px;color:#1a3a5c;font-weight:700"><span class="an-cust-rank'+(i<5?' top':'')+'">'+(i+1)+'</span>'+anEsc(c.name)+'</td>'+
           '<td style="padding:9px 14px;text-align:right;font-weight:700">฿'+Math.round(c.revenue).toLocaleString()+'</td>'+
-          '<td style="padding:9px 14px;text-align:right;color:#64748b">'+c.months+'/12 '+anTop5Tag(c.months,i)+'</td>'+
+          '<td style="padding:9px 14px;text-align:right;color:#64748b">'+c.months+'/12 '+anTop5Tag_OLD_pre20260908(c.months,i)+'</td>'+
         '</tr>').join('')
     : '<tr><td colspan="3" style="padding:16px;text-align:center;color:#94a3b8;font-size:12px">ไม่มีข้อมูล</td></tr>';
+  */
 
   const svgW=1200, svgH=260, padL=46, padR=20, padT=24, padB=34;
   const iw=svgW-padL-padR, ih=svgH-padT-padB;
@@ -5863,22 +5978,14 @@ function anBuildTop5Widget() {
   const concSvg = '<svg viewBox="0 0 '+svgW+' '+svgH+'" preserveAspectRatio="none" style="width:100%;height:260px;display:block">'+
     gridSvg+'<path d="'+pathD+'" fill="none" stroke="#1a3a5c" stroke-width="3"/>'+pointsSvg+'</svg>';
 
+  // 2026-09-08: subtitle เปลี่ยนจากตายตัว "12 เดือน" เป็น N เดือนจริงที่มีข้อมูล (monthly.length) — ดู anTop5AvailableMonths()
   return '<div class="an-card-title" style="margin-bottom:0">🏆 Top5 ลูกค้า</div>'+
-    '<div style="font-size:11px;color:#94a3b8;margin-bottom:14px">ย้อนหลัง 12 เดือน (rolling) จบที่เดือนปัจจุบัน</div>'+
+    '<div style="font-size:11px;color:#94a3b8;margin-bottom:14px">ย้อนหลัง '+monthly.length+' เดือน (rolling) จบที่เดือนปัจจุบัน'+(monthly.length<12?' — ระบบเพิ่งเริ่มบันทึกออเดอร์ ยังไม่ครบ 12 เดือน':'')+'</div>'+
     '<div class="an-top5-tabbar">'+
       '<button class="an-top5-tabbtn active" id="an-top5-tab-m" onclick="anTop5SwitchTab(\'m\')">📅 รายเดือน</button>'+
-      '<button class="an-top5-tabbtn" id="an-top5-tab-y" onclick="anTop5SwitchTab(\'y\')">🏆 สรุปทั้งปี</button>'+
       '<button class="an-top5-tabbtn" id="an-top5-tab-c" onclick="anTop5SwitchTab(\'c\')">⚠️ กระจุกตัว</button>'+
     '</div>'+
     '<div id="an-top5-panel-m"><div class="an-top5-mgrid">'+mgrid+'</div></div>'+
-    '<div id="an-top5-panel-y" style="display:none">'+
-      '<div class="an-cust-scroll" style="max-height:400px"><table style="border-collapse:collapse;font-size:13px;width:100%"><thead><tr>'+
-        '<th style="background:#1a3a5c;color:white;padding:9px 14px;text-align:left;min-width:170px">ลูกค้า</th>'+
-        '<th style="background:#1a3a5c;color:white;padding:9px 14px;text-align:right;width:130px">ยอดรวมทั้งปี</th>'+
-        '<th style="background:#1a3a5c;color:white;padding:9px 14px;text-align:right;width:240px">ติด Top5 กี่เดือน</th>'+
-      '</tr></thead><tbody>'+annualRows+'</tbody></table></div>'+
-      '<div style="font-size:11.5px;color:#94a3b8;margin-top:8px;line-height:1.6">จัดอันดับตามยอดขายรวมทั้งปีของลูกค้าทุกราย (ไม่ใช่แค่คนที่เคยติด Top5 รายเดือน) — คอลัมน์ขวาบอกว่าติด Top5 รายเดือนกี่ครั้งจาก 12 เดือน</div>'+
-    '</div>'+
     '<div id="an-top5-panel-c" style="display:none">'+concSvg+'</div>';
 }
 
@@ -5889,7 +5996,7 @@ function anRenderTop5Widget() {
 }
 
 function anTop5SwitchTab(t) {
-  ['m','y','c'].forEach(k=>{
+  ['m','c'].forEach(k=>{ // 2026-09-08: ตัดแท็บ 'y' (สรุปทั้งปี) ออก
     const panel = document.getElementById('an-top5-panel-'+k);
     const btn = document.getElementById('an-top5-tab-'+k);
     if (panel) panel.style.display = (k===t) ? 'block' : 'none';
