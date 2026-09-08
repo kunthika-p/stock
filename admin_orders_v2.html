@@ -394,6 +394,11 @@ table.list tr:hover td{background:#f8fbff}
 
   /* ── #tab-analytics: พิมพ์ทั้งแท็บวิเคราะห์ข้อมูล (2026-09-08, user เลือก "ทั้งแท็บวิเคราะห์ข้อมูล" ผ่าน AskUserQuestion) ──
      ไม่แก้ JS ใดๆ — ใช้ CSS !important ทับ inline style ที่ JS ตั้งไว้ (ซ่อน/จำกัดความสูง) ล้วนๆ */
+  /* 2026-09-08: user พิมพ์ทดสอบแล้วพบว่ากราฟแท่ง/สีต่างๆ ในแท็บวิเคราะห์ข้อมูลหายไปตอนพิมพ์ (แค่ตัวเลข ไม่มีแท่งสี)
+     สาเหตุ: browser ไม่พิมพ์ background-color ของ element ทั่วไปเป็นค่า default เว้นแต่บังคับด้วย print-color-adjust:exact
+     (จุดอื่นในไฟล์นี้ เช่น .stk-cell/.sum-cust-row/.truck-hdr ก็เจอปัญหาเดียวกันมาก่อนแล้วและแก้ด้วยวิธีเดียวกัน) —
+     ใช้ selector กว้าง * ครอบทั้งแท็บเลย เพราะแท่งกราฟ/จุด legend ในแท็บนี้ใช้ inline style background ไม่มี class ให้เจาะจง */
+  #tab-analytics *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
   #tab-analytics .content{padding:0!important}
   #an-pw-section{display:none!important}
   #tab-analytics button{display:none!important}
