@@ -537,6 +537,15 @@ table.list tr:hover td{background:#f8fbff}
 .an-top5-tag.few{background:#fef9c3;color:#a16207}
 .an-top5-tag.never{background:#f1f5f9;color:#94a3b8}
 
+/* 2026-09-08 (part 2): รวม "แนวโน้มยอดขายต่อลูกค้า" เข้าตาราง "ยอดขายแยกตามลูกค้า" + คู่การ์ด เงียบนาน/เก่งที่สุดต่อหมวด
+   จับคู่ความสูงกันเอง (mockup confirm แล้ว v4) */
+#an-churn-card{display:flex;flex-direction:column}
+#an-churn-card .hdr{flex:0 0 auto}
+#an-churn-clip{position:relative}
+#an-churn-clip.an-fade::after{content:'';position:absolute;left:0;right:0;bottom:0;height:44px;background:linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));pointer-events:none}
+.an-expand-btn{flex:0 0 auto;width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid #d8dfe8;background:white;color:#1a3a5c;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif}
+.an-expand-btn:hover{background:#f8fafc}
+
 </style>
 </head>
 <body>
@@ -4812,8 +4821,10 @@ let anCustShowAll = false; // 2026-07-11: ตารางลูกค้าท�
 
 // 2026-08-18: state สำหรับ "ลูกค้าที่เงียบนาน" + "แนวโน้มยอดขายต่อลูกค้า" (mockup confirm กับ user แล้วหลายรอบ)
 const AN_CHURN_DAYS = 30; // เกณฑ์วันคงที่เท่ากันทุกคน (user เลือกแบบนี้แทนแบบ % ของรอบสั่งซื้อปกติต่อคน — ปรับตัวเลขนี้ได้ตรงๆ
-let anTrendSort = 'amount'; // amount(ยอดเดือนนี้) | up(โตสุดก่อน) | down(ร่วงสุดก่อน)
-let anTrendShowAll = false;
+let anTrendSort = 'amount'; // amount(ยอดเดือนนี้) | up(โตสุดก่อน) | down(ร่วงสุดก่อน) — 2026-09-08: ไม่ได้ใช้แล้ว (การ์ดแนวโน้มแยกถูกรวมเข้าตารางลูกค้าแล้ว) เก็บไว้เฉยๆ ไม่ลบ
+let anTrendShowAll = false; // ไม่ได้ใช้แล้วเช่นกัน
+let anChurnExpanded = false; // 2026-09-08: สถานะกางลิสต์ "ลูกค้าที่เงียบนาน" เต็ม (ปกติจับคู่ความสูงกับ "เก่งที่สุดต่อหมวด")
+let anChurnListCount = 0;
 
 // 2026-09-01: state สำหรับการ์ด "ยอดขายแยกตามหมวดต่อลูกค้า" (mockup confirm แล้ว v8/v9) — คีย์ชื่อ/รหัสลูกค้าเองเท่านั้น
 // ห้ามโชว์ลิสต์ลูกค้าเต็มเด็ดขาด (ตามที่ user ยืนยัน) — anCatRevMatches มีค่าเฉพาะตอนพิมพ์แล้วเจอมากกว่า 1 รายเท่านั้น
@@ -5095,13 +5106,29 @@ function anBuildCustomerControls() {
 function anBuildCustomerResults() {
   const { from, to } = anResolveRange(anCustRange);
   const { byCust, byCustType } = anAggregate(from, to);
-  let list = Object.entries(byCust).map(([name,v])=>({name, revenue:v.revenue, orders:v.orders, avg: v.orders ? Math.round(v.revenue/v.orders) : 0}));
+  // 2026-09-08: รวม "แนวโน้มยอดขายต่อลูกค้า" (การ์ดแยกเดิม) เข้ามาเป็น 2 คอลัมน์ในตารางนี้ (mockup confirm แล้ว v4)
+  // ใช้ anComputeCustomerTrend()/anSparklineSvg() ตัวเดิม (ไม่สร้างคำนวณเทรนด์ซ้ำ) — แนวโน้ม 6 เดือน + % เทียบเดือนก่อน
+  // อิง 6 เดือนปฏิทินล่าสุดเสมอ ไม่ผูกกับ anCustRange ที่เลือกด้านบน (ตั้งใจ พฤติกรรมเดิมของการ์ดแนวโน้ม)
+  const anTrendMap = {};
+  anComputeCustomerTrend().forEach(t => { anTrendMap[t.name] = t; });
+  let list = Object.entries(byCust).map(([name,v])=>{
+    const t = anTrendMap[name] || null;
+    return {name, revenue:v.revenue, orders:v.orders, avg: v.orders ? Math.round(v.revenue/v.orders) : 0, trendVals: t ? t.vals : null, pctChange: t ? t.pctChange : null};
+  });
   if (anCustSearch.trim()) {
     const q = anCustSearch.trim().toLowerCase();
     list = list.filter(c => c.name.toLowerCase().includes(q));
   }
   list.sort((a,b) => {
     if (anCustSortField === 'name') return anCustSortDesc ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name);
+    if (anCustSortField === 'pct') {
+      // 2026-09-08: ลูกค้าที่ไม่มีข้อมูลแนวโน้ม (null) ให้ไปอยู่ท้ายตารางเสมอไม่ว่าจะเรียงทิศทางไหน
+      // (ไม่ใช่ไปกองอยู่ปลายใดปลายหนึ่งตามเครื่องหมาย ซึ่งจะสลับข้างสับสนตอนกดสลับ asc/desc)
+      if (a.pctChange === null && b.pctChange === null) return 0;
+      if (a.pctChange === null) return 1;
+      if (b.pctChange === null) return -1;
+      return anCustSortDesc ? b.pctChange - a.pctChange : a.pctChange - b.pctChange;
+    }
     const av = a[anCustSortField], bv = b[anCustSortField];
     return anCustSortDesc ? bv - av : av - bv;
   });
@@ -5113,15 +5140,19 @@ function anBuildCustomerResults() {
 
   let rows = '';
   if (!list.length) {
-    rows = '<tr><td colspan="4" style="padding:16px;text-align:center;color:#94a3b8;font-size:12px">ไม่พบลูกค้าในช่วงเวลานี้'+(anCustSearch?' หรือคำค้นหา':'')+'</td></tr>';
+    rows = '<tr><td colspan="6" style="padding:16px;text-align:center;color:#94a3b8;font-size:12px">ไม่พบลูกค้าในช่วงเวลานี้'+(anCustSearch?' หรือคำค้นหา':'')+'</td></tr>';
   } else {
     list.forEach((c,i) => {
       const open = anCustOpenRow === c.name;
       const isTop5 = isRevDesc && i < 5;
       const rankBadge = isRevDesc ? '<span class="an-cust-rank'+(isTop5?' top':'')+'">'+(i+1)+'</span>' : '';
+      const sparkCell = c.trendVals ? '<div class="an-spark-wrap">'+anSparklineSvg(c.trendVals)+'</div>' : '<div style="text-align:center;color:#cbd5e1;font-size:11px">—</div>';
+      const pctCell = c.pctChange===null ? '<span style="color:#cbd5e1">—</span>' : '<span class="an-chg-badge '+(c.pctChange>=0?'an-chg-up':'an-chg-down')+'">'+(c.pctChange>=0?'▲':'▼')+Math.abs(c.pctChange)+'%</span>';
       rows += '<tr style="cursor:pointer;background:'+(open?'#eef2f7':(isTop5?'#fffbeb':(i%2?'#f8fafc':'white')))+'" onclick="anCustToggleRow('+i+')">'+
         '<td style="padding:10px 14px;color:#1a3a5c;font-weight:700"><i class="ti ti-chevron-'+(open?'down':'right')+'" style="font-size:12px;margin-right:6px" aria-hidden="true"></i>'+rankBadge+anEsc(c.name)+'</td>'+
         '<td style="padding:10px 14px;text-align:right;font-weight:700">฿'+Math.round(c.revenue).toLocaleString()+'</td>'+
+        '<td style="padding:10px 14px">'+sparkCell+'</td>'+
+        '<td style="padding:10px 14px;text-align:right">'+pctCell+'</td>'+
         '<td style="padding:10px 14px;text-align:right;color:#64748b">'+c.orders+'</td>'+
         '<td style="padding:10px 14px;text-align:right;color:#64748b">฿'+c.avg.toLocaleString()+'</td></tr>';
       if (open) {
@@ -5138,22 +5169,28 @@ function anBuildCustomerResults() {
             '<div style="width:110px;text-align:right;font-size:12px;font-weight:700;color:#1a3a5c">฿'+Math.round(q).toLocaleString()+' <span style="color:#94a3b8;font-weight:400">('+w+'%)</span></div></div>';
         });
         detail += '</div>';
-        rows += '<tr><td colspan="4" style="padding:0"><div style="padding:20px 18px;background:#f8fafc;border-top:1px solid #eef1f5">'+detail+'</div></td></tr>';
+        rows += '<tr><td colspan="6" style="padding:0"><div style="padding:20px 18px;background:#f8fafc;border-top:1px solid #eef1f5">'+detail+'</div></td></tr>';
       }
     });
   }
 
   const custSortCols = [
-    ['name','ลูกค้า','left','min-width:170px'],
-    ['revenue','ยอดขาย','right','width:110px'],
-    ['orders','จำนวนออเดอร์','right','width:110px'],
-    ['avg','เฉลี่ย/ออเดอร์','right','width:110px']
+    ['name','ลูกค้า','left','min-width:170px',true],
+    ['revenue','ยอดขาย','right','width:100px',true],
+    [null,'แนวโน้ม 6 เดือน','center','width:100px',false],
+    ['pct','% เทียบเดือนก่อน','right','width:120px',true],
+    ['orders','จำนวนออเดอร์','right','width:100px',true],
+    ['avg','เฉลี่ย/ออเดอร์','right','width:110px',true]
   ];
   let theadH = '';
-  custSortCols.forEach(([key,label,align,w],i)=>{
+  custSortCols.forEach(([key,label,align,w,sortable],i)=>{
+    const rad = i===0 ? 'border-radius:6px 0 0 0;' : i===custSortCols.length-1 ? 'border-radius:0 6px 0 0;' : '';
+    if (!sortable) {
+      theadH += '<th style="background:#1a3a5c;color:white;padding:9px 14px;text-align:'+align+';font-weight:600;'+w+';'+rad+'">'+label+'</th>';
+      return;
+    }
     const active = anCustSortField === key;
     const icon = active ? '<i class="ti ti-chevron-'+(anCustSortDesc?'down':'up')+'" style="font-size:13px;margin-left:4px;vertical-align:-2px" aria-hidden="true"></i>' : '';
-    const rad = i===0 ? 'border-radius:6px 0 0 0;' : i===custSortCols.length-1 ? 'border-radius:0 6px 0 0;' : '';
     theadH += '<th onclick="anCustSortChange(\''+key+'\')" style="background:#1a3a5c;color:white;padding:9px 14px;text-align:'+align+';font-weight:600;cursor:pointer;user-select:none;'+w+';'+rad+'">'+label+icon+'</th>';
   });
 
@@ -5243,7 +5280,7 @@ function anBuildCatChampCard() {
   const { byCustType } = anAggregate(from, to);
   const champs = anCatChampions(byCustType);
   let rows = '';
-  AN_VCAT_ORDER.forEach((cat,i) => {
+  AN_VCAT_ORDER.filter(cat => cat !== 'อื่นๆ').forEach((cat,i) => {
     const c = champs[cat];
     rows += '<tr style="background:'+(i%2?'#f8fafc':'white')+'">'+
       '<td style="padding:9px 14px;color:#1a3a5c;font-weight:700">'+cat+'</td>'+
@@ -5520,24 +5557,80 @@ function anComputeChurn() {
   return list;
 }
 
+// 2026-09-08: ปรับให้เป็นโครงคงที่ (hdr + clip + ปุ่มขยาย) เพื่อให้ anSyncChurnHeight() จับคู่ความสูงกับ
+// การ์ด "เก่งที่สุดต่อหมวด" ได้เสมอ ไม่ว่าจำนวนลูกค้าที่เงียบนานจะมีกี่ราย (mockup confirm แล้ว v4)
 function anBuildChurnCard() {
   const list = anComputeChurn();
-  let h = '<div class="an-card-title">🚨 ลูกค้าที่เงียบนาน</div>'+
-    '<div style="font-size:11px;color:#94a3b8;margin-bottom:14px">ไม่มีออเดอร์ยืนยันเกิน '+AN_CHURN_DAYS+' วัน</div>';
+  anChurnListCount = list.length;
+  let bodyH = '';
   if (!list.length) {
-    h += '<div style="font-size:12.5px;color:#16a34a;text-align:center;padding:20px 0">✅ ไม่มีลูกค้าที่เงียบนานเกิน '+AN_CHURN_DAYS+' วันตอนนี้</div>';
-    return h;
+    bodyH = '<div style="font-size:12.5px;color:#16a34a;text-align:center;padding:20px 0">✅ ไม่มีลูกค้าที่เงียบนานเกิน '+AN_CHURN_DAYS+' วันตอนนี้</div>';
+  } else {
+    bodyH += '<div class="an-kpi-mini"><div class="n">'+list.length+'</div><div class="t">รายที่เข้าเกณฑ์<br>ตอนนี้</div></div>';
+    list.forEach(c => {
+      const dateLbl = c.lastDate.toLocaleDateString('th-TH', {day:'numeric', month:'short'});
+      bodyH += '<div class="an-churn-row">'+
+        '<div><div class="an-churn-name">'+anEsc(c.name)+'</div><div class="an-churn-sub">สั่งล่าสุด '+dateLbl+'</div></div>'+
+        '<span class="an-days-val">'+c.days+' วัน</span>'+
+      '</div>';
+    });
   }
-  h += '<div class="an-kpi-mini"><div class="n">'+list.length+'</div><div class="t">รายที่เข้าเกณฑ์<br>ตอนนี้</div></div>';
-  list.forEach(c => {
-    const dateLbl = c.lastDate.toLocaleDateString('th-TH', {day:'numeric', month:'short'});
-    h += '<div class="an-churn-row">'+
-      '<div><div class="an-churn-name">'+anEsc(c.name)+'</div><div class="an-churn-sub">สั่งล่าสุด '+dateLbl+'</div></div>'+
-      '<span class="an-days-val">'+c.days+' วัน</span>'+
-    '</div>';
-  });
-  return h;
+  return '<div class="hdr"><div class="an-card-title">🚨 ลูกค้าที่เงียบนาน</div>'+
+      '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px">ไม่มีออเดอร์ยืนยันเกิน '+AN_CHURN_DAYS+' วัน</div></div>'+
+    '<div id="an-churn-clip"><div id="an-churn-body">'+bodyH+'</div></div>'+
+    '<button class="an-expand-btn" id="an-churn-expand-btn" style="display:none" onclick="anChurnToggleExpand()"></button>';
 }
+
+function anChurnToggleExpand() {
+  anChurnExpanded = !anChurnExpanded;
+  anSyncChurnHeight();
+}
+
+// จับคู่ความสูงการ์ด "ลูกค้าที่เงียบนาน" ให้เท่ากับ "เก่งที่สุดต่อหมวด" (8 หมวดคงที่ = สูงคงที่เกือบทุกครั้ง)
+// ถ้ารายชื่อเงียบนานยาวกว่านั้น: ครอบความสูงไว้เท่าเดิม + โชว์ปุ่ม "ขยายดูทั้งหมด" ท้ายการ์ด (ปุ่มเองก็อยู่ในกรอบความสูงเดียวกัน
+// เพราะใช้ flex-column กับความสูงคงที่ ให้พื้นที่ลิสต์ (flex:1) หดให้พอดีกับปุ่มเองอัตโนมัติ) กดขยายแล้วการ์ดยืดสูงลงไปโชว์ครบ
+function anSyncChurnHeight() {
+  const champEl = document.getElementById('an-champ-card');
+  const churnCard = document.getElementById('an-churn-card');
+  const clip = document.getElementById('an-churn-clip');
+  const btn = document.getElementById('an-churn-expand-btn');
+  const body = document.getElementById('an-churn-body');
+  if (!champEl || !churnCard || !clip || !btn || !body) return;
+  const champH = champEl.offsetHeight;
+  if (!champH) return; // ยังไม่ได้ layout จริง (เช่น tab ซ่อนอยู่) ข้ามไปก่อน
+
+  churnCard.style.height = champH + 'px';
+  btn.style.display = 'none';
+  clip.style.flex = '1 1 auto';
+  clip.style.minHeight = '0';
+  clip.style.overflow = 'hidden';
+  clip.classList.remove('an-fade');
+  void churnCard.offsetHeight; // บังคับ reflow ก่อนวัด
+  const availNoBtn = clip.clientHeight;
+  const needsExpand = body.scrollHeight > availNoBtn + 2;
+
+  if (!needsExpand) {
+    anChurnExpanded = false;
+    return;
+  }
+
+  if (anChurnExpanded) {
+    churnCard.style.height = 'auto';
+    clip.style.flex = '0 0 auto';
+    clip.style.overflow = 'visible';
+    clip.classList.remove('an-fade');
+    btn.style.display = 'block';
+    btn.textContent = 'ย่อกลับ';
+  } else {
+    churnCard.style.height = champH + 'px';
+    clip.style.flex = '1 1 auto';
+    clip.style.overflow = 'hidden';
+    clip.classList.add('an-fade');
+    btn.style.display = 'block';
+    btn.textContent = 'ขยายดูทั้งหมด ('+anChurnListCount+' ราย)';
+  }
+}
+window.addEventListener('resize', anSyncChurnHeight);
 
 // ===== 2026-08-18: "แนวโน้มยอดขายต่อลูกค้า" (6 เดือนย้อนหลัง, ท็อป 5 + ปุ่มเรียงลำดับ) =====
 // คำนวณราคาเต็มด้วย getRevenuePerUnit() เหมือนจุดอื่นในระบบเสมอ (ดู CRITICAL RULES ใน memory — ห้ามใช้ qty ดิบ)
@@ -5590,6 +5683,9 @@ function anSparklineSvg(vals) {
   return '<svg width="'+w+'" height="'+h+'"><path d="'+pathD+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+circles+'</svg>';
 }
 
+/* 2026-09-08: การ์ด "แนวโน้มยอดขายต่อลูกค้า" แยกต่างหากถูกยกเลิก — รวมเป็น 2 คอลัมน์ (แนวโน้ม 6 เดือน + % เทียบเดือนก่อน)
+   เข้าไปในตาราง "ยอดขายแยกตามลูกค้า" แทนแล้ว (ดู anBuildCustomerResults() ที่ใช้ anComputeCustomerTrend()/anSparklineSvg() ตัวเดิมนี้ซ้ำ)
+   เก็บโค้ดเดิมไว้เป็น dead code อ้างอิงตาม CRITICAL RULES ไม่ได้ถูกเรียกใช้แล้ว ไม่มีผลต่อการทำงาน
 function anBuildTrendCard() {
   let list = anComputeCustomerTrend();
   if (anTrendSort === 'amount') list.sort((a,b) => b.thisMonth - a.thisMonth);
@@ -5641,16 +5737,20 @@ function anTrendShowAllToggle() {
   anTrendShowAll = !anTrendShowAll;
   anRefreshTrendCard();
 }
+*/
 
 // 2026-08-18: แยก render เป็น 2 target element (ซ้าย/ขวา) แทนการเขียน el เดียวที่มี 2 การ์ดต่อกัน —
 // เพราะฝั่งขวาตอนนี้มี "แนวโน้มยอดขายต่อลูกค้า" + "KPI สต็อคสินค้า" ต่อท้าย "ลูกค้าเก่งที่สุดต่อหมวด" อยู่ด้วย
 // (คนละ container กัน render อิสระจากกัน) ถ้ายังเขียน el เดียวเหมือนเดิมจะไปทับของที่ต่อท้ายไว้ทุกครั้งที่เปลี่ยนช่วงเวลา
 function anRenderCustomerSection() {
-  const leftEl = document.getElementById('an-cust-left-body');
-  const rightEl = document.getElementById('an-cust-right-body');
-  if (!leftEl || !rightEl) return;
-  leftEl.innerHTML = '<div class="an-card">'+anBuildCustomerControls()+'<div id="an-cust-results">'+anBuildCustomerResults()+'</div></div>';
-  rightEl.innerHTML = '<div class="an-card">'+anBuildCatChampCard()+'</div>';
+  // 2026-09-08: เปลี่ยนจาก 2 คอลัมน์ (ซ้าย=ยอดขายแยกตามลูกค้า, ขวา=เก่งที่สุดต่อหมวด) เป็นตารางลูกค้าเต็มความกว้าง
+  // ต่อด้วยแถวคู่ เงียบนาน/เก่งที่สุดต่อหมวดด้านล่าง (mockup confirm แล้ว v4, ย้ายมาไว้เหนือ "ยอดขายแยกตามหมวดต่อลูกค้า")
+  const fullEl = document.getElementById('an-cust-full-body');
+  const champEl = document.getElementById('an-champ-card');
+  if (!fullEl || !champEl) return;
+  fullEl.innerHTML = anBuildCustomerControls()+'<div id="an-cust-results">'+anBuildCustomerResults()+'</div>';
+  champEl.innerHTML = anBuildCatChampCard();
+  anSyncChurnHeight(); // เผื่อความสูงการ์ดเก่งที่สุดต่อหมวดเปลี่ยน (ปกติไม่เปลี่ยนเพราะ 8 หมวดคงที่) sync ซ้ำไว้ไม่เสียหาย
 }
 
 // ===== 2026-09-08: "🏆 Top5 ลูกค้า" — full-width widget ใต้การ์ด "ยอดขายแยกตามลูกค้า"/"ลูกค้าที่เงียบนาน" (mockup confirm แล้ว v11, 09-07) =====
@@ -6038,27 +6138,15 @@ function anRenderSalesCharts(orders, items) {
     '<div id="an-kpi-cal">'+anBuildKpiCal()+'</div>'+
     '<div class="an-sales-2col" id="an-main-charts" style="margin-top:14px"></div>'+
     '<div id="an-stack-container">'+anBuildStackChart()+'</div>'+
-    '<div class="an-card" id="an-catrev-container" style="margin-top:14px">'+anBuildCatRevCard()+'</div>'+
-    // 2026-08-18: mockup confirm กับ user แล้วหลายรอบก่อนขึ้นโค้ดจริง (v5.1) — โครงผัง:
-    // ซ้าย: ยอดขายแยกตามลูกค้า(เดิม) -> ลูกค้าที่เงียบนาน(ใหม่)
-    // ขวา: ลูกค้าเก่งที่สุดต่อหมวด(เดิม) -> แนวโน้มยอดขายต่อลูกค้า(ใหม่) -> KPI สต็อคสินค้า(เดิม ย้ายมา) + สต็อครวมแต่ละประเภท(เดิม ติดกัน)
-    // .an-col-stack ยืดการ์ดสุดท้ายของแต่ละฝั่งให้จบเสมอกัน (ดู CSS) กันที่ว่างเวลาจำนวนแถวสองฝั่งไม่เท่ากัน
-    '<div class="an-sales-2col" style="margin-top:20px">'+
-      '<div class="an-col-stack">'+
-        '<div id="an-cust-left-body"></div>'+
-        '<div class="an-card">'+anBuildChurnCard()+'</div>'+
-      '</div>'+
-      '<div class="an-col-stack">'+
-        '<div id="an-cust-right-body"></div>'+
-        // 2026-09-01: เอา "📦 KPI สต็อคสินค้า" ออกทั้งบล็อกตามที่ user ขอไปแล้วรอบก่อน ("ไม่ได้ใช้ประโยชน์อะไร")
-        // ตอนนี้ user ขอเอา "📊 สต็อครวมแต่ละประเภท" (การ์ดเดียวกันเดิม) ออกด้วยเช่นกัน ("ยกเลิกไปเลยไม่ได้ใช้")
-        // เลยเอาทั้งการ์ดออก ไม่เหลืออะไรของ KPI สต็อคสินค้าเดิมในคอลัมน์ขวาแล้ว — คอลัมน์ขวาเหลือ 2 การ์ด
-        // (ลูกค้าเก่งที่สุดต่อหมวด + แนวโน้มยอดขายต่อลูกค้า) .an-col-stack CSS เดิมจะ stretch การ์ดสุดท้าย
-        // (ตอนนี้คือ an-trend-card) ให้จบเสมอกับฝั่งซ้ายอัตโนมัติอยู่แล้ว ไม่ต้องแก้ CSS เพิ่ม
-        // ดู anLoadData() ด้านล่าง ที่เคยเขียนค่า #an-chart-qty/#an-chart-sku ก็เอาออกไปด้วยเช่นกัน (element ไม่มีแล้ว)
-        '<div class="an-card" id="an-trend-card">'+anBuildTrendCard()+'</div>'+
-      '</div>'+
+    // 2026-09-08: ย้าย "ยอดขายแยกตามลูกค้า" (รวมแนวโน้มเข้าตารางแล้ว) + คู่การ์ด เงียบนาน/เก่งที่สุดต่อหมวด
+    // มาไว้เหนือ "ยอดขายแยกตามหมวดต่อลูกค้า" ตามที่ user ขอ (เดิมอยู่ใต้การ์ดนั้น) — mockup confirm แล้ว v4
+    // ตารางลูกค้าเต็มความกว้าง (เดิมเป็นครึ่งคอลัมน์) ให้คอลัมน์แนวโน้ม/%เทียบเดือนก่อนใหม่มีที่พอ ไม่อึดอัด
+    '<div class="an-card" id="an-cust-full-body" style="margin-top:14px"></div>'+
+    '<div class="an-sales-2col" style="margin-top:20px;align-items:start">'+
+      '<div class="an-card" id="an-churn-card">'+anBuildChurnCard()+'</div>'+
+      '<div class="an-card" id="an-champ-card"></div>'+
     '</div>'+
+    '<div class="an-card" id="an-catrev-container" style="margin-top:20px">'+anBuildCatRevCard()+'</div>'+
     '<div class="an-card" id="an-top5-widget" style="margin-top:20px"></div>';
 
   anRenderMainCharts();
