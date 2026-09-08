@@ -302,10 +302,11 @@ table.list tr:hover td{background:#f8fbff}
   *{box-sizing:border-box}
   @page{margin:4mm 5mm}
   body{font-size:8pt;font-family:'Sarabun',sans-serif}
-  .tabs,.header,.sum-filter-row,.toast,#tab-overview,#tab-stock,#tab-stockin,#tab-pending,#tab-history,#tab-summary,#tab-itemhistory{display:none!important}
+  .tabs,.header,.sum-filter-row,.toast,#tab-overview,#tab-stock,#tab-stockin,#tab-pending,#tab-history,#tab-summary,#tab-itemhistory,#tab-analytics{display:none!important}
   #tab-summary.active{display:block!important}
   #tab-itemhistory.active{display:block!important}
   #tab-stock.active{display:block!important}
+  #tab-analytics.active{display:block!important}
   #tab-summary .content{padding:0!important}
   .sum-print-hide,.ih-print-hide,.hist-print-hide{display:none!important}
   #tab-stock .legend,#tab-stock .type-nav-wrap,#tab-stock .card-title{display:none!important}
@@ -390,6 +391,28 @@ table.list tr:hover td{background:#f8fbff}
   .sum-tbl .sub-row td,#tab-summary .hist-tbl tr.summary-row td{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 5px!important}
   .sum-grand{font-size:8pt!important;padding:4px 0 0!important;margin-top:4px!important;border-top:1px solid #333!important}
   .truck-hdr{background:#eef3fb!important;color:#1a3a5c!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:9pt!important;padding:4px 6px!important;margin:0 0 2px!important}
+
+  /* ── #tab-analytics: พิมพ์ทั้งแท็บวิเคราะห์ข้อมูล (2026-09-08, user เลือก "ทั้งแท็บวิเคราะห์ข้อมูล" ผ่าน AskUserQuestion) ──
+     ไม่แก้ JS ใดๆ — ใช้ CSS !important ทับ inline style ที่ JS ตั้งไว้ (ซ่อน/จำกัดความสูง) ล้วนๆ */
+  #tab-analytics .content{padding:0!important}
+  #an-pw-section{display:none!important}
+  #tab-analytics button{display:none!important}
+  #tab-analytics input,#tab-analytics select{display:none!important}
+  #tab-analytics .an-info{display:none!important}
+  /* บังคับโชว์ panel ที่ปกติซ่อนด้วยปุ่ม toggle บนจอ (ค้างสต็อค/ใกล้หมด, Top5 สรุปทั้งปี/กระจุกตัว) ให้ครบทุกข้อมูลตอนพิมพ์ */
+  #tab-analytics .an-feat-grid{display:grid!important}
+  #tab-analytics #an-top5-panel-y,#tab-analytics #an-top5-panel-c{display:block!important}
+  /* ตาราง/การ์ดที่ปกติจำกัดความสูงไว้เลื่อนดูบนจอ (ยอดขายแยกตามลูกค้า, Top5 สรุปทั้งปี) ให้พิมพ์ยาวเต็มไม่ตัดข้อมูล */
+  #tab-analytics .an-cust-scroll{max-height:none!important;overflow:visible!important}
+  #tab-analytics .an-cust-scroll thead th{position:static!important}
+  /* การ์ด "ลูกค้าที่เงียบนาน" ปกติ JS บังคับความสูงให้เท่า "เก่งที่สุดต่อหมวด" (โชว์ปุ่มขยายถ้ายาวเกิน) — ตอนพิมพ์ให้สูงเต็มตามเนื้อหาจริงเสมอ ไม่ตัด ไม่ต้องกดขยาย */
+  #tab-analytics #an-churn-card{height:auto!important;display:block!important}
+  #tab-analytics #an-churn-clip{overflow:visible!important;flex:0 0 auto!important}
+  #tab-analytics #an-churn-clip.an-fade::after{display:none!important}
+  #tab-analytics .an-card{border:1px solid #ccc!important;box-shadow:none!important;padding:12px!important;page-break-inside:avoid}
+  #tab-analytics #an-cust-full-body,#tab-analytics #an-top5-widget{page-break-inside:auto!important}
+  #tab-analytics tr{page-break-inside:avoid}
+  #tab-analytics .an-card-title{page-break-after:avoid;margin-bottom:6px!important}
 }
 
 /* ── Analytics Tab ── */
@@ -402,6 +425,7 @@ table.list tr:hover td{background:#f8fbff}
 .an-pw-input:focus{outline:none;border-color:#1a3a5c}
 .an-pw-err{font-size:11px;color:#dc2626;margin-bottom:8px;min-height:16px}
 .an-pw-btn{width:100%;padding:11px;background:#1a3a5c;color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif}
+.an-btn-print{font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 14px;border-radius:6px;border:none;cursor:pointer;background:#059669;color:white;font-weight:600;text-transform:none;flex:0 0 auto;white-space:nowrap}
 .an-dash{padding:16px;display:none}
 .an-section{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;margin-top:6px}
 .an-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
@@ -1150,7 +1174,10 @@ table.list tr:hover td{background:#f8fbff}
 
     <!-- ===== SALES ANALYTICS (DYNAMIC) — ย้ายมาไว้บนสุดตามที่ user ขอ 07-09 ===== -->
     <div class="an-sales-section">
-      <div class="an-section">ยอดขายสินค้า <span class="an-mock-badge" id="an-sales-mock-badge">⏳ กำลังโหลด...</span></div>
+      <div class="an-section" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+        <span>ยอดขายสินค้า <span class="an-mock-badge" id="an-sales-mock-badge">⏳ กำลังโหลด...</span></span>
+        <button class="an-btn-print" onclick="window.print()">🖨️ พิมพ์ข้อมูลวิเคราะห์</button>
+      </div>
 
       <div id="an-sales-body"><div style="text-align:center;padding:24px;font-size:12px;color:#94a3b8">⏳ กำลังโหลดข้อมูลยอดขาย...</div></div>
     </div>
