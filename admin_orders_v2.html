@@ -367,24 +367,24 @@ table.list tr:hover td{background:#f8fbff}
     padding:2px 4px!important;font-size:6.5pt!important;font-weight:700!important}
   .sum-tbl thead th,#tab-summary .hist-tbl thead th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 4px!important;font-size:6pt!important;text-align:center!important}
   .sum-tbl,#tab-summary .hist-tbl{font-size:6.5pt!important;border-collapse:collapse!important;width:100%!important;table-layout:fixed!important}
-  #tab-summary .hist-tbl col:nth-child(1){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(2){width:8%!important}
-  #tab-summary .hist-tbl col:nth-child(3){width:33%!important}
-  #tab-summary .hist-tbl col:nth-child(4){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(5){width:6%!important}
-  #tab-summary .hist-tbl col:nth-child(6){width:6%!important}
-  #tab-summary .hist-tbl col:nth-child(7){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(8){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(9){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(1){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(2){width:7%!important}
+  #tab-summary .hist-tbl col:nth-child(3){width:22%!important}
+  #tab-summary .hist-tbl col:nth-child(4){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(5){width:5%!important}
+  #tab-summary .hist-tbl col:nth-child(6){width:5%!important}
+  #tab-summary .hist-tbl col:nth-child(7){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(8){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(9){width:7%!important}
   #tab-summary .hist-tbl col:nth-child(10){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(11){width:0%!important}
+  #tab-summary .hist-tbl col:nth-child(11){width:9%!important}
   #tab-summary .hist-tbl col:nth-child(12){width:6%!important}
-  /* 2026-07-31: ลด font คอลัมน์ วันที่/รหัส/ความเร่งด่วน/จัดส่ง (เดิม inline 11px แต่ละแถวข้อมูล) + ซ่อนคอลัมน์สถานะ ตอนพิมพ์เท่านั้น (จอปกติยังเห็นครบ) — ให้พื้นที่ชื่อสินค้ากว้างขึ้น */
-  #tab-summary .hist-tbl th:nth-child(11),#tab-summary .hist-tbl td:nth-child(11){visibility:hidden!important;padding:0!important;border:none!important}
+  #tab-summary .hist-tbl col:nth-child(13){width:8%!important}
+  /* 2026-09-09: ลด font คอลัมน์ วันที่/รหัส (เดิม inline 11px แต่ละแถวข้อมูล) ตอนพิมพ์เท่านั้น (จอปกติยังเห็นครบ) — ให้พื้นที่ชื่อสินค้ากว้างขึ้น
+     ตัดคอลัมน์ ความเร่งด่วน/สถานะ ออกจากตารางไปแล้ว (ไม่ใช่แค่ซ่อนตอนพิมพ์เหมือนเดิม) เพิ่มราคาตั้ง/หลังหักลด/ราคารวมแทน — ดู renderSummary() */
   #tab-summary .hist-tbl td:nth-child(1){font-size:6.5pt!important;white-space:normal!important}
   #tab-summary .hist-tbl td:nth-child(4){font-size:6.5pt!important}
-  #tab-summary .hist-tbl td:nth-child(9) span{font-size:6.5pt!important;padding:1px 5px!important}
-  #tab-summary .hist-tbl td:nth-child(10) span{font-size:6.5pt!important;padding:1px 5px!important}
+  #tab-summary .hist-tbl td:nth-child(12) span{font-size:6.5pt!important;padding:1px 5px!important}
   .sum-tbl th,#tab-summary .hist-tbl th{padding:2px 4px!important;font-size:6.5pt!important}
   .sum-tbl td,#tab-summary .hist-tbl td{padding:2px 5px!important;line-height:1.2!important;border:0.5px solid #ccc!important}
   .sum-tbl .num,#tab-summary .hist-tbl td{text-align:center!important}
@@ -1590,7 +1590,7 @@ function computeNetPrice(custName, itemCode) {
 // - ถ้า disc_pct ไม่ว่าง: ราคาตั้ง(จาก Excel, บาท/กก.หรือ/ตัว) x หน่วยบรรจุ x (1-disc_pct/100)
 // - หมวดที่ยังไม่มีข้อมูลราคา (Spring Washer/OVERSIZE) → return null (ไม่รวมในยอดขายบาท) — น็อตแข็ง/มิลแข็งทั่วไป (NOK_PRICE) และหัวน็อตมิลแข็งเกรด8 (4 ไซส์: M12/16/20/24) เพิ่มราคาแล้ว 07-13
 // อ้างอิงราคา+หน่วยบรรจุ: nokkilo_price_recheck.xlsx (07-09) + memory/MEMORY_น็อตกิโล.md
-function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
+function getRevenuePerUnit(type, col, row, discPct, netPrice, plating, breakdown) {
   // 2026-07-29: ชุบขาว/ชุบรุ้ง +5บาท/กก. เฉพาะกิ้มง้วนฟาสเทนเนอร์ (code 00205) — user ยืนยัน "บวกตรงๆ" ไม่แปลงหน่วย
   // หมวด NET (hasNet ด้านล่าง): ค่าชุบถูกบวกเข้า netPrice ไว้แล้วตั้งแต่ sales_grid_v2.html ตอนบันทึกออเดอร์ (ไม่บวกซ้ำที่นี่)
   // หมวด %ส่วนลด (hasDisc ด้านล่าง): ราคาตั้งยังไม่ถูก resolve จนกว่าจะมาถึงฟังก์ชันนี้ — บวก surcharge*pack เข้าไปตรงจุด return ของแต่ละกิ่ง
@@ -1626,6 +1626,10 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
   if (hasNet) {
     const nP = Number(netPrice);
     if (isNaN(nP)) return null;
+    function finishNet(price, pack) {
+      const total = price * pack;
+      return breakdown ? { total, listPerUnit: null, afterPerUnit: price, pack } : total;
+    }
 
     // 2026-07-22: หมวด NOK (น็อตมิลแข็ง/น็อตแข็งเกลียวมิล) ขายราคาเน็ตต่อตัวเป็นครั้งๆได้ (ปกติใช้ %ส่วนลด d.mb)
     // ใช้ NOK_PRICE ตารางเดียวกับกิ่ง %ส่วนลดด้านล่าง — ดึงแค่จำนวนตัว/แพ็ค ไม่ใช้ราคาตั้ง เพราะ nP คือราคาสุดท้ายที่กรอกแล้ว
@@ -1635,7 +1639,7 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
       const lenKey = String(Math.round(Number(row)));
       const entry = NOK_PRICE[sizeM[1]] && NOK_PRICE[sizeM[1]][lenKey];
       if (!entry) return null;
-      return nP * entry[1];
+      return finishNet(nP, entry[1]);
     }
 
     const NET_PIECE_PACK = { 'M.16': 1500, 'M.18': 1200, 'M.20': 800, 'M.22': 700, 'M.24': 500,
@@ -1673,8 +1677,8 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
       if (m) hwKey = 'grade8_M' + m[1];
     }
     if (!hwKey) return null;
-    if (NET_PIECE_PACK[hwKey] !== undefined) return nP * NET_PIECE_PACK[hwKey];
-    if (NET_KG_KEYS.has(hwKey)) return nP * 50;
+    if (NET_PIECE_PACK[hwKey] !== undefined) return finishNet(nP, NET_PIECE_PACK[hwKey]);
+    if (NET_KG_KEYS.has(hwKey)) return finishNet(nP, 50);
     return null; // hw key อื่นที่ไม่รู้จัก — ไม่มีข้อมูลหน่วยบรรจุ
   }
 
@@ -1683,6 +1687,11 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
   const dPct = Number(discPct);
   if (isNaN(dPct)) return null;
   const factor = 1 - dPct / 100;
+  function finish(price, pack) {
+    const total = price * pack * factor + surcharge * pack;
+    const afterPerUnit = price * factor + surcharge;
+    return breakdown ? { total, listPerUnit: price, afterPerUnit, pack } : total;
+  }
 
   // น็อตเหลี่ยมเกลียว W, น็อตหัวกลมเกลียว W, และน็อตเหลี่ยม W ไม่ควบหัว ใช้ตารางราคาเดียวกัน (TNK)
   // 2026-07-13: เพิ่ม "น็อตเหลี่ยม W ไม่ควบหัว" เข้าเงื่อนไข — ก่อนหน้านี้ไม่มี ทั้งที่ getPriceInfo() (sales_grid_v2.html)
@@ -1693,11 +1702,11 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
     const BW  = { '5/8 W': 57, '3/4 W': 58 };                                   // flat ทุกความยาว
     // 2026-07-13: "น็อตเหลี่ยม W ไม่ควบหัว" ใช้ราคาตั้งเดียวกับน็อตเหลี่ยม W แต่หัก 1 บาท/กก. ก่อน แล้วค่อยคูณ %ส่วนลด (user ยืนยัน)
     const noHeadAdj = itemType === 'น็อตเหลี่ยม W ไม่ควบหัว' ? 1 : 0;
-    if (BW[col] !== undefined) return (BW[col] - noHeadAdj) * 50 * factor + surcharge * 50;
+    if (BW[col] !== undefined) return finish(BW[col] - noHeadAdj, 50);
     if (SW[col] === undefined) return null;
     const len = lenIn(row);
     const price = (len >= 1.25 && len <= 4) ? SW2[col] : SW[col];
-    return (price - noHeadAdj) * 50 * factor + surcharge * 50;
+    return finish(price - noHeadAdj, 50);
   }
 
   if (itemType === 'สกรูมิลขาว') {
@@ -1720,7 +1729,7 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
     const price = MW_PRICE[col] && MW_PRICE[col][rk];
     const pack = MW_PACK[col] && MW_PACK[col][rk];
     if (price === undefined || pack === undefined) return null;
-    return price * pack * factor + surcharge * pack;
+    return finish(price, pack);
   }
 
   if (itemType === 'น็อตเหลี่ยม NC' || itemType === 'น็อตเหลี่ยม NF') {
@@ -1731,7 +1740,7 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
       const BIG = { '5/8 NC': [60, 62, 65], '3/4 NC': [61, 63, 66], '7/8 NC': [66, 66, 68], '1 NC': [66, 66, 68] };
       const price = BIG[col] ? BIG[col][band] : undefined;
       if (price === undefined) return null;
-      return price * 50 * factor + surcharge * 50;
+      return finish(price, 50);
     }
     const SMALL_PRICE = {
       '1/4': { 0.5: 0.55, 0.625: 0.60, 0.75: 0.61, 1: 0.73, 1.25: 0.95, 1.5: 1.06, 2: 1.38, 2.5: 1.66, 3: 1.95, 3.5: 2.24, 4: 2.53 },
@@ -1754,7 +1763,7 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
     const price = SMALL_PRICE[col] && SMALL_PRICE[col][rk];
     const pack = SMALL_PACK[col] && SMALL_PACK[col][rk];
     if (price === undefined || pack === undefined) return null;
-    return price * pack * factor + surcharge * pack;
+    return finish(price, pack);
   }
 
   // 2026-07-13: น็อตแข็ง (มิลแข็ง M6-M30 ตลอด/ครึ่ง + น็อตแข็งเกลียวมิล ตลอด/ครึ่ง) — ราคาต่อตัวตามขนาด(M)+ความยาว(มม.)
@@ -1768,14 +1777,14 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
     const lenKey = String(Math.round(Number(row)));
     const entry = NOK_PRICE[sizeM[1]] && NOK_PRICE[sizeM[1]][lenKey];
     if (!entry) return null;
-    return entry[0] * entry[1] * factor + surcharge * entry[1];
+    return finish(entry[0], entry[1]);
   }
 
   if (itemType === 'หัวน็อตเกลียว W') {
     const H_W = { '1/4': 74, '5/16': 71, '3/8': 68, '7/16': 67, '1/2': 66 };
     const base = String(row || '').split(' ')[0];
     if (H_W[base] === undefined) return null;
-    return H_W[base] * 50 * factor + surcharge * 50;
+    return finish(H_W[base], 50);
   }
 
   if (itemType === 'หัวน็อตมิล') {
@@ -1784,7 +1793,7 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
     const H_MIL = { '6_10': 86, '8_12': 83, '8_13': 83, '10_14': 81, '10_17': 80, '12_17': 81, '12_19': 80, '14_22': 82 };
     const price = H_MIL[m[1] + '_' + m[2]];
     if (price === undefined) return null;
-    return price * 50 * factor + surcharge * 50;
+    return finish(price, 50);
   }
 
   if (itemType === 'หัวน็อตเกลียวหยาบ NC' || itemType === 'หัวน็อตเกลียวหยาบ NF') {
@@ -1793,7 +1802,7 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating) {
     const NF = { '1/4': 89, '5/16': 87, '3/8': 86, '7/16': 85, '1/2': 85, '9/16': 87 };
     const tbl = itemType.slice(-2) === 'NF' ? NF : NC;
     if (tbl[base] === undefined) return null;
-    return tbl[base] * 50 * factor + surcharge * 50;
+    return finish(tbl[base], 50);
   }
 
   return null; // Spring Washer/OVERSIZE/ไม่รู้จัก — ยังไม่มีข้อมูลราคา ไม่รวมในยอดขายบาท (น็อตแข็ง/มิลแข็งทั่วไป ดู NOK_PRICE, หัวน็อตมิลแข็งเกรด8 ดู NET_PIECE_PACK grade8_* ด้านบน)
@@ -4203,8 +4212,8 @@ function renderSummary() {
   // ต้องใช้วิธีแยก table คนละอันแล้ว page-break-before ที่ตัว wrapper div แทน)
   const sumColgroup = `<colgroup>
     <col><col><col><col style="width:80px"><col style="width:80px"><col style="width:80px">
-    <col style="width:55px"><col style="width:65px"><col style="width:100px"><col style="width:85px">
-    <col style="width:80px"><col>
+    <col style="width:55px"><col style="width:65px"><col style="width:70px"><col style="width:75px">
+    <col style="width:90px"><col style="width:85px"><col>
   </colgroup>`;
   const sumThead = `<thead><tr>
     <th style="width:120px;font-size:11px">วันที่สั่ง</th>
@@ -4215,9 +4224,10 @@ function renderSummary() {
     <th>กล่อง</th>
     <th style="text-align:center">%ส่วนลด</th>
     <th style="text-align:center">ราคาเน็ต</th>
-    <th>ความเร่งด่วน</th>
+    <th style="text-align:center">ราคาตั้ง</th>
+    <th style="text-align:center">หลังหักลด</th>
+    <th style="text-align:center">ราคารวม</th>
     <th>จัดส่ง</th>
-    <th>สถานะ</th>
     <th style="text-align:left;min-width:120px">หมายเหตุ</th>
   </tr></thead>`;
 
@@ -4255,11 +4265,17 @@ function renderSummary() {
         const qty = Number(o.qty) || 0;
         if (isBox) totalBox += qty; else totalSack += qty;
         const dateStr = getOrderDate(o);
-        const urgBg = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'}[o._urgency]||'#f3f4f6';
         const _pi = getPriceInfo(custCode, o.code, '');
         const discVal = (o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined) ? o.disc_pct : (_pi.disc_pct !== null ? _pi.disc_pct : '');
         const _netRaw = (o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined) ? o.net_price : (_pi.net_price !== null ? _pi.net_price : '');
         const netVal  = _netRaw !== '' ? Number(_netRaw).toFixed(2) : '';
+        // 2026-09-09: ราคาตั้ง/หลังหักลด/ราคารวม — ใช้ getRevenuePerUnit() ตัวเดียวกับทุกจุดคำนวณยอดขายในระบบ (breakdown:true)
+        // ใช้ o.disc_pct/o.net_price ดิบ (ไม่ fallback ไป getPriceInfo) ให้ตรงกับสูตรยอดขายจริงที่ใช้ทั่วทั้งระบบ (anAggregate ฯลฯ)
+        const _bd = si ? getRevenuePerUnit(si.type||'', si.col, si.row, o.disc_pct, o.net_price, o.plating, true) : null;
+        const listStr  = (_bd && _bd.listPerUnit !== null) ? Number(_bd.listPerUnit).toFixed(2) : '–';
+        const afterStr = _bd ? Number(_bd.afterPerUnit).toFixed(2) : '–';
+        const lineTotal = _bd ? _bd.total * qty : null;
+        const totalStr = lineTotal !== null ? lineTotal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}) : '–';
         html += `<tr class="${idx===0?'group-sep':''}">
           <td style="font-size:11px;white-space:nowrap">${dateStr}</td>
           <td class="td-cust">${idx===0?cust+(custCode?` <span class="sum-cust-code">${custCode}</span>`:''):''}</td>
@@ -4269,9 +4285,10 @@ function renderSummary() {
           <td>${isBox?qty:''}</td>
           <td style="text-align:center;font-size:12px">${discVal!==''&&discVal!==null?discVal+'%':''}</td>
           <td style="text-align:center;font-size:12px">${netVal}</td>
-          <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
+          <td style="text-align:center;font-size:12px">${listStr}</td>
+          <td style="text-align:center;font-size:12px">${afterStr}</td>
+          <td style="text-align:center;font-size:12px;font-weight:600">${totalStr}</td>
           <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
-          <td>✅ ยืนยัน</td>
           <td style="font-size:11px;color:#555">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล X]</span>':''}</td>
         </tr>`;
       });
@@ -4279,7 +4296,7 @@ function renderSummary() {
         <td colspan="4" style="text-align:right">รวม ${cust}</td>
         <td>${totalSack||'-'}</td>
         <td>${totalBox||'-'}</td>
-        <td colspan="6"></td>
+        <td colspan="7"></td>
       </tr>`;
     });
     html += `</tbody></table></div>`;
