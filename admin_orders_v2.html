@@ -5002,6 +5002,12 @@ function anRangeLabel(r) {
 }
 
 // รวมยอดขาย(บาท) ตามประเภท/ลูกค้า ในช่วงวันที่ที่กำหนด จาก cache (ไม่ fetch ใหม่)
+// 2026-09-09: ลูกค้าที่เปลี่ยนชื่อ/รหัสแต่เป็นบริษัทเดียวกันจริง (ดู rename_customer_ศรีประชายนต์_to_สิทธินนท์_20260831.gs)
+// นับรวมเป็นลูกค้าเดียวกันในทุกจุดของหน้าวิเคราะห์ข้อมูล (ตาราง/Top5/แนวโน้ม/เงียบนาน/หมวดต่อลูกค้า)
+// — การจัดการออเดอร์และตารางส่วนลด/จุดส่งของยังคงแยกกันตามรหัสเดิม ไม่กระทบ (user confirm 2026-09-09)
+const AN_CUST_MERGE = { 'ศรีประชายนต์': 'สิทธินนท์ สีมารัตน์' };
+function anMergedCust(name) { return AN_CUST_MERGE[name] || name; }
+
 function anAggregate(from, to) {
   const byType = {}, byCust = {}, byCustType = {};
   anOrdersCache.forEach(o => {
@@ -5014,7 +5020,7 @@ function anAggregate(from, to) {
     const amt = perUnit * qty;
     const t = anDType(anCtMap[code]);
     byType[t] = (byType[t]||0) + amt;
-    const cust = o.customer || 'ไม่ระบุ';
+    const cust = anMergedCust(o.customer || 'ไม่ระบุ');
     if (!byCust[cust]) byCust[cust] = { revenue:0, orders:0 };
     byCust[cust].revenue += amt; byCust[cust].orders += 1;
     if (!byCustType[cust]) byCustType[cust] = {};
@@ -5441,7 +5447,7 @@ function anCatRevAutoCustomer() {
   const totals = {};
   anOrdersCache.forEach(o => {
     const d = anPDate(o); if (!d || isNaN(d) || d < rangeStart || d > rangeEnd) return;
-    const cust = o.customer || ''; if (!cust) return;
+    const cust = anMergedCust(o.customer || ''); if (!cust) return;
     const code = String(o.code||'').padStart(8,'0');
     const item = anItemMap[code];
     const qty = Number(o.qty)||0;
@@ -5463,7 +5469,7 @@ function anCatRevAggregate(custName) {
   const rangeStart = new Date(months[0].y, months[0].m, 1);
   const rangeEnd = new Date(months[11].y, months[11].m+1, 0, 23,59,59,999);
   anOrdersCache.forEach(o => {
-    if ((o.customer||'') !== custName) return;
+    if (anMergedCust(o.customer||'') !== custName) return;
     const d = anPDate(o); if (!d || isNaN(d) || d < rangeStart || d > rangeEnd) return;
     const key = d.getFullYear()+'-'+d.getMonth();
     if (!(key in idxOf)) return;
@@ -5614,8 +5620,9 @@ function anCatRevSetTab(tab) {
 function anCatRevSelectCustomer(code) {
   const cu = CUST_CODE_MAP[code];
   if (!cu) return;
-  anCatRevCust = cu.name;
-  anCatRevQuery = cu.name;
+  const mergedName = anMergedCust(cu.name);
+  anCatRevCust = mergedName;
+  anCatRevQuery = mergedName;
   anCatRevMatches = null;
   anCatRevMsg = '';
   anCatRevTab = 'heat';
@@ -5657,7 +5664,7 @@ function anCatRevSearch() {
 function anComputeChurn() {
   const lastByCust = {};
   anOrdersCache.forEach(o => {
-    const cust = o.customer || 'ไม่ระบุ';
+    const cust = anMergedCust(o.customer || 'ไม่ระบุ');
     const d = anPDate(o);
     if (!d || isNaN(d)) return;
     if (!lastByCust[cust] || d > lastByCust[cust]) lastByCust[cust] = d;
@@ -5767,7 +5774,7 @@ function anComputeCustomerTrend() {
     const perUnit = item ? getRevenuePerUnit(item.type||'', item.col, item.row, o.disc_pct, o.net_price, o.plating) : null;
     if (perUnit === null) return;
     const amt = perUnit * qty;
-    const cust = o.customer || 'ไม่ระบุ';
+    const cust = anMergedCust(o.customer || 'ไม่ระบุ');
     if (!byCustMonth[cust]) byCustMonth[cust] = {};
     byCustMonth[cust][mk] = (byCustMonth[cust][mk]||0) + amt;
   });
