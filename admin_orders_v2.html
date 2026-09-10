@@ -471,9 +471,10 @@ table.list tr:hover td{background:#f8fbff}
 .grade-a{display:inline-block;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:700;background:#dcfce7;color:#16a34a}
 .grade-b{display:inline-block;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:700;background:#fef9c3;color:#a16207}
 .grade-c{display:inline-block;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:700;background:#f1f5f9;color:#64748b}
-.an-alert-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:12px}
-.an-alert-name{color:#1e293b;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px}
-.an-alert-val{font-weight:700;white-space:nowrap;margin-left:8px}
+.an-alert-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:12px}
+.an-alert-name{color:#1e293b;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.an-alert-stock{color:#64748b;font-size:11px;white-space:nowrap;flex:0 0 auto} /* 2026-09-10: คอลัมน์สต็อคปัจจุบัน (ถัง/กระสอบ/กล่อง) ตาม mockup ที่ user เลือก (ตัวเลือก A) */
+.an-alert-val{font-weight:700;white-space:nowrap;flex:0 0 auto;min-width:44px;text-align:right}
 .an-month-bar{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px}
 .an-month-lbl{width:48px;color:#64748b;text-align:right;flex-shrink:0}
 .an-month-track{flex:1;background:#f1f5f9;border-radius:4px;height:16px;overflow:hidden}
@@ -4741,7 +4742,11 @@ function anRenderStockout(items, salesMap, daysPeriod) {
     if (sold === 0) return;
     const avgDaily = sold / daysPeriod;
     const daysLeft = Math.round(stock / avgDaily);
-    if (daysLeft <= 60) alerts.push({code, name: buildName(item), col: '', row: '', stock, daysLeft, avgDaily});
+    // 2026-09-10: เก็บหน่วย (กระสอบ/กล่อง ตามชนิดสินค้า เหมือน getUnit ที่ใช้ทั่วทั้งระบบ) + สต็อคถัง (ถ้ามี ก่อนแบ่งบรรจุ
+    // เหมือนที่ตาราง stk-tbl หลักโชว์คู่กันอยู่แล้ว) ไว้โชว์คู่กับจำนวนวันคาดการณ์ ตาม mockup ที่ user เลือก (ตัวเลือก A)
+    const unit = getUnit(resolveType(item));
+    const tank = getTank(code);
+    if (daysLeft <= 60) alerts.push({code, name: buildName(item), col: '', row: '', stock, unit, tank, daysLeft, avgDaily});
   });
   anStockoutCache = {items, salesMap, daysPeriod};
   const el = document.getElementById('an-stockout');
@@ -4752,7 +4757,8 @@ function anRenderStockout(items, salesMap, daysPeriod) {
     top.map(a => {
       const col = a.daysLeft <= 14 ? '#dc2626' : a.daysLeft <= 30 ? '#d97706' : '#2563eb';
       const label = [a.name, a.col, a.row].filter(Boolean).join(' ').trim();
-      return '<div class="an-alert-row"><div class="an-alert-name" title="' + label + '">' + label + '</div><div class="an-alert-val" style="color:' + col + '">~' + a.daysLeft + ' วัน</div></div>';
+      const stockLabel = (a.tank > 0 ? a.tank.toLocaleString() + ' ถัง · ' : '') + a.stock.toLocaleString() + ' ' + a.unit;
+      return '<div class="an-alert-row"><div class="an-alert-name" title="' + label + '">' + label + '</div><div class="an-alert-stock">' + stockLabel + '</div><div class="an-alert-val" style="color:' + col + '">~' + a.daysLeft + ' วัน</div></div>';
     }).join('') +
     (alerts.length > 8 ? '<button class="an-expand-btn" onclick="anStockoutToggleShowAll()">' +
       (anStockoutShowAll ? 'ย่อกลับ' : 'ขยายดูทั้งหมด (' + alerts.length + ' ราย)') +
@@ -5732,7 +5738,6 @@ function anBuildChurnCard() {
   if (!list.length) {
     bodyH = '<div style="font-size:12.5px;color:#16a34a;text-align:center;padding:20px 0">✅ ไม่มีลูกค้าที่เงียบนานเกิน '+AN_CHURN_DAYS+' วันตอนนี้</div>';
   } else {
-    bodyH += '<div class="an-kpi-mini"><div class="n">'+list.length+'</div><div class="t">รายที่เข้าเกณฑ์<br>ตอนนี้</div></div>';
     list.forEach(c => {
       const dateLbl = c.lastDate.toLocaleDateString('th-TH', {day:'numeric', month:'short'});
       bodyH += '<div class="an-churn-row">'+
@@ -5741,8 +5746,14 @@ function anBuildChurnCard() {
       '</div>';
     });
   }
+  // 2026-09-10: ย้ายป้าย "N รายที่เข้าเกณฑ์ตอนนี้" จากบรรทัดแรกในลิสต์ (เดิมกินพื้นที่ในกรอบ #an-churn-clip ที่ sync ความสูงกับ
+  // การ์ด "เก่งที่สุดต่อหมวด") ขึ้นมาไว้ในแถวหัวข้อแทน (นอกกรอบ sync ความสูง) ตาม mockup ที่ user เลือก (ตัวเลือก A) — เหลือที่โชว์รายชื่อเพิ่มขึ้น
+  const badgeH = list.length ? '<div class="an-kpi-mini" style="margin-bottom:0;padding:3px 9px;gap:6px"><div class="n" style="font-size:14px">'+list.length+'</div><div class="t" style="line-height:1">รายที่เข้าเกณฑ์ตอนนี้</div></div>' : '';
   return '<div class="hdr"><div class="an-card-title">🚨 ลูกค้าที่เงียบนาน</div>'+
-      '<div style="font-size:11px;color:#94a3b8;margin-bottom:8px">ไม่มีออเดอร์ยืนยันเกิน '+AN_CHURN_DAYS+' วัน</div></div>'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">'+
+        '<div style="font-size:11px;color:#94a3b8">ไม่มีออเดอร์ยืนยันเกิน '+AN_CHURN_DAYS+' วัน</div>'+
+        badgeH+
+      '</div></div>'+
     '<div id="an-churn-clip"><div id="an-churn-body">'+bodyH+'</div></div>'+
     '<button class="an-expand-btn" id="an-churn-expand-btn" style="display:none" onclick="anChurnToggleExpand()"></button>';
 }
