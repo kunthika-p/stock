@@ -406,7 +406,8 @@ table.list tr:hover td{background:#f8fbff}
   #tab-analytics .an-info{display:none!important}
   /* บังคับโชว์ panel ที่ปกติซ่อนด้วยปุ่ม toggle บนจอ (ค้างสต็อค/ใกล้หมด, Top5 กระจุกตัว) ให้ครบทุกข้อมูลตอนพิมพ์
      2026-09-08: ตัดแท็บ "สรุปทั้งปี" (#an-top5-panel-y) ออกแล้ว — คอลัมน์ "ติด Top5" ย้ายไปรวมในตาราง "ยอดขายแยกตามลูกค้า" แทน (ปกติแสดงอยู่แล้ว ไม่ต้องบังคับโชว์) */
-  #tab-analytics .an-feat-grid{display:grid!important}
+  /* 2026-09-10: เอา print rule นี้ออก — เดิมบังคับโชว์ .an-feat-grid ตอนพิมพ์เพราะจอปกติซ่อนด้วยปุ่มแท็บ (anSetFeatTab เดิม)
+     ตอนนี้รวม ⚡ขายดี/🚨ใกล้หมด/☠️ค้างสต็อค เป็น .grid3 มุมมองเดียว โชว์ตลอดอยู่แล้ว ไม่มี display:none ให้ต้องบังคับพิมพ์อีก */
   #tab-analytics #an-top5-panel-c{display:block!important}
   /* ตาราง/การ์ดที่ปกติจำกัดความสูงไว้เลื่อนดูบนจอ (ยอดขายแยกตามลูกค้า, Top5 สรุปทั้งปี) ให้พิมพ์ยาวเต็มไม่ตัดข้อมูล */
   #tab-analytics .an-cust-scroll{max-height:none!important;overflow:visible!important}
@@ -594,6 +595,23 @@ table.list tr:hover td{background:#f8fbff}
 #an-churn-clip.an-fade::after{content:'';position:absolute;left:0;right:0;bottom:0;height:44px;background:linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1));pointer-events:none}
 .an-expand-btn{flex:0 0 auto;width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px solid #d8dfe8;background:white;color:#1a3a5c;font-size:12px;font-weight:700;cursor:pointer;font-family:'Sarabun',sans-serif}
 .an-expand-btn:hover{background:#f8fafc}
+
+/* 2026-09-10: รวม ⚡ขายดี/🚨ใกล้หมด/☠️ค้างสต็อค เป็นมุมมองเดียว 3 การ์ดเทียบข้างกัน แยกหมวดในตัว (mockup v15 confirm แล้ว)
+   .grid3 = CSS Grid เดียวกันทั้ง 3 คอลัมน์ x N แถว (แถว 1 = หัวข้อ, แถวถัดไปตาม AN_VCAT_ORDER) — หมวดเดียวกันขึ้นแถว
+   เดียวกันทั้ง 3 คอลัมน์เป๊ะ เพราะ browser จัดความสูงแถวเท่ากับเซลล์สูงสุดในแถวให้อัตโนมัติ (ไม่ต้องวัดความสูงด้วย JS)
+   .card-bg = พื้นหลังการ์ดขาวแยกเป็น div ต่อคอลัมน์ กิน grid-row เต็ม (คำนวณ span ใน JS ตามจำนวนหมวดจริง) วางไว้
+   หลังเนื้อหาด้วย z-index (position:relative ทั้งคู่ กัน z-index ไม่ทำงานในบางเบราว์เซอร์) */
+.grid3{position:relative;display:grid;grid-template-columns:1fr 1fr 1fr;column-gap:22px;margin-bottom:12px}
+@media (max-width:980px){.grid3{grid-template-columns:1fr;row-gap:0}}
+.card-bg{position:relative;background:#ffffff;border-radius:12px;border:1px solid #94a3b8;box-shadow:0 3px 10px rgba(26,58,92,.15);z-index:0}
+.card-bg.c1{grid-column:1}
+.card-bg.c2{grid-column:2}
+.card-bg.c3{grid-column:3}
+.cell{position:relative;z-index:1;padding:0 16px}
+.cell.title{padding-top:16px}
+.cell.lastrow{padding-bottom:16px}
+.an-feat-sub{font-size:10.5px;color:#94a3b8}
+.cat-hdr-bar{height:28px;box-sizing:border-box;display:flex;align-items:center;font-size:11.5px;font-weight:700;color:white;padding:0 9px;border-radius:6px;margin:10px 0 5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 
 </style>
 </head>
@@ -1220,44 +1238,12 @@ table.list tr:hover td{background:#f8fbff}
         <div class="an-section" style="margin-top:16px">วิเคราะห์เชิงลึก (จากออเดอร์ที่ยืนยันแล้ว)</div>
         <div id="an-orders-loading" style="text-align:center;padding:16px;font-size:12px;color:#94a3b8">⏳ กำลังโหลดข้อมูลออเดอร์...</div>
         <div id="an-features" style="display:none">
-          <div style="display:flex;border:1px solid #d8dfe8;border-radius:8px;overflow:hidden;width:fit-content;margin-bottom:14px">
-            <button id="an-feat-tab-velocity" onclick="anSetFeatTab('velocity')" style="border:none;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;background:#1a3a5c;color:white">⚡ ขายดี</button>
-            <button id="an-feat-tab-stock" onclick="anSetFeatTab('stock')" style="border:none;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#64748b">📦 สต็อคที่ต้องดู</button>
-          </div>
-          <div id="an-feat-panel-velocity" class="an-feat-grid" style="grid-template-columns:1fr">
-            <div class="an-feat-card">
-              <!-- 2026-09-01: เพิ่ม dropdown เลือกช่วงวัน (เดิมล็อก "เดือนที่แล้ว" ตายตัว) — mockup confirm กับ user แล้ว (v10) -->
-              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:4px">
-                <div class="an-feat-title" id="an-feat-title-velocity" style="margin-bottom:0">⚡ สินค้าขายดีสุด — แยกตามหมวด (Top 3/หมวด)</div>
-                <select id="an-vel-range" onchange="anSetVelRange(this.value)" style="border:1px solid #d8dfe8;border-radius:8px;padding:7px 12px;font-size:12.5px;font-family:'Sarabun',sans-serif;color:#334155;background:white">
-                  <option value="month">เดือนนี้</option>
-                  <option value="prevmonth" selected>เดือนที่แล้ว</option>
-                  <option value="ytd">ปีนี้ (YTD)</option>
-                  <option value="custom">กำหนดเอง...</option>
-                </select>
-              </div>
-              <div id="an-vel-custom-row" style="display:none;gap:8px;align-items:center;margin:10px 0;background:#f8fafc;border:1px solid #eef1f5;border-radius:8px;padding:10px 12px;flex-wrap:wrap">
-                <input type="date" id="an-vel-from" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">
-                <span style="font-size:12px;color:#94a3b8">ถึง</span>
-                <input type="date" id="an-vel-to" style="border:1px solid #d8dfe8;border-radius:8px;padding:6px 10px;font-size:12px">
-                <button onclick="anVelCustomApply()" style="border:none;background:#1a3a5c;color:white;border-radius:8px;padding:7px 16px;font-size:12px;cursor:pointer;font-weight:700">ใช้ช่วงนี้</button>
-              </div>
-              <div id="an-velocity"></div>
-            </div>
-          </div>
-          <!-- 2026-09-10: รวม "ค้างสต็อค" + "ใกล้หมด" เป็นแท็บเดียว วางคู่กันซ้าย-ขวาใน .an-feat-grid เดิม (ไม่ใส่ grid-column:1/-1
-               ให้แต่ละการ์ดแล้ว การ์ดเลยแบ่งครึ่งซ้าย-ขวากันเองตาม grid-template-columns:1fr 1fr ของ .an-feat-grid) ตาม mockup ที่ user เลือก
-               — ยังใช้ class .an-feat-grid เดิม เลยยังโดน print rule "#tab-analytics .an-feat-grid{display:grid!important}" บังคับโชว์ตอนพิมพ์เหมือนเดิม ไม่ต้องแก้ print CSS เพิ่ม -->
-          <div id="an-feat-panel-stock" class="an-feat-grid" style="display:none">
-            <div class="an-feat-card">
-              <div class="an-feat-title">☠️ Dead stock — ค้างสต็อคนาน</div>
-              <div id="an-dead"></div>
-            </div>
-            <div class="an-feat-card">
-              <div class="an-feat-title">🚨 Stockout alert — คาดการณ์วันหมด</div>
-              <div id="an-stockout"></div>
-            </div>
-          </div>
+          <!-- 2026-09-10: รวม ⚡ขายดี/🚨ใกล้หมด/☠️ค้างสต็อค เป็นมุมมองเดียว 3 การ์ดเทียบข้างกัน แยกหมวดในตัว (mockup v15 confirm แล้ว)
+               ตัดปุ่มแท็บสลับ velocity/stock เดิมออกทั้งหมด (anSetFeatTab ก็ตัดออกด้วย) — เนื้อหาทั้งหมดแสดงพร้อมกันเสมอ ไม่ต้องกดสลับอีกต่อไป
+               ใช้ CSS Grid เดียวกันทั้ง 3 คอลัมน์ x N แถว (แถว 1 = หัวข้อ, แถวถัดไป = หมวดสินค้าตาม AN_VCAT_ORDER) หมวดเดียวกัน
+               ขึ้นแถวเดียวกันเป๊ะทั้ง 3 การ์ด พื้นหลังการ์ดขาวแต่ละคอลัมน์แยกเป็น div .card-bg กิน grid-row เต็ม วางไว้หลังเนื้อหา
+               ทั้งหมดคำนวณ + render ใน anRenderFeatCombined() (ดู JS ด้านล่างสำหรับรายละเอียด) -->
+          <div id="an-feat-combined"></div>
         </div>
       </div>
     </div>
@@ -4504,16 +4490,7 @@ async function anLoadData() {
 function anNoData(el, msg) {
   document.getElementById(el).innerHTML = '<div class="an-no-data">' + (msg || 'ยังไม่มีข้อมูลออเดอร์ที่ยืนยันแล้ว') + '</div>';
 }
-// 2026-07-11: สลับแท็บ ⚡ขายดี/☠️ค้างสต็อค/🚨ใกล้หมด ในส่วน "วิเคราะห์เชิงลึก" (ตามข้อเสนอ "รวบพื้นที่" ที่ user ยืนยันแล้ว)
-// สลับแค่ display ของ panel ที่ render ไว้แล้วในหน้า (ไม่ fetch/คำนวณใหม่) เหมือน pattern anSetStackMode()
-function anSetFeatTab(tab) {
-  ['velocity','stock'].forEach(function(k){
-    const panel = document.getElementById('an-feat-panel-'+k);
-    if (panel) panel.style.display = (k===tab) ? '' : 'none';
-    const btn = document.getElementById('an-feat-tab-'+k);
-    if (btn) { btn.style.background = (k===tab) ? '#1a3a5c' : 'transparent'; btn.style.color = (k===tab) ? 'white' : '#64748b'; }
-  });
-}
+// 2026-09-10: ตัด anSetFeatTab ออก (เดิมสลับแท็บ ⚡ขายดี/☠️ค้างสต็อค/🚨ใกล้หมด) — ตอนนี้รวมเป็นมุมมองเดียวเสมอ ไม่มีแท็บให้สลับแล้ว
 // 2026-07-10: จัดกลุ่มหมวดสำหรับ Velocity แยกตามหมวด — คนละชุดกับ anDType() ที่ใช้ในกราฟโดนัท/แท่งด้านบน
 // (2026-07-11: anDType เดิมรวม น็อตเหลี่ยมเกลียว W + น็อตหัวกลมเกลียว W + น็อตเหลี่ยม W ไม่ควบหัว เป็นก้อนเดียว
 //  "น็อตเหลี่ยม W" ตอนนี้แยก "น็อตหัวกลมเกลียว W" ออกเป็นหมวดของตัวเองแล้วตามที่ user ขอ ดู anDType() ด้านล่าง
@@ -4551,41 +4528,141 @@ const AN_VCAT_COLORS = {
   'น็อตเหลี่ยม W ไม่ควบหัว': '#be185d',
   'อื่นๆ': '#64748b'
 };
+// 2026-09-10: anParseSize/anSizeCompare — เรียงรายการ "ใกล้หมด"/"ค้างสต็อค" ในแต่ละหมวดจากขนาดน้อย→มาก (เดิมเรียงตาม
+// สต็อค/ความเร่งด่วน) ใช้ col/row ดิบของ item ตรงๆ ไม่ต้องพึ่ง MATRICES[type].cols/rows (กัน alias/MERGED_TYPES ปนกัน)
+function anParseSize(s) {
+  if (!s) return 0;
+  s = String(s);
+  let m = s.match(/^(\d+)\.(\d+)\/(\d+)/);
+  if (m) return parseInt(m[1],10) + parseInt(m[2],10)/parseInt(m[3],10);
+  m = s.match(/^(\d+)\/(\d+)/);
+  if (m) return parseInt(m[1],10)/parseInt(m[2],10);
+  m = s.match(/^M(\d+(?:\.\d+)?)/i);
+  if (m) return parseFloat(m[1]);
+  m = s.match(/^(\d+(?:\.\d+)?)/);
+  if (m) return parseFloat(m[1]);
+  return 0;
+}
+function anSizeCompare(a, b) {
+  return (anParseSize(a.col) - anParseSize(b.col)) || (anParseSize(a.row) - anParseSize(b.row));
+}
+// 2026-09-10: state รวมสำหรับมุมมองเดียว ⚡ขายดี/🚨ใกล้หมด/☠️ค้างสต็อค (แทนที่ #an-velocity/#an-dead/#an-stockout เดิม)
+// anVelCatMap/anStoCatMap/anDeadCatMap เก็บ list ต่อหมวด (เรียงลำดับพร้อมโชว์แล้ว) แต่ละฟังก์ชัน anRender* เขียนของตัวเองแล้ว
+// เรียก anRenderFeatCombined() รวมร่างเป็น HTML เดียวเสมอ — ตัด anDeadStockCache/anStockoutCache/anXShowAll เดิมออกหมด
+// เปลี่ยนมาใช้ anFeatExpand{} (key ต่อหมวด+ชนิดการ์ด) แทน เพราะตอนนี้ขยายได้ทีละหมวดแยกกัน ไม่ใช่ขยายทั้งการ์ดพร้อมกันแบบเดิม
+let anVelCatMap = {}, anStoCatMap = {}, anDeadCatMap = {};
+let anVelRangeLabelText = 'เดือนที่แล้ว';
+let anFeatExpand = {};
+const AN_FEAT_ROWS = 5;
+function anFeatToggle(key) {
+  anFeatExpand[key] = !anFeatExpand[key];
+  anRenderFeatCombined();
+}
+function anFeatCatCell(kind, cat, catColor, list, rowHtmlFn, rowN, colN, isLastRow) {
+  const cls = 'cell' + (isLastRow ? ' lastrow' : '');
+  if (!list || !list.length) return '<div class="' + cls + '" style="grid-column:' + colN + ';grid-row:' + rowN + '"></div>';
+  const key = kind + '|' + cat;
+  const expanded = !!anFeatExpand[key];
+  const top = expanded ? list : list.slice(0, AN_FEAT_ROWS);
+  const remain = list.length - AN_FEAT_ROWS;
+  return '<div class="' + cls + '" style="grid-column:' + colN + ';grid-row:' + rowN + '">' +
+    '<div class="cat-hdr-bar" style="background:' + catColor + '">' + cat + '</div>' +
+    '<table class="an-tbl"><tbody>' + top.map(rowHtmlFn).join('') + '</tbody></table>' +
+    (remain > 0 ? '<button class="an-expand-btn" onclick="anFeatToggle(\'' + key.replace(/'/g,"\\'") + '\')">' +
+      (expanded ? 'ย่อกลับ' : 'ขยายดูอีก ' + remain + ' รายการ') + '</button>' : '') +
+    '</div>';
+}
+// 2026-09-10: ฟังก์ชันหลัก รวม 3 การ์ด (⚡ขายดี/🚨ใกล้หมด/☠️ค้างสต็อค) เป็น CSS Grid เดียว 3 คอลัมน์ x N แถว
+// (แถว 1 = หัวข้อ, แถวถัดไปตาม AN_VCAT_ORDER) — หมวดเดียวกันขึ้นแถวเดียวกันทั้ง 3 คอลัมน์เป๊ะ (browser จัดความสูงแถวให้เอง)
+// พื้นหลังการ์ดขาวแยกเป็น .card-bg กิน grid-row เต็ม (คำนวณ span ตามจำนวนหมวดจริง ไม่ hardcode) วางไว้หลังเนื้อหาด้วย z-index
+// mockup confirm กับ user แล้ว (mockup_velocity_stockout_merge_v15.html รอบที่ 15 ของการวนแก้ตาม feedback)
+function anRenderFeatCombined() {
+  const el = document.getElementById('an-feat-combined');
+  if (!el) return;
+  const cats = AN_VCAT_ORDER.filter(c =>
+    (anVelCatMap[c] && anVelCatMap[c].length) ||
+    (anStoCatMap[c] && anStoCatMap[c].length) ||
+    (anDeadCatMap[c] && anDeadCatMap[c].length)
+  );
+  if (cats.length === 0) { el.innerHTML = '<div class="an-no-data">ยังไม่มีข้อมูลออเดอร์ที่ยืนยันแล้ว</div>'; return; }
+  const totalRows = cats.length + 1;
+  const stoTotal = Object.values(anStoCatMap).reduce((s,l) => s + l.length, 0);
+  const deadTotal = Object.values(anDeadCatMap).reduce((s,l) => s + l.length, 0);
+  const velCustomVisible = anVelRange.mode === 'custom';
+  const title1 =
+    '<div class="cell title" style="grid-column:1;grid-row:1">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">' +
+        '<div class="an-feat-title" style="margin-bottom:0">⚡ สินค้าขายดีสุด — แยกตามหมวด</div>' +
+        '<select id="an-vel-range" onchange="anSetVelRange(this.value)" style="border:1px solid #d8dfe8;border-radius:8px;padding:5px 8px;font-size:11.5px;font-family:\'Sarabun\',sans-serif;color:#334155;background:white">' +
+          '<option value="month"' + (anVelRange.mode==='month'?' selected':'') + '>เดือนนี้</option>' +
+          '<option value="prevmonth"' + (anVelRange.mode==='prevmonth'?' selected':'') + '>เดือนที่แล้ว</option>' +
+          '<option value="ytd"' + (anVelRange.mode==='ytd'?' selected':'') + '>ปีนี้ (YTD)</option>' +
+          '<option value="custom"' + (anVelRange.mode==='custom'?' selected':'') + '>กำหนดเอง...</option>' +
+        '</select>' +
+      '</div>' +
+      '<div id="an-vel-custom-row" style="display:' + (velCustomVisible?'flex':'none') + ';gap:6px;align-items:center;margin:8px 0 0;background:#f8fafc;border:1px solid #eef1f5;border-radius:8px;padding:8px 10px;flex-wrap:wrap">' +
+        '<input type="date" id="an-vel-from" value="' + (anVelRange.from||'') + '" style="border:1px solid #d8dfe8;border-radius:8px;padding:5px 8px;font-size:11px">' +
+        '<span style="font-size:11px;color:#94a3b8">ถึง</span>' +
+        '<input type="date" id="an-vel-to" value="' + (anVelRange.to||'') + '" style="border:1px solid #d8dfe8;border-radius:8px;padding:5px 8px;font-size:11px">' +
+        '<button onclick="anVelCustomApply()" style="border:none;background:#1a3a5c;color:white;border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer;font-weight:700">ใช้ช่วงนี้</button>' +
+      '</div>' +
+      '<div class="an-feat-sub">' + anVelRangeLabelText + ' | ' + AN_FEAT_ROWS + ' อันดับแรก/หมวด</div>' +
+    '</div>';
+  const title2 =
+    '<div class="cell title" style="grid-column:2;grid-row:1">' +
+      '<div class="an-feat-title">🚨 สินค้าใกล้หมด — แยกตามหมวด</div>' +
+      '<div class="an-feat-sub">≤40 วัน | เรียงขนาดน้อย→มาก | ' + stoTotal + ' รายการ</div>' +
+    '</div>';
+  const title3 =
+    '<div class="cell title" style="grid-column:3;grid-row:1">' +
+      '<div class="an-feat-title">☠️ Dead stock — ค้างสต็อคนาน</div>' +
+      '<div class="an-feat-sub">ไม่มีออเดอร์ใน 90 วัน | ' + deadTotal + ' รายการ</div>' +
+    '</div>';
+  let catCells = '';
+  cats.forEach((cat, i) => {
+    const rowN = i + 2;
+    const isLastRow = (i === cats.length - 1);
+    const catColor = AN_VCAT_COLORS[cat] || '#1a3a5c';
+    const velList = anVelCatMap[cat] || [];
+    const velTotal = velList.reduce((s,x) => s + x.totalQty, 0) || 1;
+    const velRowFn = v => {
+      const unit = getUnit(v.type);
+      const pct = Math.round(v.totalQty / velTotal * 100);
+      return '<tr><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + v.name + '">' + v.name + '</td><td style="text-align:right;font-weight:600;white-space:nowrap">' + v.totalQty.toLocaleString() + ' ' + unit + ' <span style="color:#94a3b8;font-weight:400">(' + pct + '%)</span></td></tr>';
+    };
+    const stoRowFn = a => {
+      const col = a.daysLeft <= 14 ? '#dc2626' : a.daysLeft <= 30 ? '#d97706' : '#2563eb';
+      const stockLabel = (a.tank > 0 ? a.tank.toLocaleString() + ' ถัง · ' : '') + a.stock.toLocaleString() + ' ' + a.unit;
+      return '<tr><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + a.name + '">' + a.name + '</td><td style="text-align:right;font-weight:600;white-space:nowrap">' + stockLabel + '</td><td style="text-align:right;font-weight:700;white-space:nowrap;color:' + col + '">~' + a.daysLeft + ' วัน</td></tr>';
+    };
+    const deadRowFn = x => '<tr><td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + x.name + '">' + x.name + '</td><td style="text-align:right;font-weight:600;color:#f59e0b">' + Number(x.stock).toLocaleString() + '</td></tr>';
+    catCells += anFeatCatCell('vel', cat, catColor, velList, velRowFn, rowN, 1, isLastRow);
+    catCells += anFeatCatCell('sto', cat, catColor, anStoCatMap[cat] || [], stoRowFn, rowN, 2, isLastRow);
+    catCells += anFeatCatCell('dead', cat, catColor, anDeadCatMap[cat] || [], deadRowFn, rowN, 3, isLastRow);
+  });
+  const bgSpan = '1/' + (totalRows + 1);
+  el.innerHTML =
+    '<div class="grid3">' +
+      '<div class="card-bg c1" style="grid-row:' + bgSpan + '"></div>' +
+      '<div class="card-bg c2" style="grid-row:' + bgSpan + '"></div>' +
+      '<div class="card-bg c3" style="grid-row:' + bgSpan + '"></div>' +
+      title1 + title2 + title3 + catCells +
+    '</div>';
+}
 
+// 2026-09-10: เดิมเขียนตรงเข้า #an-velocity เป็น top3/หมวดตายตัว — ตอนนี้เก็บ "ทั้งหมด" ต่อหมวด (เรียงจำนวนมาก→น้อยเหมือนเดิม)
+// ไว้ใน anVelCatMap แล้วเรียก anRenderFeatCombined() วาดรวมกับ 🚨ใกล้หมด/☠️ค้างสต็อค เป็นการ์ดเดียว (โชว์ 5 อันดับแรก + ปุ่มขยายดูที่เหลือทั้งหมวด)
 function anRenderVelocity(salesMap, totalOrders) {
-  const el = document.getElementById('an-velocity');
   const rows = Object.entries(salesMap);
-  if (rows.length === 0) { anNoData('an-velocity', 'ไม่มีออเดอร์ที่ยืนยันแล้วในเดือนที่แล้ว'); return; }
-  // เดิม: top10 รวมทุกหมวดจัดกลุ่ม ABC ตาม percentile — เปลี่ยนเป็น top3 แยกตามหมวด (2026-07-10)
-  // เหตุผล: totalQty หน่วยนับไม่เท่ากันข้ามหมวด (ดู BOX_TYPES — บางหมวดนับเป็น "กล่อง" บางหมวดนับเป็น "กระสอบ")
-  // เทียบ top10 รวมข้ามหมวดแบบเดิมจึงเทียบกันไม่ตรง แยกตามหมวดแล้วในหมวดเดียวกันหน่วยจะสอดคล้องกันเอง
-  // 2026-07-11: หมวด "น็อตมิลแข็ง" หน่วยไม่ปนกันแล้ว — ย้าย "หัวน็อตมิลแข็ง เกรด8/OVERSIZE" (ตัวที่เคยทำให้ปน
-  // กล่อง/กระสอบ) ออกไป "อื่นๆ" แล้ว (ตาม anVCategory ล่าสุด) เหลือแต่ "น็อตแข็ง..." 6 ชนิดย่อยที่เป็นกล่องล้วนใน BOX_TYPES
   const catMap = {};
   rows.forEach(([code, v]) => {
     const cat = anVCategory(v.type);
     if (!catMap[cat]) catMap[cat] = [];
     catMap[cat].push(Object.assign({code: code}, v));
   });
-  const cats = AN_VCAT_ORDER.filter(c => catMap[c] && catMap[c].length);
-  if (cats.length === 0) { anNoData('an-velocity', 'ไม่มีออเดอร์ที่ยืนยันแล้วในเดือนที่แล้ว'); return; }
-  // 2026-07-10 (v4): เพิ่ม % เทียบกับยอดรวมทั้งหมวด (ทุกรายการในหมวด ไม่ใช่แค่ top3) ต่อท้ายจำนวน
-  // % ต่ำ (เช่น top3 รวมกันไม่ถึง 20%) เป็นเรื่องปกติในหมวดที่มีจำนวนไซส์/ขนาดย่อยเยอะ (เช่น น็อตเหลี่ยมเกลียว W
-  // มีถึง ~100 ไซส์) ยอดขายเลยกระจายตัว ไม่ได้แปลว่าคำนวณผิด — ดูสัดส่วนเทียบ MATRICES จำนวนไซส์ต่อหมวดประกอบ
-  el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">' +
-    cats.map(cat => {
-      const sorted = catMap[cat].sort((a,b) => b.totalQty - a.totalQty);
-      const top3 = sorted.slice(0,3);
-      const catTotal = sorted.reduce((s,x) => s + x.totalQty, 0) || 1;
-      const catColor = AN_VCAT_COLORS[cat] || '#1a3a5c';
-      return '<div><div style="font-size:13px;font-weight:700;color:' + catColor + ';margin-bottom:6px;padding-bottom:4px;border-bottom:2px solid ' + catColor + '">' + cat + '</div>' +
-        '<table class="an-tbl"><tbody>' +
-        top3.map(v => {
-          const unit = getUnit(v.type);
-          const pct = Math.round(v.totalQty / catTotal * 100);
-          return '<tr><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + v.name + '">' + v.name + '</td><td style="text-align:right;font-weight:600;white-space:nowrap">' + v.totalQty.toLocaleString() + ' ' + unit + ' <span style="color:#94a3b8;font-weight:400">(' + pct + '%)</span></td></tr>';
-        }).join('') + '</tbody></table></div>';
-    }).join('') + '</div>';
+  Object.keys(catMap).forEach(cat => catMap[cat].sort((a,b) => b.totalQty - a.totalQty));
+  anVelCatMap = catMap;
+  anRenderFeatCombined();
 }
 // 2026-09-01: ตัวเลือกช่วงวันสำหรับการ์ด "⚡ ขายดี" (เดิมล็อก "เดือนที่แล้ว" ตายตัวจาก prevMonthStart/prevMonthEnd
 // คงที่ใน anLoadData()) — mockup confirm กับ user แล้ว (mockup_velocity_daterange_v10.html) — ใช้ dropdown เหมือน
@@ -4639,8 +4716,7 @@ function anRecomputeVelocity(orders, itemTypeMap) {
     salesMap[code].totalQty += qty;
     salesMap[code].orderCount++;
   });
-  const velTitleEl = document.getElementById('an-feat-title-velocity');
-  if (velTitleEl) velTitleEl.textContent = '⚡ สินค้าขายดีสุด' + range.label + ' — แยกตามหมวด (Top 3/หมวด)';
+  anVelRangeLabelText = range.label; // 2026-09-10: เดิมเขียน textContent ตรงๆ ที่ #an-feat-title-velocity — ตอนนี้หัวข้อสร้างใหม่ทุกครั้งใน anRenderFeatCombined() แทน
   anRenderVelocity(salesMap, periodOrders.length);
 }
 function anSetVelRange(mode) {
@@ -4657,8 +4733,9 @@ function anVelCustomApply() {
   anVelRange.from = from; anVelRange.to = to;
   anRecomputeVelocity();
 }
-let anDeadStockShowAll = false; // 2026-09-10: สถานะกางลิสต์ "Dead stock" เต็ม (เดิมตัดโชว์แค่ top 8 เสมอ ทำให้จำนวนที่บอก "N รายการ" กับแถวที่เห็นไม่ตรงกัน ทำให้ user งง)
-let anDeadStockCache = null; // เก็บ items/salesMap ล่าสุดไว้ ให้ปุ่ม "ขยายดูทั้งหมด" เรียก render ซ้ำได้โดยไม่ต้องรับ arg จากภายนอกอีก
+// 2026-09-10: จัดกลุ่มตามหมวด (anVCategory) + เรียงขนาดน้อย→มาก (anSizeCompare แทนเรียงสต็อคมาก→น้อยเดิม) เก็บใน anDeadCatMap
+// ให้ anRenderFeatCombined() วาดรวมกับ ⚡ขายดี/🚨ใกล้หมด เป็นการ์ดเดียว — ตัด anDeadStockCache/anDeadStockShowAll/
+// anDeadStockToggleShowAll เดิมออกหมด (ปุ่มขยายตอนนี้เป็นแบบต่อหมวด ใช้ anFeatExpand/anFeatToggle กลางแทน)
 function anRenderDeadStock(items, salesMap) {
   const DEAD_DAYS = 90;
   const cutoff = new Date(Date.now() - DEAD_DAYS*86400000);
@@ -4670,22 +4747,15 @@ function anRenderDeadStock(items, salesMap) {
     if (!s) return true;
     return !s.lastDate || new Date(s.lastDate) < cutoff;
   });
-  anDeadStockCache = {items, salesMap};
-  const el = document.getElementById('an-dead');
-  if (dead.length === 0) { el.innerHTML = '<div class="an-no-data">✅ ไม่มีสินค้าค้างเกิน 90 วัน</div>'; return; }
-  dead.sort((a,b) => Number(b.stock)-Number(a.stock));
-  const top = anDeadStockShowAll ? dead : dead.slice(0,8);
-  el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">ไม่มีออเดอร์ใน 90 วัน | ' + dead.length + ' รายการ</div>' +
-    '<table class="an-tbl"><thead><tr><th>สินค้า</th><th style="text-align:right">สต็อค</th></tr></thead><tbody>' +
-    top.map(x => '<tr><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + buildName(x) + '</td><td style="text-align:right;font-weight:600;color:#f59e0b">' + Number(x.stock).toLocaleString() + '</td></tr>').join('') +
-    '</tbody></table>' +
-    (dead.length > 8 ? '<button class="an-expand-btn" onclick="anDeadStockToggleShowAll()">' +
-      (anDeadStockShowAll ? 'ย่อกลับ' : 'ขยายดูทั้งหมด (' + dead.length + ' ราย)') +
-    '</button>' : '');
-}
-function anDeadStockToggleShowAll() {
-  anDeadStockShowAll = !anDeadStockShowAll;
-  if (anDeadStockCache) anRenderDeadStock(anDeadStockCache.items, anDeadStockCache.salesMap);
+  const catMap = {};
+  dead.forEach(item => {
+    const cat = anVCategory(item.type);
+    if (!catMap[cat]) catMap[cat] = [];
+    catMap[cat].push(Object.assign({}, item, {name: buildName(item)}));
+  });
+  Object.keys(catMap).forEach(cat => catMap[cat].sort(anSizeCompare));
+  anDeadCatMap = catMap;
+  anRenderFeatCombined();
 }
 function anRenderSeasonal(orders) {
   const el = document.getElementById('an-seasonal');
@@ -4730,8 +4800,9 @@ function anRenderTurnover(salesMap, items, daysPeriod) {
   el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">turnover = ยอดขายต่อปี ÷ สต็อค (annualized)</div>' +
     rows.map(r => '<div class="an-month-bar"><div class="an-month-lbl" style="width:160px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="' + r.type + '">' + fmtName(r.type) + '</div><div class="an-month-track"><div class="an-month-fill" style="width:' + (r.turnover>0?Math.max(6,Math.round(r.turnover/maxT*100)):6) + '%;background:' + (r.turnover>=2?'#16a34a':r.turnover>=1?'#d97706':'#ef4444') + '">' + (r.turnover>0?r.turnover.toFixed(1):'0') + 'x</div></div></div>').join('');
 }
-let anStockoutShowAll = false; // 2026-09-10: เดียวกับ anDeadStockShowAll — เดิมตัดโชว์แค่ top 8 เสมอ ทำให้ "N รายการ" กับแถวที่เห็นไม่ตรงกัน
-let anStockoutCache = null; // เก็บ items/salesMap/daysPeriod ล่าสุดไว้ ให้ปุ่ม "ขยายดูทั้งหมด" เรียก render ซ้ำได้
+// 2026-09-10: เปลี่ยน threshold ≤60 → ≤40 วัน + เก็บ col/row จริงจาก item (เดิมปล่อยว่างไว้) ไว้ใช้ anSizeCompare
+// จัดกลุ่มตามหมวด (anVCategory) + เรียงขนาดน้อย→มาก แล้วเก็บใน anStoCatMap ให้ anRenderFeatCombined() วาดรวมเป็นการ์ดเดียว
+// (ตาราง <table> จริงแทน .an-alert-row เดิม) — ตัด anStockoutCache/anStockoutShowAll/anStockoutToggleShowAll ออกหมด
 function anRenderStockout(items, salesMap, daysPeriod) {
   const alerts = [];
   items.forEach(item => {
@@ -4742,31 +4813,19 @@ function anRenderStockout(items, salesMap, daysPeriod) {
     if (sold === 0) return;
     const avgDaily = sold / daysPeriod;
     const daysLeft = Math.round(stock / avgDaily);
-    // 2026-09-10: เก็บหน่วย (กระสอบ/กล่อง ตามชนิดสินค้า เหมือน getUnit ที่ใช้ทั่วทั้งระบบ) + สต็อคถัง (ถ้ามี ก่อนแบ่งบรรจุ
-    // เหมือนที่ตาราง stk-tbl หลักโชว์คู่กันอยู่แล้ว) ไว้โชว์คู่กับจำนวนวันคาดการณ์ ตาม mockup ที่ user เลือก (ตัวเลือก A)
     const unit = getUnit(resolveType(item));
     const tank = getTank(code);
-    if (daysLeft <= 60) alerts.push({code, name: buildName(item), col: '', row: '', stock, unit, tank, daysLeft, avgDaily});
+    if (daysLeft <= 40) alerts.push(Object.assign({}, item, {name: buildName(item), stock, unit, tank, daysLeft, avgDaily}));
   });
-  anStockoutCache = {items, salesMap, daysPeriod};
-  const el = document.getElementById('an-stockout');
-  if (alerts.length === 0) { el.innerHTML = '<div class="an-no-data">✅ ไม่มีสินค้าที่คาดว่าจะหมดใน 60 วัน</div>'; return; }
-  alerts.sort((a,b) => a.daysLeft-b.daysLeft);
-  const top = anStockoutShowAll ? alerts : alerts.slice(0,8);
-  el.innerHTML = '<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">คาดการณ์จากอัตราขายเฉลี่ย | ' + alerts.length + ' รายการ</div>' +
-    top.map(a => {
-      const col = a.daysLeft <= 14 ? '#dc2626' : a.daysLeft <= 30 ? '#d97706' : '#2563eb';
-      const label = [a.name, a.col, a.row].filter(Boolean).join(' ').trim();
-      const stockLabel = (a.tank > 0 ? a.tank.toLocaleString() + ' ถัง · ' : '') + a.stock.toLocaleString() + ' ' + a.unit;
-      return '<div class="an-alert-row"><div class="an-alert-name" title="' + label + '">' + label + '</div><div class="an-alert-stock">' + stockLabel + '</div><div class="an-alert-val" style="color:' + col + '">~' + a.daysLeft + ' วัน</div></div>';
-    }).join('') +
-    (alerts.length > 8 ? '<button class="an-expand-btn" onclick="anStockoutToggleShowAll()">' +
-      (anStockoutShowAll ? 'ย่อกลับ' : 'ขยายดูทั้งหมด (' + alerts.length + ' ราย)') +
-    '</button>' : '');
-}
-function anStockoutToggleShowAll() {
-  anStockoutShowAll = !anStockoutShowAll;
-  if (anStockoutCache) anRenderStockout(anStockoutCache.items, anStockoutCache.salesMap, anStockoutCache.daysPeriod);
+  const catMap = {};
+  alerts.forEach(a => {
+    const cat = anVCategory(a.type);
+    if (!catMap[cat]) catMap[cat] = [];
+    catMap[cat].push(a);
+  });
+  Object.keys(catMap).forEach(cat => catMap[cat].sort(anSizeCompare));
+  anStoCatMap = catMap;
+  anRenderFeatCombined();
 }
 
 function anToggleChart(mode, btn) {
