@@ -4258,7 +4258,7 @@ function renderSummary() {
         const tB = siB ? TYPES.indexOf(resolveType(siB)) : 999;
         return tA - tB;
       });
-      let totalSack = 0, totalBox = 0;
+      let totalSack = 0, totalBox = 0, totalAmount = 0;
       orders.forEach((o, idx) => {
         const si = allItems.find(x => x.code === o.code);
         const isBox = si ? getUnit(resolveType(si)) === 'กล่อง' : (o.unit === 'กล่อง');
@@ -4275,6 +4275,7 @@ function renderSummary() {
         const listStr  = (_bd && _bd.listPerUnit !== null) ? Number(_bd.listPerUnit).toFixed(2) : '–';
         const afterStr = _bd ? Number(_bd.afterPerUnit).toFixed(2) : '–';
         const lineTotal = _bd ? _bd.total * qty : null;
+        if (lineTotal !== null) totalAmount += lineTotal;
         const totalStr = lineTotal !== null ? lineTotal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}) : '–';
         html += `<tr class="${idx===0?'group-sep':''}">
           <td style="font-size:11px;white-space:nowrap">${dateStr}</td>
@@ -4292,24 +4293,31 @@ function renderSummary() {
           <td style="font-size:11px;color:#555">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล X]</span>':''}</td>
         </tr>`;
       });
+      // 2026-09-10: เพิ่มยอดเงินรวมของลูกค้าไว้ใต้คอลัมน์ "ราคารวม" เดิม (แนวเดียวกับตัวเลขแต่ละแถวด้านบน) ตาม mockup ที่ user เลือก (ตัวเลือก A)
       html += `<tr class="summary-row">
         <td colspan="4" style="text-align:right">รวม ${cust}</td>
         <td>${totalSack||'-'}</td>
         <td>${totalBox||'-'}</td>
-        <td colspan="7"></td>
+        <td colspan="4"></td>
+        <td>${totalAmount.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        <td colspan="2"></td>
       </tr>`;
     });
     html += `</tbody></table></div>`;
   });
 
-  let grandSack = 0, grandBox = 0;
+  let grandSack = 0, grandBox = 0, grandAmount = 0;
   rows.forEach(o => {
     const si = allItems.find(x => x.code === o.code);
     const unit = si ? getUnit(resolveType(si)) : (o.unit||'กก.');
-    if (unit === 'กล่อง') grandBox += Number(o.qty)||0; else grandSack += Number(o.qty)||0;
+    const qty = Number(o.qty)||0;
+    if (unit === 'กล่อง') grandBox += qty; else grandSack += qty;
+    // 2026-09-10: รวมยอดเงินทั้งหมดด้วยสูตรเดียวกับที่ใช้คำนวณราคารวมรายแถว/รายลูกค้าด้านบน
+    const _bd = si ? getRevenuePerUnit(si.type||'', si.col, si.row, o.disc_pct, o.net_price, o.plating, true) : null;
+    if (_bd) grandAmount += _bd.total * qty;
   });
   const grandStr = [grandSack?grandSack+' กระสอบ':'', grandBox?grandBox+' กล่อง':''].filter(Boolean).join(' + ');
-  html += `<div class="sum-grand">รวมทั้งหมด &nbsp; ${grandStr} &nbsp;·&nbsp; ${rows.length} รายการ</div>`;
+  html += `<div class="sum-grand">รวมทั้งหมด &nbsp; ${grandStr} &nbsp;·&nbsp; ${rows.length} รายการ &nbsp;·&nbsp; ${grandAmount.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})} บาท</div>`;
 
   document.getElementById('sum-body').innerHTML = html;
 
