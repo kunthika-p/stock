@@ -36,6 +36,11 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .btn-confirm{background:#16a34a;color:white;border:none;border-radius:7px;padding:5px 10px;font-size:12px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
 .btn-reject{background:white;color:#dc2626;border:1.5px solid #dc2626;border-radius:7px;padding:5px 10px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer}
 .btn-edit{background:white;color:#d97706;border:1.5px solid #d97706;border-radius:7px;padding:5px 10px;font-size:12px;font-family:'Sarabun',sans-serif;cursor:pointer}
+/* 2026-09-10: ปุ่ม "เลือกทั้งหมด" ต่อลูกค้า ในตารางรอยืนยัน (mockup v2 ที่ user เลือก - งั้นเอาแบบนี้ละกัน) */
+.cust-name-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.btn-select-cust{display:inline-flex;align-items:center;gap:4px;background:#eafff3;color:#16a34a;border:1.3px solid #86efac;font-family:'Sarabun',sans-serif;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;cursor:pointer;white-space:nowrap}
+.btn-select-cust:hover{background:#16a34a;color:white;border-color:#16a34a}
+.btn-select-cust.all-selected{background:#16a34a;color:white;border-color:#16a34a}
 /* Edit modal */
 .edit-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center}
 .edit-modal-bg.open{display:flex}
@@ -3183,7 +3188,7 @@ function renderPendingTable() {
         <td><input type="checkbox" class="pend-chk" data-row="${o.row}" data-code="${o.code}" data-qty="${qty}" data-group="${gKey}" data-cust="${custIdx}" data-sack="${!isBox?qty:0}" data-box="${isBox?qty:0}" onchange="updateBulkCount();recalcPendStockPreview()"></td>
         <td style="font-size:11px;white-space:nowrap"><span id="pend-date-${o.row}">${getOrderDate(o)}</span></td>
         <td>${idx===0?`<span class="grade-badge ${gbClass}">${grade||'—'}</span>`:''}</td>
-        <td class="td-left" style="font-weight:700;color:#1a3a5c">${idx===0?cust:''}</td>
+        <td class="td-left">${idx===0?`<div class="cust-name-row"><span style="font-weight:700;color:#1a3a5c">${cust}</span><button type="button" class="btn-select-cust" data-cust="${custIdx}" onclick="toggleCustSelect(${custIdx},this)">✓ เลือกทั้งหมด</button></div>`:''}</td>
         <td class="td-left" style="color:#374151">${fmtName(o.name||o.code)}</td>
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?qty:''}</td>
@@ -3335,6 +3340,32 @@ function toggleAllPend(cb) {
   recalcPendStockPreview();
 }
 
+// 2026-09-10: ปุ่ม "เลือกทั้งหมด" ต่อลูกค้า (mockup v2 ที่ user อนุมัติ - งั้นเอาแบบนี้ละกัน) — ติ๊ก/ยกเลิก
+// .pend-chk ทุกตัวของลูกค้าคนนั้น (data-cust ตรงกับ custIdx) กรองด้วย isPendChkVisible เหมือน toggleAllPend
+// กันบั๊กเดียวกับที่แก้ไว้ 2026-08-04 (ไม่ให้ติ๊กแถวที่ถูกซ่อนเพราะปิดกลุ่มรถเที่ยวนี้)
+function toggleCustSelect(custIdx, btn) {
+  const chks = [...document.querySelectorAll(`.pend-chk[data-cust="${custIdx}"]`)].filter(isPendChkVisible);
+  if (!chks.length) return;
+  const allChecked = chks.every(c => c.checked);
+  chks.forEach(c => { c.checked = !allChecked; });
+  updateBulkCount();
+  recalcPendStockPreview();
+}
+
+// อัปเดตข้อความ/สถานะปุ่ม "เลือกทั้งหมด" ของแต่ละลูกค้าให้ตรงกับ checkbox จริงเสมอ (เรียกจาก updateBulkCount
+// ทุกครั้ง แม้จะติ๊กทีละรายการในตารางตรงๆ ไม่ได้กดปุ่มนี้โดยตรงก็ตาม)
+function updateCustSelectButtons() {
+  document.querySelectorAll('.btn-select-cust').forEach(btn => {
+    const custIdx = btn.getAttribute('data-cust');
+    const chks = [...document.querySelectorAll(`.pend-chk[data-cust="${custIdx}"]`)].filter(isPendChkVisible);
+    if (!chks.length) { btn.style.display = 'none'; return; }
+    btn.style.display = '';
+    const allChecked = chks.every(c => c.checked);
+    btn.textContent = allChecked ? '✓ ยกเลิกทั้งหมด' : '✓ เลือกทั้งหมด';
+    btn.classList.toggle('all-selected', allChecked);
+  });
+}
+
 // 2026-08-14: พรีวิวสต็อคคงเหลือแบบสดตามรายการที่ติ๊กในหน้ารอยืนยัน — ช่วยเห็นว่าสินค้ารหัสเดียวกัน
 // ที่ลูกค้าหลายคนสั่งพร้อมกัน ถ้าติ๊กยืนยันตามที่เลือกแล้วจะพอหรือไม่พอ (ไม่ตัดสต็อคจริง แค่พรีวิว)
 // ตัวเลขถัง (ซ้ายของ "/") ไม่ถูกหักเลยตามที่ user ยืนยัน — หักเฉพาะตัวเลข "เหลือ" ฝั่งขวา
@@ -3384,6 +3415,7 @@ function updateBulkCount() {
   const dateBtn = document.getElementById('bulkDateBtn');
   const cnt = document.getElementById('bulkCount');
   updateGroupTotals();
+  updateCustSelectButtons();
   if (!btn || !cnt) return;
   if (checked.length > 0) {
     btn.style.display = 'inline-block';
