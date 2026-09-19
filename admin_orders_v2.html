@@ -3236,10 +3236,12 @@ function renderPendingTable() {
 
   // 2026-07-25: แถวรวม "รถเที่ยวนี้" — ตัดกลุ่มที่ปิดออก + นับเฉพาะรายการที่ติ๊ก checkbox เท่านั้น (ไม่ใช่รวมทุกออเดอร์ที่แสดง) — เรนเดอร์เสมอไม่ผูกกับ pendingSort
   // 2026-07-31: เปลี่ยนกลับเป็นสีเขียว #E1F5EE (เขียวเดิมที่เคยใช้ก่อนเปลี่ยนเป็นส้ม 07-30) ตามที่ user ขอ แยกจากแถว "เลือกแล้วในกลุ่ม X" ให้ไม่ลายตา
-  rows += `<tr class="pend-total-row" style="background:#E1F5EE">
-    <td colspan="5" style="text-align:right;font-weight:700;font-size:12px;color:#166534;padding:3px 8px">รวมรถเที่ยวนี้ (กลุ่มที่เปิดอยู่)</td>
-    <td style="font-weight:700;color:#166534;text-align:center"><span id="route-total-sack">-</span></td>
-    <td style="font-weight:700;color:#166534;text-align:center"><span id="route-total-box">-</span></td>
+  // 2026-09-19: user ขอเปลี่ยนแถวนี้จากเขียวอ่อนเป็นน้ำเงินเข้ม (#1a3a5c) หลังลบแถว "รวมทั้งหมด (ที่แสดงอยู่)"
+  // ออกไป — แถวนี้เลยกลายเป็นแถวสรุปท้ายตาราง ใช้โทนเดียวกับแถว "รวมทั้งหมด" เดิมที่เพิ่งลบไป (สีเดียวกับที่ user คุ้นตา)
+  rows += `<tr class="pend-total-row" style="background:#1a3a5c;color:white">
+    <td colspan="5" style="text-align:right;font-weight:700;font-size:12px;padding:3px 8px">รวมรถเที่ยวนี้ (กลุ่มที่เปิดอยู่)</td>
+    <td style="font-weight:700;color:#93c5fd;text-align:center"><span id="route-total-sack">-</span></td>
+    <td style="font-weight:700;color:#c4b5fd;text-align:center"><span id="route-total-box">-</span></td>
     <td colspan="7"></td>
   </tr>`;
 
