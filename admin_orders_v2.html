@@ -705,7 +705,7 @@ table.list tr:hover td{background:#f8fbff}
 </head>
 <body class="not-logged-in">
 
-<!-- 2026-09-21: login overlay — โชว์ก่อนเข้าเว็บเสมอถ้ายังไม่มี session (localStorage) ที่ valid -->
+<!-- 2026-09-21: login overlay — โชว์ก่อนเข้าเว็บเสมอถ้ายังไม่มี session (sessionStorage) ที่ valid -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-card">
     <h2>🔧 Admin — STIC</h2>
@@ -4701,14 +4701,15 @@ function renderSummary() {
 
 
 // ── 2026-09-21: Login / Session ─────────────────────────────────
-// ใช้ localStorage (ไม่ใช่ sessionStorage) เพื่อให้ login ครั้งเดียวใช้ได้ทั้ง admin_orders_v2.html และ
-// sales_grid_v2.html แม้เปิดเป็นแท็บใหม่ (ปุ่ม "＋ สั่งสินค้า" เปิด target="_blank" — sessionStorage จะไม่ตามไปด้วย)
-// ความปลอดภัยจริงอยู่ที่ token ฝั่ง server (CacheService) ซึ่งหมดอายุตายตัวที่ 6 ชม.ไม่ว่า localStorage จะเก็บไว้นานแค่ไหน
+// เปลี่ยนจาก localStorage เป็น sessionStorage ตามที่ user ขอ (2026-09-21) — ให้ต้อง login ใหม่ทุกครั้งที่
+// ปิด browser จริงๆ (localStorage เดิมจะค้าง session ไว้ข้ามการปิด-เปิดเครื่องได้) ส่วนแท็บใหม่ที่เปิดจากลิงก์/ปุ่ม
+// ในหน้านี้ (เช่น target="_blank") ยังใช้ sessionStorage ชุดเดียวกันได้ตามสเปคเบราว์เซอร์ (คัดลอกให้อัตโนมัติตอนเปิดแท็บใหม่
+// จากหน้าเดิม) จึงไม่เสียความสะดวกเดิมไป — อายุจริงของ token ยังคุมที่ฝั่ง server (CacheService, ปรับเหลือ 1 ชม.แล้ว)
 function stcGetSession() {
-  try { return JSON.parse(localStorage.getItem('stic_session') || 'null'); } catch (e) { return null; }
+  try { return JSON.parse(sessionStorage.getItem('stic_session') || 'null'); } catch (e) { return null; }
 }
-function stcSetSession(s) { localStorage.setItem('stic_session', JSON.stringify(s)); }
-function stcClearSession() { localStorage.removeItem('stic_session'); }
+function stcSetSession(s) { sessionStorage.setItem('stic_session', JSON.stringify(s)); }
+function stcClearSession() { sessionStorage.removeItem('stic_session'); }
 
 // role ไหนเห็นแท็บอะไรบ้าง — ยืนยันกับ user แล้ว 2026-09-21 (Admin=ทุกแท็บ, Warehouse=ทุกแท็บยกเว้นวิเคราะห์ข้อมูล+จัดการผู้ใช้งาน, Sale=ไม่เห็นเว็บนี้เลย ถูกเด้งไป sales_grid_v2.html ตั้งแต่ login)
 const STC_TAB_ROLES = {
@@ -4768,11 +4769,13 @@ function stcLogout() {
 
 (function stcInit() {
   const session = stcGetSession();
-  if (session && session.token) {
-    if (session.role === 'Sale') { window.location.href = 'sales_grid_v2.html'; return; }
+  // 2026-09-21: user ขอเอาการเด้งไปหน้า sale อัตโนมัติตอน "restore" session เก่าออก (เช่น กด back กลับมาหน้านี้
+  // ทั้งที่ยังมี session ของ Sale ค้างอยู่ในแท็บ) — ให้หน้านี้ตั้งต้นที่หน้า login ของ admin เสมอในกรณีนั้น
+  // ส่วนตอน login สดๆ ผ่านฟอร์มนี้ (ดู stcLogin ด้านบน) ยังเด้งไปหน้า sale ทันทีเหมือนเดิม ไม่เปลี่ยน
+  if (session && session.token && session.role !== 'Sale') {
     stcShowApp(session);
   }
-  // ไม่มี session ที่ใช้ได้ → ปล่อยให้ body.not-logged-in โชว์หน้า login เฉยๆ ไม่เรียก loadAll() จนกว่าจะ login สำเร็จ
+  // ไม่มี session ที่ใช้ได้ (หรือเป็น session ของ Sale ที่ไม่ควรอยู่หน้านี้) → ปล่อยให้ body.not-logged-in โชว์หน้า login เฉยๆ ไม่เรียก loadAll() จนกว่าจะ login สำเร็จ
 })();
 
 const _origSwitchTabStc = switchTab;
