@@ -174,15 +174,54 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
   #sales-tab-order .cell-tick{font-size:10pt!important}
   #sales-tab-order .cell-code{font-size:6.5pt!important}
 }
+
+/* 2026-09-21: login gate — ผูกกับระบบผู้ใช้งานเดียวกับ admin_orders_v2.html (ยืนยันสเปคกับ user แล้ว) */
+body.not-logged-in > *:not(.login-overlay){display:none}
+.login-overlay{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1a3a5c,#2563a8);z-index:1000;align-items:center;justify-content:center}
+body.not-logged-in .login-overlay{display:flex}
+.login-card{background:white;border-radius:16px;padding:36px 32px;width:90%;max-width:360px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.login-card h2{color:#1a3a5c;font-size:20px;font-weight:700;text-align:center;margin-bottom:4px}
+.login-card .sub{color:#888;font-size:13px;text-align:center;margin-bottom:22px}
+.login-field{margin-bottom:14px}
+.login-field label{display:block;font-size:12px;color:#555;font-weight:600;margin-bottom:5px}
+.login-field input{width:100%;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px}
+.login-field input:focus{outline:none;border-color:#2563a8}
+.login-err{color:#dc2626;font-size:12.5px;min-height:16px;margin-bottom:8px;text-align:center}
+.login-btn{width:100%;background:#1a3a5c;color:white;border:none;padding:11px;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px}
+.login-btn:hover{background:#122b45}
+.sg-user-info{display:flex;align-items:center;gap:8px;font-size:11.5px;margin-top:6px;opacity:.9}
+.sg-btn-logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:white;padding:3px 10px;border-radius:6px;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:11px}
 </style>
 </head>
-<body>
+<body class="not-logged-in">
+
+<!-- 2026-09-21: login overlay — ใช้ session เดียวกับ admin_orders_v2.html (localStorage คนละ key เดียวกัน: stic_session) -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <h2>🛒 สั่งสินค้า STIC</h2>
+    <div class="sub">เข้าสู่ระบบเพื่อใช้งาน</div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUsername" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPassword" autocomplete="current-password" onkeydown="if(event.key==='Enter')stcLogin()">
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="login-btn" onclick="stcLogin()">เข้าสู่ระบบ</button>
+  </div>
+</div>
 
 </div>
 
 <div class="header">
   <h1>🛒 สั่งสินค้า STIC</h1>
   <p>กรอกชื่อลูกค้าก่อน แล้วกดช่อง ✅ เพื่อสั่งสินค้า</p>
+  <div class="sg-user-info">
+    <span>👤 <span id="stcUserFullname"></span> (<span id="stcUserRole"></span>)</span>
+    <button class="sg-btn-logout" onclick="stcLogout()">ออกจากระบบ</button>
+  </div>
 </div>
 
 <!-- Customer name bar -->
@@ -1917,7 +1956,51 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-loadData();
+// ── 2026-09-21: Login / Session — ใช้ key เดียวกับ admin_orders_v2.html (localStorage 'stic_session')
+// เพื่อให้ login ครั้งเดียวใช้ได้ทั้งสองหน้า (คนละแท็บ/คนละหน้าจอก็ได้ ตราบใดที่ยังไม่ logout/token ยังไม่หมดอายุ 6 ชม.)
+function stcGetSession() {
+  try { return JSON.parse(localStorage.getItem('stic_session') || 'null'); } catch (e) { return null; }
+}
+function stcSetSession(s) { localStorage.setItem('stic_session', JSON.stringify(s)); }
+function stcClearSession() { localStorage.removeItem('stic_session'); }
+
+function stcShowApp(session) {
+  document.body.classList.remove('not-logged-in');
+  document.getElementById('stcUserFullname').textContent = session.fullname || session.username;
+  document.getElementById('stcUserRole').textContent = session.role;
+  loadData();
+}
+
+function stcLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.textContent = '';
+  if (!username || !password) { errEl.textContent = 'กรุณากรอก username และ password'; return; }
+  fetch(API, { method: 'POST', body: JSON.stringify({ action: 'login', username: username, password: password }) })
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) {
+        stcSetSession({ token: res.token, username: res.username, role: res.role, fullname: res.fullname });
+        document.getElementById('loginPassword').value = '';
+        stcShowApp({ username: res.username, role: res.role, fullname: res.fullname });
+      } else {
+        errEl.textContent = res.error || 'เข้าสู่ระบบไม่สำเร็จ';
+      }
+    })
+    .catch(() => { errEl.textContent = 'เชื่อมต่อระบบไม่ได้ กรุณาลองใหม่'; });
+}
+
+function stcLogout() {
+  stcClearSession();
+  window.location.reload();
+}
+
+(function stcInit() {
+  const session = stcGetSession();
+  if (session && session.token) { stcShowApp(session); }
+  // ไม่มี session ที่ใช้ได้ → ปล่อยให้ body.not-logged-in โชว์หน้า login เฉยๆ ไม่เรียก loadData() จนกว่าจะ login สำเร็จ
+})();
 </script>
 </body>
 </html>

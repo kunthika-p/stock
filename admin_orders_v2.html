@@ -18,6 +18,72 @@ body{font-family:'Sarabun',sans-serif;background:#f0f4f8;color:#222;font-size:15
 .content{padding:16px;max-width:1400px;margin:0 auto}
 .tab-panel{display:none}.tab-panel.active{display:block}
 
+/* 2026-09-21: login gate + จัดการผู้ใช้งาน — เพิ่มให้เหมือนระบบ PHP ที่ IT ทำ (ยืนยันสเปคกับ user แล้ว) */
+body.not-logged-in .header,body.not-logged-in .tabs,body.not-logged-in .content{display:none}
+.login-overlay{display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1a3a5c,#2563a8);z-index:1000;align-items:center;justify-content:center}
+body.not-logged-in .login-overlay{display:flex}
+.login-card{background:white;border-radius:16px;padding:36px 32px;width:90%;max-width:360px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.login-card h2{color:#1a3a5c;font-size:20px;font-weight:700;text-align:center;margin-bottom:4px}
+.login-card .sub{color:#888;font-size:13px;text-align:center;margin-bottom:22px}
+.login-field{margin-bottom:14px}
+.login-field label{display:block;font-size:12px;color:#555;font-weight:600;margin-bottom:5px}
+.login-field input{width:100%;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px}
+.login-field input:focus{outline:none;border-color:#2563a8}
+.login-err{color:#dc2626;font-size:12.5px;min-height:16px;margin-bottom:8px;text-align:center}
+.login-btn{width:100%;background:#1a3a5c;color:white;border:none;padding:11px;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px}
+.login-btn:hover{background:#122b45}
+.user-info{display:flex;align-items:center;gap:10px;font-size:12.5px}
+.user-info .role-badge{background:rgba(255,255,255,.2);padding:2px 10px;border-radius:20px;font-weight:700}
+.btn-logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:white;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:12.5px}
+
+/* จัดการผู้ใช้งาน */
+.um-table{width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden}
+.um-table th{background:#1a3a5c;color:white;text-align:left;padding:10px 12px;font-size:12.5px}
+.um-table td{padding:10px 12px;border-bottom:1px solid #eee;font-size:13.5px}
+.um-role-badge{padding:3px 10px;border-radius:12px;font-size:11.5px;font-weight:700}
+.um-role-Admin{background:#fee2e2;color:#991b1b}
+.um-role-Warehouse{background:#fef9c3;color:#92400e}
+.um-role-Sale{background:#dbeafe;color:#1e40af}
+.btn-um-reset{background:none;border:1.3px solid #d97706;color:#d97706;border-radius:6px;padding:4px 9px;font-size:11.5px;cursor:pointer;font-family:'Sarabun',sans-serif;margin-right:5px}
+.btn-um-del{background:none;border:1.3px solid #dc2626;color:#dc2626;border-radius:6px;padding:4px 9px;font-size:11.5px;cursor:pointer;font-family:'Sarabun',sans-serif}
+.um-log-box{background:#1a2332;color:#a3e635;font-family:monospace;font-size:12px;padding:14px 16px;border-radius:8px;max-height:280px;overflow-y:auto;line-height:1.9;white-space:pre-wrap}
+.um-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:320;align-items:center;justify-content:center}
+.um-modal-bg.open{display:flex}
+.um-modal{background:white;border-radius:12px;padding:24px;width:90%;max-width:380px}
+.um-modal h3{font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:14px}
+
+/* 2026-09-21: วางแผนการบรรจุ (Admin+Warehouse) — mockup_pack_planning_v12.html ที่ user ยืนยันแล้วหลังปรับ 12 รอบ */
+#tab-packplan .pp-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:10px}
+#tab-packplan .pp-toolbar .left{display:flex;gap:8px;align-items:center;font-size:13px;color:#555}
+#tab-packplan .pp-btn{border:none;border-radius:7px;padding:8px 14px;font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;font-weight:700}
+#tab-packplan .pp-btn-selall{background:white;border:1.5px solid #1a3a5c;color:#1a3a5c}
+#tab-packplan .pp-btn-print{background:#16a34a;color:white}
+#tab-packplan .pp-btn-print:disabled{background:#a7d7b8;cursor:not-allowed}
+#tab-packplan .pp-sel-count{font-size:12.5px;color:#16a34a;font-weight:700}
+#tab-packplan .pp-table{width:100%;border-collapse:collapse}
+#tab-packplan .pp-table th{background:#1a3a5c;color:white;text-align:center;padding:6px 5px;font-size:11.5px}
+#tab-packplan .pp-table th.pp-name-th{text-align:left;padding:6px 8px}
+#tab-packplan .pp-table td{padding:5px 5px;border-bottom:1px solid #eee;font-size:12.5px;text-align:center}
+#tab-packplan .pp-table td.pp-name-cell{text-align:left;padding:5px 8px;line-height:1.3;white-space:nowrap;overflow:hidden}
+#tab-packplan .pp-table tr.pp-cat-row td{background:#eef2f7;font-weight:700;color:#1a3a5c;font-size:11px;padding:4px 8px;text-align:left}
+#tab-packplan .pp-table tr.pp-item-row.checked{background:#f0fdf4}
+#tab-packplan .pp-chk{width:16px;height:16px;cursor:pointer}
+#tab-packplan .pp-qty-grp-hdr{background:#12293f}
+#tab-packplan .pp-table th.pp-qty-sub{padding:4px 4px;font-size:10.5px}
+#tab-packplan .pp-qty-bag{font-weight:700;color:#1a3a5c}
+#tab-packplan .pp-qty-tank{font-weight:700;color:#7c3aed}
+#tab-packplan .pp-qty-low{color:#dc2626}
+#tab-packplan .pp-extra-tag{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#fff;background:#dc2626;padding:1px 6px;border-radius:3px;white-space:nowrap;vertical-align:middle}
+#tab-packplan .pp-input{width:100%;text-align:center;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:inherit;font-weight:700;color:#7c3aed;padding:2px}
+#tab-packplan .pp-input:focus{outline:none}
+#tab-packplan .pp-input::-webkit-outer-spin-button,#tab-packplan .pp-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+#tab-packplan .pp-input[type=number]{-moz-appearance:textfield}
+#tab-packplan .pp-note{font-size:12px;color:#888;margin-top:10px;line-height:1.7}
+#tab-packplan .pp-print-only{display:none}
+#tab-packplan .pp-print-hdr{text-align:center;margin-bottom:18px;border-bottom:2px solid #1a3a5c;padding-bottom:12px}
+#tab-packplan .pp-print-hdr .t{font-size:19px;font-weight:700;color:#1a3a5c}
+#tab-packplan .pp-print-hdr .s{font-size:13px;color:#555;margin-top:4px}
+
 /* Order cards */
 .order-card{background:white;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:4px solid #d1d5db}
 .order-card.urgent{border-left-color:#dc2626}
@@ -425,6 +491,23 @@ table.list tr:hover td{background:#f8fbff}
   #tab-analytics #an-cust-full-body,#tab-analytics #an-top5-widget{page-break-inside:auto!important}
   #tab-analytics tr{page-break-inside:avoid}
   #tab-analytics .an-card-title{page-break-after:avoid;margin-bottom:6px!important}
+
+  /* ── #tab-packplan: วางแผนการบรรจุ — ขาวดำล้วน + กระชับแถวเพื่อประหยัดกระดาษ (mockup v12 ที่ user ยืนยันแล้ว 2026-09-21) ── */
+  #tab-packplan .content{padding:0!important}
+  #tab-packplan .no-print{display:none!important}
+  #tab-packplan .pp-print-only{display:block!important}
+  #tab-packplan .pp-item-row:not(.checked){display:none}
+  #tab-packplan .pp-cat-row.pp-cat-hide{display:none}
+  #tab-packplan .pp-chk-col{display:none!important}
+  #tab-packplan .pp-table{font-size:10.5px;border:1.5px solid #000}
+  #tab-packplan .pp-table td,#tab-packplan .pp-table th{border:1px solid #ccc!important;padding:3px 4px}
+  #tab-packplan .pp-table th,#tab-packplan .pp-qty-grp-hdr{background:#000!important;color:#fff!important;font-weight:700;border-bottom:1px solid #000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #tab-packplan .pp-table tr.pp-cat-row td{background:white!important;color:#000!important;font-weight:700;border-top:1px solid #000!important;border-bottom:1px solid #000!important}
+  #tab-packplan .pp-qty-bag,#tab-packplan .pp-qty-tank{color:#000!important;font-size:10px}
+  #tab-packplan .pp-qty-low{background:#ddd!important;color:#000!important;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #tab-packplan .pp-extra-tag{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #tab-packplan .pp-name-cell{font-size:10px}
+  #tab-packplan .pp-input{color:#000}
 }
 
 /* ── Analytics Tab ── */
@@ -620,25 +703,50 @@ table.list tr:hover td{background:#f8fbff}
 
 </style>
 </head>
-<body>
+<body class="not-logged-in">
+
+<!-- 2026-09-21: login overlay — โชว์ก่อนเข้าเว็บเสมอถ้ายังไม่มี session (localStorage) ที่ valid -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <h2>🔧 Admin — STIC</h2>
+    <div class="sub">เข้าสู่ระบบเพื่อใช้งาน</div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUsername" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPassword" autocomplete="current-password" onkeydown="if(event.key==='Enter')stcLogin()">
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <button class="login-btn" onclick="stcLogin()">เข้าสู่ระบบ</button>
+  </div>
+</div>
 
 <div class="header">
   <h1>🔧 Admin — STIC</h1>
-  <div style="display:flex;gap:8px;align-items:center">
+  <div style="display:flex;gap:14px;align-items:center">
     <a href="sales_grid_v2.html" target="_blank" class="btn-new-order">＋ สั่งสินค้า</a>
     <button class="btn-refresh" onclick="loadAll()">🔄 รีเฟรช</button>
+    <div class="user-info">
+      <span>👤 <span id="stcUserFullname"></span></span>
+      <span class="role-badge" id="stcUserRole"></span>
+      <button class="btn-logout" onclick="stcLogout()">ออกจากระบบ</button>
+    </div>
   </div>
 </div>
 
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('overview',this)">📊 ภาพรวม</button>
-  <button class="tab-btn" onclick="switchTab('stock',this)">📋 สต็อค</button>
-  <button class="tab-btn" onclick="switchTab('stockin',this)">📥 รับสินค้าเข้า</button>
-  <button class="tab-btn" onclick="switchTab('pending',this)">รอยืนยัน <span class="badge-count" id="pendingCount">0</span></button>
-  <button class="tab-btn" onclick="switchTab('itemhistory',this)">📜 ย้อนประวัติสินค้า</button>
-  <button class="tab-btn" onclick="switchTab('history',this)">ประวัติ</button>
-  <button class="tab-btn" onclick="switchTab('summary',this)">🖨️ สรุปออเดอร์</button>
-  <button class="tab-btn" onclick="switchTab('analytics',this)">📈 วิเคราะห์ข้อมูล 🔒</button>
+  <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview',this)">📊 ภาพรวม</button>
+  <button class="tab-btn" data-tab="stock" onclick="switchTab('stock',this)">📋 สต็อค</button>
+  <button class="tab-btn" data-tab="stockin" onclick="switchTab('stockin',this)">📥 รับสินค้าเข้า</button>
+  <button class="tab-btn" data-tab="packplan" onclick="switchTab('packplan',this)">📦 วางแผนการบรรจุ</button>
+  <button class="tab-btn" data-tab="pending" onclick="switchTab('pending',this)">รอยืนยัน <span class="badge-count" id="pendingCount">0</span></button>
+  <button class="tab-btn" data-tab="itemhistory" onclick="switchTab('itemhistory',this)">📜 ย้อนประวัติสินค้า</button>
+  <button class="tab-btn" data-tab="history" onclick="switchTab('history',this)">ประวัติ</button>
+  <button class="tab-btn" data-tab="summary" onclick="switchTab('summary',this)">🖨️ สรุปออเดอร์</button>
+  <button class="tab-btn" data-tab="users" onclick="switchTab('users',this)">👥 จัดการผู้ใช้งาน</button>
+  <button class="tab-btn" data-tab="analytics" onclick="switchTab('analytics',this)">📈 วิเคราะห์ข้อมูล 🔒</button>
 </div>
 
 <div class="content">
@@ -1058,7 +1166,88 @@ table.list tr:hover td{background:#f8fbff}
       </div>
     </div>
   </div>
+
+  <!-- 2026-09-21: แก้ไข/ยกเลิกรายการ "ตัดออก" (ตัดสต็อคถัง) — คู่กับ pack-corr-bg ด้านบน มีปริมาณเดียว (ถัง) -->
+  <div class="si-corr-modal-bg" id="tank-corr-bg">
+    <div class="si-corr-modal">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <strong id="tank-corr-title" style="font-size:15px;color:#1a3a5c">แก้ไขรายการตัดออก</strong>
+        <button onclick="tankCorrClose()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#888">✕</button>
+      </div>
+      <div id="tank-corr-sub" style="font-size:12px;color:#888;margin-bottom:14px"></div>
+      <div class="si-corr-info" id="tank-corr-info"></div>
+
+      <!-- panel edit -->
+      <div id="tank-panel-edit">
+        <div class="si-corr-field">
+          <label>จำนวนถังที่ตัดออก (ถัง)</label>
+          <input type="number" id="tank-new-qty" min="1" step="1">
+        </div>
+        <div id="tank-edit-delta" style="font-size:11px;color:#888;background:#f8fbff;border-radius:7px;padding:8px 11px;margin-bottom:10px"></div>
+        <div class="si-corr-footer">
+          <button class="si-btn-cancel-modal" onclick="tankCorrClose()">ยกเลิก</button>
+          <button class="si-btn-save" id="tank-edit-save-btn" onclick="tankEditSave()">💾 บันทึกการแก้ไข</button>
+        </div>
+      </div>
+
+      <!-- panel void -->
+      <div id="tank-panel-void" style="display:none">
+        <div class="si-corr-warn">⚠️ ยกเลิกรายการตัดออก — จะ<strong>คืนถัง</strong>กลับเข้าสต็อคทั้งหมด บันทึกลบไม่ได้</div>
+        <div id="tank-void-effect" style="font-size:12px;background:#fff7ed;border-radius:7px;padding:8px 11px;margin-bottom:10px;color:#92400e"></div>
+        <div class="si-corr-footer">
+          <button class="si-btn-cancel-modal" onclick="tankCorrClose()">ยกเลิก</button>
+          <button class="si-btn-void-confirm" id="tank-void-btn" onclick="tankVoidConfirm()">✕ ยืนยันยกเลิก</button>
+        </div>
+      </div>
+    </div>
   </div>
+  </div>
+  </div>
+
+  <!-- Tab: วางแผนการบรรจุ (2026-09-21, Admin+Warehouse) -->
+  <div class="tab-panel" id="tab-packplan">
+    <div class="content">
+      <div class="card">
+        <div class="pp-toolbar no-print">
+          <div class="left">
+            <button class="pp-btn pp-btn-selall" onclick="ppToggleSelectAll()">☑️ เลือกทั้งหมด / ยกเลิกทั้งหมด</button>
+            <span class="pp-sel-count" id="pp-sel-count">เลือกแล้ว 0 รายการ</span>
+          </div>
+          <button class="pp-btn pp-btn-print" id="pp-print-btn" onclick="ppDoPrint()" disabled>🖨️ พิมพ์รายการที่เลือก</button>
+        </div>
+
+        <!-- หัวกระดาษที่โชว์เฉพาะตอนพิมพ์ — ชื่อคงที่ + วันที่ปัจจุบันจริงเสมอ -->
+        <div class="pp-print-hdr pp-print-only">
+          <div class="t">ใบวางแผนการบรรจุ PA/DE</div>
+          <div class="s" id="pp-print-date"></div>
+        </div>
+
+        <table class="pp-table">
+          <thead>
+            <tr>
+              <th class="pp-chk-col no-print" style="width:3%" rowspan="2"></th>
+              <th style="width:4%" rowspan="2">#</th>
+              <th class="pp-name-th" style="width:38%" rowspan="2">ชื่อสินค้า</th>
+              <th class="pp-qty-grp-hdr" colspan="2">คงเหลือ</th>
+              <th style="width:9%" rowspan="2">ให้บรรจุ<br>(ถัง)</th>
+              <th style="width:30%" rowspan="2">หมายเหตุ</th>
+            </tr>
+            <tr>
+              <th class="pp-qty-sub" style="width:8%">กระสอบ/กล่อง</th>
+              <th class="pp-qty-sub" style="width:8%">ถัง</th>
+            </tr>
+          </thead>
+          <tbody id="pp-tbody"></tbody>
+        </table>
+
+        <div class="pp-note no-print">
+          * รายชื่อที่ขึ้นในตาราง = ทุกไซส์ที่เคยมีระบบ "ถัง/บรรจุ" (มีข้อมูลใน stock_tank) ไม่ได้กรองตามจำนวนคงเหลือ<br>
+          * "ให้บรรจุ (ถัง)" พิมพ์จำนวนถังที่ต้องการได้เลยบนหน้าจอก่อนกดพิมพ์ ส่วน "หมายเหตุ" เป็นช่องว่างให้เขียนด้วยมือหลังพิมพ์<br>
+          * เรียงตามหมวด/ไซส์สินค้า (ใช้ตรรกะจัดเรียงเดียวกับหน้าอื่นในระบบ) · วันที่ในใบพิมพ์ใช้วันที่ปัจจุบันเสมอ ไม่มีให้เลือก<br>
+          * หมวดหมู่ไหนไม่มีรายการที่ติ๊กเลย ตอนพิมพ์จะไม่ขึ้นหัวข้อหมวดนั้นเปล่าๆ
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Tab: สรุปออเดอร์ -->
@@ -1202,6 +1391,78 @@ table.list tr:hover td{background:#f8fbff}
     <div class="stockerr-actions">
       <button class="stockerr-btn-close" onclick="closeStockErrModal()">ปิด</button>
       <button class="stockerr-btn-fix" id="stockErrFixBtn" onclick="fixQtyFromStockErr()">แก้ไขจำนวน</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2026-09-21: แท็บ "จัดการผู้ใช้งาน" — Admin เท่านั้น (ปุ่มแท็บถูกซ่อนให้ role อื่นด้วย stcApplyRoleUI) -->
+<div class="tab-panel" id="tab-users">
+  <div class="card">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>👥 ระบบจัดการผู้ใช้งาน (Admin Only)</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn-confirm" onclick="umOpenAddModal()">＋ เพิ่มพนักงานใหม่</button>
+        <button class="btn-edit" onclick="umLoadAll()">🔄 รีเฟรช</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="um-table">
+        <thead><tr><th>ID</th><th>Username</th><th>ชื่อ-นามสกุล</th><th>สิทธิ์ (Role)</th><th>วันที่สร้าง</th><th>จัดการ</th></tr></thead>
+        <tbody id="umUserRows"><tr><td colspan="6" style="text-align:center;color:#888;padding:20px">กำลังโหลด...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">📜 ประวัติการทำงานระบบ</div>
+    <div class="um-log-box" id="umLogBox">กำลังโหลด...</div>
+  </div>
+</div>
+
+<!-- Modal: เพิ่มพนักงานใหม่ -->
+<div class="um-modal-bg" id="umAddModalBg">
+  <div class="um-modal">
+    <h3>➕ เพิ่มพนักงานใหม่</h3>
+    <div class="login-field"><label>Username</label><input type="text" id="umAddUsername"></div>
+    <div class="login-field"><label>ชื่อ-นามสกุล</label><input type="text" id="umAddFullname"></div>
+    <div class="login-field">
+      <label>สิทธิ์ (Role)</label>
+      <select id="umAddRole" style="width:100%;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px">
+        <option value="Admin">Admin</option>
+        <option value="Warehouse" selected>Warehouse</option>
+        <option value="Sale">Sale</option>
+      </select>
+    </div>
+    <div class="login-field"><label>รหัสผ่านเริ่มต้น</label><input type="text" id="umAddPassword"></div>
+    <div class="login-err" id="umAddErr"></div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn-reject" style="flex:1" onclick="umCloseAddModal()">ยกเลิก</button>
+      <button class="login-btn" style="flex:1;margin-top:0" onclick="umSubmitAdd()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: รีเซ็ตรหัสผ่าน -->
+<div class="um-modal-bg" id="umResetModalBg">
+  <div class="um-modal">
+    <h3>🔑 รีเซ็ตรหัสผ่าน: <span id="umResetUsername"></span></h3>
+    <div class="login-field"><label>รหัสผ่านใหม่</label><input type="text" id="umResetPassword"></div>
+    <div class="login-err" id="umResetErr"></div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn-reject" style="flex:1" onclick="umCloseResetModal()">ยกเลิก</button>
+      <button class="login-btn" style="flex:1;margin-top:0" onclick="umSubmitReset()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: ยืนยันลบผู้ใช้งาน -->
+<div class="um-modal-bg" id="umDelModalBg">
+  <div class="um-modal">
+    <h3>🗑 ลบผู้ใช้งาน: <span id="umDelUsername"></span>?</h3>
+    <div style="font-size:13px;color:#666;margin-bottom:14px">การลบไม่สามารถย้อนกลับได้</div>
+    <div class="login-err" id="umDelErr"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-reject" style="flex:1" onclick="umCloseDelModal()">ยกเลิก</button>
+      <button class="btn-confirm" style="flex:1" onclick="umSubmitDelete()">ลบ</button>
     </div>
   </div>
 </div>
@@ -2113,7 +2374,7 @@ function renderStockInHistory() {
   const to = document.getElementById('si-hist-to').value;
   let filtered = stockInHistory.filter(r => {
     const dir = r.direction||'in';
-    const isAudit = ['correction','void','note-edit','void-pack','correction-pack'].includes(dir);
+    const isAudit = ['correction','void','note-edit','void-pack','correction-pack','void-tank','correction-tank'].includes(dir);
     const matchQ = q ? (r.name+' '+r.code+' '+(r.recorder||'')+(r.note||'')).toLowerCase().includes(q) : true;
     if (!matchQ) return false;
     if ((from||to) && !isAudit) {
@@ -2136,10 +2397,10 @@ function renderStockInHistory() {
 
   // แยก in/in-tank กับ audit records
   const inRecs    = filtered.filter(r => ['in','in-tank','pack','out-tank'].includes(r.direction||'in'));
-  const auditRecs = filtered.filter(r => ['correction','void','note-edit','void-pack','correction-pack'].includes(r.direction||''));
+  const auditRecs = filtered.filter(r => ['correction','void','note-edit','void-pack','correction-pack','void-tank','correction-tank'].includes(r.direction||''));
 
   // หา void row indices (sheetRowIdx ที่ถูก void)
-  const voidedRows = new Set(auditRecs.filter(r=>r.direction==='void'||r.direction==='void-pack').map(r=>r.origRowIdx));
+  const voidedRows = new Set(auditRecs.filter(r=>r.direction==='void'||r.direction==='void-pack'||r.direction==='void-tank').map(r=>r.origRowIdx));
 
   // จัดกลุ่มตาม date+recorder เฉพาะ in rows
   const groups = {};
@@ -2169,13 +2430,13 @@ function renderStockInHistory() {
           <td style="font-weight:700;color:#dc2626">${r.direction==='out-tank'&&r.unit==='ถัง'&&r.qty?r.qty:r.direction==='pack'?(r.tankUsed||((r.note&&r.note.match(/บรรจุจาก\s*(\d+)\s*ถัง/)||[])[1])||''):''}</td>
           <td style="font-size:12px;color:#555">${idx===0?g.recorder:''}</td>
           <td class="td-left" style="font-size:11px;color:#666">${r.note||''}</td>
-          <td>${isVoided?'<span style="font-size:10px;color:#991b1b;background:#fee2e2;border-radius:4px;padding:2px 6px">ยกเลิกแล้ว</span>':r.direction==="out-tank"?'<span style="font-size:10px;color:#991b1b;background:#fee2e2;border-radius:4px;padding:2px 6px">ตัดออก</span>':r.direction==="pack"?'<button onclick=\'packEditOpen('+JSON.stringify(r)+')\'    style="background:none;border:1px solid #d97706;color:#d97706;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif;margin-right:3px">✏️ แก้</button><button onclick=\'packVoidOpen('+JSON.stringify(r)+')\'  style="background:none;border:1px solid #dc2626;color:#dc2626;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif">✕ ยกเลิก</button>':'<button onclick=\'siEditEntry('+JSON.stringify(r)+')\' style="background:none;border:1px solid #d97706;color:#d97706;border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif">✏️ แก้ไข</button>'}</td>
+          <td>${isVoided?'<span style="font-size:10px;color:#991b1b;background:#fee2e2;border-radius:4px;padding:2px 6px">ยกเลิกแล้ว</span>':r.direction==="out-tank"?'<button onclick=\'tankEditOpen('+JSON.stringify(r)+')\'    style="background:none;border:1px solid #d97706;color:#d97706;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif;margin-right:3px">✏️ แก้</button><button onclick=\'tankVoidOpen('+JSON.stringify(r)+')\'  style="background:none;border:1px solid #dc2626;color:#dc2626;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif">✕ ยกเลิก</button>':r.direction==="pack"?'<button onclick=\'packEditOpen('+JSON.stringify(r)+')\'    style="background:none;border:1px solid #d97706;color:#d97706;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif;margin-right:3px">✏️ แก้</button><button onclick=\'packVoidOpen('+JSON.stringify(r)+')\'  style="background:none;border:1px solid #dc2626;color:#dc2626;border-radius:6px;padding:3px 7px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif">✕ ยกเลิก</button>':'<button onclick=\'siEditEntry('+JSON.stringify(r)+')\' style="background:none;border:1px solid #d97706;color:#d97706;border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;font-family:Sarabun,sans-serif">✏️ แก้ไข</button>'}</td>
         </tr>`;
         // audit rows
         myAudits.forEach(a => {
           const dir = a.direction||'';
-          const cls = dir==='correction'?'si-corr-row':dir==='void'||dir==='void-pack'?'si-void-row':dir==='correction-pack'?'si-corr-row':'si-note-row';
-          const badge = dir==='correction'?'🔧 แก้ไข':dir==='void'?'✕ ยกเลิก':dir==='void-pack'?'✕ ยกเลิกแปลง':dir==='correction-pack'?'🔧 แก้ไขแปลง':'📝 แก้หมายเหตุ';
+          const cls = dir==='correction'?'si-corr-row':dir==='void'||dir==='void-pack'||dir==='void-tank'?'si-void-row':dir==='correction-pack'||dir==='correction-tank'?'si-corr-row':'si-note-row';
+          const badge = dir==='correction'?'🔧 แก้ไข':dir==='void'?'✕ ยกเลิก':dir==='void-pack'?'✕ ยกเลิกแปลง':dir==='correction-pack'?'🔧 แก้ไขแปลง':dir==='void-tank'?'✕ ยกเลิกตัดถัง':dir==='correction-tank'?'🔧 แก้ไขตัดถัง':'📝 แก้หมายเหตุ';
           html += `<tr class="${cls}"><td colspan="10" style="padding:4px 14px;text-align:left">
             <span style="font-weight:600">${badge}</span> — ${a.note||''}
             <span style="color:#aaa;margin-left:8px">${fmtStockInDate(a.timestamp||a.date)}</span>
@@ -2685,6 +2946,95 @@ async function packVoidConfirm() {
     btn.disabled = false; btn.textContent = '✕ ยืนยันยกเลิก';
   }
 }
+
+// 2026-09-21: แก้ไข/ยกเลิกรายการ "ตัดออก" (out-tank) — คู่กับ pack*() ด้านบน มีปริมาณเดียว (ถัง)
+let _tankEntry = null;
+function tankEditOpen(r) {
+  _tankEntry = r;
+  document.getElementById('tank-corr-bg').classList.add('open');
+  document.getElementById('tank-corr-title').textContent = 'แก้ไขรายการตัดออก';
+  document.getElementById('tank-corr-sub').textContent = (r.name||r.code) + ' · รหัส ' + (r.code||'') + ' · ' + fmtStockInDate(r.date);
+  document.getElementById('tank-corr-info').innerHTML =
+    '<div><span>ตัดออกไปแล้ว</span><span>' + (r.qty||0) + ' ถัง</span></div>' +
+    '<div><span>หมายเหตุ</span><span>' + (r.note||'-') + '</span></div>';
+  document.getElementById('tank-new-qty').value = r.qty||0;
+  document.getElementById('tank-panel-edit').style.display = '';
+  document.getElementById('tank-panel-void').style.display = 'none';
+  document.getElementById('tank-edit-delta').textContent = '';
+  const btn = document.getElementById('tank-edit-save-btn');
+  btn.disabled = false; btn.textContent = '💾 บันทึกการแก้ไข';
+}
+function tankVoidOpen(r) {
+  _tankEntry = r;
+  document.getElementById('tank-corr-bg').classList.add('open');
+  document.getElementById('tank-corr-title').textContent = 'ยกเลิกรายการตัดออก';
+  document.getElementById('tank-corr-sub').textContent = (r.name||r.code) + ' · รหัส ' + (r.code||'') + ' · ' + fmtStockInDate(r.date);
+  document.getElementById('tank-corr-info').innerHTML =
+    '<div><span>ตัดออกไปแล้ว</span><span>' + (r.qty||0) + ' ถัง</span></div>';
+  document.getElementById('tank-void-effect').innerHTML =
+    'ผลกระทบต่อสต็อค:<br><b>ถัง</b>: +' + (r.qty||0) + ' ถัง คืนกลับ';
+  document.getElementById('tank-panel-edit').style.display = 'none';
+  document.getElementById('tank-panel-void').style.display = '';
+  const btn = document.getElementById('tank-void-btn');
+  btn.disabled = false; btn.textContent = '✕ ยืนยันยกเลิก';
+}
+function tankCorrClose() {
+  document.getElementById('tank-corr-bg').classList.remove('open');
+  _tankEntry = null;
+}
+async function tankEditSave() {
+  if (!_tankEntry) return;
+  const r = _tankEntry;
+  const recorder = document.getElementById('si-recorder')?.value || 'admin';
+  const newQty  = Number(document.getElementById('tank-new-qty').value) || 0;
+  const origQty = r.qty || 0;
+  if (newQty === origQty) { alert('ไม่มีการเปลี่ยนแปลง'); return; }
+  if (newQty < 1) { alert('จำนวนถังต้องมากกว่า 0'); return; }
+  const deltaQty = newQty - origQty;
+  let msg = 'ผลกระทบ: ';
+  msg += deltaQty > 0 ? ('ตัดออกเพิ่มอีก ' + deltaQty + ' ถัง') : ('คืนถังกลับ ' + (-deltaQty) + ' ถัง');
+  document.getElementById('tank-edit-delta').textContent = msg;
+  const btn = document.getElementById('tank-edit-save-btn');
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+  try {
+    const res = await fetch(API, { method:'POST', body: JSON.stringify({
+      action:'correctTankDeduct', type:'edit', code:r.code, name:r.name||'',
+      sheetRowIdx:r.sheetRowIdx, originalQty:origQty, newQty,
+      originalDate:fmtStockInDate(r.date), recorder
+    })});
+    const js = await res.json();
+    if (js.error) throw new Error(js.error);
+    tankCorrClose();
+    await loadStockInHistory();
+    loadStock();
+  } catch(e) {
+    alert('เกิดข้อผิดพลาด: ' + e.message);
+    btn.disabled = false; btn.textContent = '💾 บันทึกการแก้ไข';
+  }
+}
+async function tankVoidConfirm() {
+  if (!_tankEntry) return;
+  const r = _tankEntry;
+  const recorder = document.getElementById('si-recorder')?.value || 'admin';
+  const btn = document.getElementById('tank-void-btn');
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+  try {
+    const res = await fetch(API, { method:'POST', body: JSON.stringify({
+      action:'correctTankDeduct', type:'void', code:r.code, name:r.name||'',
+      sheetRowIdx:r.sheetRowIdx, originalQty:r.qty||0,
+      originalDate:fmtStockInDate(r.date), recorder
+    })});
+    const js = await res.json();
+    if (js.error) throw new Error(js.error);
+    tankCorrClose();
+    await loadStockInHistory();
+    loadStock();
+  } catch(e) {
+    alert('เกิดข้อผิดพลาด: ' + e.message);
+    btn.disabled = false; btn.textContent = '✕ ยืนยันยกเลิก';
+  }
+}
+
 async function loadAll() {
   await loadStock();
   loadPending();
@@ -4350,7 +4700,362 @@ function renderSummary() {
 }
 
 
-loadAll();
+// ── 2026-09-21: Login / Session ─────────────────────────────────
+// ใช้ localStorage (ไม่ใช่ sessionStorage) เพื่อให้ login ครั้งเดียวใช้ได้ทั้ง admin_orders_v2.html และ
+// sales_grid_v2.html แม้เปิดเป็นแท็บใหม่ (ปุ่ม "＋ สั่งสินค้า" เปิด target="_blank" — sessionStorage จะไม่ตามไปด้วย)
+// ความปลอดภัยจริงอยู่ที่ token ฝั่ง server (CacheService) ซึ่งหมดอายุตายตัวที่ 6 ชม.ไม่ว่า localStorage จะเก็บไว้นานแค่ไหน
+function stcGetSession() {
+  try { return JSON.parse(localStorage.getItem('stic_session') || 'null'); } catch (e) { return null; }
+}
+function stcSetSession(s) { localStorage.setItem('stic_session', JSON.stringify(s)); }
+function stcClearSession() { localStorage.removeItem('stic_session'); }
+
+// role ไหนเห็นแท็บอะไรบ้าง — ยืนยันกับ user แล้ว 2026-09-21 (Admin=ทุกแท็บ, Warehouse=ทุกแท็บยกเว้นวิเคราะห์ข้อมูล+จัดการผู้ใช้งาน, Sale=ไม่เห็นเว็บนี้เลย ถูกเด้งไป sales_grid_v2.html ตั้งแต่ login)
+const STC_TAB_ROLES = {
+  overview: ['Admin','Warehouse'], stock: ['Admin','Warehouse'], stockin: ['Admin','Warehouse'],
+  packplan: ['Admin','Warehouse'],
+  pending: ['Admin','Warehouse'], itemhistory: ['Admin','Warehouse'], history: ['Admin','Warehouse'],
+  summary: ['Admin','Warehouse'], users: ['Admin'], analytics: ['Admin']
+};
+
+function stcApplyRoleUI(role) {
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(function (btn) {
+    const t = btn.getAttribute('data-tab');
+    const allowed = STC_TAB_ROLES[t] || [];
+    btn.style.display = allowed.indexOf(role) === -1 ? 'none' : '';
+  });
+  const activeBtn = document.querySelector('.tab-btn.active');
+  if (activeBtn && activeBtn.style.display === 'none') {
+    const overviewBtn = document.querySelector('.tab-btn[data-tab="overview"]');
+    if (overviewBtn) switchTab('overview', overviewBtn);
+  }
+}
+
+function stcShowApp(session) {
+  document.body.classList.remove('not-logged-in');
+  document.getElementById('stcUserFullname').textContent = session.fullname || session.username;
+  document.getElementById('stcUserRole').textContent = session.role;
+  stcApplyRoleUI(session.role);
+  loadAll();
+}
+
+function stcLogin() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.textContent = '';
+  if (!username || !password) { errEl.textContent = 'กรุณากรอก username และ password'; return; }
+  fetch(API, { method: 'POST', body: JSON.stringify({ action: 'login', username: username, password: password }) })
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) {
+        stcSetSession({ token: res.token, username: res.username, role: res.role, fullname: res.fullname });
+        document.getElementById('loginPassword').value = '';
+        // Sale role ไม่มีหน้าที่ใช้เว็บ admin นี้เลย — เด้งไปหน้าสั่งสินค้าแทนทันที (ยืนยันกับ user แล้ว 2026-09-21)
+        if (res.role === 'Sale') { window.location.href = 'sales_grid_v2.html'; return; }
+        stcShowApp({ username: res.username, role: res.role, fullname: res.fullname });
+      } else {
+        errEl.textContent = res.error || 'เข้าสู่ระบบไม่สำเร็จ';
+      }
+    })
+    .catch(() => { errEl.textContent = 'เชื่อมต่อระบบไม่ได้ กรุณาลองใหม่'; });
+}
+
+function stcLogout() {
+  stcClearSession();
+  window.location.reload();
+}
+
+(function stcInit() {
+  const session = stcGetSession();
+  if (session && session.token) {
+    if (session.role === 'Sale') { window.location.href = 'sales_grid_v2.html'; return; }
+    stcShowApp(session);
+  }
+  // ไม่มี session ที่ใช้ได้ → ปล่อยให้ body.not-logged-in โชว์หน้า login เฉยๆ ไม่เรียก loadAll() จนกว่าจะ login สำเร็จ
+})();
+
+const _origSwitchTabStc = switchTab;
+switchTab = function (tab, btn) {
+  _origSwitchTabStc(tab, btn);
+  if (tab === 'users') umLoadAll();
+  if (tab === 'packplan') ppLoadAll();
+};
+
+// ── 2026-09-21: วางแผนการบรรจุ (Admin+Warehouse) ────────────────
+// รายงานพิมพ์เพื่อดูว่าไซส์ไหนควรบรรจุจากถัง→กระสอบ/กล่อง — ยืนยันสเปคกับ user ผ่าน mockup 12 รอบก่อนทำจริง
+// (mockup_pack_planning_v12.html) ใช้ anVCategory/anSizeCompare/buildName ชุดเดียวกับที่มีอยู่แล้วในระบบ (แท็บสต็อค/วิเคราะห์ข้อมูล)
+let ppItems = [], ppCats = [];
+const PP_LOW_BAG = 5; // เกณฑ์ "คงเหลือน้อย" ให้เด่นด้วยแรเงา — แค่ช่วยสังเกต ไม่ได้ pre-check ให้เลือกเอง
+
+async function ppLoadAll() {
+  if (!allItems.length) await loadStock();
+  const tbody = document.getElementById('pp-tbody');
+  tbody.innerHTML = '<tr><td colspan="7" class="empty">⏳ กำลังโหลด...</td></tr>';
+  try {
+    const res = await fetch(API + '?action=getPackPlanningData');
+    const data = await res.json();
+    if (data.error) { tbody.innerHTML = '<tr><td colspan="7" class="empty">❌ ' + data.error + '</td></tr>'; return; }
+    ppItems = (data.items || []).map(x => ({ ...x, code: String(x.code).padStart(8, '0') }));
+    // 2026-09-21: user ขอเพิ่มรายการที่ "สต็อกไม่พอ" (ขึ้นแดงในหน้ารอยืนยัน) เข้ามาด้วย แม้จะไม่เคย
+    // มีระบบถัง/บรรจุมาก่อน — ช่วยให้เห็นในรายงานแผนบรรจุว่ามีของต้องเติมด่วนจากออเดอร์ค้างอยู่
+    await ppMergeShortItems();
+    ppRender();
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">❌ โหลดไม่ได้: ' + e.message + '</td></tr>';
+  }
+}
+
+// เกณฑ์ "สต็อกไม่พอ" ใช้ตรรกะเดียวกับที่ทำให้แถวขึ้นสีแดงในหน้า "รอยืนยัน" (qty ของออเดอร์ > สต็อคปัจจุบัน)
+// เช็คเฉพาะรหัสที่ยังไม่อยู่ในรายการอยู่แล้ว (ไม่ทำรายการซ้ำ) — ถ้าดึงออเดอร์ไม่ได้ ก็ปล่อยผ่านเงียบๆ ไม่กระทบรายงานหลัก
+async function ppMergeShortItems() {
+  try {
+    const res = await fetch(API + '?action=getOrders&status=pending');
+    const data = await res.json();
+    const orders = data.orders || [];
+    const existingCodes = new Set(ppItems.map(it => it.code));
+    orders.forEach(o => {
+      const code = String(o.code || '').trim().padStart(8, '0');
+      if (!code || existingCodes.has(code)) return;
+      const qty = Number(o.qty) || 0;
+      const info = allItems.find(x => x.code === code);
+      if (!info) return;
+      const stock = Number(info.stock) || 0;
+      if (qty > stock) {
+        existingCodes.add(code);
+        ppItems.push({
+          code: code,
+          type: info.type || '',
+          col: info.col || '',
+          row: info.row || '',
+          bag: stock,
+          bins: Number(info.bins) || 0,
+          tank: 0,
+          tankName: '',
+          ppExtra: true
+        });
+      }
+    });
+  } catch (e) {
+    // เงียบไว้ — ไม่ให้กระทบรายงานหลักถ้าดึงออเดอร์รอยืนยันไม่ได้
+  }
+}
+
+function ppRender() {
+  const tbody = document.getElementById('pp-tbody');
+  // จัดกลุ่มตามหมวด (anVCategory เดียวกับแท็บสต็อค/วิเคราะห์ข้อมูล) แล้วเรียงขนาดในหมวดด้วย anSizeCompare
+  const catMap = {};
+  ppItems.forEach(it => {
+    const cat = anVCategory(it.type);
+    (catMap[cat] = catMap[cat] || []).push(it);
+  });
+  const catOrder = AN_VCAT_ORDER.filter(c => catMap[c] && catMap[c].length);
+  Object.keys(catMap).forEach(c => { if (catOrder.indexOf(c) === -1) catOrder.push(c); });
+  catOrder.forEach(c => catMap[c].sort(anSizeCompare));
+  ppCats = catOrder;
+
+  if (!catOrder.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">ไม่มีสินค้าที่เคยมีระบบถัง/บรรจุ</td></tr>';
+    ppUpdateSelCount();
+    return;
+  }
+
+  let html = '';
+  let rowId = 0;
+  catOrder.forEach((cat, gi) => {
+    html += `<tr class="pp-cat-row" id="pp-cat-${gi}"><td colspan="7">${cat}</td></tr>`;
+    catMap[cat].forEach((it, i) => {
+      rowId++;
+      const name = buildName(it);
+      const bagCls = (Number(it.bag) || 0) <= PP_LOW_BAG ? 'pp-qty-low' : '';
+      const extraTag = it.ppExtra ? ' <span class="pp-extra-tag">⚠ สต็อกไม่พอ</span>' : '';
+      html += `<tr class="pp-item-row" id="pp-row-${rowId}" data-group="${gi}">
+        <td class="pp-chk-col no-print"><input type="checkbox" class="pp-chk" onchange="ppOnCheck(${rowId},this.checked)"></td>
+        <td>${i + 1}</td>
+        <td class="pp-name-cell">${name}${extraTag}</td>
+        <td class="pp-qty-bag ${bagCls}">${it.bag}</td>
+        <td class="pp-qty-tank">${it.tank}</td>
+        <td><input type="number" class="pp-input" min="0"></td>
+        <td>&nbsp;</td>
+      </tr>`;
+    });
+  });
+  tbody.innerHTML = html;
+  ppUpdateSelCount();
+}
+
+function ppOnCheck(rowId, checked) {
+  document.getElementById('pp-row-' + rowId).classList.toggle('checked', checked);
+  ppUpdateSelCount();
+}
+
+function ppToggleSelectAll() {
+  const boxes = document.querySelectorAll('.pp-chk');
+  const allChecked = [...boxes].every(b => b.checked);
+  boxes.forEach(b => { b.checked = !allChecked; ppOnCheck(b.closest('tr').id.replace('pp-row-', ''), !allChecked); });
+}
+
+function ppUpdateSelCount() {
+  const n = document.querySelectorAll('.pp-item-row.checked').length;
+  document.getElementById('pp-sel-count').textContent = 'เลือกแล้ว ' + n + ' รายการ';
+  document.getElementById('pp-print-btn').disabled = n === 0;
+}
+
+// หมวดหมู่ไหนไม่มีรายการที่ติ๊กเลย ตอนพิมพ์ไม่ต้องขึ้นหัวข้อหมวดนั้นเปล่าๆ (ยืนยันกับ user แล้ว 2026-09-21)
+function ppUpdateCatVisibility() {
+  ppCats.forEach((cat, gi) => {
+    const hasChecked = document.querySelectorAll('.pp-item-row[data-group="' + gi + '"].checked').length > 0;
+    const catRow = document.getElementById('pp-cat-' + gi);
+    if (catRow) catRow.classList.toggle('pp-cat-hide', !hasChecked);
+  });
+}
+
+function ppDoPrint() {
+  document.getElementById('pp-print-date').textContent =
+    'วันที่ ' + new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+  ppUpdateCatVisibility();
+  window.print();
+}
+
+// ── 2026-09-21: จัดการผู้ใช้งาน (Admin only) ────────────────────
+let umPendingUsername = '';
+
+function umLoadAll() { umLoadUsers(); umLoadLog(); }
+
+function umLoadUsers() {
+  const session = stcGetSession();
+  if (!session) return;
+  fetch(API + '?action=getUsers&token=' + encodeURIComponent(session.token))
+    .then(r => r.json())
+    .then(res => {
+      if (res.error) {
+        document.getElementById('umUserRows').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#dc2626;padding:20px">' + res.error + '</td></tr>';
+        return;
+      }
+      umRenderUsers(res.users || []);
+    })
+    .catch(() => {
+      document.getElementById('umUserRows').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#dc2626;padding:20px">โหลดข้อมูลไม่สำเร็จ</td></tr>';
+    });
+}
+
+function umRenderUsers(users) {
+  const tbody = document.getElementById('umUserRows');
+  if (!users.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:20px">ยังไม่มีผู้ใช้งาน</td></tr>';
+    return;
+  }
+  users.sort((a, b) => Number(b.id) - Number(a.id));
+  tbody.innerHTML = users.map(u => {
+    const created = u.created_date ? new Date(u.created_date).toLocaleString('th-TH') : '';
+    const uEsc = String(u.username).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return '<tr>' +
+      '<td>' + u.id + '</td>' +
+      '<td>' + u.username + '</td>' +
+      '<td>' + (u.fullname || '') + '</td>' +
+      '<td><span class="um-role-badge um-role-' + u.role + '">' + u.role + '</span></td>' +
+      '<td>' + created + '</td>' +
+      '<td>' +
+        '<button class="btn-um-reset" onclick="umOpenResetModal(\'' + uEsc + '\')">🔑 รีเซ็ตรหัส</button>' +
+        '<button class="btn-um-del" onclick="umOpenDelModal(\'' + uEsc + '\')">🗑 ลบ</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function umLoadLog() {
+  const session = stcGetSession();
+  if (!session) return;
+  fetch(API + '?action=getActivityLog&token=' + encodeURIComponent(session.token))
+    .then(r => r.json())
+    .then(res => {
+      if (res.error) { document.getElementById('umLogBox').textContent = res.error; return; }
+      umRenderLog(res.logs || []);
+    })
+    .catch(() => { document.getElementById('umLogBox').textContent = 'โหลด log ไม่สำเร็จ'; });
+}
+
+function umRenderLog(logs) {
+  const box = document.getElementById('umLogBox');
+  if (!logs.length) { box.textContent = '(ยังไม่มีประวัติ)'; return; }
+  box.textContent = logs.map(function (l) {
+    const ts = l.timestamp ? new Date(l.timestamp).toLocaleString('th-TH') : '';
+    let line = '[' + ts + '] [' + l.actor + '] [' + l.action + ']';
+    if (l.target) line += ' ' + l.target;
+    if (l.detail) line += ' — ' + l.detail;
+    return line;
+  }).join('\n');
+}
+
+function umOpenAddModal() {
+  document.getElementById('umAddUsername').value = '';
+  document.getElementById('umAddFullname').value = '';
+  document.getElementById('umAddRole').value = 'Warehouse';
+  document.getElementById('umAddPassword').value = '';
+  document.getElementById('umAddErr').textContent = '';
+  document.getElementById('umAddModalBg').classList.add('open');
+}
+function umCloseAddModal() { document.getElementById('umAddModalBg').classList.remove('open'); }
+
+function umSubmitAdd() {
+  const session = stcGetSession();
+  const username = document.getElementById('umAddUsername').value.trim();
+  const fullname = document.getElementById('umAddFullname').value.trim();
+  const role = document.getElementById('umAddRole').value;
+  const password = document.getElementById('umAddPassword').value;
+  const errEl = document.getElementById('umAddErr');
+  if (!username || !fullname || !password) { errEl.textContent = 'กรุณากรอกข้อมูลให้ครบ'; return; }
+  fetch(API, { method: 'POST', body: JSON.stringify({ action: 'addUser', token: session.token, username: username, fullname: fullname, role: role, password: password }) })
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) { umCloseAddModal(); umLoadAll(); }
+      else errEl.textContent = res.error || 'เพิ่มผู้ใช้งานไม่สำเร็จ';
+    })
+    .catch(() => { errEl.textContent = 'เชื่อมต่อระบบไม่ได้'; });
+}
+
+function umOpenResetModal(username) {
+  umPendingUsername = username;
+  document.getElementById('umResetUsername').textContent = username;
+  document.getElementById('umResetPassword').value = '';
+  document.getElementById('umResetErr').textContent = '';
+  document.getElementById('umResetModalBg').classList.add('open');
+}
+function umCloseResetModal() { document.getElementById('umResetModalBg').classList.remove('open'); }
+
+function umSubmitReset() {
+  const session = stcGetSession();
+  const newPassword = document.getElementById('umResetPassword').value;
+  const errEl = document.getElementById('umResetErr');
+  if (!newPassword) { errEl.textContent = 'กรุณากรอกรหัสผ่านใหม่'; return; }
+  fetch(API, { method: 'POST', body: JSON.stringify({ action: 'resetPassword', token: session.token, username: umPendingUsername, newPassword: newPassword }) })
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) { umCloseResetModal(); umLoadAll(); }
+      else errEl.textContent = res.error || 'รีเซ็ตรหัสผ่านไม่สำเร็จ';
+    })
+    .catch(() => { errEl.textContent = 'เชื่อมต่อระบบไม่ได้'; });
+}
+
+function umOpenDelModal(username) {
+  umPendingUsername = username;
+  document.getElementById('umDelUsername').textContent = username;
+  document.getElementById('umDelErr').textContent = '';
+  document.getElementById('umDelModalBg').classList.add('open');
+}
+function umCloseDelModal() { document.getElementById('umDelModalBg').classList.remove('open'); }
+
+function umSubmitDelete() {
+  const session = stcGetSession();
+  const errEl = document.getElementById('umDelErr');
+  fetch(API, { method: 'POST', body: JSON.stringify({ action: 'deleteUser', token: session.token, username: umPendingUsername }) })
+    .then(r => r.json())
+    .then(res => {
+      if (res.success) { umCloseDelModal(); umLoadAll(); }
+      else errEl.textContent = res.error || 'ลบผู้ใช้งานไม่สำเร็จ';
+    })
+    .catch(() => { errEl.textContent = 'เชื่อมต่อระบบไม่ได้'; });
+}
 
 // ── Analytics ────────────────────────────────────────────────
 const AN_PW_HASH = 'c3RpYzEz'; // btoa('stic13')
