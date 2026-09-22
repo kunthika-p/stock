@@ -85,6 +85,7 @@ body.not-logged-in .login-overlay{display:flex}
 #tab-packplan .pp-print-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
 #tab-packplan .pp-print-hdr .t{font-size:19px;font-weight:700;color:#1a3a5c}
 #tab-packplan .pp-print-hdr .s{font-size:11px;color:#555}
+#tab-packplan .pp-extra-row{display:none}
 
 /* Order cards */
 .order-card{background:white;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:4px solid #d1d5db}
@@ -517,6 +518,8 @@ table.list tr:hover td{background:#f8fbff}
   #tab-packplan .pp-print-only{display:block!important}
   #tab-packplan .pp-print-hdr{display:flex!important}
   #tab-packplan .pp-item-row:not(.checked){display:none}
+  #tab-packplan .pp-extra-row{display:table-row!important}
+  #tab-packplan .pp-blank-row td{height:20px}
   #tab-packplan .pp-cat-row.pp-cat-hide{display:none}
   #tab-packplan .pp-chk-col{display:none!important}
   #tab-packplan .pp-table{font-size:10.5px;border:1.5px solid #333;border-collapse:collapse}
@@ -4882,6 +4885,15 @@ async function ppMergeShortItems() {
   }
 }
 
+// 2026-09-22: "น็อตเหลี่ยม W ไม่ควบหัว" ไม่มีถังเป็นของตัวเอง — ถังจริงถูกกรอกไว้ใต้รหัส "น็อตเหลี่ยมเกลียว W"
+// เพราะเป็นน็อตตัวผู้ตัวเดียวกัน ต่างแค่ "เกลียว W" แพ็คตัวเมียไปด้วย (user ยืนยัน 2026-09-22) — เฉพาะหน้า
+// วางแผนบรรจุ ให้ดึงถังจาก "น็อตเหลี่ยมเกลียว W" ไซส์/ความยาวเดียวกันมาโชว์แทน ถ้าหาคู่ไม่เจอ ให้ 0 เหมือนเดิม
+function ppResolveTank(it) {
+  if (it.type !== 'น็อตเหลี่ยม W ไม่ควบหัว') return it.tank;
+  const match = allItems.find(x => x.type === 'น็อตเหลี่ยมเกลียว W' && String(x.col) === String(it.col) && String(x.row) === String(it.row));
+  return match ? getTank(match.code) : 0;
+}
+
 function ppRender() {
   const tbody = document.getElementById('pp-tbody');
   // 2026-09-22: user ขอไม่ให้เอาแถวที่สต็อคยังเขียว (เพียงพอ) เข้าตารางเลย —
@@ -4898,11 +4910,22 @@ function ppRender() {
   catOrder.forEach(c => catMap[c].sort(anSizeCompare));
   ppCats = catOrder;
 
+  // 2026-09-22: ท้ายใบพิมพ์ เพิ่มแถบ "รายการเพิ่มเติม" + แถวเปล่า 5 แถวให้ฝ่ายวางแผนเขียนไซส์พิเศษเองได้
+  // (สไตล์เดียวกับแถบหมวดหมู่ ไม่มีหัวตารางซ้ำ ตามที่ user ยืนยัน mockup v3) — โชว์เฉพาะตอนพิมพ์เท่านั้น (ดู .pp-extra-row ใน CSS)
+  // ใส่ไว้ทั้งกรณีมีรายการปกติและกรณีตารางว่าง เพราะฝ่ายวางแผนอาจอยากเพิ่มไซส์พิเศษแม้ไม่มีอะไรต้องเติมเลย
+  const ppExtraRowsHtml = () => {
+    let h = '<tr class="pp-cat-row pp-extra-row"><td colspan="7">รายการเพิ่มเติม</td></tr>';
+    for (let k = 0; k < 5; k++) {
+      h += '<tr class="pp-blank-row pp-extra-row"><td class="pp-chk-col no-print"></td><td></td><td class="pp-name-cell"></td><td class="pp-qty-bag"></td><td class="pp-qty-tank"></td><td></td><td>&nbsp;</td></tr>';
+    }
+    return h;
+  };
+
   if (!catOrder.length) {
     const emptyMsg = ppItems.length
       ? 'ไม่มีรายการที่ต้องเติม — สต็อคทุกไซส์ยังเขียว (เพียงพอ) อยู่'
       : 'ไม่มีสินค้าที่เคยมีระบบถัง/บรรจุ';
-    tbody.innerHTML = `<tr><td colspan="7" class="empty">${emptyMsg}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" class="empty">${emptyMsg}</td></tr>` + ppExtraRowsHtml();
     ppUpdateSelCount();
     return;
   }
@@ -4922,12 +4945,13 @@ function ppRender() {
         <td>${i + 1}</td>
         <td class="pp-name-cell">${name}${extraTag}</td>
         <td class="pp-qty-bag ${bagCls}">${it.bag}</td>
-        <td class="pp-qty-tank">${it.tank}</td>
+        <td class="pp-qty-tank">${ppResolveTank(it)}</td>
         <td><input type="number" class="pp-input" min="0"></td>
         <td>&nbsp;</td>
       </tr>`;
     });
   });
+  html += ppExtraRowsHtml();
   tbody.innerHTML = html;
   ppUpdateSelCount();
 }
