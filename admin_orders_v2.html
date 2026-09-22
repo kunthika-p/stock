@@ -720,7 +720,7 @@ table.list tr:hover td{background:#f8fbff}
     <div class="sub">เข้าสู่ระบบเพื่อใช้งาน</div>
     <div class="login-field">
       <label>Username</label>
-      <input type="text" id="loginUsername" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+      <input type="text" id="loginUsername" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
     </div>
     <div class="login-field">
       <label>Password</label>
@@ -4781,11 +4781,10 @@ function stcLogout() {
   if (session && session.token && session.role !== 'Sale') {
     stcShowApp(session);
   } else {
-    // 2026-09-22: user แจ้งว่า browser จำ username/password ไว้ให้ตอนหน้า login โผล่ กด "เข้าสู่ระบบ" ผ่านได้เลยโดยไม่ต้องพิมพ์ใหม่ (ไม่ปลอดภัย)
-    // แก้คู่กับ readonly+autocomplete=off/new-password ที่ input (ด้านบน): ล้างค่าที่ browser autofill เติมมาให้ทุกครั้งที่หน้านี้โหลดแล้วไม่มี session ที่ใช้ได้
-    const uEl = document.getElementById('loginUsername');
+    // 2026-09-22: user แจ้งว่า browser จำ password ไว้ให้ตอนหน้า login โผล่ กด "เข้าสู่ระบบ" ผ่านได้เลยโดยไม่ต้องพิมพ์ใหม่ (ไม่ปลอดภัย)
+    // — username ให้ browser จำ/เติมให้ได้ตามปกติ (user ขอไว้ 2026-09-22) บังคับพิมพ์ใหม่เฉพาะ password เท่านั้น
+    // แก้คู่กับ readonly+autocomplete=new-password ที่ input password (ด้านบน): ล้างค่าที่ browser autofill เติมมาให้ทุกครั้งที่หน้านี้โหลดแล้วไม่มี session ที่ใช้ได้
     const pEl = document.getElementById('loginPassword');
-    if (uEl) uEl.value = '';
     if (pEl) pEl.value = '';
   }
   // ไม่มี session ที่ใช้ได้ (หรือเป็น session ของ Sale ที่ไม่ควรอยู่หน้านี้) → ปล่อยให้ body.not-logged-in โชว์หน้า login เฉยๆ ไม่เรียก loadAll() จนกว่าจะ login สำเร็จ
