@@ -195,7 +195,7 @@ body.not-logged-in .login-overlay{display:flex}
 </head>
 <body class="not-logged-in">
 
-<!-- 2026-09-21: login overlay — ใช้ session เดียวกับ admin_orders_v2.html (localStorage คนละ key เดียวกัน: stic_session) -->
+<!-- 2026-09-21: login overlay — ใช้ session เดียวกับ admin_orders_v2.html (sessionStorage key เดียวกัน: stic_session, ปรับจาก localStorage 2026-09-22 ให้ตรงกับ admin) -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-card">
     <h2>🛒 สั่งสินค้า STIC</h2>
@@ -1957,13 +1957,14 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ── 2026-09-21: Login / Session — ใช้ key เดียวกับ admin_orders_v2.html (localStorage 'stic_session')
-// เพื่อให้ login ครั้งเดียวใช้ได้ทั้งสองหน้า (คนละแท็บ/คนละหน้าจอก็ได้ ตราบใดที่ยังไม่ logout/token ยังไม่หมดอายุ 6 ชม.)
+// ── 2026-09-21: Login / Session — ใช้ key เดียวกับ admin_orders_v2.html ('stic_session')
+// 2026-09-22: เปลี่ยนจาก localStorage เป็น sessionStorage ให้ตรงกับ admin_orders_v2.html (เดิมค้าง session ข้ามการปิด-เปิดเบราว์เซอร์ได้ไม่มีวันหมดอายุจริง)
+// เปิดแท็บใหม่จากลิงก์ในหน้า admin (target="_blank") ยังใช้ sessionStorage ชุดเดียวกันได้ตามสเปคเบราว์เซอร์ (คัดลอกอัตโนมัติตอนเปิดแท็บใหม่)
 function stcGetSession() {
-  try { return JSON.parse(localStorage.getItem('stic_session') || 'null'); } catch (e) { return null; }
+  try { return JSON.parse(sessionStorage.getItem('stic_session') || 'null'); } catch (e) { return null; }
 }
-function stcSetSession(s) { localStorage.setItem('stic_session', JSON.stringify(s)); }
-function stcClearSession() { localStorage.removeItem('stic_session'); }
+function stcSetSession(s) { sessionStorage.setItem('stic_session', JSON.stringify(s)); }
+function stcClearSession() { sessionStorage.removeItem('stic_session'); }
 
 function stcShowApp(session) {
   document.body.classList.remove('not-logged-in');
