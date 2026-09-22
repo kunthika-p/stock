@@ -60,10 +60,10 @@ body.not-logged-in .login-overlay{display:flex}
 #tab-packplan .pp-btn-print{background:#16a34a;color:white}
 #tab-packplan .pp-btn-print:disabled{background:#a7d7b8;cursor:not-allowed}
 #tab-packplan .pp-sel-count{font-size:12.5px;color:#16a34a;font-weight:700}
-#tab-packplan .pp-table{width:100%;border-collapse:collapse}
+#tab-packplan .pp-table{width:100%;border-collapse:collapse;border:1px solid #c7d2df}
 #tab-packplan .pp-table th{background:#1a3a5c;color:white;text-align:center;padding:6px 5px;font-size:11.5px}
 #tab-packplan .pp-table th.pp-name-th{text-align:left;padding:6px 8px}
-#tab-packplan .pp-table td{padding:5px 5px;border-bottom:1px solid #eee;font-size:12.5px;text-align:center}
+#tab-packplan .pp-table td{padding:6px 5px;border:1px solid #dde3ea;font-size:12.5px;text-align:center}
 #tab-packplan .pp-table td.pp-name-cell{text-align:left;padding:5px 8px;line-height:1.3;white-space:nowrap;overflow:hidden}
 #tab-packplan .pp-table tr.pp-cat-row td{background:#eef2f7;font-weight:700;color:#1a3a5c;font-size:11px;padding:4px 8px;text-align:left}
 #tab-packplan .pp-table tr.pp-item-row.checked{background:#f0fdf4}
@@ -72,7 +72,11 @@ body.not-logged-in .login-overlay{display:flex}
 #tab-packplan .pp-table th.pp-qty-sub{padding:4px 4px;font-size:10.5px}
 #tab-packplan .pp-qty-bag{font-weight:700;color:#1a3a5c}
 #tab-packplan .pp-qty-tank{font-weight:700;color:#7c3aed}
-#tab-packplan .pp-qty-low{color:#dc2626}
+#tab-packplan .pp-qty-bag.c-ok{background:#d1fae5}
+#tab-packplan .pp-qty-bag.c-low{background:#fef9c3}
+#tab-packplan .pp-qty-bag.c-out{background:#fee2e2}
+#tab-packplan .legend-print{display:none}
+#tab-packplan .ld-print{width:12px;height:12px;display:inline-block;border:1px solid #666;margin-right:4px;vertical-align:middle}
 #tab-packplan .pp-extra-tag{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#fff;background:#dc2626;padding:1px 6px;border-radius:3px;white-space:nowrap;vertical-align:middle}
 #tab-packplan .pp-input{width:100%;text-align:center;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:inherit;font-weight:700;color:#7c3aed;padding:2px}
 #tab-packplan .pp-input:focus{outline:none}
@@ -516,15 +520,20 @@ table.list tr:hover td{background:#f8fbff}
   #tab-packplan .pp-item-row:not(.checked){display:none}
   #tab-packplan .pp-cat-row.pp-cat-hide{display:none}
   #tab-packplan .pp-chk-col{display:none!important}
-  #tab-packplan .pp-table{font-size:10.5px;border:1.5px solid #000}
-  #tab-packplan .pp-table td,#tab-packplan .pp-table th{border:1px solid #ccc!important;padding:3px 4px}
-  #tab-packplan .pp-table th,#tab-packplan .pp-qty-grp-hdr{background:#000!important;color:#fff!important;font-weight:700;border-bottom:1px solid #000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #tab-packplan .pp-table tr.pp-cat-row td{background:white!important;color:#000!important;font-weight:700;border-top:1px solid #000!important;border-bottom:1px solid #000!important}
+  #tab-packplan .pp-table{font-size:10.5px;border:1.5px solid #333;border-collapse:collapse}
+  #tab-packplan .pp-table td,#tab-packplan .pp-table th{border:1px solid #888!important;padding:5px 4px}
+  #tab-packplan .pp-table th,#tab-packplan .pp-qty-grp-hdr{background:#000!important;color:#fff!important;font-weight:700;border:1px solid #000!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #tab-packplan .pp-table tr.pp-cat-row td{background:#f2f2f2!important;color:#000!important;font-weight:700;border-top:1px solid #000!important;border-bottom:1px solid #000!important}
   #tab-packplan .pp-qty-bag,#tab-packplan .pp-qty-tank{color:#000!important;font-size:10px}
-  #tab-packplan .pp-qty-low{background:#ddd!important;color:#000!important;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #tab-packplan .pp-qty-bag.c-ok{background:#fff!important}
+  #tab-packplan .pp-qty-bag.c-low{background:#ddd!important;color:#000!important;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #tab-packplan .pp-qty-bag.c-out{background:#808080!important;color:#fff!important;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #tab-packplan .pp-extra-tag{background:#000!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   #tab-packplan .pp-name-cell{font-size:10px}
   #tab-packplan .pp-input{color:#000}
+  #tab-packplan .legend{display:none!important}
+  #tab-packplan .legend-print{display:flex!important;gap:14px;flex-wrap:wrap;align-items:center;font-size:11px;color:#333;padding:6px 0;margin-bottom:8px;border-bottom:1px solid #000}
+  #tab-packplan #pp-tbody td:nth-child(6),#tab-packplan #pp-tbody td:nth-child(7){padding-top:7px;padding-bottom:7px}
 }
 
 /* ── Analytics Tab ── */
@@ -1231,6 +1240,18 @@ table.list tr:hover td{background:#f8fbff}
             <span class="pp-sel-count" id="pp-sel-count">เลือกแล้ว 0 รายการ</span>
           </div>
           <button class="pp-btn pp-btn-print" id="pp-print-btn" onclick="ppDoPrint()" disabled>🖨️ พิมพ์รายการที่เลือก</button>
+        </div>
+
+        <div class="legend">
+          <span><span class="ld" style="background:#d1fae5"></span>ปกติ (≥20)</span>
+          <span><span class="ld" style="background:#fef9c3"></span>น้อย (1–19)</span>
+          <span><span class="ld" style="background:#fee2e2"></span>หมด</span>
+        </div>
+
+        <div class="legend-print pp-print-only">
+          <span><span class="ld-print" style="background:#fff"></span>ปกติ (≥20)</span>
+          <span><span class="ld-print" style="background:#ddd"></span>น้อย (1–19)</span>
+          <span><span class="ld-print" style="background:#808080"></span>หมด</span>
         </div>
 
         <!-- หัวกระดาษที่โชว์เฉพาะตอนพิมพ์ — ชื่อคงที่ + วันที่ปัจจุบันจริงเสมอ -->
@@ -4812,7 +4833,6 @@ switchTab = function (tab, btn) {
 // รายงานพิมพ์เพื่อดูว่าไซส์ไหนควรบรรจุจากถัง→กระสอบ/กล่อง — ยืนยันสเปคกับ user ผ่าน mockup 12 รอบก่อนทำจริง
 // (mockup_pack_planning_v12.html) ใช้ anVCategory/anSizeCompare/buildName ชุดเดียวกับที่มีอยู่แล้วในระบบ (แท็บสต็อค/วิเคราะห์ข้อมูล)
 let ppItems = [], ppCats = [];
-const PP_LOW_BAG = 5; // เกณฑ์ "คงเหลือน้อย" ให้เด่นด้วยแรเงา — แค่ช่วยสังเกต ไม่ได้ pre-check ให้เลือกเอง
 
 async function ppLoadAll() {
   if (!allItems.length) await loadStock();
@@ -4893,7 +4913,8 @@ function ppRender() {
     catMap[cat].forEach((it, i) => {
       rowId++;
       const name = buildName(it);
-      const bagCls = (Number(it.bag) || 0) <= PP_LOW_BAG ? 'pp-qty-low' : '';
+      const bagVal = Number(it.bag) || 0;
+      const bagCls = bagVal >= 20 ? 'c-ok' : bagVal > 0 ? 'c-low' : 'c-out';
       const extraTag = it.ppExtra ? ' <span class="pp-extra-tag">⚠ สต็อกไม่พอ</span>' : '';
       html += `<tr class="pp-item-row" id="pp-row-${rowId}" data-group="${gi}">
         <td class="pp-chk-col no-print"><input type="checkbox" class="pp-chk" onchange="ppOnCheck(${rowId},this.checked)"></td>
