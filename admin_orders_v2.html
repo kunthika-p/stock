@@ -1279,7 +1279,7 @@ table.list tr:hover td{background:#f8fbff}
         </table>
 
         <div class="pp-note no-print">
-          * รายชื่อที่ขึ้นในตาราง = ทุกไซส์ที่เคยมีระบบ "ถัง/บรรจุ" (มีข้อมูลใน stock_tank) ไม่ได้กรองตามจำนวนคงเหลือ<br>
+          * รายชื่อที่ขึ้นในตาราง = เฉพาะไซส์ที่สต็อคเหลือน้อย (เหลือง 1-19) หรือหมด (แดง) หรือสต็อคไม่พอสำหรับออเดอร์ค้าง — ไซส์ที่สต็อคยังเขียว (≥20) จะไม่ขึ้นในตารางนี้<br>
           * "ให้บรรจุ (ถัง)" พิมพ์จำนวนถังที่ต้องการได้เลยบนหน้าจอก่อนกดพิมพ์ ส่วน "หมายเหตุ" เป็นช่องว่างให้เขียนด้วยมือหลังพิมพ์<br>
           * เรียงตามหมวด/ไซส์สินค้า (ใช้ตรรกะจัดเรียงเดียวกับหน้าอื่นในระบบ) · วันที่ในใบพิมพ์ใช้วันที่ปัจจุบันเสมอ ไม่มีให้เลือก<br>
           * หมวดหมู่ไหนไม่มีรายการที่ติ๊กเลย ตอนพิมพ์จะไม่ขึ้นหัวข้อหมวดนั้นเปล่าๆ
@@ -4889,9 +4889,12 @@ async function ppMergeShortItems() {
 
 function ppRender() {
   const tbody = document.getElementById('pp-tbody');
+  // 2026-09-22: user ขอไม่ให้เอาแถวที่สต็อคยังเขียว (≥20, พร้อมขายเยอะอยู่) เข้าตารางเลย —
+  // โชว์เฉพาะเหลือง(1-19)/แดง(หมด) และรายการ "สต็อกไม่พอ" (ppExtra) เท่านั้น
+  const ppVisible = ppItems.filter(it => (Number(it.bag) || 0) < 20 || it.ppExtra);
   // จัดกลุ่มตามหมวด (anVCategory เดียวกับแท็บสต็อค/วิเคราะห์ข้อมูล) แล้วเรียงขนาดในหมวดด้วย anSizeCompare
   const catMap = {};
-  ppItems.forEach(it => {
+  ppVisible.forEach(it => {
     const cat = anVCategory(it.type);
     (catMap[cat] = catMap[cat] || []).push(it);
   });
@@ -4901,7 +4904,10 @@ function ppRender() {
   ppCats = catOrder;
 
   if (!catOrder.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">ไม่มีสินค้าที่เคยมีระบบถัง/บรรจุ</td></tr>';
+    const emptyMsg = ppItems.length
+      ? 'ไม่มีรายการที่ต้องเติม — สต็อคทุกไซส์ยังเขียว (≥20) อยู่'
+      : 'ไม่มีสินค้าที่เคยมีระบบถัง/บรรจุ';
+    tbody.innerHTML = `<tr><td colspan="7" class="empty">${emptyMsg}</td></tr>`;
     ppUpdateSelCount();
     return;
   }
