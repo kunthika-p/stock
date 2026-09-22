@@ -82,7 +82,7 @@ body.not-logged-in .login-overlay{display:flex}
 #tab-packplan .pp-input[type=number]{-moz-appearance:textfield}
 #tab-packplan .pp-note{font-size:12px;color:#888;margin-top:10px;line-height:1.7}
 #tab-packplan .pp-print-only{display:none}
-#tab-packplan .pp-print-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;border-bottom:2px solid #1a3a5c;padding-bottom:12px}
+#tab-packplan .pp-print-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
 #tab-packplan .pp-print-hdr .t{font-size:19px;font-weight:700;color:#1a3a5c}
 #tab-packplan .pp-print-hdr .s{font-size:11px;color:#555}
 
@@ -515,6 +515,7 @@ table.list tr:hover td{background:#f8fbff}
   #tab-packplan .content{padding:0!important}
   #tab-packplan .no-print{display:none!important}
   #tab-packplan .pp-print-only{display:block!important}
+  #tab-packplan .pp-print-hdr{display:flex!important}
   #tab-packplan .pp-item-row:not(.checked){display:none}
   #tab-packplan .pp-cat-row.pp-cat-hide{display:none}
   #tab-packplan .pp-chk-col{display:none!important}
@@ -763,7 +764,7 @@ table.list tr:hover td{background:#f8fbff}
   <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview',this)">📊 ภาพรวม</button>
   <button class="tab-btn" data-tab="stock" onclick="switchTab('stock',this)">📋 สต็อค</button>
   <button class="tab-btn" data-tab="stockin" onclick="switchTab('stockin',this)">📥 รับสินค้าเข้า</button>
-  <button class="tab-btn" data-tab="packplan" onclick="switchTab('packplan',this)">📦 วางแผนการบรรจุ</button>
+  <button class="tab-btn" data-tab="packplan" onclick="switchTab('packplan',this)">📦 วางแผนบรรจุ</button>
   <button class="tab-btn" data-tab="pending" onclick="switchTab('pending',this)">รอยืนยัน <span class="badge-count" id="pendingCount">0</span></button>
   <button class="tab-btn" data-tab="itemhistory" onclick="switchTab('itemhistory',this)">📜 ย้อนประวัติสินค้า</button>
   <button class="tab-btn" data-tab="history" onclick="switchTab('history',this)">ประวัติ</button>
