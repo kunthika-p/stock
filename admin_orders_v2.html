@@ -438,27 +438,35 @@ table.list tr:hover td{background:#f8fbff}
     padding:2px 4px!important;font-size:6.5pt!important;font-weight:700!important}
   .sum-tbl thead th,#tab-summary .hist-tbl thead th{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 4px!important;font-size:6pt!important;text-align:center!important}
   .sum-tbl,#tab-summary .hist-tbl{font-size:6.5pt!important;border-collapse:collapse!important;width:100%!important;table-layout:fixed!important}
-  #tab-summary .hist-tbl col:nth-child(1){width:6%!important}
-  #tab-summary .hist-tbl col:nth-child(2){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(3){width:22%!important}
+  /* 2026-09-22: ปรับสัดส่วนคอลัมน์ตาม mockup ที่ user รีเช็คแล้ว (mockup_sum_print_columns_v1.html) —
+     ขยายวันที่สั่ง/ลูกค้า (ของเดิมแคบไป ตัวเลขวันที่ล้น/ชื่อ+รหัสลูกค้าเบียดกัน) และเอาคอลัมน์ "หลังหักลด" ออกทั้งตาราง (ไม่ใช่แค่ตอนพิมพ์) จึงเหลือ 12 คอลัมน์ */
+  #tab-summary .hist-tbl col:nth-child(1){width:8%!important}
+  #tab-summary .hist-tbl col:nth-child(2){width:15%!important}
+  #tab-summary .hist-tbl col:nth-child(3){width:21%!important}
   #tab-summary .hist-tbl col:nth-child(4){width:6%!important}
   #tab-summary .hist-tbl col:nth-child(5){width:5%!important}
   #tab-summary .hist-tbl col:nth-child(6){width:5%!important}
-  #tab-summary .hist-tbl col:nth-child(7){width:6%!important}
-  #tab-summary .hist-tbl col:nth-child(8){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(7){width:5%!important}
+  #tab-summary .hist-tbl col:nth-child(8){width:5%!important}
   #tab-summary .hist-tbl col:nth-child(9){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(10){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(11){width:9%!important}
-  #tab-summary .hist-tbl col:nth-child(12){width:6%!important}
-  #tab-summary .hist-tbl col:nth-child(13){width:8%!important}
+  #tab-summary .hist-tbl col:nth-child(10){width:9%!important}
+  #tab-summary .hist-tbl col:nth-child(11){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(12){width:8%!important}
   /* 2026-09-09: ลด font คอลัมน์ วันที่/รหัส (เดิม inline 11px แต่ละแถวข้อมูล) ตอนพิมพ์เท่านั้น (จอปกติยังเห็นครบ) — ให้พื้นที่ชื่อสินค้ากว้างขึ้น
-     ตัดคอลัมน์ ความเร่งด่วน/สถานะ ออกจากตารางไปแล้ว (ไม่ใช่แค่ซ่อนตอนพิมพ์เหมือนเดิม) เพิ่มราคาตั้ง/หลังหักลด/ราคารวมแทน — ดู renderSummary() */
+     ตัดคอลัมน์ ความเร่งด่วน/สถานะ ออกจากตารางไปแล้ว (ไม่ใช่แค่ซ่อนตอนพิมพ์เหมือนเดิม) เพิ่มราคาตั้ง/ราคารวมแทน — ดู renderSummary()
+     2026-09-22: เอาคอลัมน์ "หลังหักลด" ออกจากตารางนี้แล้วทั้งหมด (ไม่ใช่แค่ซ่อนตอนพิมพ์) — คอลัมน์ที่เหลือขยับ: ราคาตั้ง=col9, ราคารวม=col10, จัดส่ง=col11, หมายเหตุ=col12
+     ตัวเลข ราคาตั้ง/ราคารวม เดิม inline font-size:12px ไม่เคยถูกลดขนาดตอนพิมพ์เหมือนคอลัมน์อื่น (ใหญ่กว่ากระสอบ/กล่องผิดสังเกต) — เพิ่ม override ให้เท่ากัน */
   #tab-summary .hist-tbl td:nth-child(1){font-size:6.5pt!important;white-space:normal!important}
   #tab-summary .hist-tbl td:nth-child(4){font-size:6.5pt!important}
-  #tab-summary .hist-tbl td:nth-child(12) span{font-size:6.5pt!important;padding:1px 5px!important}
+  #tab-summary .hist-tbl td:nth-child(9){font-size:6.5pt!important}
+  #tab-summary .hist-tbl td:nth-child(10){font-size:6.5pt!important}
+  #tab-summary .hist-tbl td:nth-child(11) span{font-size:6.5pt!important;padding:1px 5px!important}
   .sum-tbl th,#tab-summary .hist-tbl th{padding:2px 4px!important;font-size:6.5pt!important}
   .sum-tbl td,#tab-summary .hist-tbl td{padding:2px 5px!important;line-height:1.2!important;border:0.5px solid #ccc!important}
   .sum-tbl .num,#tab-summary .hist-tbl td{text-align:center!important}
+  /* 2026-09-22: ของเดิม forced ทุกคอลัมน์ให้กึ่งกลางตอนพิมพ์ รวมถึงชื่อสินค้าด้วย — user ขอให้ชื่อสินค้าชิดซ้าย แก้เฉพาะคอลัมน์นี้ */
+  #tab-summary .hist-tbl td.td-name{text-align:left!important}
+  #tab-summary .hist-tbl th.th-name{text-align:left!important}
   .sum-tbl .sub-row td,#tab-summary .hist-tbl tr.summary-row td{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 5px!important}
   .sum-grand{font-size:8pt!important;padding:4px 0 0!important;margin-top:4px!important;border-top:1px solid #333!important}
   .truck-hdr{background:#eef3fb!important;color:#1a3a5c!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:9pt!important;padding:4px 6px!important;margin:0 0 2px!important}
@@ -712,11 +720,11 @@ table.list tr:hover td{background:#f8fbff}
     <div class="sub">เข้าสู่ระบบเพื่อใช้งาน</div>
     <div class="login-field">
       <label>Username</label>
-      <input type="text" id="loginUsername" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+      <input type="text" id="loginUsername" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
     </div>
     <div class="login-field">
       <label>Password</label>
-      <input type="password" id="loginPassword" autocomplete="current-password" onkeydown="if(event.key==='Enter')stcLogin()">
+      <input type="password" id="loginPassword" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')" onkeydown="if(event.key==='Enter')stcLogin()">
     </div>
     <div class="login-err" id="loginErr"></div>
     <button class="login-btn" onclick="stcLogin()">เข้าสู่ระบบ</button>
@@ -4569,20 +4577,19 @@ function renderSummary() {
   // ต้องใช้วิธีแยก table คนละอันแล้ว page-break-before ที่ตัว wrapper div แทน)
   const sumColgroup = `<colgroup>
     <col><col><col><col style="width:80px"><col style="width:80px"><col style="width:80px">
-    <col style="width:55px"><col style="width:65px"><col style="width:70px"><col style="width:75px">
+    <col style="width:55px"><col style="width:65px"><col style="width:70px">
     <col style="width:90px"><col style="width:85px"><col>
   </colgroup>`;
   const sumThead = `<thead><tr>
     <th style="width:120px;font-size:11px">วันที่สั่ง</th>
     <th style="text-align:left">ลูกค้า</th>
-    <th style="text-align:left;min-width:180px">ชื่อสินค้า</th>
+    <th class="th-name" style="text-align:left;min-width:180px">ชื่อสินค้า</th>
     <th>รหัส</th>
     <th>กระสอบ</th>
     <th>กล่อง</th>
     <th style="text-align:center">%ส่วนลด</th>
     <th style="text-align:center">ราคาเน็ต</th>
     <th style="text-align:center">ราคาตั้ง</th>
-    <th style="text-align:center">หลังหักลด</th>
     <th style="text-align:center">ราคารวม</th>
     <th>จัดส่ง</th>
     <th style="text-align:left;min-width:120px">หมายเหตุ</th>
@@ -4644,7 +4651,6 @@ function renderSummary() {
           <td style="text-align:center;font-size:12px">${discVal!==''&&discVal!==null?discVal+'%':''}</td>
           <td style="text-align:center;font-size:12px">${netVal}</td>
           <td style="text-align:center;font-size:12px">${listStr}</td>
-          <td style="text-align:center;font-size:12px">${afterStr}</td>
           <td style="text-align:center;font-size:12px;font-weight:600">${totalStr}</td>
           <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
           <td style="font-size:11px;color:#555">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล X]</span>':''}</td>
@@ -4655,7 +4661,7 @@ function renderSummary() {
         <td colspan="4" style="text-align:right">รวม ${cust}</td>
         <td>${totalSack||'-'}</td>
         <td>${totalBox||'-'}</td>
-        <td colspan="4"></td>
+        <td colspan="3"></td>
         <td>${totalAmount.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         <td colspan="2"></td>
       </tr>`;
@@ -4774,6 +4780,13 @@ function stcLogout() {
   // ส่วนตอน login สดๆ ผ่านฟอร์มนี้ (ดู stcLogin ด้านบน) ยังเด้งไปหน้า sale ทันทีเหมือนเดิม ไม่เปลี่ยน
   if (session && session.token && session.role !== 'Sale') {
     stcShowApp(session);
+  } else {
+    // 2026-09-22: user แจ้งว่า browser จำ username/password ไว้ให้ตอนหน้า login โผล่ กด "เข้าสู่ระบบ" ผ่านได้เลยโดยไม่ต้องพิมพ์ใหม่ (ไม่ปลอดภัย)
+    // แก้คู่กับ readonly+autocomplete=off/new-password ที่ input (ด้านบน): ล้างค่าที่ browser autofill เติมมาให้ทุกครั้งที่หน้านี้โหลดแล้วไม่มี session ที่ใช้ได้
+    const uEl = document.getElementById('loginUsername');
+    const pEl = document.getElementById('loginPassword');
+    if (uEl) uEl.value = '';
+    if (pEl) pEl.value = '';
   }
   // ไม่มี session ที่ใช้ได้ (หรือเป็น session ของ Sale ที่ไม่ควรอยู่หน้านี้) → ปล่อยให้ body.not-logged-in โชว์หน้า login เฉยๆ ไม่เรียก loadAll() จนกว่าจะ login สำเร็จ
 })();
