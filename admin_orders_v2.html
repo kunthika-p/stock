@@ -786,9 +786,9 @@ table.list tr:hover td{background:#f8fbff}
       </div>
       <div id="stk-print-hdr"><span id="stk-print-sub"></span></div>
       <div class="legend">
-        <b>ตำนาน:</b>
-        <span><span class="ld" style="background:#d1fae5"></span>ปกติ (≥20)</span>
-        <span><span class="ld" style="background:#fef9c3"></span>น้อย (1–19)</span>
+        <b>สัญลักษณ์:</b>
+        <span><span class="ld" style="background:#d1fae5"></span>ปกติ</span>
+        <span><span class="ld" style="background:#fef9c3"></span>น้อย</span>
         <span><span class="ld" style="background:#fee2e2"></span>หมด</span>
         <span><span class="ld" style="background:#6b7280"></span>ไม่มีการผลิต</span>
       </div>
@@ -1241,8 +1241,8 @@ table.list tr:hover td{background:#f8fbff}
         </div>
 
         <div class="legend">
-          <span><span class="ld" style="background:#d1fae5"></span>ปกติ (≥20)</span>
-          <span><span class="ld" style="background:#fef9c3"></span>น้อย (1–19)</span>
+          <span><span class="ld" style="background:#d1fae5"></span>ปกติ</span>
+          <span><span class="ld" style="background:#fef9c3"></span>น้อย</span>
           <span><span class="ld" style="background:#fee2e2"></span>หมด</span>
         </div>
 
@@ -1626,6 +1626,15 @@ function resolveType(item){
   return item.type;
 }
 function getUnit(type){return BOX_TYPES.includes(type)?'กล่อง':'กระสอบ';}
+// 2026-09-22: เงื่อนไขสีสต็อค กล่อง แยกจาก กระสอบ — กระสอบคงเกณฑ์เดิม (>=20 เขียว/1-19 เหลือง/0 แดง)
+// กล่องทั้งหมด: 0=แดง, 1-70=เหลือง, >70=เขียว ยกเว้นไซส์ M24 P3.0 (น็อตมิลแข็ง M18-M30) ที่กล่องมีขนาดใหญ่กว่ามาก: 0=แดง, 1-10=เหลือง, >10=เขียว
+function stockColorClass(stock, unit, col) {
+  if (unit === 'กล่อง') {
+    const hi = (col === 'M24 P3.0') ? 10 : 70;
+    return stock > hi ? 'c-ok' : stock > 0 ? 'c-low' : 'c-out';
+  }
+  return stock >= 20 ? 'c-ok' : stock > 0 ? 'c-low' : 'c-out';
+}
 // ============================================================
 // DISCOUNT DATA - ราคาเน็ต/กก. ตามประเภทสินค้าและรหัสลูกค้า
 // Source: ปรับส่วนลด5-1-69 Rev3.xlsx (79 customers)
@@ -3176,7 +3185,7 @@ function buildTypeTable(t, budget) {
       if (!it) { h += '<td class="stk-cell c-blocked"></td>'; return; }
       const s = getStock(it.code);
       const tk = getTank(it.code);
-      const cls = s.stock>=20?'c-ok':s.stock>0?'c-low':'c-out';
+      const cls = stockColorClass(s.stock, getUnit(it.type), it.col);
       const tkHtml = tk > 0 ? `<span class="tank-v">${tk}</span>` : '';
       const stkStyle = isKhrueng ? ' style="color:#c2410c"' : '';
       h += `<td class="stk-cell ${cls}">${tkHtml}<span class="stk-v"${stkStyle}>${s.stock}</span><span class="code-v">${it.code}</span></td>`;
@@ -3201,7 +3210,7 @@ function buildNokMilAengAdminTable(tabDef, suffix) {
       if (!it) { h += '<td class="stk-cell c-blocked"></td>'; return; }
       const s = getStock(it.code);
       const tk = getTank(it.code);
-      const cls = s.stock >= 20 ? 'c-ok' : s.stock > 0 ? 'c-low' : 'c-out';
+      const cls = stockColorClass(s.stock, getUnit(srcType), col);
       const tkHtml = tk > 0 ? `<span class="tank-v">${tk}</span>` : '';
       h += `<td class="stk-cell ${cls}">${tkHtml}<span class="stk-v">${s.stock}</span><span class="code-v">${it.code}</span></td>`;
     });
@@ -3222,7 +3231,7 @@ function buildNokMilAengSection(tabDef, suffix) {
       if (!it) { h += '<td class="stk-cell c-blocked"></td>'; return; }
       const s = getStock(it.code);
       const tk = getTank(it.code);
-      const cls = s.stock >= 20 ? 'c-ok' : s.stock > 0 ? 'c-low' : 'c-out';
+      const cls = stockColorClass(s.stock, getUnit(srcType), col);
       const tkHtml = tk > 0 ? `<span class="tank-v">${tk}</span>` : '';
       h += `<td class="stk-cell ${cls}">${tkHtml}<span class="stk-v">${s.stock}</span><span class="code-v">${it.code}</span></td>`;
     });
@@ -3235,7 +3244,7 @@ function buildNokMilAengCombinedTable(tabDef) {
   const stkW = stkColWidth(cols.length, 680);
   let h = `<div style="overflow-x:auto;--stk-cw:${stkW}px"><table class="stk-tbl"><thead><tr>`;
   h += `<th class="th-corner">ยาว \\ ขนาด</th>`;
-  cols.forEach(c => h += `<th class="th-col">${c}</th>`);
+  cols.forEach(c => h += `<th class="th-col"${c==='M24 P3.0'?' title="คอลัมน์นี้เกณฑ์สีกล่องต่างจากไซส์อื่น: หมด=0, น้อย=1-10, ปกติ=มากกว่า 10"':''}>${c}</th>`);
   h += '</tr></thead><tbody>';
   h += buildNokMilAengSection(tabDef, '(ตลอด)');
   h += `<tr class="stk-section-row"><td colspan="${cols.length + 1}">ครึ่ง</td></tr>`;
@@ -4875,9 +4884,9 @@ async function ppMergeShortItems() {
 
 function ppRender() {
   const tbody = document.getElementById('pp-tbody');
-  // 2026-09-22: user ขอไม่ให้เอาแถวที่สต็อคยังเขียว (≥20, พร้อมขายเยอะอยู่) เข้าตารางเลย —
-  // โชว์เฉพาะเหลือง(1-19)/แดง(หมด) และรายการ "สต็อกไม่พอ" (ppExtra) เท่านั้น
-  const ppVisible = ppItems.filter(it => (Number(it.bag) || 0) < 20 || it.ppExtra);
+  // 2026-09-22: user ขอไม่ให้เอาแถวที่สต็อคยังเขียว (เพียงพอ) เข้าตารางเลย —
+  // โชว์เฉพาะเหลือง/แดง และรายการ "สต็อกไม่พอ" (ppExtra) เท่านั้น (เกณฑ์เขียว/เหลือง/แดงต่างกันตามหน่วยกระสอบ/กล่อง — ดู stockColorClass)
+  const ppVisible = ppItems.filter(it => stockColorClass(Number(it.bag) || 0, getUnit(it.type), it.col) !== 'c-ok' || it.ppExtra);
   // จัดกลุ่มตามหมวด (anVCategory เดียวกับแท็บสต็อค/วิเคราะห์ข้อมูล) แล้วเรียงขนาดในหมวดด้วย anSizeCompare
   const catMap = {};
   ppVisible.forEach(it => {
@@ -4891,7 +4900,7 @@ function ppRender() {
 
   if (!catOrder.length) {
     const emptyMsg = ppItems.length
-      ? 'ไม่มีรายการที่ต้องเติม — สต็อคทุกไซส์ยังเขียว (≥20) อยู่'
+      ? 'ไม่มีรายการที่ต้องเติม — สต็อคทุกไซส์ยังเขียว (เพียงพอ) อยู่'
       : 'ไม่มีสินค้าที่เคยมีระบบถัง/บรรจุ';
     tbody.innerHTML = `<tr><td colspan="7" class="empty">${emptyMsg}</td></tr>`;
     ppUpdateSelCount();
@@ -4906,7 +4915,7 @@ function ppRender() {
       rowId++;
       const name = buildName(it);
       const bagVal = Number(it.bag) || 0;
-      const bagCls = bagVal >= 20 ? 'c-ok' : bagVal > 0 ? 'c-low' : 'c-out';
+      const bagCls = stockColorClass(bagVal, getUnit(it.type), it.col);
       const extraTag = it.ppExtra ? ' <span class="pp-extra-tag">⚠ สต็อกไม่พอ</span>' : '';
       html += `<tr class="pp-item-row" id="pp-row-${rowId}" data-group="${gi}">
         <td class="pp-chk-col no-print"><input type="checkbox" class="pp-chk" onchange="ppOnCheck(${rowId},this.checked)"></td>
