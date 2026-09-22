@@ -75,8 +75,6 @@ body.not-logged-in .login-overlay{display:flex}
 #tab-packplan .pp-qty-bag.c-ok{background:#d1fae5}
 #tab-packplan .pp-qty-bag.c-low{background:#fef9c3}
 #tab-packplan .pp-qty-bag.c-out{background:#fee2e2}
-#tab-packplan .legend-print{display:none}
-#tab-packplan .ld-print{width:12px;height:12px;display:inline-block;border:1px solid #666;margin-right:4px;vertical-align:middle}
 #tab-packplan .pp-extra-tag{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#fff;background:#dc2626;padding:1px 6px;border-radius:3px;white-space:nowrap;vertical-align:middle}
 #tab-packplan .pp-input{width:100%;text-align:center;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:inherit;font-weight:700;color:#7c3aed;padding:2px}
 #tab-packplan .pp-input:focus{outline:none}
@@ -84,9 +82,9 @@ body.not-logged-in .login-overlay{display:flex}
 #tab-packplan .pp-input[type=number]{-moz-appearance:textfield}
 #tab-packplan .pp-note{font-size:12px;color:#888;margin-top:10px;line-height:1.7}
 #tab-packplan .pp-print-only{display:none}
-#tab-packplan .pp-print-hdr{text-align:center;margin-bottom:18px;border-bottom:2px solid #1a3a5c;padding-bottom:12px}
+#tab-packplan .pp-print-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px;border-bottom:2px solid #1a3a5c;padding-bottom:12px}
 #tab-packplan .pp-print-hdr .t{font-size:19px;font-weight:700;color:#1a3a5c}
-#tab-packplan .pp-print-hdr .s{font-size:13px;color:#555;margin-top:4px}
+#tab-packplan .pp-print-hdr .s{font-size:11px;color:#555}
 
 /* Order cards */
 .order-card{background:white;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:4px solid #d1d5db}
@@ -532,7 +530,6 @@ table.list tr:hover td{background:#f8fbff}
   #tab-packplan .pp-name-cell{font-size:10px}
   #tab-packplan .pp-input{color:#000}
   #tab-packplan .legend{display:none!important}
-  #tab-packplan .legend-print{display:flex!important;gap:14px;flex-wrap:wrap;align-items:center;font-size:11px;color:#333;padding:6px 0;margin-bottom:8px;border-bottom:1px solid #000}
   #tab-packplan #pp-tbody td:nth-child(6),#tab-packplan #pp-tbody td:nth-child(7){padding-top:3px;padding-bottom:3px}
 }
 
@@ -1248,16 +1245,10 @@ table.list tr:hover td{background:#f8fbff}
           <span><span class="ld" style="background:#fee2e2"></span>หมด</span>
         </div>
 
-        <div class="legend-print pp-print-only">
-          <span><span class="ld-print" style="background:#fff"></span>ปกติ (≥20)</span>
-          <span><span class="ld-print" style="background:#ddd"></span>น้อย (1–19)</span>
-          <span><span class="ld-print" style="background:#808080"></span>หมด</span>
-        </div>
-
-        <!-- หัวกระดาษที่โชว์เฉพาะตอนพิมพ์ — ชื่อคงที่ + วันที่ปัจจุบันจริงเสมอ -->
+        <!-- หัวกระดาษที่โชว์เฉพาะตอนพิมพ์ — ชื่อคงที่ + วันที่ปัจจุบันจริงเสมอ (บรรทัดเดียวกัน วันที่ชิดขวาตัวเล็ก) -->
         <div class="pp-print-hdr pp-print-only">
           <div class="t">ใบวางแผนการบรรจุ PA/DE</div>
-          <div class="s" id="pp-print-date"></div>
+          <span class="s" id="pp-print-date"></span>
         </div>
 
         <table class="pp-table">
@@ -4964,8 +4955,10 @@ function ppUpdateCatVisibility() {
 }
 
 function ppDoPrint() {
-  document.getElementById('pp-print-date').textContent =
-    'วันที่ ' + new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+  {
+    const d = new Date();
+    document.getElementById('pp-print-date').textContent = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() + 543}`;
+  }
   ppUpdateCatVisibility();
   window.print();
 }
