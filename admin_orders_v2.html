@@ -441,25 +441,29 @@ table.list tr:hover td{background:#f8fbff}
   /* 2026-09-22 (รอบ 1): ปรับสัดส่วนคอลัมน์ตาม mockup ที่ user รีเช็คแล้ว (mockup_sum_print_columns_v1.html) —
      ขยายวันที่สั่ง/ลูกค้า (ของเดิมแคบไป ตัวเลขวันที่ล้น/ชื่อ+รหัสลูกค้าเบียดกัน) และเอาคอลัมน์ "หลังหักลด" ออกทั้งตาราง (ไม่ใช่แค่ตอนพิมพ์) จึงเหลือ 12 คอลัมน์
      2026-09-22 (รอบ 2): ย่อวันที่เป็น d/m/yy ทำให้ช่องวันที่แคบลงได้อีก + ลูกค้าแคบลงอีก (ย้ายพื้นที่ไปให้ชื่อสินค้า ซึ่งฟอนต์ใหญ่ขึ้นด้วย)
-     ย่อหัวตาราง %ส่วนลด/ราคาเน็ต/ราคาตั้ง เป็น ลด%/เน็ต/ตั้ง กันหัวตารางทับกันตอนคอลัมน์แคบ — ดู mockup_sum_print_columns_v2.html */
+     ย่อหัวตาราง %ส่วนลด/ราคาเน็ต/ราคาตั้ง เป็น ลด%/เน็ต/ตั้ง กันหัวตารางทับกันตอนคอลัมน์แคบ — ดู mockup_sum_print_columns_v2.html
+     2026-09-22 (รอบ 3): user ทดสอบพิมพ์จริงแล้วเจอ %ส่วนลด/ราคาเน็ต ตัวเลขล้นช่อง (สาเหตุจริง: 2 คอลัมน์นี้ยังใช้ inline font-size:12px เดิม ไม่เคยถูกลดขนาดตอนพิมพ์เหมือนราคาตั้ง/ราคารวมที่แก้ไปรอบ1 — แก้ที่ต้นเหตุด้านล่างด้วย)
+     ชื่อสินค้าที่ฟอนต์ใหญ่ขึ้นแล้วพบว่าช่อง 35% เหลือพื้นที่เกินจำเป็น ลดเหลือ 30% คืนพื้นที่ให้ %ส่วนลด/ราคาเน็ต (4%→5%) และขยายจัดส่ง (5%→7%) ตามที่ user ขอ */
   #tab-summary .hist-tbl col:nth-child(1){width:6%!important}
   #tab-summary .hist-tbl col:nth-child(2){width:10%!important}
-  #tab-summary .hist-tbl col:nth-child(3){width:35%!important}
+  #tab-summary .hist-tbl col:nth-child(3){width:30%!important}
   #tab-summary .hist-tbl col:nth-child(4){width:6%!important}
   #tab-summary .hist-tbl col:nth-child(5){width:5%!important}
   #tab-summary .hist-tbl col:nth-child(6){width:5%!important}
-  #tab-summary .hist-tbl col:nth-child(7){width:4%!important}
-  #tab-summary .hist-tbl col:nth-child(8){width:4%!important}
+  #tab-summary .hist-tbl col:nth-child(7){width:5%!important}
+  #tab-summary .hist-tbl col:nth-child(8){width:5%!important}
   #tab-summary .hist-tbl col:nth-child(9){width:6%!important}
   #tab-summary .hist-tbl col:nth-child(10){width:8%!important}
-  #tab-summary .hist-tbl col:nth-child(11){width:5%!important}
-  #tab-summary .hist-tbl col:nth-child(12){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(11){width:7%!important}
+  #tab-summary .hist-tbl col:nth-child(12){width:7%!important}
   /* 2026-09-09: ลด font คอลัมน์ วันที่/รหัส (เดิม inline 11px แต่ละแถวข้อมูล) ตอนพิมพ์เท่านั้น (จอปกติยังเห็นครบ) — ให้พื้นที่ชื่อสินค้ากว้างขึ้น
      ตัดคอลัมน์ ความเร่งด่วน/สถานะ ออกจากตารางไปแล้ว (ไม่ใช่แค่ซ่อนตอนพิมพ์เหมือนเดิม) เพิ่มราคาตั้ง/ราคารวมแทน — ดู renderSummary()
      2026-09-22: เอาคอลัมน์ "หลังหักลด" ออกจากตารางนี้แล้วทั้งหมด (ไม่ใช่แค่ซ่อนตอนพิมพ์) — คอลัมน์ที่เหลือขยับ: ราคาตั้ง=col9, ราคารวม=col10, จัดส่ง=col11, หมายเหตุ=col12
      ตัวเลข ราคาตั้ง/ราคารวม เดิม inline font-size:12px ไม่เคยถูกลดขนาดตอนพิมพ์เหมือนคอลัมน์อื่น (ใหญ่กว่ากระสอบ/กล่องผิดสังเกต) — เพิ่ม override ให้เท่ากัน */
   #tab-summary .hist-tbl td:nth-child(1){font-size:6.5pt!important;white-space:normal!important}
   #tab-summary .hist-tbl td:nth-child(4){font-size:6.5pt!important}
+  #tab-summary .hist-tbl td:nth-child(7){font-size:6.5pt!important}
+  #tab-summary .hist-tbl td:nth-child(8){font-size:6.5pt!important}
   #tab-summary .hist-tbl td:nth-child(9){font-size:6.5pt!important}
   #tab-summary .hist-tbl td:nth-child(10){font-size:6.5pt!important}
   #tab-summary .hist-tbl td:nth-child(11) span{font-size:6.5pt!important;padding:1px 5px!important}
