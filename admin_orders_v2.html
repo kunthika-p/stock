@@ -772,8 +772,8 @@ table.list tr:hover td{background:#f8fbff}
   <button class="tab-btn" data-tab="itemhistory" onclick="switchTab('itemhistory',this)">📜 ย้อนประวัติสินค้า</button>
   <button class="tab-btn" data-tab="history" onclick="switchTab('history',this)">ประวัติ</button>
   <button class="tab-btn" data-tab="summary" onclick="switchTab('summary',this)">🖨️ สรุปออเดอร์</button>
-  <button class="tab-btn" data-tab="users" onclick="switchTab('users',this)">👥 จัดการผู้ใช้งาน</button>
   <button class="tab-btn" data-tab="analytics" onclick="switchTab('analytics',this)">📈 วิเคราะห์ข้อมูล 🔒</button>
+  <button class="tab-btn" data-tab="users" onclick="switchTab('users',this)">👥 จัดการผู้ใช้งาน</button>
 </div>
 
 <div class="content">
@@ -6400,9 +6400,10 @@ function anCatRevRenderHeat(months, data) {
     '<div style="display:flex;align-items:center;gap:7px"><span style="width:24px;height:15px;border-radius:4px;background:#dbeafe;border:1px solid #b6cbe8;display:inline-block"></span> เดือนขายน้อยสุด (ต่อหมวด)</div>'+
     '<div style="display:flex;align-items:center;gap:7px"><span style="width:24px;height:15px;border-radius:4px;background:#fff;border:1px solid #d8dfe8;display:inline-block"></span> เดือนอื่นๆ</div>'+
   '</div>';
-  h += '<div style="overflow-x:auto"><div style="display:grid;grid-template-columns:126px repeat(12,1fr) 98px;gap:3px;align-items:stretch;width:100%">';
+  h += '<div style="overflow-x:auto"><div style="display:grid;grid-template-columns:126px repeat(12,1fr) 98px 108px;gap:3px;align-items:stretch;width:100%">';
   h += '<div></div>' + months.map(mo=>'<div style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px">'+mo.label+'</div>').join('') +
-    '<div style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px">รวม</div>';
+    '<div style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px">รวม</div>'+
+    '<div title="ค่าเฉลี่ยยอดขาย 12 เดือนล่าสุด" style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px">เฉลี่ย/ด.</div>';
 
   function renderRow(label, rowVals, isGrand) {
     const rowTotal = rowVals.reduce((a,b)=>a+b,0);
@@ -6431,7 +6432,10 @@ function anCatRevRenderHeat(months, data) {
     }
     const totalExtraBorder = isGrand ? ';border-top:2px solid #d8dfe8' : '';
     const totalFs = isGrand ? '12.5px' : '11.5px';
-    h += '<div style="background:#f8fafc;border-radius:6px;padding:9px 4px;text-align:right;font-size:'+totalFs+';font-weight:700;color:#1a3a5c;border:1px solid #eef1f5'+totalExtraBorder+';position:sticky;right:0;white-space:nowrap">'+Math.round(rowTotal).toLocaleString()+'</div>';
+    h += '<div style="background:#f8fafc;border-radius:6px;padding:9px 4px;text-align:right;font-size:'+totalFs+';font-weight:700;color:#1a3a5c;border:1px solid #eef1f5'+totalExtraBorder+';white-space:nowrap">'+Math.round(rowTotal).toLocaleString()+'</div>';
+    const avgVal = rowTotal / rowVals.length;
+    const avgFs = isGrand ? '12.5px' : '11.5px';
+    h += '<div title="เฉลี่ย 12 เดือนล่าสุด" style="background:#eef4fa;border-radius:6px;padding:9px 4px;text-align:right;font-size:'+avgFs+';font-weight:700;color:#1a3a5c;border:1px solid #dbe6f2'+totalExtraBorder+';position:sticky;right:0;white-space:nowrap">'+Math.round(avgVal).toLocaleString()+'</div>';
   }
 
   // แถวหมวด — ไม่รวม "อื่นๆ" (โชว์เป็นแถว "รวม" รวมเข้าไปแทนด้านล่าง ไม่ทิ้งข้อมูล)
