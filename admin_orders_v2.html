@@ -6593,7 +6593,7 @@ function anCatRevRenderHeat(months, data, prev) {
   h += '<div style="overflow-x:auto"><div style="display:grid;grid-template-columns:126px repeat(12,1fr) 98px 108px;gap:3px;align-items:stretch;width:100%">';
   h += '<div></div>' + months.map(mo=>'<div style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px">'+mo.label+'</div>').join('') +
     '<div style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px">รวม</div>'+
-    '<div title="'+anEsc(avgTip)+'" style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px;line-height:1.2">เฉลี่ย/ด.'+(avgInfo.n ? '<br><span style="font-weight:600;font-size:9px">('+avgInfo.n+' ด.)</span>' : '')+'</div>';
+    '<div title="'+anEsc(avgTip)+'" style="font-size:10px;color:#92400e;font-weight:700;text-align:center;padding-bottom:2px;line-height:1.2">เฉลี่ย/เดือน'+(avgInfo.n ? '<br><span style="font-weight:600;font-size:9px">('+avgInfo.n+' เดือน)</span>' : '')+'</div>';
 
   function renderRow(label, rowVals, isGrand, prevVal) {
     const rowTotal = rowVals.reduce((a,b)=>a+b,0);
@@ -6625,8 +6625,10 @@ function anCatRevRenderHeat(months, data, prev) {
     h += '<div style="background:#f8fafc;border-radius:6px;padding:9px 4px;text-align:right;font-size:'+totalFs+';font-weight:700;color:#1a3a5c;border:1px solid #eef1f5'+totalExtraBorder+';white-space:nowrap">'+Math.round(rowTotal).toLocaleString()+'</div>';
     const avgSum = avgInfo.idxs.reduce((a, i) => a + rowVals[i], 0) + (avgInfo.usePrev ? (prevVal || 0) : 0);
     const avgVal = avgInfo.n ? avgSum / avgInfo.n : 0;
+    // 2026-09-24: คอลัมน์เฉลี่ยใช้โทนเหลืองชุดเดียวกับแท็บวิเคราะห์ข้อมูล (#fffbeb/#fde68a/#92400e เหมือนป้าย 📌 โชว์อัตโนมัติ, แถวรวม #fef3c7)
+    // แทนฟ้าอ่อนเดิมที่ดูคล้ายสีไฮไลท์ "เดือนขายน้อยสุด" — user เลือก mockup_heat_avg_style_v1 แบบ 2 แล้วขอเปลี่ยนส้มเป็นเหลืองธีมเดิม
     const avgFs = isGrand ? '12.5px' : '11.5px';
-    h += '<div title="'+anEsc(avgTip)+'" style="background:#eef4fa;border-radius:6px;padding:9px 4px;text-align:right;font-size:'+avgFs+';font-weight:700;color:#1a3a5c;border:1px solid #dbe6f2'+totalExtraBorder+';position:sticky;right:0;white-space:nowrap">'+(avgInfo.n && avgVal ? Math.round(avgVal).toLocaleString() : '–')+'</div>';
+    h += '<div title="'+anEsc(avgTip)+'" style="background:'+(isGrand ? '#fef3c7' : '#fffbeb')+';border-radius:6px;padding:9px 4px;text-align:right;font-size:'+avgFs+';font-weight:700;color:#92400e;border:1px solid #fde68a'+totalExtraBorder+';position:sticky;right:0;white-space:nowrap">'+(avgInfo.n && avgVal ? Math.round(avgVal).toLocaleString() : '–')+'</div>';
   }
 
   // แถวหมวด — ไม่รวม "อื่นๆ" (โชว์เป็นแถว "รวม" รวมเข้าไปแทนด้านล่าง ไม่ทิ้งข้อมูล)
