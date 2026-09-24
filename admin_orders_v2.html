@@ -85,7 +85,22 @@ body.not-logged-in .login-overlay{display:flex}
 #tab-packplan .pp-print-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
 #tab-packplan .pp-print-hdr .t{font-size:19px;font-weight:700;color:#1a3a5c}
 #tab-packplan .pp-print-hdr .s{font-size:11px;color:#555}
-#tab-packplan .pp-extra-row{display:none}
+#tab-packplan .pp-extra-hint{font-weight:400;color:#64748b;font-size:11px;margin-left:8px}
+#tab-packplan .pp-ex-input{width:100%;border:1.5px solid transparent;border-radius:5px;padding:2px 7px;font-family:'Sarabun',sans-serif;font-size:12.5px;background:#fff;color:#1a3a5c}
+#tab-packplan .pp-ex-input:focus{outline:none;border:1.5px solid #1a3a5c;background:#f8fbff}
+#tab-packplan .pp-ex-input::placeholder{color:#a3b1c2}
+#tab-packplan .pp-ex-picked{display:flex;align-items:center;gap:6px}
+#tab-packplan .pp-ex-code{font-size:10.5px;color:#94a3b8;font-family:monospace}
+#tab-packplan .pp-ex-dup{font-size:10px;color:#92400e;background:#fef3c7;padding:1px 5px;border-radius:3px;white-space:nowrap}
+#tab-packplan .pp-ex-clear{margin-left:auto;border:none;background:#f1f5f9;color:#64748b;border-radius:4px;cursor:pointer;padding:0 7px;font-size:12px;line-height:18px}
+#tab-packplan .pp-ex-clear:hover{background:#fee2e2;color:#dc2626}
+.pp-ex-dd{display:none;position:fixed;z-index:9999;background:#fff;border:1px solid #c7d2df;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.15);max-height:280px;overflow-y:auto;font-family:'Sarabun',sans-serif;font-size:12.5px}
+.pp-ex-dd .opt{display:flex;gap:10px;padding:6px 10px;cursor:pointer;align-items:center;border-bottom:1px solid #f1f5f9}
+.pp-ex-dd .opt.act,.pp-ex-dd .opt:hover{background:#eef2f7}
+.pp-ex-dd .c{font-family:monospace;color:#1a3a5c;font-weight:700;min-width:74px}
+.pp-ex-dd .n{color:#222}
+.pp-ex-dd .q{margin-left:auto;color:#64748b;font-size:11px;white-space:nowrap}
+.pp-ex-dd .none{padding:8px 10px;color:#94a3b8}
 
 /* Order cards */
 .order-card{background:white;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:4px solid #d1d5db}
@@ -518,8 +533,9 @@ table.list tr:hover td{background:#f8fbff}
   #tab-packplan .pp-print-only{display:block!important}
   #tab-packplan .pp-print-hdr{display:flex!important}
   #tab-packplan .pp-item-row:not(.checked){display:none}
-  #tab-packplan .pp-extra-row{display:table-row!important}
-  #tab-packplan .pp-blank-row td{height:20px}
+  #tab-packplan .pp-extra-row td{height:20px}
+  #tab-packplan .pp-ex-input{visibility:hidden!important}
+  .pp-ex-dd{display:none!important}
   #tab-packplan .pp-cat-row.pp-cat-hide{display:none}
   #tab-packplan .pp-chk-col{display:none!important}
   #tab-packplan .pp-table{font-size:10.5px;border:1.5px solid #333;border-collapse:collapse}
@@ -4894,11 +4910,20 @@ function ppResolveTank(it) {
   return match ? getTank(match.code) : 0;
 }
 
+// 2026-09-24: "รายการเพิ่มเติม" ท้ายตาราง — เดิม (09-22) เป็นแถวเปล่า 5 แถวโชว์เฉพาะตอนพิมพ์ให้เขียนมือ
+// user ขอให้โชว์บนหน้าเว็บด้วย + เพิ่มเป็น 10 แถว + ช่องชื่อสินค้าพิมพ์รหัสแล้วเลือกจากรายการ → ขึ้นชื่อ/กระสอบ-กล่อง/ถังอัตโนมัติ
+// เก็บรหัสที่เลือกไว้ใน ppExtraCodes (ไม่หายตอน ppRender ใหม่ เช่นกดเข้าแท็บซ้ำ) — แถวที่ยังว่างตอนพิมพ์ยังเป็นช่องเปล่าให้เขียนมือได้เหมือนเดิม
+const PP_EXTRA_N = 10;
+let ppExtraCodes = new Array(PP_EXTRA_N).fill('');
+let ppShownCodes = new Set();
+let ppExState = { row: -1, list: [], idx: 0 };
+
 function ppRender() {
   const tbody = document.getElementById('pp-tbody');
   // 2026-09-22: user ขอไม่ให้เอาแถวที่สต็อคยังเขียว (เพียงพอ) เข้าตารางเลย —
   // โชว์เฉพาะเหลือง/แดง และรายการ "สต็อกไม่พอ" (ppExtra) เท่านั้น (เกณฑ์เขียว/เหลือง/แดงต่างกันตามหน่วยกระสอบ/กล่อง — ดู stockColorClass)
   const ppVisible = ppItems.filter(it => stockColorClass(Number(it.bag) || 0, getUnit(it.type), it.col) !== 'c-ok' || it.ppExtra);
+  ppShownCodes = new Set(ppVisible.map(it => it.code));
   // จัดกลุ่มตามหมวด (anVCategory เดียวกับแท็บสต็อค/วิเคราะห์ข้อมูล) แล้วเรียงขนาดในหมวดด้วย anSizeCompare
   const catMap = {};
   ppVisible.forEach(it => {
@@ -4910,13 +4935,11 @@ function ppRender() {
   catOrder.forEach(c => catMap[c].sort(anSizeCompare));
   ppCats = catOrder;
 
-  // 2026-09-22: ท้ายใบพิมพ์ เพิ่มแถบ "รายการเพิ่มเติม" + แถวเปล่า 5 แถวให้ฝ่ายวางแผนเขียนไซส์พิเศษเองได้
-  // (สไตล์เดียวกับแถบหมวดหมู่ ไม่มีหัวตารางซ้ำ ตามที่ user ยืนยัน mockup v3) — โชว์เฉพาะตอนพิมพ์เท่านั้น (ดู .pp-extra-row ใน CSS)
   // ใส่ไว้ทั้งกรณีมีรายการปกติและกรณีตารางว่าง เพราะฝ่ายวางแผนอาจอยากเพิ่มไซส์พิเศษแม้ไม่มีอะไรต้องเติมเลย
   const ppExtraRowsHtml = () => {
-    let h = '<tr class="pp-cat-row pp-extra-row"><td colspan="7">รายการเพิ่มเติม</td></tr>';
-    for (let k = 0; k < 5; k++) {
-      h += '<tr class="pp-blank-row pp-extra-row"><td class="pp-chk-col no-print"></td><td></td><td class="pp-name-cell"></td><td class="pp-qty-bag"></td><td class="pp-qty-tank"></td><td></td><td>&nbsp;</td></tr>';
+    let h = '<tr class="pp-cat-row pp-extra-hdr"><td colspan="7">รายการเพิ่มเติม<span class="pp-extra-hint no-print">— พิมพ์รหัสสินค้า (หรือชื่อ) แล้วเลือกจากรายการ</span></td></tr>';
+    for (let k = 0; k < PP_EXTRA_N; k++) {
+      h += `<tr class="pp-extra-row" id="pp-ex-${k}"><td class="pp-chk-col no-print"></td><td>${k + 1}</td><td class="pp-name-cell"></td><td class="pp-qty-bag"></td><td class="pp-qty-tank"></td><td><input type="number" class="pp-input" min="0"></td><td>&nbsp;</td></tr>`;
     }
     return h;
   };
@@ -4926,6 +4949,7 @@ function ppRender() {
       ? 'ไม่มีรายการที่ต้องเติม — สต็อคทุกไซส์ยังเขียว (เพียงพอ) อยู่'
       : 'ไม่มีสินค้าที่เคยมีระบบถัง/บรรจุ';
     tbody.innerHTML = `<tr><td colspan="7" class="empty">${emptyMsg}</td></tr>` + ppExtraRowsHtml();
+    for (let k = 0; k < PP_EXTRA_N; k++) ppExRenderRow(k, true);
     ppUpdateSelCount();
     return;
   }
@@ -4953,8 +4977,131 @@ function ppRender() {
   });
   html += ppExtraRowsHtml();
   tbody.innerHTML = html;
+  for (let k = 0; k < PP_EXTRA_N; k++) ppExRenderRow(k, true);
   ppUpdateSelCount();
 }
+
+// ── รายการเพิ่มเติม: ค้นหา/เลือกรหัสสินค้า ──
+function ppExItemInfo(code) {
+  const it = allItems.find(x => x.code === code);
+  if (!it) return null;
+  const bag = Number(it.stock) || 0;
+  return { it, name: buildName(it), bag, tank: ppResolveTank({ ...it, tank: getTank(code) }) };
+}
+
+function ppExRenderRow(k, skipCount) {
+  const tr = document.getElementById('pp-ex-' + k);
+  if (!tr) return;
+  const nameTd = tr.children[2], bagTd = tr.children[3], tankTd = tr.children[4];
+  const code = ppExtraCodes[k];
+  const info = code ? ppExItemInfo(code) : null;
+  if (!info) {
+    nameTd.innerHTML = `<input type="text" class="pp-ex-input" placeholder="🔍 พิมพ์รหัสสินค้า..." autocomplete="off"
+      oninput="ppExSearch(${k},this)" onfocus="ppExSearch(${k},this)" onkeydown="ppExKey(${k},event)" onblur="setTimeout(ppExCloseDD,150)">`;
+    bagTd.className = 'pp-qty-bag';
+    bagTd.textContent = '';
+    tankTd.textContent = '';
+  } else {
+    const dup = ppShownCodes.has(code) ? '<span class="pp-ex-dup no-print">มีในรายการด้านบนแล้ว</span>' : '';
+    nameTd.innerHTML = `<div class="pp-ex-picked"><span>${info.name}</span><span class="pp-ex-code no-print">${code}</span>${dup}` +
+      `<button type="button" class="pp-ex-clear no-print" title="ล้างแถวนี้" onclick="ppExClear(${k})">✕</button></div>`;
+    bagTd.className = 'pp-qty-bag ' + stockColorClass(info.bag, getUnit(info.it.type), info.it.col);
+    bagTd.textContent = info.bag;
+    tankTd.textContent = info.tank;
+  }
+  if (!skipCount) ppUpdateSelCount();
+}
+
+// จับคู่: รหัสขึ้นต้นด้วยที่พิมพ์ (ไม่สนเลข 0 นำหน้า) ก่อน → รหัสที่มีเลขนี้อยู่ข้างใน → ชื่อสินค้าที่มีคำนี้
+function ppExMatches(q) {
+  q = String(q || '').trim();
+  if (!q) return [];
+  const qs = q.replace(/^0+/, '') || '0';
+  const ql = q.toLowerCase();
+  const a = [], b = [], c = [];
+  allItems.forEach(x => {
+    const cs = x.code.replace(/^0+/, '');
+    if (cs.startsWith(qs)) a.push(x);
+    else if (x.code.includes(q)) b.push(x);
+    else if (buildName(x).toLowerCase().includes(ql)) c.push(x);
+  });
+  a.sort((x, y) => x.code.localeCompare(y.code));
+  return a.concat(b, c).slice(0, 30);
+}
+
+function ppExGetDD() {
+  let dd = document.getElementById('pp-ex-dd');
+  if (!dd) {
+    dd = document.createElement('div');
+    dd.id = 'pp-ex-dd';
+    dd.className = 'pp-ex-dd no-print';
+    document.body.appendChild(dd);
+  }
+  return dd;
+}
+
+function ppExSearch(k, input) {
+  const list = ppExMatches(input.value);
+  ppExState = { row: k, list, idx: 0 };
+  const dd = ppExGetDD();
+  if (!input.value.trim()) { dd.style.display = 'none'; return; }
+  const r = input.getBoundingClientRect();
+  dd.style.left = r.left + 'px';
+  dd.style.top = (r.bottom + 2) + 'px';
+  dd.style.width = Math.max(r.width, 420) + 'px';
+  dd.style.display = 'block';
+  ppExDrawDD();
+}
+
+function ppExDrawDD() {
+  const dd = ppExGetDD();
+  const { list, idx } = ppExState;
+  if (!list.length) { dd.innerHTML = '<div class="none">ไม่พบรหัสสินค้านี้</div>'; return; }
+  dd.innerHTML = list.map((x, i) => {
+    const unit = getUnit(x.type);
+    const bag = Number(x.stock) || 0;
+    const tank = ppResolveTank({ ...x, tank: getTank(x.code) });
+    return `<div class="opt${i === idx ? ' act' : ''}" onmousedown="event.preventDefault();ppExPick(${i})">
+      <span class="c">${x.code}</span><span class="n">${buildName(x)}</span>
+      <span class="q">${unit} ${bag} · ถัง ${tank}</span></div>`;
+  }).join('');
+  const act = dd.querySelector('.opt.act');
+  if (act) act.scrollIntoView({ block: 'nearest' });
+}
+
+function ppExKey(k, e) {
+  const n = ppExState.list.length;
+  if (e.key === 'ArrowDown') { e.preventDefault(); if (n) { ppExState.idx = (ppExState.idx + 1) % n; ppExDrawDD(); } }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); if (n) { ppExState.idx = (ppExState.idx - 1 + n) % n; ppExDrawDD(); } }
+  else if (e.key === 'Enter') { e.preventDefault(); if (n && ppExState.row === k) ppExPick(ppExState.idx); }
+  else if (e.key === 'Escape') { ppExCloseDD(); }
+}
+
+function ppExPick(i) {
+  const k = ppExState.row;
+  const x = ppExState.list[i];
+  if (k < 0 || !x) return;
+  ppExtraCodes[k] = x.code;
+  ppExCloseDD();
+  ppExRenderRow(k);
+  // เลือกเสร็จ → เลื่อนไปช่องค้นหาของแถวว่างถัดไปให้เลย กรอกต่อเนื่องได้ไม่ต้องคลิก
+  for (let j = k + 1; j < PP_EXTRA_N; j++) {
+    if (!ppExtraCodes[j]) { const inp = document.querySelector('#pp-ex-' + j + ' .pp-ex-input'); if (inp) inp.focus(); break; }
+  }
+}
+
+function ppExClear(k) {
+  ppExtraCodes[k] = '';
+  ppExRenderRow(k);
+  const inp = document.querySelector('#pp-ex-' + k + ' .pp-ex-input');
+  if (inp) inp.focus();
+}
+
+function ppExCloseDD() {
+  const dd = document.getElementById('pp-ex-dd');
+  if (dd) dd.style.display = 'none';
+}
+window.addEventListener('scroll', ppExCloseDD, true);
 
 function ppOnCheck(rowId, checked) {
   document.getElementById('pp-row-' + rowId).classList.toggle('checked', checked);
@@ -4967,10 +5114,12 @@ function ppToggleSelectAll() {
   boxes.forEach(b => { b.checked = !allChecked; ppOnCheck(b.closest('tr').id.replace('pp-row-', ''), !allChecked); });
 }
 
+// 2026-09-24: นับรายการเพิ่มเติมที่เลือกรหัสแล้วด้วย — กรอกแค่รายการเพิ่มเติมอย่างเดียว (ไม่ติ๊กด้านบนเลย) ก็กดพิมพ์ได้
 function ppUpdateSelCount() {
   const n = document.querySelectorAll('.pp-item-row.checked').length;
-  document.getElementById('pp-sel-count').textContent = 'เลือกแล้ว ' + n + ' รายการ';
-  document.getElementById('pp-print-btn').disabled = n === 0;
+  const m = ppExtraCodes.filter(Boolean).length;
+  document.getElementById('pp-sel-count').textContent = 'เลือกแล้ว ' + n + ' รายการ' + (m ? ' + เพิ่มเติม ' + m + ' รายการ' : '');
+  document.getElementById('pp-print-btn').disabled = (n + m) === 0;
 }
 
 // หมวดหมู่ไหนไม่มีรายการที่ติ๊กเลย ตอนพิมพ์ไม่ต้องขึ้นหัวข้อหมวดนั้นเปล่าๆ (ยืนยันกับ user แล้ว 2026-09-21)
@@ -4987,6 +5136,7 @@ function ppDoPrint() {
     const d = new Date();
     document.getElementById('pp-print-date').textContent = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() + 543}`;
   }
+  ppExCloseDD();
   ppUpdateCatVisibility();
   window.print();
 }
