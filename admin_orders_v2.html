@@ -34,6 +34,9 @@ body.not-logged-in .login-overlay{display:flex}
 .login-btn:hover{background:#122b45}
 .user-info{display:flex;align-items:center;gap:10px;font-size:12.5px}
 .user-info .role-badge{background:rgba(255,255,255,.2);padding:2px 10px;border-radius:20px;font-weight:700}
+.header .tab-btn.btn-hdr-users{background:rgba(255,255,255,.2);border:none;color:white;padding:7px 14px;border-radius:6px;font-size:13px;font-weight:500;margin:0;border-bottom:none}
+.header .tab-btn.btn-hdr-users:hover{background:rgba(255,255,255,.3)}
+.header .tab-btn.btn-hdr-users.active{background:white;color:#1a3a5c;font-weight:700}
 .btn-logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:white;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:12.5px}
 
 /* จัดการผู้ใช้งาน */
@@ -100,6 +103,43 @@ body.not-logged-in .login-overlay{display:flex}
 .pp-ex-dd .c{font-family:monospace;color:#1a3a5c;font-weight:700;min-width:74px}
 .pp-ex-dd .n{color:#222}
 .pp-ex-dd .q{margin-left:auto;color:#64748b;font-size:11px;white-space:nowrap}
+/* 2026-09-24: แท็บย่อย + ประวัติใบวางแผน + กล่องถามบันทึกตอนพิมพ์ (mockup_pp_history_v2.html) */
+#tab-packplan .pp-sub{display:flex;margin:-4px 0 14px;border-bottom:2px solid #e2e8f0}
+#tab-packplan .pp-sub button{border:none;background:none;padding:9px 18px;font-family:'Sarabun',sans-serif;font-size:14px;color:#64748b;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px}
+#tab-packplan .pp-sub button.on{color:#1a3a5c;border-bottom-color:#1a3a5c;font-weight:800}
+#tab-packplan .pp-btn-ghost{background:#fff;border:1.5px solid #c7d2df;color:#1a3a5c}
+#tab-packplan .pp-hf{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;font-size:13px;color:#334155}
+#tab-packplan .pp-hf input,#tab-packplan .pp-hf select{font-family:'Sarabun',sans-serif;font-size:13px;padding:6px 9px;border:1.5px solid #d1d5db;border-radius:7px}
+#tab-packplan .pp-hf input.q{width:260px}
+#tab-packplan .pp-hsum{font-size:12.5px;color:#64748b;margin-bottom:8px}
+#tab-packplan .pp-hsum b{color:#1a3a5c}
+#tab-packplan .pp-plan{border:1px solid #dde3ea;border-radius:9px;margin-bottom:8px;overflow:hidden}
+#tab-packplan .pp-plan-h{display:grid;grid-template-columns:28px 150px 120px 110px 90px 1fr 130px;gap:10px;align-items:center;padding:10px 12px;cursor:pointer;font-size:13px;background:#fff}
+#tab-packplan .pp-plan-h:hover{background:#f8fbff}
+#tab-packplan .pp-plan.open .pp-plan-h{background:#eef2f7}
+#tab-packplan .pp-plan-h .no{font-family:monospace;font-weight:700;color:#1a3a5c}
+#tab-packplan .pp-plan-h .who{color:#475569}
+#tab-packplan .pp-arrow{color:#94a3b8;font-size:12px;display:inline-block;transition:.15s}
+#tab-packplan .pp-plan.open .pp-arrow{transform:rotate(90deg)}
+#tab-packplan .pp-prog{display:flex;align-items:center;gap:8px;font-size:12px;color:#475569}
+#tab-packplan .pp-bar{flex:1;max-width:220px;height:8px;background:#e2e8f0;border-radius:5px;overflow:hidden}
+#tab-packplan .pp-bar i{display:block;height:100%;background:#16a34a}
+#tab-packplan .pp-st{display:inline-block;font-size:11px;font-weight:700;border-radius:10px;padding:1px 9px;white-space:nowrap}
+#tab-packplan .pp-st.ok{background:#dcfce7;color:#166534}#tab-packplan .pp-st.part{background:#fef9c3;color:#92400e}#tab-packplan .pp-st.wait{background:#f1f5f9;color:#475569}#tab-packplan .pp-st.hand{background:#ede9fe;color:#6d28d9}
+#tab-packplan .pp-plan-b{display:none;padding:10px 12px 14px;border-top:1px solid #dde3ea;background:#fcfdff}
+#tab-packplan .pp-plan.open .pp-plan-b{display:block}
+#tab-packplan .pp-plan-b .acts{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;color:#64748b}
+#tab-packplan tr.pp-hit td{background:#fffbeb!important}
+#tab-packplan tr.pp-hit td.pp-name-cell{box-shadow:inset 3px 0 0 #d97706}
+#tab-packplan .pp-src-extra{font-size:10px;font-weight:700;border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:middle;background:#e0e7ff;color:#3730a3}
+#tab-packplan .pp-save-mbg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:500;align-items:center;justify-content:center}
+#tab-packplan .pp-save-mbg.on{display:flex}
+#tab-packplan .pp-save-modal{background:#fff;border-radius:12px;padding:22px 24px;width:430px;max-width:92vw;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+#tab-packplan .pp-save-modal h3{font-size:17px;color:#1a3a5c;margin-bottom:6px}
+#tab-packplan .pp-save-modal p{font-size:13px;color:#475569;line-height:1.6;margin-bottom:14px}
+#tab-packplan .pp-save-modal .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+#tab-packplan .pp-save-err{color:#dc2626;font-size:12.5px;font-weight:700;margin:-6px 0 10px;display:none}
+
 .pp-ex-dd .none{padding:8px 10px;color:#94a3b8}
 
 /* Order cards */
@@ -536,6 +576,7 @@ table.list tr:hover td{background:#f8fbff}
   #tab-packplan .pp-extra-row td{height:20px}
   #tab-packplan .pp-ex-input{visibility:hidden!important}
   .pp-ex-dd{display:none!important}
+  #tab-packplan .pp-save-mbg,#tab-packplan #pp-v-hist,#tab-packplan .pp-sub{display:none!important}
   #tab-packplan .pp-cat-row.pp-cat-hide{display:none}
   #tab-packplan .pp-chk-col{display:none!important}
   #tab-packplan .pp-table{font-size:10.5px;border:1.5px solid #333;border-collapse:collapse}
@@ -771,6 +812,9 @@ table.list tr:hover td{background:#f8fbff}
   <div style="display:flex;gap:14px;align-items:center">
     <a href="sales_grid_v2.html" target="_blank" class="btn-new-order">＋ สั่งสินค้า</a>
     <button class="btn-refresh" onclick="loadAll()">🔄 รีเฟรช</button>
+    <!-- 2026-09-24: ย้าย "จัดการผู้ใช้งาน" จากแถบแท็บมาเป็นปุ่มเล็กบน header (แถบแท็บเริ่มรก) — ยังเป็น .tab-btn[data-tab="users"]
+         เหมือนเดิม เพื่อให้ stcApplyRoleUI() ซ่อนสำหรับ non-Admin และ switchTab() จัดการ active ได้ตามเดิมโดยไม่ต้องแก้ logic -->
+    <button class="tab-btn btn-hdr-users" data-tab="users" onclick="switchTab('users',this)" title="จัดการผู้ใช้งาน (Admin)">👥 ผู้ใช้งาน</button>
     <div class="user-info">
       <span>👤 <span id="stcUserFullname"></span></span>
       <span class="role-badge" id="stcUserRole"></span>
@@ -789,7 +833,6 @@ table.list tr:hover td{background:#f8fbff}
   <button class="tab-btn" data-tab="history" onclick="switchTab('history',this)">ประวัติ</button>
   <button class="tab-btn" data-tab="summary" onclick="switchTab('summary',this)">🖨️ สรุปออเดอร์</button>
   <button class="tab-btn" data-tab="analytics" onclick="switchTab('analytics',this)">📈 วิเคราะห์ข้อมูล 🔒</button>
-  <button class="tab-btn" data-tab="users" onclick="switchTab('users',this)">👥 จัดการผู้ใช้งาน</button>
 </div>
 
 <div class="content">
@@ -1251,6 +1294,12 @@ table.list tr:hover td{background:#f8fbff}
   <div class="tab-panel" id="tab-packplan">
     <div class="content">
       <div class="card">
+        <!-- 2026-09-24: แท็บย่อย วางแผนบรรจุ / ประวัติใบวางแผน -->
+        <div class="pp-sub no-print">
+          <button id="pp-st-plan" class="on" onclick="ppSetSub('plan')">📦 วางแผนบรรจุ</button>
+          <button id="pp-st-hist" onclick="ppSetSub('hist')">📜 ประวัติใบวางแผน</button>
+        </div>
+        <div id="pp-v-plan">
         <div class="pp-toolbar no-print">
           <div class="left">
             <button class="pp-btn pp-btn-selall" onclick="ppToggleSelectAll()">☑️ เลือกทั้งหมด / ยกเลิกทั้งหมด</button>
@@ -1288,6 +1337,31 @@ table.list tr:hover td{background:#f8fbff}
           </thead>
           <tbody id="pp-tbody"></tbody>
         </table>
+        </div>
+
+        <div id="pp-v-hist" class="no-print" style="display:none">
+          <div class="pp-hf">
+            <label>วันที่</label><input type="date" id="pp-f-from" onchange="ppRenderHist()"> – <input type="date" id="pp-f-to" onchange="ppRenderHist()">
+            <label style="margin-left:6px">สินค้า</label><input class="q" id="pp-f-q" placeholder="🔍 พิมพ์รหัส หรือชื่อสินค้า เช่น M20" oninput="ppRenderHist()">
+            <label style="margin-left:6px">สถานะ</label>
+            <select id="pp-f-st" onchange="ppRenderHist()"><option value="">ทั้งหมด</option><option value="notdone">ยังบรรจุไม่ครบ</option><option value="done">บรรจุครบแล้ว</option></select>
+            <button class="pp-btn pp-btn-ghost" style="padding:6px 12px" onclick="ppHistClear()">✕ ล้าง</button>
+            <button class="pp-btn pp-btn-ghost" style="padding:6px 12px" onclick="ppLoadPlans()">🔄 โหลดใหม่</button>
+          </div>
+          <div class="pp-hsum" id="pp-hsum"></div>
+          <div id="pp-hlist"></div>
+        </div>
+
+        <div class="pp-save-mbg no-print" id="pp-save-mbg"><div class="pp-save-modal">
+          <h3>🖨️ พิมพ์ใบวางแผนบรรจุ</h3>
+          <p>บันทึกใบนี้ลงใน <b>"📜 ประวัติใบวางแผน"</b> ด้วยไหม?<br><span id="pp-save-cnt"></span></p>
+          <div class="pp-save-err" id="pp-save-err"></div>
+          <div class="row">
+            <button class="pp-btn pp-btn-ghost" onclick="ppCloseSave()">ยกเลิก</button>
+            <button class="pp-btn pp-btn-ghost" onclick="ppPrintOnly()">พิมพ์อย่างเดียว</button>
+            <button class="pp-btn pp-btn-print" id="pp-save-btn" onclick="ppSaveAndPrint()">💾 บันทึก + พิมพ์</button>
+          </div>
+        </div></div>
 
       </div>
     </div>
@@ -4840,7 +4914,7 @@ const _origSwitchTabStc = switchTab;
 switchTab = function (tab, btn) {
   _origSwitchTabStc(tab, btn);
   if (tab === 'users') umLoadAll();
-  if (tab === 'packplan') ppLoadAll();
+  if (tab === 'packplan') { ppLoadAll(); if (ppSubView === 'hist') ppLoadPlans(); }
 };
 
 // ── 2026-09-21: วางแผนการบรรจุ (Admin+Warehouse) ────────────────
@@ -4917,6 +4991,7 @@ const PP_EXTRA_N = 10;
 let ppExtraCodes = new Array(PP_EXTRA_N).fill('');
 let ppShownCodes = new Set();
 let ppExState = { row: -1, list: [], idx: 0 };
+let ppRowMap = {}; // 2026-09-24: id แถว → item (ใช้ตอนบันทึกใบวางแผน)
 
 function ppRender() {
   const tbody = document.getElementById('pp-tbody');
@@ -4956,10 +5031,12 @@ function ppRender() {
 
   let html = '';
   let rowId = 0;
+  ppRowMap = {};
   catOrder.forEach((cat, gi) => {
     html += `<tr class="pp-cat-row" id="pp-cat-${gi}"><td colspan="7">${cat}</td></tr>`;
     catMap[cat].forEach((it, i) => {
       rowId++;
+      ppRowMap['pp-row-' + rowId] = it;
       const name = buildName(it);
       const bagVal = Number(it.bag) || 0;
       const bagCls = stockColorClass(bagVal, getUnit(it.type), it.col);
@@ -5131,14 +5208,175 @@ function ppUpdateCatVisibility() {
   });
 }
 
+// ── 2026-09-24: บันทึกใบวางแผน + แท็บย่อย "📜 ประวัติใบวางแผน" (user ยืนยัน mockup_pp_history_v2.html) ──
+// กดพิมพ์ → กล่องถาม [ยกเลิก / พิมพ์อย่างเดียว / 💾 บันทึก + พิมพ์] → savePackPlan (Code.gs, ชีท pack_plans) → เลขใบขึ้นบนหัวกระดาษ
+// ประวัติ: getPackPlans คืนใบทั้งหมด + "บรรจุจริง" ที่ backend จับคู่จากแถว pack ในชีท history ให้แล้ว
+let ppSubView = 'plan', ppPlansCache = [], ppHistOpen = new Set();
+
+function ppSetSub(v) {
+  ppSubView = v;
+  document.getElementById('pp-v-plan').style.display = v === 'plan' ? '' : 'none';
+  document.getElementById('pp-v-hist').style.display = v === 'hist' ? '' : 'none';
+  document.getElementById('pp-st-plan').classList.toggle('on', v === 'plan');
+  document.getElementById('pp-st-hist').classList.toggle('on', v === 'hist');
+  if (v === 'hist') ppLoadPlans();
+}
+
+// รวบรวมรายการที่จะพิมพ์ (ติ๊กด้านบน + รายการเพิ่มเติมที่เลือกรหัสแล้ว) — ใช้ทั้งตอนบันทึกและนับจำนวนในกล่องถาม
+function ppCollectPrintItems() {
+  const out = [];
+  document.querySelectorAll('.pp-item-row.checked').forEach(tr => {
+    const it = ppRowMap[tr.id]; if (!it) return;
+    const q = tr.querySelector('.pp-input').value;
+    out.push({ code: it.code, name: buildName(it), bag: Number(it.bag) || 0, tank: ppResolveTank(it), plan_qty: q === '' ? '' : Number(q), src: it.ppExtra ? 'short' : '' });
+  });
+  ppExtraCodes.forEach((code, k) => {
+    if (!code) return;
+    const info = ppExItemInfo(code); if (!info) return;
+    const q = document.querySelector('#pp-ex-' + k + ' .pp-input').value;
+    out.push({ code, name: info.name, bag: info.bag, tank: info.tank, plan_qty: q === '' ? '' : Number(q), src: 'extra' });
+  });
+  return out;
+}
+
 function ppDoPrint() {
-  {
-    const d = new Date();
-    document.getElementById('pp-print-date').textContent = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() + 543}`;
-  }
   ppExCloseDD();
+  const n = ppCollectPrintItems().length;
+  document.getElementById('pp-save-cnt').textContent = '(' + n + ' รายการ · ระบบจะเก็บสต็อค ณ ตอนนี้ + จำนวน "ให้บรรจุ (ถัง)" ที่กรอกไว้ แล้วติดตามว่าบรรจุจริงครบหรือยัง)';
+  document.getElementById('pp-save-err').style.display = 'none';
+  document.querySelectorAll('#pp-save-mbg button').forEach(b => b.disabled = false);
+  document.getElementById('pp-save-btn').textContent = '💾 บันทึก + พิมพ์';
+  document.getElementById('pp-save-mbg').classList.add('on');
+}
+function ppCloseSave() { document.getElementById('pp-save-mbg').classList.remove('on'); }
+
+function ppRealPrint(planNo) {
+  const d = new Date();
+  document.getElementById('pp-print-date').textContent = (planNo ? planNo + ' · ' : '') + `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() + 543}`;
   ppUpdateCatVisibility();
-  window.print();
+  setTimeout(() => window.print(), 50);
+}
+function ppPrintOnly() { ppCloseSave(); ppRealPrint(''); }
+
+async function ppSaveAndPrint() {
+  const items = ppCollectPrintItems();
+  const btn = document.getElementById('pp-save-btn');
+  document.querySelectorAll('#pp-save-mbg button').forEach(b => b.disabled = true);
+  btn.textContent = '⏳ กำลังบันทึก...';
+  try {
+    const s = stcGetSession();
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'savePackPlan', by: s ? (s.username || '') : '', items }) });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || data.error || 'บันทึกไม่สำเร็จ');
+    ppCloseSave();
+    showToast('💾 บันทึกใบ ' + data.plan_no + ' แล้ว');
+    ppPlansCache = []; // ให้โหลดใหม่ตอนเปิดประวัติ
+    ppRealPrint(data.plan_no);
+  } catch (e) {
+    const err = document.getElementById('pp-save-err');
+    err.textContent = '❌ ' + e.message + ' — ลองใหม่ หรือกด "พิมพ์อย่างเดียว"';
+    err.style.display = 'block';
+    document.querySelectorAll('#pp-save-mbg button').forEach(b => b.disabled = false);
+    btn.textContent = '💾 บันทึก + พิมพ์';
+  }
+}
+
+async function ppLoadPlans() {
+  const list = document.getElementById('pp-hlist');
+  list.innerHTML = '<div class="empty">⏳ กำลังโหลด...</div>';
+  document.getElementById('pp-hsum').textContent = '';
+  try {
+    if (!allItems.length) await loadStock();
+    const res = await fetch(API + '?action=getPackPlans');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    ppPlansCache = data.plans || [];
+    if (ppPlansCache.length && !ppHistOpen.size) ppHistOpen.add(ppPlansCache[0].plan_no);
+    ppRenderHist();
+  } catch (e) {
+    list.innerHTML = '<div class="empty">❌ โหลดไม่ได้: ' + e.message + '</div>';
+  }
+}
+
+function ppHistItemSt(it) {
+  if (it.plan_qty == null) return it.act > 0 ? { k: 'hand', t: 'บรรจุแล้ว ' + it.act + ' ถัง (ไม่ได้ระบุจำนวน)' } : { k: 'wait', t: '⏳ ยังไม่บรรจุ' };
+  if (it.act >= it.plan_qty) return { k: 'ok', t: '✅ ครบ' };
+  if (it.act > 0) return { k: 'part', t: '⚠ ไม่ครบ (ขาด ' + (it.plan_qty - it.act) + ')' };
+  return { k: 'wait', t: '⏳ ยังไม่บรรจุ' };
+}
+const ppHistDone = p => p.items.filter(it => ['ok', 'hand'].includes(ppHistItemSt(it).k)).length;
+const ppFmtD = s => { const d = new Date(s); return d.getDate() + '/' + (d.getMonth() + 1) + '/' + String(d.getFullYear() + 543).slice(-2); };
+const ppFmtDT = s => { const d = new Date(s); return ppFmtD(s) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+const ppDayKey = s => { const d = new Date(s); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+function ppHistName(it) { const x = allItems.find(a => a.code === it.code); return x ? buildName(x) : it.name; }
+function ppHistMatch(it, q) {
+  if (!q) return false;
+  const qs = q.replace(/^0+/, '') || '0';
+  return it.code.replace(/^0+/, '').startsWith(qs) || it.code.includes(q) || ppHistName(it).toLowerCase().includes(q.toLowerCase());
+}
+function ppHistToggle(no) { ppHistOpen.has(no) ? ppHistOpen.delete(no) : ppHistOpen.add(no); ppRenderHist(); }
+function ppHistClear() { ['pp-f-from', 'pp-f-to', 'pp-f-q'].forEach(i => document.getElementById(i).value = ''); document.getElementById('pp-f-st').value = ''; ppRenderHist(); }
+
+function ppRenderHist() {
+  const from = document.getElementById('pp-f-from').value, to = document.getElementById('pp-f-to').value;
+  const q = document.getElementById('pp-f-q').value.trim(), st = document.getElementById('pp-f-st').value;
+  const list = ppPlansCache.filter(p => {
+    const d = ppDayKey(p.created_at);
+    if (from && d < from) return false;
+    if (to && d > to) return false;
+    if (q && !p.items.some(it => ppHistMatch(it, q))) return false;
+    const done = ppHistDone(p) === p.items.length;
+    if (st === 'done' && !done) return false;
+    if (st === 'notdone' && done) return false;
+    return true;
+  });
+  const hits = q ? list.reduce((s, p) => s + p.items.filter(it => ppHistMatch(it, q)).length, 0) : 0;
+  document.getElementById('pp-hsum').innerHTML = ppPlansCache.length
+    ? 'พบ <b>' + list.length + '</b> ใบ' + (q ? ' · มีสินค้าที่ค้นหา <b>' + hits + '</b> รายการ (ไฮไลท์สีเหลือง)' : '') + ' · เรียงจากใหม่ → เก่า'
+    : '';
+  const el = document.getElementById('pp-hlist');
+  if (!ppPlansCache.length) { el.innerHTML = '<div class="empty">ยังไม่มีใบวางแผนที่บันทึกไว้ — กด 🖨️ พิมพ์ ในหน้าวางแผนบรรจุ แล้วเลือก "💾 บันทึก + พิมพ์"</div>'; return; }
+  if (!list.length) { el.innerHTML = '<div class="empty">ไม่พบใบวางแผนตามเงื่อนไข</div>'; return; }
+  el.innerHTML = list.map(p => {
+    const open = ppHistOpen.has(p.plan_no) || !!q;
+    const dc = ppHistDone(p), n = p.items.length, pct = Math.round(dc / n * 100);
+    const allSt = dc === n ? '<span class="pp-st ok">✅ บรรจุครบ</span>' : dc === 0 ? '<span class="pp-st wait">⏳ ยังไม่เริ่ม</span>' : '<span class="pp-st part">⚠ ค้าง ' + (n - dc) + ' รายการ</span>';
+    const rows = p.items.map((it, i) => {
+      const s = ppHistItemSt(it);
+      const x = allItems.find(a => a.code === it.code);
+      const cls = x ? stockColorClass(it.bag, getUnit(x.type), x.col) : '';
+      return '<tr class="' + (ppHistMatch(it, q) ? 'pp-hit' : '') + '"><td>' + (i + 1) + '</td><td class="pp-name-cell">' + anEsc(ppHistName(it)) +
+        ' <span style="font-size:10.5px;color:#94a3b8;font-family:monospace">' + it.code + '</span>' +
+        (it.src === 'short' ? ' <span class="pp-extra-tag">⚠ สต็อกไม่พอ</span>' : it.src === 'extra' ? '<span class="pp-src-extra">รายการเพิ่มเติม</span>' : '') + '</td>' +
+        '<td class="pp-qty-bag ' + cls + '">' + it.bag + '</td><td class="pp-qty-tank">' + it.tank + '</td>' +
+        '<td class="pp-qty-tank">' + (it.plan_qty == null ? '<span style="color:#94a3b8;font-weight:400">–</span>' : it.plan_qty) + '</td>' +
+        '<td style="font-weight:700;color:#166534">' + (it.act || '<span style="color:#94a3b8;font-weight:400">0</span>') + '</td>' +
+        '<td style="font-size:12px;color:#475569">' + (it.act_date ? ppFmtD(it.act_date + 'T00:00:00') : '–') + '</td>' +
+        '<td><span class="pp-st ' + s.k + '">' + s.t + '</span></td></tr>';
+    }).join('');
+    const noEsc = p.plan_no.replace(/'/g, '');
+    return '<div class="pp-plan' + (open ? ' open' : '') + '">' +
+      '<div class="pp-plan-h" onclick="ppHistToggle(\'' + noEsc + '\')"><span class="pp-arrow">▶</span><span class="no">' + anEsc(p.plan_no) + '</span><span>' + ppFmtDT(p.created_at) + '</span><span class="who">👤 ' + anEsc(p.created_by || '-') + '</span><span>' + n + ' รายการ</span>' +
+      '<span class="pp-prog"><span class="pp-bar"><i style="width:' + pct + '%"></i></span>บรรจุแล้ว ' + dc + '/' + n + '</span>' + allSt + '</div>' +
+      '<div class="pp-plan-b"><div class="acts"><span>สต็อค/ถัง = ค่า ณ ตอนออกใบ · บรรจุจริง = ดึงจากบันทึก "แปลงบรรจุ" ตั้งแต่วันที่ออกใบ</span>' +
+      '<button class="pp-btn pp-btn-ghost" style="padding:5px 12px" onclick="event.stopPropagation();ppReprint(\'' + noEsc + '\')">🖨️ พิมพ์ซ้ำ</button></div>' +
+      '<table class="pp-table"><thead><tr><th style="width:4%">#</th><th class="pp-name-th">ชื่อสินค้า</th><th style="width:9%">กระสอบ/กล่อง<br>(ตอนออกใบ)</th><th style="width:7%">ถัง<br>(ตอนออกใบ)</th><th style="width:8%">สั่งบรรจุ<br>(ถัง)</th><th style="width:8%">บรรจุจริง<br>(ถัง)</th><th style="width:8%">วันที่บรรจุ</th><th style="width:17%">สถานะ</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+  }).join('');
+}
+
+// พิมพ์ซ้ำ: เปิดหน้าต่างใหม่ หน้าตาเหมือนใบพิมพ์เดิม (ขาวดำ) — ค่าทั้งหมดเป็นค่า ณ ตอนออกใบ
+function ppReprint(no) {
+  const p = ppPlansCache.find(x => x.plan_no === no); if (!p) return;
+  const rows = p.items.map((it, i) => '<tr><td>' + (i + 1) + '</td><td style="text-align:left">' + anEsc(ppHistName(it)) + (it.src === 'short' ? ' <b style="background:#000;color:#fff;padding:0 4px;font-size:9px">⚠ สต็อกไม่พอ</b>' : '') + '</td><td>' + it.bag + '</td><td>' + it.tank + '</td><td>' + (it.plan_qty == null ? '' : it.plan_qty) + '</td><td></td></tr>').join('');
+  const w = window.open('', '_blank');
+  if (!w) { showToast('เบราว์เซอร์บล็อกหน้าต่างใหม่ — กรุณาอนุญาต pop-up'); return; }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + anEsc(p.plan_no) + '</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet"><style>' +
+    'body{font-family:Sarabun,sans-serif;margin:16px;color:#000}.h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}.h .t{font-size:19px;font-weight:700}.h .s{font-size:11px}' +
+    'table{width:100%;border-collapse:collapse;font-size:10.5px;border:1.5px solid #333}th{background:#000;color:#fff;padding:3px 4px;border:1px solid #000;-webkit-print-color-adjust:exact;print-color-adjust:exact}td{border:1px solid #888;padding:2px 4px;text-align:center;height:18px}' +
+    '</style></head><body><div class="h"><div class="t">ใบวางแผนการบรรจุ PA/DE <span style="font-size:12px;font-weight:400">(พิมพ์ซ้ำ)</span></div><span class="s">' + anEsc(p.plan_no) + ' · ' + ppFmtD(p.created_at) + '</span></div>' +
+    '<table><thead><tr><th style="width:4%">#</th><th>ชื่อสินค้า</th><th style="width:10%">กระสอบ/กล่อง</th><th style="width:8%">ถัง</th><th style="width:9%">ให้บรรจุ (ถัง)</th><th style="width:30%">หมายเหตุ</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>');
+  w.document.close();
 }
 
 // ── 2026-09-21: จัดการผู้ใช้งาน (Admin only) ────────────────────
