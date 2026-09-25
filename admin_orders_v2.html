@@ -84,6 +84,29 @@ body.not-logged-in .login-overlay{display:flex}
 #tab-packplan .pp-input::-webkit-outer-spin-button,#tab-packplan .pp-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 #tab-packplan .pp-input[type=number]{-moz-appearance:textfield}
 #tab-packplan .pp-note{font-size:12px;color:#888;margin-top:10px;line-height:1.7}
+/* 2026-09-25: แยกคงเหลือ กระสอบ | กล่อง + หมายเหตุพิมพ์ได้ (mockup_pp_bag_box_note_v2.html) */
+#tab-packplan .pp-qty-box{font-weight:700;color:#1a3a5c}
+#tab-packplan .pp-qty-box.c-ok{background:#d1fae5}
+#tab-packplan .pp-qty-box.c-low{background:#fef9c3}
+#tab-packplan .pp-qty-box.c-out{background:#fee2e2}
+#tab-packplan .pp-dash{color:#cbd5e1;font-weight:400}
+#tab-packplan .pp-note-in{width:100%;border:none;background:transparent;font-family:'Sarabun',sans-serif;font-size:12.5px;color:#1e293b;padding:2px 4px}
+#tab-packplan .pp-note-in:focus{outline:none;background:#f8fbff}
+#tab-packplan .pp-note-in::placeholder{color:#b6c2d1}
+#tab-packplan .pp-hist-note{font-size:11px;color:#92400e;margin-top:1px}
+#pp-print-area{display:none}
+/* 2026-09-25: ประวัติใบวางแผน — เพิ่ม/แก้รายการย้อนหลัง (กรณีเขียนมือเพิ่มในกระดาษ) */
+#tab-packplan .pp-src-manual{font-size:10px;font-weight:700;border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:middle;background:#fef3c7;color:#92400e}
+#tab-packplan .pp-edit-btn{border:1px solid #c7d2df;background:#fff;border-radius:5px;cursor:pointer;font-size:12px;padding:1px 7px;color:#1a3a5c}
+#tab-packplan .pp-edit-btn:hover{background:#eef2f7}
+#tab-packplan .pp-ef{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:13px;color:#334155}
+#tab-packplan .pp-ef input{border:1.5px solid #c7d2df;border-radius:6px;padding:6px 8px;font-family:'Sarabun',sans-serif;font-size:13px}
+#tab-packplan .pp-ef input:focus{outline:none;border-color:#1a3a5c}
+#tab-packplan .pp-ef-sug{max-height:180px;overflow:auto;border:1px solid #e2e8f0;border-radius:6px;display:none}
+#tab-packplan .pp-ef-sug div{padding:5px 8px;cursor:pointer;font-size:12.5px;border-bottom:1px solid #f1f5f9}
+#tab-packplan .pp-ef-sug div:hover{background:#eef2f7}
+#tab-packplan .pp-ef-sug small{color:#94a3b8;font-family:monospace;margin-left:6px}
+#tab-packplan .pp-ef-picked{font-weight:700;color:#1a3a5c}
 #tab-packplan .pp-print-only{display:none}
 #tab-packplan .pp-print-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
 #tab-packplan .pp-print-hdr .t{font-size:19px;font-weight:700;color:#1a3a5c}
@@ -572,6 +595,9 @@ table.list tr:hover td{background:#f8fbff}
   #tab-packplan .no-print{display:none!important}
   #tab-packplan .pp-print-only{display:block!important}
   #tab-packplan .pp-print-hdr{display:flex!important}
+  /* 2026-09-25: พิมพ์จากใบที่สร้างใหม่ใน #pp-print-area (แยกหน้า กระสอบ / กล่อง) แทนตารางบนจอ */
+  #tab-packplan #pp-v-plan > .pp-table,#tab-packplan #pp-v-plan > .pp-print-hdr{display:none!important}
+  #tab-packplan #pp-print-area{display:block!important}
   #tab-packplan .pp-item-row:not(.checked){display:none}
   #tab-packplan .pp-extra-row td{height:20px}
   #tab-packplan .pp-ex-input{visibility:hidden!important}
@@ -1325,18 +1351,20 @@ table.list tr:hover td{background:#f8fbff}
             <tr>
               <th class="pp-chk-col no-print" style="width:3%" rowspan="2"></th>
               <th style="width:4%" rowspan="2">#</th>
-              <th class="pp-name-th" style="width:38%" rowspan="2">ชื่อสินค้า</th>
-              <th class="pp-qty-grp-hdr" colspan="2">คงเหลือ</th>
-              <th style="width:9%" rowspan="2">ให้บรรจุ<br>(ถัง)</th>
-              <th style="width:30%" rowspan="2">หมายเหตุ</th>
+              <th class="pp-name-th" style="width:40%" rowspan="2">ชื่อสินค้า</th>
+              <th class="pp-qty-grp-hdr" colspan="3">คงเหลือ</th>
+              <th style="width:6%" rowspan="2">ให้บรรจุ<br>(ถัง)</th>
+              <th rowspan="2">หมายเหตุ</th>
             </tr>
             <tr>
-              <th class="pp-qty-sub" style="width:8%">กระสอบ/กล่อง</th>
-              <th class="pp-qty-sub" style="width:8%">ถัง</th>
+              <th class="pp-qty-sub" style="width:5%">กระสอบ</th>
+              <th class="pp-qty-sub" style="width:5%">กล่อง</th>
+              <th class="pp-qty-sub" style="width:5%">ถัง</th>
             </tr>
           </thead>
           <tbody id="pp-tbody"></tbody>
         </table>
+        <div id="pp-print-area"></div>
         </div>
 
         <div id="pp-v-hist" class="no-print" style="display:none">
@@ -1360,6 +1388,24 @@ table.list tr:hover td{background:#f8fbff}
             <button class="pp-btn pp-btn-ghost" onclick="ppCloseSave()">ยกเลิก</button>
             <button class="pp-btn pp-btn-ghost" onclick="ppPrintOnly()">พิมพ์อย่างเดียว</button>
             <button class="pp-btn pp-btn-print" id="pp-save-btn" onclick="ppSaveAndPrint()">💾 บันทึก + พิมพ์</button>
+          </div>
+        </div></div>
+
+        <!-- 2026-09-25: เพิ่ม/แก้รายการในใบที่บันทึกแล้ว (ประวัติใบวางแผน) -->
+        <div class="pp-save-mbg no-print" id="pp-edit-mbg"><div class="pp-save-modal">
+          <h3 id="pp-edit-title"></h3>
+          <p id="pp-edit-sub" style="margin-bottom:10px"></p>
+          <div class="pp-ef" id="pp-edit-codebox">
+            <label>สินค้า (พิมพ์รหัส หรือชื่อ)</label>
+            <input type="text" id="pp-edit-q" autocomplete="off" placeholder="🔍 เช่น 250600 หรือ W 5/16" oninput="ppEditSearch()">
+            <div class="pp-ef-sug" id="pp-edit-sug"></div>
+          </div>
+          <div class="pp-ef"><label>ให้บรรจุ (ถัง)</label><input type="number" id="pp-edit-qty" min="0" placeholder="เว้นว่าง = ไม่ระบุจำนวน"></div>
+          <div class="pp-ef"><label>หมายเหตุ</label><input type="text" id="pp-edit-note" maxlength="200" placeholder="เช่น เขียนมือเพิ่มในกระดาษ"></div>
+          <div class="pp-save-err" id="pp-edit-err"></div>
+          <div class="row">
+            <button class="pp-btn pp-btn-ghost" onclick="ppEditClose()">ยกเลิก</button>
+            <button class="pp-btn pp-btn-print" id="pp-edit-save" onclick="ppEditSave()">💾 บันทึก</button>
           </div>
         </div></div>
 
@@ -4925,18 +4971,18 @@ let ppItems = [], ppCats = [];
 async function ppLoadAll() {
   if (!allItems.length) await loadStock();
   const tbody = document.getElementById('pp-tbody');
-  tbody.innerHTML = '<tr><td colspan="7" class="empty">⏳ กำลังโหลด...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" class="empty">⏳ กำลังโหลด...</td></tr>';
   try {
     const res = await fetch(API + '?action=getPackPlanningData');
     const data = await res.json();
-    if (data.error) { tbody.innerHTML = '<tr><td colspan="7" class="empty">❌ ' + data.error + '</td></tr>'; return; }
+    if (data.error) { tbody.innerHTML = '<tr><td colspan="8" class="empty">❌ ' + data.error + '</td></tr>'; return; }
     ppItems = (data.items || []).map(x => ({ ...x, code: String(x.code).padStart(8, '0') }));
     // 2026-09-21: user ขอเพิ่มรายการที่ "สต็อกไม่พอ" (ขึ้นแดงในหน้ารอยืนยัน) เข้ามาด้วย แม้จะไม่เคย
     // มีระบบถัง/บรรจุมาก่อน — ช่วยให้เห็นในรายงานแผนบรรจุว่ามีของต้องเติมด่วนจากออเดอร์ค้างอยู่
     await ppMergeShortItems();
     ppRender();
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="7" class="empty">❌ โหลดไม่ได้: ' + e.message + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="empty">❌ โหลดไม่ได้: ' + e.message + '</td></tr>';
   }
 }
 
@@ -4993,6 +5039,16 @@ let ppShownCodes = new Set();
 let ppExState = { row: -1, list: [], idx: 0 };
 let ppRowMap = {}; // 2026-09-24: id แถว → item (ใช้ตอนบันทึกใบวางแผน)
 
+// 2026-09-25: ช่องคงเหลือแยก กระสอบ | กล่อง — ตัวเลขอยู่ช่องตามหน่วยของสินค้า อีกช่องเป็น "–"
+const PP_NOTE_IN = '<input type="text" class="pp-note-in" placeholder="พิมพ์หมายเหตุ..." maxlength="200">';
+function ppQtyCells(stock, type, col) {
+  const unit = getUnit(type), cls = stockColorClass(stock, unit, col);
+  const dash = '<span class="pp-dash">–</span>';
+  return unit === 'กล่อง'
+    ? `<td class="pp-qty-bag">${dash}</td><td class="pp-qty-box ${cls}">${stock}</td>`
+    : `<td class="pp-qty-bag ${cls}">${stock}</td><td class="pp-qty-box">${dash}</td>`;
+}
+
 function ppRender() {
   const tbody = document.getElementById('pp-tbody');
   // 2026-09-22: user ขอไม่ให้เอาแถวที่สต็อคยังเขียว (เพียงพอ) เข้าตารางเลย —
@@ -5007,14 +5063,15 @@ function ppRender() {
   });
   const catOrder = AN_VCAT_ORDER.filter(c => catMap[c] && catMap[c].length);
   Object.keys(catMap).forEach(c => { if (catOrder.indexOf(c) === -1) catOrder.push(c); });
-  catOrder.forEach(c => catMap[c].sort(anSizeCompare));
+  // 2026-09-25: หมวดที่มีทั้งกระสอบและกล่อง (เช่น NC/NF) เรียงกระสอบก่อน แล้วค่อยกล่อง (user ขอ ดูไม่ลายตา)
+  catOrder.forEach(c => catMap[c].sort((a, b) => ((getUnit(a.type) === 'กล่อง') - (getUnit(b.type) === 'กล่อง')) || anSizeCompare(a, b)));
   ppCats = catOrder;
 
   // ใส่ไว้ทั้งกรณีมีรายการปกติและกรณีตารางว่าง เพราะฝ่ายวางแผนอาจอยากเพิ่มไซส์พิเศษแม้ไม่มีอะไรต้องเติมเลย
   const ppExtraRowsHtml = () => {
-    let h = '<tr class="pp-cat-row pp-extra-hdr"><td colspan="7">รายการเพิ่มเติม<span class="pp-extra-hint no-print">— พิมพ์รหัสสินค้า (หรือชื่อ) แล้วเลือกจากรายการ</span></td></tr>';
+    let h = '<tr class="pp-cat-row pp-extra-hdr"><td colspan="8">รายการเพิ่มเติม<span class="pp-extra-hint no-print">— พิมพ์รหัสสินค้า (หรือชื่อ) แล้วเลือกจากรายการ</span></td></tr>';
     for (let k = 0; k < PP_EXTRA_N; k++) {
-      h += `<tr class="pp-extra-row" id="pp-ex-${k}"><td class="pp-chk-col no-print"></td><td>${k + 1}</td><td class="pp-name-cell"></td><td class="pp-qty-bag"></td><td class="pp-qty-tank"></td><td><input type="number" class="pp-input" min="0"></td><td>&nbsp;</td></tr>`;
+      h += `<tr class="pp-extra-row" id="pp-ex-${k}"><td class="pp-chk-col no-print"></td><td>${k + 1}</td><td class="pp-name-cell"></td><td class="pp-qty-bag"></td><td class="pp-qty-box"></td><td class="pp-qty-tank"></td><td><input type="number" class="pp-input" min="0"></td><td>${PP_NOTE_IN}</td></tr>`;
     }
     return h;
   };
@@ -5023,7 +5080,7 @@ function ppRender() {
     const emptyMsg = ppItems.length
       ? 'ไม่มีรายการที่ต้องเติม — สต็อคทุกไซส์ยังเขียว (เพียงพอ) อยู่'
       : 'ไม่มีสินค้าที่เคยมีระบบถัง/บรรจุ';
-    tbody.innerHTML = `<tr><td colspan="7" class="empty">${emptyMsg}</td></tr>` + ppExtraRowsHtml();
+    tbody.innerHTML = `<tr><td colspan="8" class="empty">${emptyMsg}</td></tr>` + ppExtraRowsHtml();
     for (let k = 0; k < PP_EXTRA_N; k++) ppExRenderRow(k, true);
     ppUpdateSelCount();
     return;
@@ -5033,22 +5090,21 @@ function ppRender() {
   let rowId = 0;
   ppRowMap = {};
   catOrder.forEach((cat, gi) => {
-    html += `<tr class="pp-cat-row" id="pp-cat-${gi}"><td colspan="7">${cat}</td></tr>`;
+    html += `<tr class="pp-cat-row" id="pp-cat-${gi}"><td colspan="8">${cat}</td></tr>`;
     catMap[cat].forEach((it, i) => {
       rowId++;
       ppRowMap['pp-row-' + rowId] = it;
       const name = buildName(it);
       const bagVal = Number(it.bag) || 0;
-      const bagCls = stockColorClass(bagVal, getUnit(it.type), it.col);
       const extraTag = it.ppExtra ? ' <span class="pp-extra-tag">⚠ สต็อกไม่พอ</span>' : '';
       html += `<tr class="pp-item-row" id="pp-row-${rowId}" data-group="${gi}">
         <td class="pp-chk-col no-print"><input type="checkbox" class="pp-chk" onchange="ppOnCheck(${rowId},this.checked)"></td>
         <td>${i + 1}</td>
         <td class="pp-name-cell">${name}${extraTag}</td>
-        <td class="pp-qty-bag ${bagCls}">${it.bag}</td>
+        ${ppQtyCells(bagVal, it.type, it.col)}
         <td class="pp-qty-tank">${ppResolveTank(it)}</td>
         <td><input type="number" class="pp-input" min="0"></td>
-        <td>&nbsp;</td>
+        <td>${PP_NOTE_IN}</td>
       </tr>`;
     });
   });
@@ -5069,7 +5125,7 @@ function ppExItemInfo(code) {
 function ppExRenderRow(k, skipCount) {
   const tr = document.getElementById('pp-ex-' + k);
   if (!tr) return;
-  const nameTd = tr.children[2], bagTd = tr.children[3], tankTd = tr.children[4];
+  const nameTd = tr.children[2], bagTd = tr.children[3], boxTd = tr.children[4], tankTd = tr.children[5];
   const code = ppExtraCodes[k];
   const info = code ? ppExItemInfo(code) : null;
   if (!info) {
@@ -5077,13 +5133,17 @@ function ppExRenderRow(k, skipCount) {
       oninput="ppExSearch(${k},this)" onfocus="ppExSearch(${k},this)" onkeydown="ppExKey(${k},event)" onblur="setTimeout(ppExCloseDD,150)">`;
     bagTd.className = 'pp-qty-bag';
     bagTd.textContent = '';
+    boxTd.className = 'pp-qty-box';
+    boxTd.textContent = '';
     tankTd.textContent = '';
   } else {
     const dup = ppShownCodes.has(code) ? '<span class="pp-ex-dup no-print">มีในรายการด้านบนแล้ว</span>' : '';
     nameTd.innerHTML = `<div class="pp-ex-picked"><span>${info.name}</span><span class="pp-ex-code no-print">${code}</span>${dup}` +
       `<button type="button" class="pp-ex-clear no-print" title="ล้างแถวนี้" onclick="ppExClear(${k})">✕</button></div>`;
-    bagTd.className = 'pp-qty-bag ' + stockColorClass(info.bag, getUnit(info.it.type), info.it.col);
-    bagTd.textContent = info.bag;
+    const tmp = document.createElement('tr');
+    tmp.innerHTML = ppQtyCells(info.bag, info.it.type, info.it.col);
+    bagTd.className = tmp.children[0].className; bagTd.innerHTML = tmp.children[0].innerHTML;
+    boxTd.className = tmp.children[1].className; boxTd.innerHTML = tmp.children[1].innerHTML;
     tankTd.textContent = info.tank;
   }
   if (!skipCount) ppUpdateSelCount();
@@ -5228,13 +5288,15 @@ function ppCollectPrintItems() {
   document.querySelectorAll('.pp-item-row.checked').forEach(tr => {
     const it = ppRowMap[tr.id]; if (!it) return;
     const q = tr.querySelector('.pp-input').value;
-    out.push({ code: it.code, name: buildName(it), bag: Number(it.bag) || 0, tank: ppResolveTank(it), plan_qty: q === '' ? '' : Number(q), src: it.ppExtra ? 'short' : '' });
+    const note = (tr.querySelector('.pp-note-in') || {}).value || '';
+    out.push({ code: it.code, name: buildName(it), bag: Number(it.bag) || 0, tank: ppResolveTank(it), plan_qty: q === '' ? '' : Number(q), src: it.ppExtra ? 'short' : '', note: note.trim(), type: it.type, col: it.col, row: it.row });
   });
   ppExtraCodes.forEach((code, k) => {
     if (!code) return;
     const info = ppExItemInfo(code); if (!info) return;
     const q = document.querySelector('#pp-ex-' + k + ' .pp-input').value;
-    out.push({ code, name: info.name, bag: info.bag, tank: info.tank, plan_qty: q === '' ? '' : Number(q), src: 'extra' });
+    const note = (document.querySelector('#pp-ex-' + k + ' .pp-note-in') || {}).value || '';
+    out.push({ code, name: info.name, bag: info.bag, tank: info.tank, plan_qty: q === '' ? '' : Number(q), src: 'extra', note: note.trim(), type: info.it.type, col: info.it.col, row: info.it.row });
   });
   return out;
 }
@@ -5250,9 +5312,57 @@ function ppDoPrint() {
 }
 function ppCloseSave() { document.getElementById('pp-save-mbg').classList.remove('on'); }
 
+// 2026-09-25: ใบพิมพ์แยก 2 ใบ (ขึ้นหน้าใหม่) — ใบสินค้าหน่วย "กระสอบ" ก่อน แล้วใบ "กล่อง" (ใบไหนไม่มีรายการไม่พิมพ์)
+// ใช้ร่วมกันทั้งพิมพ์ปกติ และ 🖨️ พิมพ์ซ้ำจากประวัติ — ช่องคงเหลือของแต่ละใบโชว์เฉพาะหน่วยของใบนั้น
+const PP_PRINT_CSS = '.ppp-sheet{font-family:Sarabun,sans-serif;color:#000}.ppp-sheet+.ppp-sheet{break-before:page;page-break-before:always}' +
+  '.ppp-hdr{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}.ppp-hdr .t{font-size:18px;font-weight:700}' +
+  '.ppp-hdr .u{font-size:13px;font-weight:700;border:1.5px solid #000;border-radius:4px;padding:0 8px;margin-left:8px;vertical-align:middle}.ppp-hdr .s{font-size:11px}' +
+  '.ppp-tbl{width:100%;border-collapse:collapse;font-size:10.5px;border:1.5px solid #333}' +
+  '.ppp-tbl th{background:#000;color:#fff;padding:3px 4px;border:1px solid #000;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+  '.ppp-tbl td{border:1px solid #888;padding:2px 4px;text-align:center;line-height:1.15;height:17px;color:#000}' +
+  '.ppp-tbl td.n{text-align:left;font-size:10px}.ppp-tbl td.nt{text-align:left}.ppp-tbl td.b{font-weight:700}' +
+  '.ppp-tbl tr.c td{background:#f2f2f2;font-weight:700;text-align:left;border-top:1px solid #000;border-bottom:1px solid #000;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+  '.ppp-tbl td.lo{background:#ddd;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+  '.ppp-tbl td.out{background:#808080;color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+  '.ppp-tag{background:#000;color:#fff;padding:0 4px;font-size:9px;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}';
+(function () { const st = document.createElement('style'); st.textContent = PP_PRINT_CSS; document.head.appendChild(st); })();
+const PP_PRINT_BLANK = 5; // แถวว่างท้ายใบ ไว้เขียนมือ (ต่อใบ)
+
+function ppBuildSheets(items, planNo, dateStr, reprint) {
+  const units = [['กระสอบ', []], ['กล่อง', []]];
+  items.forEach(it => { (getUnit(it.type) === 'กล่อง' ? units[1][1] : units[0][1]).push(it); });
+  const e = s => anEsc(s == null ? '' : s);
+  return units.filter(u => u[1].length).map(([unit, list]) => {
+    const main = list.filter(it => it.src !== 'extra'), extra = list.filter(it => it.src === 'extra');
+    const cat = {};
+    main.forEach(it => { const c = anVCategory(it.type); (cat[c] = cat[c] || []).push(it); });
+    const order = AN_VCAT_ORDER.filter(c => cat[c]).concat(Object.keys(cat).filter(c => AN_VCAT_ORDER.indexOf(c) === -1));
+    const row = (it, i) => {
+      const cls = stockColorClass(Number(it.bag) || 0, unit, it.col);
+      const shade = cls === 'c-out' ? ' out' : cls === 'c-low' ? ' lo' : '';
+      const tag = it.src === 'short' ? ' <span class="ppp-tag">⚠ สต็อกไม่พอ</span>' : '';
+      return '<tr><td>' + (i + 1) + '</td><td class="n">' + e(it.name) + tag + '</td><td class="b' + shade + '">' + e(it.bag) + '</td><td>' + e(it.tank) + '</td><td class="b">' +
+        (it.plan_qty === '' || it.plan_qty == null ? '' : e(it.plan_qty)) + '</td><td class="nt">' + e(it.note || '') + '</td></tr>';
+    };
+    let body = '';
+    order.forEach(c => {
+      body += '<tr class="c"><td colspan="6">' + e(c) + '</td></tr>';
+      cat[c].sort(anSizeCompare).forEach((it, i) => { body += row(it, i); });
+    });
+    body += '<tr class="c"><td colspan="6">รายการเพิ่มเติม</td></tr>';
+    extra.forEach((it, i) => { body += row(it, i); });
+    for (let k = 0; k < PP_PRINT_BLANK; k++) body += '<tr><td>' + (extra.length + k + 1) + '</td><td></td><td></td><td></td><td></td><td></td></tr>';
+    return '<div class="ppp-sheet"><div class="ppp-hdr"><div><span class="t">ใบวางแผนการบรรจุ PA/DE</span><span class="u">' + unit + '</span>' +
+      (reprint ? ' <span style="font-size:12px">(พิมพ์ซ้ำ)</span>' : '') + '</div><span class="s">' + e((planNo ? planNo + ' · ' : '') + dateStr) + '</span></div>' +
+      '<table class="ppp-tbl"><thead><tr><th style="width:4%">#</th><th style="width:40%;text-align:left">ชื่อสินค้า</th><th style="width:7%">คงเหลือ<br>(' + unit + ')</th>' +
+      '<th style="width:6%">ถัง</th><th style="width:7%">ให้บรรจุ<br>(ถัง)</th><th>หมายเหตุ</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+  }).join('');
+}
+
 function ppRealPrint(planNo) {
   const d = new Date();
   document.getElementById('pp-print-date').textContent = (planNo ? planNo + ' · ' : '') + `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() + 543}`;
+  document.getElementById('pp-print-area').innerHTML = ppBuildSheets(ppCollectPrintItems(), planNo, `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear() + 543}`, false);
   ppUpdateCatVisibility();
   setTimeout(() => window.print(), 50);
 }
@@ -5347,34 +5457,114 @@ function ppRenderHist() {
       const cls = x ? stockColorClass(it.bag, getUnit(x.type), x.col) : '';
       return '<tr class="' + (ppHistMatch(it, q) ? 'pp-hit' : '') + '"><td>' + (i + 1) + '</td><td class="pp-name-cell">' + anEsc(ppHistName(it)) +
         ' <span style="font-size:10.5px;color:#94a3b8;font-family:monospace">' + it.code + '</span>' +
-        (it.src === 'short' ? ' <span class="pp-extra-tag">⚠ สต็อกไม่พอ</span>' : it.src === 'extra' ? '<span class="pp-src-extra">รายการเพิ่มเติม</span>' : '') + '</td>' +
+        (it.src === 'short' ? ' <span class="pp-extra-tag">⚠ สต็อกไม่พอ</span>' : it.src === 'extra' ? '<span class="pp-src-extra">รายการเพิ่มเติม</span>' : it.src === 'manual' ? '<span class="pp-src-manual">เพิ่มภายหลัง</span>' : '') +
+        (it.note ? '<div class="pp-hist-note">📝 ' + anEsc(it.note) + '</div>' : '') + '</td>' +
         '<td class="pp-qty-bag ' + cls + '">' + it.bag + '</td><td class="pp-qty-tank">' + it.tank + '</td>' +
         '<td class="pp-qty-tank">' + (it.plan_qty == null ? '<span style="color:#94a3b8;font-weight:400">–</span>' : it.plan_qty) + '</td>' +
         '<td style="font-weight:700;color:#166534">' + (it.act || '<span style="color:#94a3b8;font-weight:400">0</span>') + '</td>' +
         '<td style="font-size:12px;color:#475569">' + (it.act_date ? ppFmtD(it.act_date + 'T00:00:00') : '–') + '</td>' +
-        '<td><span class="pp-st ' + s.k + '">' + s.t + '</span></td></tr>';
+        '<td><span class="pp-st ' + s.k + '">' + s.t + '</span></td>' +
+        '<td><button class="pp-edit-btn" title="แก้จำนวน / หมายเหตุ" onclick="event.stopPropagation();ppEditOpen(\'' + p.plan_no.replace(/'/g, '') + '\',\'' + it.code + '\')">✏️</button></td></tr>';
     }).join('');
     const noEsc = p.plan_no.replace(/'/g, '');
     return '<div class="pp-plan' + (open ? ' open' : '') + '">' +
       '<div class="pp-plan-h" onclick="ppHistToggle(\'' + noEsc + '\')"><span class="pp-arrow">▶</span><span class="no">' + anEsc(p.plan_no) + '</span><span>' + ppFmtDT(p.created_at) + '</span><span class="who">👤 ' + anEsc(p.created_by || '-') + '</span><span>' + n + ' รายการ</span>' +
       '<span class="pp-prog"><span class="pp-bar"><i style="width:' + pct + '%"></i></span>บรรจุแล้ว ' + dc + '/' + n + '</span>' + allSt + '</div>' +
       '<div class="pp-plan-b"><div class="acts"><span>สต็อค/ถัง = ค่า ณ ตอนออกใบ · บรรจุจริง = ดึงจากบันทึก "แปลงบรรจุ" ตั้งแต่วันที่ออกใบ</span>' +
-      '<button class="pp-btn pp-btn-ghost" style="padding:5px 12px" onclick="event.stopPropagation();ppReprint(\'' + noEsc + '\')">🖨️ พิมพ์ซ้ำ</button></div>' +
-      '<table class="pp-table"><thead><tr><th style="width:4%">#</th><th class="pp-name-th">ชื่อสินค้า</th><th style="width:9%">กระสอบ/กล่อง<br>(ตอนออกใบ)</th><th style="width:7%">ถัง<br>(ตอนออกใบ)</th><th style="width:8%">สั่งบรรจุ<br>(ถัง)</th><th style="width:8%">บรรจุจริง<br>(ถัง)</th><th style="width:8%">วันที่บรรจุ</th><th style="width:17%">สถานะ</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+      '<span style="display:flex;gap:6px"><button class="pp-btn pp-btn-ghost" style="padding:5px 12px" onclick="event.stopPropagation();ppAddOpen(\'' + noEsc + '\')">➕ เพิ่มรายการ</button>' +
+      '<button class="pp-btn pp-btn-ghost" style="padding:5px 12px" onclick="event.stopPropagation();ppReprint(\'' + noEsc + '\')">🖨️ พิมพ์ซ้ำ</button></span></div>' +
+      '<table class="pp-table"><thead><tr><th style="width:4%">#</th><th class="pp-name-th">ชื่อสินค้า</th><th style="width:9%">กระสอบ/กล่อง<br>(ตอนออกใบ)</th><th style="width:7%">ถัง<br>(ตอนออกใบ)</th><th style="width:8%">สั่งบรรจุ<br>(ถัง)</th><th style="width:8%">บรรจุจริง<br>(ถัง)</th><th style="width:8%">วันที่บรรจุ</th><th style="width:17%">สถานะ</th><th style="width:5%">แก้ไข</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
   }).join('');
+}
+
+// ── 2026-09-25: เพิ่ม/แก้รายการในใบที่บันทึกไปแล้ว — กรณีเขียนมือเพิ่ม/แก้จำนวนในกระดาษ แล้วมากรอกย้อนหลัง
+// ให้ประวัติตรงกับกระดาษ (รายการที่เพิ่มถือวันที่ออกใบเดิม → การจับคู่ "บรรจุจริง" ใช้กติกาเดิม)
+let ppEdit = { mode: '', plan: '', code: '' };
+function ppEditShow(title, sub, withCode) {
+  document.getElementById('pp-edit-title').textContent = title;
+  document.getElementById('pp-edit-sub').innerHTML = sub;
+  document.getElementById('pp-edit-codebox').style.display = withCode ? '' : 'none';
+  document.getElementById('pp-edit-err').style.display = 'none';
+  document.getElementById('pp-edit-save').disabled = false;
+  document.getElementById('pp-edit-save').textContent = '💾 บันทึก';
+  document.getElementById('pp-edit-mbg').classList.add('on');
+}
+function ppEditClose() { document.getElementById('pp-edit-mbg').classList.remove('on'); }
+function ppAddOpen(no) {
+  ppEdit = { mode: 'add', plan: no, code: '' };
+  ['pp-edit-q', 'pp-edit-qty', 'pp-edit-note'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('pp-edit-sug').style.display = 'none';
+  ppEditShow('➕ เพิ่มรายการเข้าใบ ' + no, 'ใช้กรณีเขียนมือเพิ่มในกระดาษ — กรอกย้อนหลังให้ประวัติตรงกับกระดาษ', true);
+  setTimeout(() => document.getElementById('pp-edit-q').focus(), 50);
+}
+function ppEditOpen(no, code) {
+  const p = ppPlansCache.find(x => x.plan_no === no); if (!p) return;
+  const it = p.items.find(x => x.code === code); if (!it) return;
+  ppEdit = { mode: 'edit', plan: no, code };
+  document.getElementById('pp-edit-qty').value = it.plan_qty == null ? '' : it.plan_qty;
+  document.getElementById('pp-edit-note').value = it.note || '';
+  ppEditShow('✏️ แก้ไขรายการในใบ ' + no, '<span class="pp-ef-picked">' + anEsc(ppHistName(it)) + '</span> <small style="color:#94a3b8">' + code + '</small>', false);
+}
+function ppEditSearch() {
+  const q = document.getElementById('pp-edit-q').value;
+  ppEdit.code = '';
+  const box = document.getElementById('pp-edit-sug');
+  const list = ppExMatches(q).slice(0, 15);
+  box.innerHTML = list.map(x => '<div onclick="ppEditPick(\'' + x.code + '\')">' + anEsc(buildName(x)) + '<small>' + x.code + '</small></div>').join('');
+  box.style.display = list.length ? 'block' : 'none';
+}
+function ppEditPick(code) {
+  const x = allItems.find(a => a.code === code); if (!x) return;
+  ppEdit.code = code;
+  document.getElementById('pp-edit-q').value = buildName(x) + ' (' + code + ')';
+  document.getElementById('pp-edit-sug').style.display = 'none';
+  document.getElementById('pp-edit-qty').focus();
+}
+async function ppEditSave() {
+  const err = document.getElementById('pp-edit-err');
+  const showErr = m => { err.textContent = '❌ ' + m; err.style.display = 'block'; };
+  const qv = document.getElementById('pp-edit-qty').value;
+  const note = document.getElementById('pp-edit-note').value.trim();
+  const s = stcGetSession();
+  let body;
+  if (ppEdit.mode === 'add') {
+    if (!ppEdit.code) return showErr('กรุณาเลือกสินค้าจากรายการที่ขึ้นมา');
+    const p = ppPlansCache.find(x => x.plan_no === ppEdit.plan);
+    if (p && p.items.some(x => x.code === ppEdit.code)) return showErr('สินค้านี้มีในใบนี้แล้ว — กด ✏️ ที่แถวนั้นเพื่อแก้จำนวนแทน');
+    const info = ppExItemInfo(ppEdit.code);
+    body = { action: 'addPackPlanItem', plan_no: ppEdit.plan, by: s ? (s.username || '') : '',
+      item: { code: ppEdit.code, name: info ? info.name : '', bag: info ? info.bag : 0, tank: info ? info.tank : 0, plan_qty: qv === '' ? '' : Number(qv), note } };
+  } else {
+    body = { action: 'updatePackPlanItem', plan_no: ppEdit.plan, code: ppEdit.code, by: s ? (s.username || '') : '', plan_qty: qv === '' ? '' : Number(qv), note };
+  }
+  const btn = document.getElementById('pp-edit-save');
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+  try {
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify(body) });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || data.message || 'บันทึกไม่สำเร็จ');
+    ppEditClose();
+    showToast(ppEdit.mode === 'add' ? '➕ เพิ่มรายการเข้าใบ ' + ppEdit.plan + ' แล้ว' : '✏️ แก้ไขรายการแล้ว');
+    ppHistOpen.add(ppEdit.plan);
+    ppLoadPlans(); // โหลดใหม่ให้ "บรรจุจริง" คำนวณจับคู่ใหม่จาก backend
+  } catch (e) {
+    showErr(e.message);
+    btn.disabled = false; btn.textContent = '💾 บันทึก';
+  }
 }
 
 // พิมพ์ซ้ำ: เปิดหน้าต่างใหม่ หน้าตาเหมือนใบพิมพ์เดิม (ขาวดำ) — ค่าทั้งหมดเป็นค่า ณ ตอนออกใบ
 function ppReprint(no) {
   const p = ppPlansCache.find(x => x.plan_no === no); if (!p) return;
-  const rows = p.items.map((it, i) => '<tr><td>' + (i + 1) + '</td><td style="text-align:left">' + anEsc(ppHistName(it)) + (it.src === 'short' ? ' <b style="background:#000;color:#fff;padding:0 4px;font-size:9px">⚠ สต็อกไม่พอ</b>' : '') + '</td><td>' + it.bag + '</td><td>' + it.tank + '</td><td>' + (it.plan_qty == null ? '' : it.plan_qty) + '</td><td></td></tr>').join('');
+  // 2026-09-25: ใช้ ppBuildSheets ตัวเดียวกับตอนพิมพ์ปกติ (แยกใบ กระสอบ / กล่อง + หมายเหตุที่บันทึกไว้)
+  const items = p.items.map(it => {
+    const x = allItems.find(a => a.code === it.code) || {};
+    return { ...it, name: ppHistName(it), type: x.type || '', col: x.col || '', row: x.row || '' };
+  });
   const w = window.open('', '_blank');
   if (!w) { showToast('เบราว์เซอร์บล็อกหน้าต่างใหม่ — กรุณาอนุญาต pop-up'); return; }
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + anEsc(p.plan_no) + '</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet"><style>' +
-    'body{font-family:Sarabun,sans-serif;margin:16px;color:#000}.h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}.h .t{font-size:19px;font-weight:700}.h .s{font-size:11px}' +
-    'table{width:100%;border-collapse:collapse;font-size:10.5px;border:1.5px solid #333}th{background:#000;color:#fff;padding:3px 4px;border:1px solid #000;-webkit-print-color-adjust:exact;print-color-adjust:exact}td{border:1px solid #888;padding:2px 4px;text-align:center;height:18px}' +
-    '</style></head><body><div class="h"><div class="t">ใบวางแผนการบรรจุ PA/DE <span style="font-size:12px;font-weight:400">(พิมพ์ซ้ำ)</span></div><span class="s">' + anEsc(p.plan_no) + ' · ' + ppFmtD(p.created_at) + '</span></div>' +
-    '<table><thead><tr><th style="width:4%">#</th><th>ชื่อสินค้า</th><th style="width:10%">กระสอบ/กล่อง</th><th style="width:8%">ถัง</th><th style="width:9%">ให้บรรจุ (ถัง)</th><th style="width:30%">หมายเหตุ</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + anEsc(p.plan_no) + '</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet"><style>body{margin:16px}' +
+    PP_PRINT_CSS + '</style></head><body>' + ppBuildSheets(items, p.plan_no, ppFmtD(p.created_at), true) +
     '<script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script></body></html>');
   w.document.close();
 }
