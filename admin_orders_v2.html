@@ -5451,15 +5451,17 @@ function ppRenderHist() {
     const open = ppHistOpen.has(p.plan_no) || !!q;
     const dc = ppHistDone(p), n = p.items.length, pct = Math.round(dc / n * 100);
     const allSt = dc === n ? '<span class="pp-st ok">✅ บรรจุครบ</span>' : dc === 0 ? '<span class="pp-st wait">⏳ ยังไม่เริ่ม</span>' : '<span class="pp-st part">⚠ ค้าง ' + (n - dc) + ' รายการ</span>';
-    const rows = p.items.map((it, i) => {
+    // 2026-09-25: แสดงรายการหน่วยกระสอบก่อน แล้วค่อยกล่อง (ลำดับเดิมภายในแต่ละหน่วย) ให้ตรงกับหน้าวางแผนบรรจุ
+    const isBox = it => { const y = allItems.find(a => a.code === it.code); return y && getUnit(y.type) === 'กล่อง' ? 1 : 0; };
+    const shown = p.items.map((it, k) => [it, k]).sort((a, b) => (isBox(a[0]) - isBox(b[0])) || (a[1] - b[1])).map(z => z[0]);
+    const rows = shown.map((it, i) => {
       const s = ppHistItemSt(it);
       const x = allItems.find(a => a.code === it.code);
-      const cls = x ? stockColorClass(it.bag, getUnit(x.type), x.col) : '';
       return '<tr class="' + (ppHistMatch(it, q) ? 'pp-hit' : '') + '"><td>' + (i + 1) + '</td><td class="pp-name-cell">' + anEsc(ppHistName(it)) +
         ' <span style="font-size:10.5px;color:#94a3b8;font-family:monospace">' + it.code + '</span>' +
         (it.src === 'short' ? ' <span class="pp-extra-tag">⚠ สต็อกไม่พอ</span>' : it.src === 'extra' ? '<span class="pp-src-extra">รายการเพิ่มเติม</span>' : it.src === 'manual' ? '<span class="pp-src-manual">เพิ่มภายหลัง</span>' : '') +
         (it.note ? '<div class="pp-hist-note">📝 ' + anEsc(it.note) + '</div>' : '') + '</td>' +
-        '<td class="pp-qty-bag ' + cls + '">' + it.bag + '</td><td class="pp-qty-tank">' + it.tank + '</td>' +
+        ppQtyCells(it.bag, x ? x.type : '', x ? x.col : '') + '<td class="pp-qty-tank">' + it.tank + '</td>' +
         '<td class="pp-qty-tank">' + (it.plan_qty == null ? '<span style="color:#94a3b8;font-weight:400">–</span>' : it.plan_qty) + '</td>' +
         '<td style="font-weight:700;color:#166534">' + (it.act || '<span style="color:#94a3b8;font-weight:400">0</span>') + '</td>' +
         '<td style="font-size:12px;color:#475569">' + (it.act_date ? ppFmtD(it.act_date + 'T00:00:00') : '–') + '</td>' +
@@ -5473,7 +5475,9 @@ function ppRenderHist() {
       '<div class="pp-plan-b"><div class="acts"><span>สต็อค/ถัง = ค่า ณ ตอนออกใบ · บรรจุจริง = ดึงจากบันทึก "แปลงบรรจุ" ตั้งแต่วันที่ออกใบ</span>' +
       '<span style="display:flex;gap:6px"><button class="pp-btn pp-btn-ghost" style="padding:5px 12px" onclick="event.stopPropagation();ppAddOpen(\'' + noEsc + '\')">➕ เพิ่มรายการ</button>' +
       '<button class="pp-btn pp-btn-ghost" style="padding:5px 12px" onclick="event.stopPropagation();ppReprint(\'' + noEsc + '\')">🖨️ พิมพ์ซ้ำ</button></span></div>' +
-      '<table class="pp-table"><thead><tr><th style="width:4%">#</th><th class="pp-name-th">ชื่อสินค้า</th><th style="width:9%">กระสอบ/กล่อง<br>(ตอนออกใบ)</th><th style="width:7%">ถัง<br>(ตอนออกใบ)</th><th style="width:8%">สั่งบรรจุ<br>(ถัง)</th><th style="width:8%">บรรจุจริง<br>(ถัง)</th><th style="width:8%">วันที่บรรจุ</th><th style="width:17%">สถานะ</th><th style="width:5%">แก้ไข</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
+      '<table class="pp-table"><thead><tr><th style="width:4%" rowspan="2">#</th><th class="pp-name-th" rowspan="2">ชื่อสินค้า</th><th class="pp-qty-grp-hdr" colspan="3">คงเหลือ (ตอนออกใบ)</th>' +
+      '<th style="width:6%" rowspan="2">สั่งบรรจุ<br>(ถัง)</th><th style="width:6%" rowspan="2">บรรจุจริง<br>(ถัง)</th><th style="width:7%" rowspan="2">วันที่บรรจุ</th><th style="width:14%" rowspan="2">สถานะ</th><th style="width:5%" rowspan="2">แก้ไข</th></tr>' +
+      '<tr><th class="pp-qty-sub" style="width:5%">กระสอบ</th><th class="pp-qty-sub" style="width:5%">กล่อง</th><th class="pp-qty-sub" style="width:5%">ถัง</th></tr></thead><tbody>' + rows + '</tbody></table></div></div>';
   }).join('');
 }
 
