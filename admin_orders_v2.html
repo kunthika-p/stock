@@ -6212,7 +6212,11 @@ function anDType(t) {
 // เหตุผล: ยอดขายควรรับรู้ตอนยืนยัน/ตัดสต็อคจริง ไม่ใช่ตอนเปิดออเดอร์ (ป้องกันยืนยันย้อนหลังแล้วยอดไปโป่งวันเก่า)
 // Fallback ไป o.date||o.timestamp เมื่อไม่มี confirmed_date (ออเดอร์เก่าก่อน 30/7/69 ที่ยังไม่มี field นี้) กันข้อมูลเก่าหายจากกราฟ
 function anPDate(o) {
-  const raw = o.confirmed_date || o.date || o.timestamp;
+  // 2026-09-25 (แก้บั๊ก): เดิมใช้ o.date ก่อน o.timestamp — แต่ในชีท orders หัวคอลัมน์ "date" อยู่เหนือช่อง "หมายเหตุ" จริง
+  // (getOrders() อ่านตามชื่อหัวคอลัมน์ → o.date = หมายเหตุ, o.timestamp = วันที่สั่งจริง คอลัมน์ A) ออเดอร์ก่อน 30/7/69 ที่ยังไม่มี
+  // confirmed_date และมีหมายเหตุ (เช่น "ชุบขาว") จึงอ่านวันที่ไม่ได้ → ถูกตัดออกจากหน้าวิเคราะห์ทั้งหมด (พบ 46 ออเดอร์ ~588,000 บาท ก.ค.69)
+  // แก้ให้ใช้ลำดับเดียวกับส่วนอื่นของไฟล์ (getOrderDate/ประวัติ ใช้ o.timestamp||o.date) — o.date เหลือเป็น fallback สุดท้ายเท่านั้น
+  const raw = o.confirmed_date || o.timestamp || o.date;
   if (!raw) return null;
   const s = String(raw).trim();
   if (s.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(s)) {
