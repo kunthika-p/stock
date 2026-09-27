@@ -836,6 +836,10 @@ table.list tr:hover td{background:#f8fbff}
 .cl-cust{font-weight:700;color:#1e293b}
 .cl-last{color:#64748b;font-size:12px}
 .cl-why b{color:#b91c1c}
+.cl-why .h{font-size:13.5px}
+.cl-ul{margin:3px 0 0;padding:0;list-style:none;color:#64748b;font-size:12.5px;line-height:1.55}
+.cl-ul li::before{content:"• ";color:#cbd5e1}
+.cl-offer{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
 .cl-why .s{color:#64748b;font-size:12px;display:block}
 .cl-chip{display:inline-block;background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:6px;padding:1px 8px;font-size:12px;margin:1px 3px 2px 0;white-space:nowrap}
 .cl-chip i{font-style:normal;color:#64748b;font-weight:400}
@@ -2552,24 +2556,28 @@ function clCompute(now) {
     });
     lost.sort((a, b) => b.b - a.b);
     const mtdC = c.mon[curKey] || 0, expected = avg * day / dim, nLbl = n ? clMonRange(from, curKey - 1) : '';
-    let s = null, main = '', sub = '', subSale = '';
+    let s = null, main = '', sub = [], subSale = [];
     if (since >= silentThr) {
       s = 'silent';
       main = 'ไม่สั่งมา <b>' + since + ' วัน</b>';
-      sub = gap !== null && gap > 0 ? 'ปกติสั่งทุก ~' + gap + ' วัน' + (since / gap >= 2 ? ' (ขาดไป ' + Math.floor(since / gap) + ' รอบ)' : '') : 'สั่งมาแค่ ' + dayList.length + ' ครั้ง';
-      if (low && gap !== null) sub += ' · สั่งมาแค่ ' + dayList.length + ' ครั้ง รอบยังไม่แน่นอน';
-      subSale = sub;
+      if (gap !== null && gap > 0) {
+        sub.push('ปกติสั่งทุก ~' + gap + ' วัน');
+        if (since / gap >= 2) sub.push('ขาดไป ' + Math.floor(since / gap) + ' รอบ');
+        if (low) sub.push('สั่งมาแค่ ' + dayList.length + ' ครั้ง รอบยังไม่แน่นอน');
+      } else sub.push('สั่งมาแค่ ' + dayList.length + ' ครั้ง');
+      subSale = sub.slice();
     } else if (n && gap !== null && gap <= CL_DECLINE_MAX_GAP && day >= CL_DECLINE_MIN_DAY && avg >= CL_DECLINE_MIN_AVG && mtdC < expected * (1 - CL_DECLINE_PCT)) {
       s = 'decline';
       main = 'เดือนนี้ <b>−' + Math.round((1 - mtdC / expected) * 100) + '%</b> จากค่าเฉลี่ยตัวเอง';
-      sub = 'ปกติ ~' + clFmt(avg) + '/เดือน (' + nLbl + ') · เดือนนี้ถึงวันนี้ ' + clFmt(mtdC) + ' (ควรได้ ~' + clFmt(expected) + ')';
-      subSale = 'เทียบ ณ วันเดียวกันของเดือน กับค่าเฉลี่ย ' + nLbl;
+      // ค่าเฉลี่ย/เดือนโชว์อยู่ในคอลัมน์ขวาแล้ว — ไม่ซ้ำตรงนี้ (user ขอ 2026-09-27) · "ควรได้" = ค่าเฉลี่ย × วันที่ผ่านไป ÷ วันในเดือน
+      sub = ['ได้จริงถึงวันนี้ ' + clFmt(mtdC), 'ควรได้ถึง ' + day + ' ' + AN_THAI_M[now.getMonth()] + ' ~' + clFmt(expected) + ' (เฉลี่ย ' + nLbl + ')'];
+      subSale = ['เทียบ ณ วันเดียวกันของเดือน', 'ค่าเฉลี่ย ' + nLbl];
     } else if (lost.length) {
       s = 'lost';
       const L = lost[0];
       main = 'ยังสั่งอยู่ แต่ <b>' + (L.w <= 0 ? 'เลิกซื้อ' + L.cat : L.cat + ' ลดลง ' + Math.round(-L.pct * 100) + '%') + '</b>' + (lost.length > 1 ? ' (+' + (lost.length - 1) + ' หมวด)' : '');
-      sub = 'ปี 68 ~' + clFmt(L.b) + '/ด. · ' + nLbl + ' ~' + clFmt(L.w) + '/ด.';
-      subSale = 'เทียบค่าเฉลี่ยปี 68 กับ ' + nLbl;
+      sub = ['ปี 68 ~' + clFmt(L.b) + '/ด.', nLbl + ' ~' + clFmt(L.w) + '/ด.'];
+      subSale = ['เทียบค่าเฉลี่ยปี 68 กับ ' + nLbl];
     }
     if (!s) return;
     let offers = lost.slice(0, 3).map(L => ({ cat: L.cat, note: 'ปี68 ~' + clFmt(L.b) + '/ด.' }));
@@ -2637,8 +2645,8 @@ function clRender() {
     h += '<div class="cl-scroll"><table class="cl-tbl"><tr><th>ความเร่ง</th><th>ลูกค้า</th><th>ทำไมต้องโทร</th><th>ควรเสนอ</th><th class="n">ยอดเฉลี่ย/เดือน</th><th>การโทร</th></tr>' +
       shown.map(it => '<tr><td><span class="cl-pri cl-p-' + it.s + '">' + CL_STATUS[it.s].label + '</span></td>' +
         '<td><span class="cl-cust">' + clEsc(it.c) + '</span>' + (it.low ? '<span class="cl-low">ข้อมูลน้อย</span>' : '') + '<br><span class="cl-last">สั่งล่าสุด ' + clThaiD(it.last) + '</span></td>' +
-        '<td class="cl-why">' + it.main + '<span class="s">' + clEsc(it.sub) + '</span></td>' +
-        '<td>' + it.offers.map(o => '<span class="cl-chip">' + clEsc(o.cat) + ' <i>' + clEsc(o.note) + '</i></span>').join('') + '</td>' +
+        '<td class="cl-why"><div class="h">' + it.main + '</div><ul class="cl-ul">' + it.sub.map(x => '<li>' + clEsc(x) + '</li>').join('') + '</ul></td>' +
+        '<td><div class="cl-offer">' + it.offers.map(o => '<span class="cl-chip">' + clEsc(o.cat) + ' <i>' + clEsc(o.note) + '</i></span>').join('') + '</div></td>' +
         '<td class="n"><b>' + (it.val ? clFmt(it.val) : '–') + '</b></td>' +
         '<td><button class="cl-btn-call" data-c="' + clEsc(it.c) + '" onclick="clOpenCall(this.dataset.c)">✓ โทรแล้ว</button>' +
         (it.lc ? '<div class="cl-prev">โทรครั้งก่อน ' + clThaiD(it.lc.t) + ' · ' + clEsc(it.lc.by) + '<br>' + clEsc(it.lc.res) + (it.lc.note ? ' — "' + clEsc(it.lc.note) + '"' : '') + '</div>' : '') +
@@ -2697,7 +2705,7 @@ function clPrint() {
   const list = clSplit().list.filter(it => clFilter === 'all' || it.s === clFilter);
   const now = new Date();
   const rows = list.map((it, i) => '<tr><td>' + (i + 1) + '</td><td>' + CL_STATUS[it.s].label.replace(/^\S+\s/, '') + '</td><td><b>' + clEsc(it.c) + '</b><br><small>สั่งล่าสุด ' + clThaiD(it.last) + '</small></td>' +
-    '<td>' + it.main + '<br><small>' + clEsc(it.sub) + '</small></td><td>' + it.offers.map(o => clEsc(o.cat)).join(', ') + '</td><td></td></tr>').join('');
+    '<td>' + it.main + '<br><small>' + clEsc(it.sub.join(' · ')) + '</small></td><td>' + it.offers.map(o => clEsc(o.cat)).join(', ') + '</td><td></td></tr>').join('');
   const w = window.open('', '_blank');
   if (!w) return;
   w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>รายชื่อลูกค้าที่ควรโทรตาม</title>' +

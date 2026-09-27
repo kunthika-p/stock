@@ -215,6 +215,10 @@ body.not-logged-in .login-overlay{display:flex}
 .cl-cust{font-weight:700;color:#1e293b}
 .cl-last{color:#64748b;font-size:12px}
 .cl-why b{color:#b91c1c}
+.cl-why .h{font-size:13.5px}
+.cl-ul{margin:3px 0 0;padding:0;list-style:none;color:#64748b;font-size:12.5px;line-height:1.55}
+.cl-ul li::before{content:"• ";color:#cbd5e1}
+.cl-offer{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
 .cl-why .s{color:#64748b;font-size:12px;display:block}
 .cl-chip{display:inline-block;background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:6px;padding:1px 8px;font-size:12px;margin:1px 3px 2px 0;white-space:nowrap}
 .cl-chip i{font-style:normal;color:#64748b;font-weight:400}
@@ -2074,8 +2078,8 @@ function slRender() {
   else h += '<div class="cl-scroll"><table class="cl-tbl"><tr><th>ความเร่ง</th><th>ลูกค้า</th><th>ทำไมต้องโทร</th><th>ควรเสนอ</th><th>การโทร</th></tr>' +
     shown.map(it => '<tr><td><span class="cl-pri cl-p-' + slEsc(it.s) + '">' + (SL_STATUS[it.s] || '') + '</span></td>' +
       '<td><span class="cl-cust">' + slEsc(it.c) + '</span>' + (it.low ? '<span class="cl-low">ข้อมูลน้อย</span>' : '') + (it.l ? '<br><span class="cl-last">สั่งล่าสุด ' + slD(new Date(it.l)) + '</span>' : '') + '</td>' +
-      '<td class="cl-why">' + String(it.m || '').replace(/<(?!\/?b>)[^>]*>/g, '') + '<span class="s">' + slEsc(it.sb) + '</span></td>' +
-      '<td>' + (it.o || []).map(c => '<span class="cl-chip">' + slEsc(c) + '</span>').join('') + '</td>' +
+      '<td class="cl-why"><div class="h">' + String(it.m || '').replace(/<(?!\/?b>)[^>]*>/g, '') + '</div>' + '<ul class="cl-ul">' + (Array.isArray(it.sb) ? it.sb : (it.sb ? [it.sb] : [])).map(x => '<li>' + slEsc(x) + '</li>').join('') + '</ul></td>' +
+      '<td><div class="cl-offer">' + (it.o || []).map(c => '<span class="cl-chip">' + slEsc(c) + '</span>').join('') + '</div></td>' +
       '<td><button class="cl-btn-call" data-c="' + slEsc(it.c) + '" onclick="slOpenCall(this.dataset.c)">✓ โทรแล้ว</button>' +
       (it.lc ? '<div class="cl-prev">โทรครั้งก่อน ' + slD(it.lc.t) + ' · ' + slEsc(it.lc.by) + '<br>' + slEsc(it.lc.res) + (it.lc.note ? ' — "' + slEsc(it.lc.note) + '"' : '') + '</div>' : '') +
       '</td></tr>').join('') + '</table></div>';
