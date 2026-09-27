@@ -191,6 +191,56 @@ body.not-logged-in .login-overlay{display:flex}
 .login-btn:hover{background:#122b45}
 .sg-user-info{display:flex;align-items:center;gap:8px;font-size:11.5px;margin-top:6px;opacity:.9}
 .sg-btn-logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:white;padding:3px 10px;border-radius:6px;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:11px}
+/* 2026-09-27: รายชื่อลูกค้าที่ควรโทรตาม (หน้าภาพรวม) — ธีมเหลืองเดียวกับแท็บวิเคราะห์ */
+.cl-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.cl-kpi{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 14px}
+.cl-kpi small{color:#92400e;font-weight:600;font-size:12.5px}
+.cl-kpi .v{font-size:22px;font-weight:700;margin:2px 0;color:#1e293b}
+.cl-kpi .d{font-size:12.5px;font-weight:600}
+.cl-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px}
+.cl-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.cl-top h3{margin:0;font-size:16px;color:#1a3a5c}
+.cl-sub{color:#64748b;font-size:12.5px}
+.cl-flt{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.cl-flt button{font-family:inherit;border:1px solid #e2e8f0;background:#fff;border-radius:999px;padding:4px 12px;font-size:12.5px;cursor:pointer;color:#334155}
+.cl-flt button.on{background:#1a3a5c;color:#fff;border-color:#1a3a5c}
+.cl-flt .cl-pr{border-radius:6px;border-color:#1a3a5c;color:#1a3a5c;font-weight:600}
+.cl-scroll{overflow-x:auto}
+.cl-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:860px}
+.cl-tbl th{background:#f1f5f9;text-align:left;padding:8px;font-weight:600;color:#334155;border-bottom:1px solid #e2e8f0;white-space:nowrap}
+.cl-tbl td{padding:9px 8px;border-bottom:1px solid #eef2f7;vertical-align:top}
+.cl-tbl td.n,.cl-tbl th.n{text-align:right;white-space:nowrap}
+.cl-pri{display:inline-block;border-radius:6px;padding:2px 8px;font-weight:700;font-size:12px;white-space:nowrap}
+.cl-p-decline{background:#ffedd5;color:#c2410c}.cl-p-lost{background:#fef9c3;color:#854d0e}.cl-p-silent{background:#fee2e2;color:#b91c1c}
+.cl-cust{font-weight:700;color:#1e293b}
+.cl-last{color:#64748b;font-size:12px}
+.cl-why b{color:#b91c1c}
+.cl-why .s{color:#64748b;font-size:12px;display:block}
+.cl-chip{display:inline-block;background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:6px;padding:1px 8px;font-size:12px;margin:1px 3px 2px 0;white-space:nowrap}
+.cl-chip i{font-style:normal;color:#64748b;font-weight:400}
+.cl-low{display:inline-block;font-size:11px;color:#64748b;border:1px dashed #cbd5e1;border-radius:4px;padding:0 5px;margin-left:4px;font-weight:400}
+.cl-btn-call{font-family:inherit;border:1px solid #16a34a;background:#f0fdf4;color:#166534;border-radius:999px;padding:3px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.cl-prev{max-width:180px;margin-top:5px;font-size:11.5px;color:#64748b;line-height:1.4}
+.cl-done{margin-top:12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}
+.cl-done summary{padding:8px 12px;cursor:pointer;font-weight:600;color:#334155;font-size:13px}
+.cl-done .cl-tbl{min-width:640px}
+.cl-foot{color:#64748b;font-size:12px;margin-top:10px;line-height:1.6}
+.cl-empty{padding:18px;text-align:center;color:#64748b}
+.cl-ovl{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;z-index:3000;padding:16px}
+.cl-modal{width:400px;max-width:100%;background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.25);overflow:hidden}
+.cl-modal h4{margin:0;padding:12px 16px;background:#1a3a5c;color:#fff;font-size:15px}
+.cl-modal .bd{padding:14px 16px}
+.cl-modal label{font-size:12.5px;color:#334155;font-weight:600;display:block;margin:8px 0 4px}
+.cl-opts{display:flex;flex-wrap:wrap;gap:6px}
+.cl-opts button{font-family:inherit;border:1px solid #e2e8f0;background:#fff;border-radius:999px;padding:4px 11px;font-size:12.5px;cursor:pointer}
+.cl-opts button.sel{background:#1a3a5c;color:#fff;border-color:#1a3a5c}
+.cl-modal textarea{width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;border:1px solid #cbd5e1;border-radius:6px;padding:6px 8px;height:60px}
+.cl-modal .ft{display:flex;justify-content:flex-end;gap:8px;padding:10px 16px;border-top:1px solid #e2e8f0}
+.cl-modal .ft button{font-family:inherit;border-radius:6px;padding:5px 14px;font-size:13px;cursor:pointer;border:1px solid #e2e8f0;background:#fff}
+.cl-modal .ft .ok{background:#16a34a;color:#fff;border-color:#16a34a;font-weight:600}
+.cl-modal .err{color:#b91c1c;font-size:12.5px;margin-top:6px}
+@media(max-width:760px){.cl-kpis{grid-template-columns:1fr}}
+@media print{#sales-tab-calls{display:none!important}}
 </style>
 </head>
 <body class="not-logged-in">
@@ -242,6 +292,7 @@ body.not-logged-in .login-overlay{display:flex}
   <button id="tab-btn-order" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:700;color:#1a3a5c;border-bottom:3px solid #1a3a5c;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('order',this)">🛒 สั่งสินค้า</button>
   <button id="tab-btn-history" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:500;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('history',this)">📋 ประวัติ <span id="sales-hist-count" style="background:#dc2626;color:white;border-radius:10px;font-size:11px;padding:1px 6px;margin-left:3px;display:none"></span></button>
   <button id="tab-btn-tracking" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:500;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('tracking',this)">📦 ติดตามออเดอร์</button>
+  <button id="tab-btn-calls" style="padding:11px 18px;border:none;background:none;cursor:pointer;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:500;color:#666;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap" onclick="showSalesTab('calls',this)">📞 ลูกค้าที่ควรโทร <span id="sl-count" style="background:#dc2626;color:white;border-radius:10px;font-size:11px;padding:1px 6px;margin-left:3px;display:none"></span></button>
 </div>
 
 <!-- Tab: สั่งสินค้า -->
@@ -262,6 +313,11 @@ body.not-logged-in .login-overlay{display:flex}
 <div class="content" id="content">
   <div class="loading">⏳ กำลังโหลดข้อมูล...</div>
 </div>
+</div>
+
+<!-- 2026-09-27: Tab: ลูกค้าที่ควรโทรตาม (รายชื่อจากหน้า admin, ไม่มีตัวเลขยอดขาย) -->
+<div id="sales-tab-calls" style="display:none;padding:16px;max-width:1400px;margin:0 auto">
+  <div id="sl-body"><p style="color:#aaa;padding:24px;text-align:center">⏳ กำลังโหลด...</p></div>
 </div>
 
 <!-- Tab: ประวัติ -->
@@ -1724,6 +1780,7 @@ function showSalesTab(tab, btn) {
   document.getElementById('sales-tab-order').style.display = tab==='order' ? '' : 'none';
   document.getElementById('sales-tab-history').style.display = tab==='history' ? '' : 'none';
   document.getElementById('sales-tab-tracking').style.display = tab==='tracking' ? '' : 'none';
+  document.getElementById('sales-tab-calls').style.display = tab==='calls' ? '' : 'none';
   document.querySelectorAll('[id^="tab-btn-"]').forEach(b => {
     b.style.borderBottomColor = 'transparent';
     b.style.color = '#666';
@@ -1734,6 +1791,7 @@ function showSalesTab(tab, btn) {
   btn.style.fontWeight = '700';
   if (tab==='history') renderSalesHistory();
   if (tab==='tracking') loadTracking();
+  if (tab==='calls') slLoad();
 }
 
 
@@ -1960,6 +2018,101 @@ function showToast(msg) {
 // ── 2026-09-21: Login / Session — ใช้ key เดียวกับ admin_orders_v2.html ('stic_session')
 // 2026-09-22: เปลี่ยนจาก localStorage เป็น sessionStorage ให้ตรงกับ admin_orders_v2.html (เดิมค้าง session ข้ามการปิด-เปิดเบราว์เซอร์ได้ไม่มีวันหมดอายุจริง)
 // เปิดแท็บใหม่จากลิงก์ในหน้า admin (target="_blank") ยังใช้ sessionStorage ชุดเดียวกันได้ตามสเปคเบราว์เซอร์ (คัดลอกอัตโนมัติตอนเปิดแท็บใหม่)
+// ════ 2026-09-27: แท็บ "📞 ลูกค้าที่ควรโทรตาม" สำหรับ Sale ════════════════════════════
+// รายชื่อคำนวณในหน้า admin (admin_orders_v2.html → clPushSnapshot) แล้วเก็บชีท call_list วันละครั้ง — หน้านี้แค่อ่าน
+// ไม่มีตัวเลขยอดขาย (user ยืนยัน 2026-09-27: Sale ไม่เห็นยอดขาย) · กด "✓ โทรแล้ว" บันทึกลงชีท call_log ชุดเดียวกับหน้า admin
+const SL_HIDE_DAYS = 7;
+const SL_M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const SL_RESULTS = ['จะสั่งเร็วๆ นี้', 'งานน้อยช่วงนี้', 'ไปซื้อที่อื่น', 'ติดต่อไม่ได้', 'อื่นๆ'];
+const SL_STATUS = { decline: '🟠 สั่งน้อยลง', lost: '🟡 หมวดหาย', silent: '🔴 เงียบไปนาน' };
+let slData = null, slLog = [], slFilter = 'all', slCust = '', slRes = '';
+function slEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function slD(d) { return d.getDate() + ' ' + SL_M[d.getMonth()]; }
+
+async function slLoad() {
+  const el = document.getElementById('sl-body');
+  if (el && !slData) el.innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">⏳ กำลังโหลด...</p>';
+  try {
+    const [a, b] = await Promise.all([
+      fetch(API + '?action=getCallList', { credentials: 'omit' }).then(r => r.json()),
+      fetch(API + '?action=getCallLog', { credentials: 'omit' }).then(r => r.json())
+    ]);
+    slData = a || { items: [] }; slLog = (b && b.rows) || [];
+    slRender();
+  } catch (e) {
+    if (el) el.innerHTML = '<p style="color:#b91c1c;padding:24px;text-align:center">❌ โหลดไม่ได้: ' + slEsc(e.message) + '</p>';
+  }
+}
+
+function slSplit() {
+  const hideFrom = new Date(Date.now() - SL_HIDE_DAYS * 864e5), lc = {};
+  slLog.forEach(r => { const t = new Date(r[0]); if (isNaN(t)) return; if (!lc[r[1]] || t > lc[r[1]].t) lc[r[1]] = { t, res: r[2], note: r[3], by: r[4] }; });
+  const list = (slData.items || []).filter(it => !(lc[it.c] && lc[it.c].t >= hideFrom)).map(it => Object.assign({ lc: lc[it.c] }, it));
+  const done = Object.entries(lc).filter(([, x]) => x.t >= hideFrom).map(([c, x]) => ({ c, lc: x })).sort((a, b) => b.lc.t - a.lc.t);
+  return { list, done };
+}
+
+function slRender() {
+  const el = document.getElementById('sl-body'); if (!slData) return;
+  const { list, done } = slSplit();
+  const badge = document.getElementById('sl-count');
+  if (badge) { badge.textContent = list.length; badge.style.display = list.length ? '' : 'none'; }
+  if (!el) return;
+  const cnt = { decline: 0, lost: 0, silent: 0 };
+  list.forEach(it => { if (cnt[it.s] !== undefined) cnt[it.s]++; });
+  if (slFilter !== 'all' && !cnt[slFilter]) slFilter = 'all';
+  const up = slData.updated_at ? new Date(slData.updated_at) : null;
+  const stale = up && (Date.now() - up) > 36 * 3600e3;
+  let h = '<div class="cl-card"><div class="cl-top"><div><h3>📞 ลูกค้าที่ควรโทรตาม · ' + list.length + ' ราย</h3>' +
+    '<span class="cl-sub">' + (up ? 'ข้อมูล ณ ' + slD(up) + ' ' + String(up.getHours()).padStart(2, '0') + ':' + String(up.getMinutes()).padStart(2, '0') + ' น.' : 'ยังไม่มีข้อมูล') +
+    (stale ? ' <b style="color:#b91c1c">· ยังไม่อัปเดตวันนี้ (อัปเดตเมื่อมีคนเปิดหน้า admin)</b>' : '') + '</span></div><div class="cl-flt">' +
+    '<button class="' + (slFilter === 'all' ? 'on' : '') + '" onclick="slSetFilter(\'all\')">ทั้งหมด ' + list.length + '</button>' +
+    ['decline', 'lost', 'silent'].map(k => '<button class="' + (slFilter === k ? 'on' : '') + '" onclick="slSetFilter(\'' + k + '\')">' + SL_STATUS[k] + ' ' + cnt[k] + '</button>').join('') +
+    '<button onclick="slLoad()">🔄</button></div></div>';
+  const shown = list.filter(it => slFilter === 'all' || it.s === slFilter);
+  if (!shown.length) h += '<div class="cl-empty">✅ ตอนนี้ไม่มีลูกค้าที่ต้องโทรตาม</div>';
+  else h += '<div class="cl-scroll"><table class="cl-tbl"><tr><th>ความเร่ง</th><th>ลูกค้า</th><th>ทำไมต้องโทร</th><th>ควรเสนอ</th><th>การโทร</th></tr>' +
+    shown.map(it => '<tr><td><span class="cl-pri cl-p-' + slEsc(it.s) + '">' + (SL_STATUS[it.s] || '') + '</span></td>' +
+      '<td><span class="cl-cust">' + slEsc(it.c) + '</span>' + (it.low ? '<span class="cl-low">ข้อมูลน้อย</span>' : '') + (it.l ? '<br><span class="cl-last">สั่งล่าสุด ' + slD(new Date(it.l)) + '</span>' : '') + '</td>' +
+      '<td class="cl-why">' + String(it.m || '').replace(/<(?!\/?b>)[^>]*>/g, '') + '<span class="s">' + slEsc(it.sb) + '</span></td>' +
+      '<td>' + (it.o || []).map(c => '<span class="cl-chip">' + slEsc(c) + '</span>').join('') + '</td>' +
+      '<td><button class="cl-btn-call" data-c="' + slEsc(it.c) + '" onclick="slOpenCall(this.dataset.c)">✓ โทรแล้ว</button>' +
+      (it.lc ? '<div class="cl-prev">โทรครั้งก่อน ' + slD(it.lc.t) + ' · ' + slEsc(it.lc.by) + '<br>' + slEsc(it.lc.res) + (it.lc.note ? ' — "' + slEsc(it.lc.note) + '"' : '') + '</div>' : '') +
+      '</td></tr>').join('') + '</table></div>';
+  if (done.length) h += '<details class="cl-done"><summary>✓ โทรแล้วใน ' + SL_HIDE_DAYS + ' วันที่ผ่านมา · ' + done.length + ' ราย</summary><div class="cl-scroll" style="padding:0 12px 10px"><table class="cl-tbl"><tr><th>วันที่โทร</th><th>ลูกค้า</th><th>ผลการโทร</th><th>บันทึก</th><th>โดย</th></tr>' +
+    done.map(d => '<tr><td>' + slD(d.lc.t) + '</td><td class="cl-cust">' + slEsc(d.c) + '</td><td><span class="cl-chip">' + slEsc(d.lc.res) + '</span></td><td>' + slEsc(d.lc.note) + '</td><td>' + slEsc(d.lc.by) + '</td></tr>').join('') + '</table></div></details>';
+  h += '</div>';
+  el.innerHTML = h;
+}
+function slSetFilter(k) { slFilter = k; slRender(); }
+
+function slOpenCall(cust) {
+  slCloseCall(); slCust = cust; slRes = '';
+  const d = document.createElement('div');
+  d.className = 'cl-ovl'; d.id = 'sl-ovl';
+  d.innerHTML = '<div class="cl-modal"><h4>✓ บันทึกการโทร · ' + slEsc(cust) + '</h4><div class="bd"><label>ลูกค้าตอบว่า</label><div class="cl-opts">' +
+    SL_RESULTS.map(r => '<button type="button" onclick="slPickRes(this)">' + r + '</button>').join('') +
+    '</div><label>จดสั้นๆ (ไม่บังคับ)</label><textarea id="sl-note" maxlength="200" placeholder="เช่น สิ้นเดือนจะสั่ง M10"></textarea><div class="err" id="sl-err"></div></div>' +
+    '<div class="ft"><button type="button" onclick="slCloseCall()">ยกเลิก</button><button type="button" class="ok" id="sl-save" onclick="slSaveCall()">💾 บันทึก</button></div></div>';
+  d.addEventListener('click', e => { if (e.target === d) slCloseCall(); });
+  document.body.appendChild(d);
+}
+function slPickRes(btn) { document.querySelectorAll('#sl-ovl .cl-opts button').forEach(b => b.classList.remove('sel')); btn.classList.add('sel'); slRes = btn.textContent; }
+function slCloseCall() { const o = document.getElementById('sl-ovl'); if (o) o.remove(); }
+async function slSaveCall() {
+  const err = document.getElementById('sl-err'), btn = document.getElementById('sl-save');
+  if (!slRes) { err.textContent = 'กรุณาเลือกว่าลูกค้าตอบว่าอะไร'; return; }
+  const s = stcGetSession() || {};
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...'; err.textContent = '';
+  try {
+    const r = await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'saveCallLog', token: s.token || '', by: s.username || '', customer: slCust, result: slRes, note: document.getElementById('sl-note').value.trim() }) }).then(x => x.json());
+    if (!r.success) throw new Error(r.message || r.error || 'บันทึกไม่สำเร็จ');
+    slLog.push(r.row); slCloseCall(); slRender();
+  } catch (e) { err.textContent = '❌ ' + e.message; btn.disabled = false; btn.textContent = '💾 บันทึก'; }
+}
+// ════ /แท็บโทรตาม ════
+
+
 function stcGetSession() {
   try { return JSON.parse(sessionStorage.getItem('stic_session') || 'null'); } catch (e) { return null; }
 }
@@ -1971,6 +2124,7 @@ function stcShowApp(session) {
   document.getElementById('stcUserFullname').textContent = session.fullname || session.username;
   document.getElementById('stcUserRole').textContent = session.role;
   loadData();
+  slLoad(); // 2026-09-27: โหลดรายชื่อโทรตาม (เล็กมาก) เพื่อโชว์ตัวเลขบนแท็บ
 }
 
 function stcLogin() {

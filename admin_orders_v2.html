@@ -811,6 +811,57 @@ table.list tr:hover td{background:#f8fbff}
 .an-feat-sub{font-size:10.5px;color:#94a3b8}
 .cat-hdr-bar{height:28px;box-sizing:border-box;display:flex;align-items:center;font-size:11.5px;font-weight:700;color:white;padding:0 9px;border-radius:6px;margin:10px 0 5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 
+/* 2026-09-27: รายชื่อลูกค้าที่ควรโทรตาม (หน้าภาพรวม) — ธีมเหลืองเดียวกับแท็บวิเคราะห์ */
+#cl-wrap{margin-top:18px}
+.cl-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.cl-kpi{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 14px}
+.cl-kpi small{color:#92400e;font-weight:600;font-size:12.5px}
+.cl-kpi .v{font-size:22px;font-weight:700;margin:2px 0;color:#1e293b}
+.cl-kpi .d{font-size:12.5px;font-weight:600}
+.cl-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px}
+.cl-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.cl-top h3{margin:0;font-size:16px;color:#1a3a5c}
+.cl-sub{color:#64748b;font-size:12.5px}
+.cl-flt{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.cl-flt button{font-family:inherit;border:1px solid #e2e8f0;background:#fff;border-radius:999px;padding:4px 12px;font-size:12.5px;cursor:pointer;color:#334155}
+.cl-flt button.on{background:#1a3a5c;color:#fff;border-color:#1a3a5c}
+.cl-flt .cl-pr{border-radius:6px;border-color:#1a3a5c;color:#1a3a5c;font-weight:600}
+.cl-scroll{overflow-x:auto}
+.cl-tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:860px}
+.cl-tbl th{background:#f1f5f9;text-align:left;padding:8px;font-weight:600;color:#334155;border-bottom:1px solid #e2e8f0;white-space:nowrap}
+.cl-tbl td{padding:9px 8px;border-bottom:1px solid #eef2f7;vertical-align:top}
+.cl-tbl td.n,.cl-tbl th.n{text-align:right;white-space:nowrap}
+.cl-pri{display:inline-block;border-radius:6px;padding:2px 8px;font-weight:700;font-size:12px;white-space:nowrap}
+.cl-p-decline{background:#ffedd5;color:#c2410c}.cl-p-lost{background:#fef9c3;color:#854d0e}.cl-p-silent{background:#fee2e2;color:#b91c1c}
+.cl-cust{font-weight:700;color:#1e293b}
+.cl-last{color:#64748b;font-size:12px}
+.cl-why b{color:#b91c1c}
+.cl-why .s{color:#64748b;font-size:12px;display:block}
+.cl-chip{display:inline-block;background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:6px;padding:1px 8px;font-size:12px;margin:1px 3px 2px 0;white-space:nowrap}
+.cl-chip i{font-style:normal;color:#64748b;font-weight:400}
+.cl-low{display:inline-block;font-size:11px;color:#64748b;border:1px dashed #cbd5e1;border-radius:4px;padding:0 5px;margin-left:4px;font-weight:400}
+.cl-btn-call{font-family:inherit;border:1px solid #16a34a;background:#f0fdf4;color:#166534;border-radius:999px;padding:3px 12px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.cl-prev{max-width:180px;margin-top:5px;font-size:11.5px;color:#64748b;line-height:1.4}
+.cl-done{margin-top:12px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}
+.cl-done summary{padding:8px 12px;cursor:pointer;font-weight:600;color:#334155;font-size:13px}
+.cl-done .cl-tbl{min-width:640px}
+.cl-foot{color:#64748b;font-size:12px;margin-top:10px;line-height:1.6}
+.cl-empty{padding:18px;text-align:center;color:#64748b}
+.cl-ovl{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;z-index:3000;padding:16px}
+.cl-modal{width:400px;max-width:100%;background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.25);overflow:hidden}
+.cl-modal h4{margin:0;padding:12px 16px;background:#1a3a5c;color:#fff;font-size:15px}
+.cl-modal .bd{padding:14px 16px}
+.cl-modal label{font-size:12.5px;color:#334155;font-weight:600;display:block;margin:8px 0 4px}
+.cl-opts{display:flex;flex-wrap:wrap;gap:6px}
+.cl-opts button{font-family:inherit;border:1px solid #e2e8f0;background:#fff;border-radius:999px;padding:4px 11px;font-size:12.5px;cursor:pointer}
+.cl-opts button.sel{background:#1a3a5c;color:#fff;border-color:#1a3a5c}
+.cl-modal textarea{width:100%;box-sizing:border-box;font-family:inherit;font-size:13px;border:1px solid #cbd5e1;border-radius:6px;padding:6px 8px;height:60px}
+.cl-modal .ft{display:flex;justify-content:flex-end;gap:8px;padding:10px 16px;border-top:1px solid #e2e8f0}
+.cl-modal .ft button{font-family:inherit;border-radius:6px;padding:5px 14px;font-size:13px;cursor:pointer;border:1px solid #e2e8f0;background:#fff}
+.cl-modal .ft .ok{background:#16a34a;color:#fff;border-color:#16a34a;font-weight:600}
+.cl-modal .err{color:#b91c1c;font-size:12.5px;margin-top:6px}
+@media(max-width:760px){.cl-kpis{grid-template-columns:1fr}}
+@media print{#cl-wrap{display:none!important}}
 </style>
 </head>
 <body class="not-logged-in">
@@ -1004,6 +1055,8 @@ table.list tr:hover td{background:#f8fbff}
         <div class="ov-card amber"><div class="val" id="ov-low">—</div><div class="lbl">สต็อคต่ำ (&lt;20)</div></div>
         <div class="ov-card red"><div class="val" id="ov-out">—</div><div class="lbl">หมดสต็อค</div></div>
       </div>
+      <!-- 2026-09-27: รายชื่อลูกค้าที่ควรโทรตาม (render โดย clRefresh() หลังโหลดออเดอร์เสร็จ) -->
+      <div id="cl-wrap"></div>
     </div>
   </div>
 
@@ -2366,6 +2419,312 @@ function renderItemHistoryReport(data) {
 }
 
 // ── ภาพรวม ────────────────────────────────────────────────────
+// ════ 2026-09-27: รายชื่อลูกค้าที่ควรโทรตาม (หน้าภาพรวม) ════════════════════════════
+// คำนวณในหน้านี้จาก historyData (ออเดอร์ยืนยันแล้ว — โหลดไว้แล้วตั้งแต่ login ผ่าน loadAll→loadHistory) + pendingOrders
+// ใช้ getRevenuePerUnit()/anPDate()/anVCategory()/anMergedCust() ตัวเดียวกับแท็บวิเคราะห์ — ไม่ดึงออเดอร์ซ้ำ
+// (ต้นเหตุที่แท็บวิเคราะห์ช้าคือ anLoadData() ดึง getStock+getOrders ใหม่ทั้งก้อนแล้ววาดทุกการ์ด — ส่วนนี้ไม่ทำแบบนั้น)
+// โหลดเพิ่มแค่ getSalesBaseline (ยอดบัญชี ~661 แถว) + getCallLog (บันทึกการโทร) ครั้งเดียวต่อการเปิดหน้า
+// ผลคำนวณ (ไม่มีตัวเลขเงิน) ส่งไปเก็บชีท call_list วันละครั้งต่อเบราว์เซอร์ ให้หน้า sales_grid_v2.html อ่าน
+const CL_DECLINE_PCT = 0.30;   // 🟠 สั่งน้อยลง: ยอดเดือนนี้ (ณ วันเดียวกันของเดือน) ต่ำกว่าค่าเฉลี่ยของลูกค้าเอง ≥30%
+const CL_DECLINE_MIN_DAY = 7;  //    เริ่มเช็คตั้งแต่วันที่ 7 ของเดือน (ต้นเดือนยอดน้อยเกินจะเทียบได้)
+const CL_DECLINE_MIN_AVG = 5000; //  ข้ามลูกค้าที่ค่าเฉลี่ย <5,000/เดือน
+const CL_DECLINE_MAX_GAP = 10; //  เช็คเฉพาะลูกค้าสั่งถี่ (รอบปกติ ≤10 วัน) — ลูกค้าสั่งเดือนละ 1–2 ครั้ง กลางเดือนยอดยังเป็น 0 จะดูเหมือนยอดตกผิดๆ ให้ดูแค่ "เงียบไปนาน" (user ยืนยัน 2026-09-27)
+const CL_LOST_PCT = 0.70;      // 🟡 หมวดหาย: หมวดที่ปี 68 เคยซื้อ ≥CL_LOST_MIN/เดือน ตอนนี้ลดลง ≥70%
+const CL_LOST_MIN = 10000;
+const CL_SILENT_MULT = 2;      // 🔴 เงียบไปนาน: ไม่สั่งเกิน 2 เท่าของรอบปกติ (อย่างน้อย 7 วัน; สั่งมาครั้งเดียว = 30 วัน)
+const CL_HIDE_DAYS = 7;        // กด "โทรแล้ว" → ซ่อนจากรายการ 7 วัน
+const CL_KPI_USERS = ['wint']; // Warehouse ที่เห็นตัวเลขยอดขาย 3 ช่อง (Admin เห็นทุกคน) — user ยืนยัน 2026-09-27
+const CL_RESULTS = ['จะสั่งเร็วๆ นี้', 'งานน้อยช่วงนี้', 'ไปซื้อที่อื่น', 'ติดต่อไม่ได้', 'อื่นๆ'];
+const CL_STATUS = { decline: { label: '🟠 สั่งน้อยลง', ord: 0 }, lost: { label: '🟡 หมวดหาย', ord: 1 }, silent: { label: '🔴 เงียบไปนาน', ord: 2 } };
+let clBase = null, clLog = null, clLoading = false, clResult = null, clFilter = 'all', clModalCust = '', clModalRes = '';
+
+function clFmt(n) { return Math.round(n).toLocaleString('en-US'); }
+function clMB(n) { return (n / 1e6).toFixed(2) + ' ลบ.'; }
+function clYmd(d) { return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
+function clDay0(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function clODate(o) { return (o.timestamp ? anPDate({ timestamp: o.timestamp }) : null) || anPDate(o); } // วันที่สั่ง (คอลัมน์ A) ใช้หารอบการสั่ง
+function clThaiD(d) { return d.getDate() + ' ' + AN_THAI_M[d.getMonth()]; }
+function clEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function clMonLbl(k) { return AN_THAI_M[k % 12] + String(Math.floor(k / 12) + 543).slice(-2); }
+function clMonRange(a, b) { return a === b ? clMonLbl(a) : AN_THAI_M[a % 12] + (Math.floor(a / 12) !== Math.floor(b / 12) ? String(Math.floor(a / 12) + 543).slice(-2) : '') + '–' + clMonLbl(b); }
+function clCanSeeKpi() { const s = stcGetSession(); return !!s && (s.role === 'Admin' || CL_KPI_USERS.indexOf(s.username) !== -1); }
+
+async function clRefresh() {
+  const wrap = document.getElementById('cl-wrap'); if (!wrap) return;
+  if (!clBase || !clLog) {
+    if (clLoading) return;
+    clLoading = true;
+    if (!clResult) wrap.innerHTML = '<div class="cl-card cl-empty">⏳ กำลังเตรียมรายชื่อลูกค้าที่ควรโทรตาม...</div>';
+    try {
+      const [b, l] = await Promise.all([
+        fetch(API + '?action=getSalesBaseline').then(r => r.json()).catch(() => ({ rows: [] })),
+        fetch(API + '?action=getCallLog').then(r => r.json()).catch(() => ({ rows: [] }))
+      ]);
+      clBase = {};
+      (b.rows || []).forEach(r => {
+        const [c, p, cat, v] = r; if (!c || !cat) return;
+        ((clBase[c] = clBase[c] || {})[String(p)] = clBase[c][String(p)] || {})[cat] = Number(v) || 0;
+      });
+      clLog = l.rows || [];
+    } finally { clLoading = false; }
+  }
+  try {
+    clResult = clCompute(new Date());
+    clRender();
+    clPushSnapshot();
+  } catch (e) {
+    console.error('call list error', e);
+    wrap.innerHTML = '<div class="cl-card cl-empty">❌ คำนวณรายชื่อโทรตามไม่ได้: ' + clEsc(e.message) + '</div>';
+  }
+}
+
+function clCompute(now) {
+  const today = clDay0(now), curKey = now.getFullYear() * 12 + now.getMonth(), prevKey = curKey - 1;
+  const day = now.getDate(), dim = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), todayYmd = clYmd(now);
+  const itemMap = {};
+  (allItems || []).forEach(it => { itemMap[String(it.code || '').padStart(8, '0')] = it; });
+  const C = {};
+  const get = n => C[n] || (C[n] = { name: n, days: {}, last: null, first: null, mon: {}, cat: {}, today: false });
+  let mtd = 0, prevSame = 0;
+  const monTot = {};
+  (historyData || []).forEach(o => {
+    if (String(o.status) !== 'confirmed') return;
+    const name = anMergedCust(String(o.customer || '').trim()); if (!name) return;
+    const c = get(name);
+    const od = clODate(o);
+    if (od && !isNaN(od)) {
+      const k = clYmd(od); c.days[k] = clDay0(od);
+      if (!c.last || od > c.last) c.last = od;
+      if (k === todayYmd) c.today = true;
+    }
+    const rd = anPDate(o); if (!rd || isNaN(rd)) return;
+    const key = rd.getFullYear() * 12 + rd.getMonth();
+    if (c.first === null || key < c.first) c.first = key;
+    const code = String(o.code || '').padStart(8, '0'), it = itemMap[code];
+    const per = it ? getRevenuePerUnit(it.type || '', it.col, it.row, o.disc_pct, o.net_price, o.plating) : null;
+    if (per === null || isNaN(per)) return;
+    const amt = per * (Number(o.qty) || 0);
+    c.mon[key] = (c.mon[key] || 0) + amt;
+    monTot[key] = (monTot[key] || 0) + amt;
+    const cat = anVCategory(it.type || '');
+    (c.cat[cat] = c.cat[cat] || {})[key] = (c.cat[cat][key] || 0) + amt;
+    if (key === curKey) mtd += amt;
+    if (key === prevKey && rd.getDate() <= day) prevSame += amt;
+  });
+  // ออเดอร์รอยืนยัน: นับเป็น "สั่งล่าสุด" ด้วย (ลูกค้าสั่งแล้ว แค่ยังไม่ยืนยัน = ไม่ได้เงียบ)
+  (pendingOrders || []).forEach(o => {
+    const name = anMergedCust(String(o.customer || '').trim()); if (!name || !C[name]) return;
+    const od = clODate(o); if (!od || isNaN(od)) return;
+    const c = C[name];
+    if (!c.last || od > c.last) c.last = od;
+    if (clYmd(od) === todayYmd) c.today = true;
+  });
+
+  const items = [];
+  let custMonth = 0, active = 0;
+  const monStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  Object.values(C).forEach(c => {
+    const dayList = Object.values(c.days).sort((a, b) => a - b);
+    if (!dayList.length || !c.last) return;
+    const since = Math.round((today - clDay0(c.last)) / 864e5);
+    if (since <= 92) active++;
+    if ((c.mon[curKey] || 0) > 0 || c.last >= monStart) custMonth++;
+    if (c.today) return; // มีออเดอร์เข้ามาวันนี้แล้ว — ไม่ต้องโทร
+    // ค่าเฉลี่ย/เดือน: เดือนที่จบแล้ว ตั้งแต่เดือนแรกที่ลูกค้าคนนี้สั่ง (ไม่ก่อน ก.ค.69) — กติกาเดียวกับคอลัมน์เฉลี่ยใน heatmap
+    const from = Math.max(c.first === null ? curKey : c.first, AN_WEB_START_KEY);
+    const n = Math.max(0, curKey - from);
+    let sum = 0; for (let k = from; k < curKey; k++) sum += c.mon[k] || 0;
+    const avg = n ? sum / n : 0;
+    const gaps = [];
+    for (let i = 1; i < dayList.length; i++) gaps.push(Math.round((dayList[i] - dayList[i - 1]) / 864e5));
+    gaps.sort((a, b) => a - b);
+    const gap = gaps.length ? Math.round(gaps.length % 2 ? gaps[(gaps.length - 1) / 2] : (gaps[gaps.length / 2 - 1] + gaps[gaps.length / 2]) / 2) : null;
+    const low = dayList.length < 4;
+    const silentThr = gap !== null ? Math.max(CL_SILENT_MULT * gap, 7) : 30;
+    const b68 = ((clBase || {})[c.name] || {})['68'] || {};
+    const lost = [];
+    if (n) AN_VCAT_ORDER.forEach(cat => {
+      if (cat === 'อื่นๆ') return;
+      const b = b68[cat] || 0; if (b < CL_LOST_MIN) return;
+      let w = 0; for (let k = from; k < curKey; k++) w += (c.cat[cat] || {})[k] || 0;
+      w /= n;
+      if (w <= b * (1 - CL_LOST_PCT)) lost.push({ cat, b, w, pct: (w - b) / b });
+    });
+    lost.sort((a, b) => b.b - a.b);
+    const mtdC = c.mon[curKey] || 0, expected = avg * day / dim, nLbl = n ? clMonRange(from, curKey - 1) : '';
+    let s = null, main = '', sub = '', subSale = '';
+    if (since >= silentThr) {
+      s = 'silent';
+      main = 'ไม่สั่งมา <b>' + since + ' วัน</b>';
+      sub = gap !== null && gap > 0 ? 'ปกติสั่งทุก ~' + gap + ' วัน' + (since / gap >= 2 ? ' (ขาดไป ' + Math.floor(since / gap) + ' รอบ)' : '') : 'สั่งมาแค่ ' + dayList.length + ' ครั้ง';
+      if (low && gap !== null) sub += ' · สั่งมาแค่ ' + dayList.length + ' ครั้ง รอบยังไม่แน่นอน';
+      subSale = sub;
+    } else if (n && gap !== null && gap <= CL_DECLINE_MAX_GAP && day >= CL_DECLINE_MIN_DAY && avg >= CL_DECLINE_MIN_AVG && mtdC < expected * (1 - CL_DECLINE_PCT)) {
+      s = 'decline';
+      main = 'เดือนนี้ <b>−' + Math.round((1 - mtdC / expected) * 100) + '%</b> จากค่าเฉลี่ยตัวเอง';
+      sub = 'ปกติ ~' + clFmt(avg) + '/เดือน (' + nLbl + ') · เดือนนี้ถึงวันนี้ ' + clFmt(mtdC) + ' (ควรได้ ~' + clFmt(expected) + ')';
+      subSale = 'เทียบ ณ วันเดียวกันของเดือน กับค่าเฉลี่ย ' + nLbl;
+    } else if (lost.length) {
+      s = 'lost';
+      const L = lost[0];
+      main = 'ยังสั่งอยู่ แต่ <b>' + (L.w <= 0 ? 'เลิกซื้อ' + L.cat : L.cat + ' ลดลง ' + Math.round(-L.pct * 100) + '%') + '</b>' + (lost.length > 1 ? ' (+' + (lost.length - 1) + ' หมวด)' : '');
+      sub = 'ปี 68 ~' + clFmt(L.b) + '/ด. · ' + nLbl + ' ~' + clFmt(L.w) + '/ด.';
+      subSale = 'เทียบค่าเฉลี่ยปี 68 กับ ' + nLbl;
+    }
+    if (!s) return;
+    let offers = lost.slice(0, 3).map(L => ({ cat: L.cat, note: 'ปี68 ~' + clFmt(L.b) + '/ด.' }));
+    if (!offers.length) {
+      const tot = {};
+      Object.entries(c.cat).forEach(([cat, mm]) => { if (cat !== 'อื่นๆ') tot[cat] = Object.values(mm).reduce((a, v) => a + v, 0); });
+      offers = Object.entries(tot).filter(e => e[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([cat]) => ({ cat, note: 'ซื้อประจำ' }));
+    }
+    const val = avg || Object.values(b68).reduce((a, v) => a + v, 0);
+    items.push({ c: c.name, s, main, sub, subSale, offers, last: c.last, low, val });
+  });
+  items.sort((a, b) => CL_STATUS[a.s].ord - CL_STATUS[b.s].ord || b.val - a.val);
+  const last3 = [1, 2, 3].map(i => curKey - i).filter(k => k >= AN_WEB_START_KEY);
+  const avg3 = last3.length ? last3.reduce((a, k) => a + (monTot[k] || 0), 0) / last3.length : 0;
+  return { items, kpi: { mtd, prevSame, forecast: mtd / day * dim, avg3, avg3n: last3.length, custMonth, active, curKey, day }, at: now };
+}
+
+function clLastCalls() {
+  const m = {};
+  (clLog || []).forEach(r => {
+    const t = new Date(r[0]); if (isNaN(t)) return;
+    const c = anMergedCust(r[1]);
+    if (!m[c] || t > m[c].t) m[c] = { t, res: r[2], note: r[3], by: r[4] };
+  });
+  return m;
+}
+
+function clSplit() {
+  const hideFrom = new Date(Date.now() - CL_HIDE_DAYS * 864e5);
+  const lc = clLastCalls(), list = [], done = [];
+  clResult.items.forEach(it => { const x = lc[it.c]; if (!(x && x.t >= hideFrom)) list.push(Object.assign({ lc: x }, it)); });
+  Object.entries(lc).forEach(([c, x]) => { if (x.t >= hideFrom) done.push({ c, lc: x }); });
+  done.sort((a, b) => b.lc.t - a.lc.t);
+  return { list, done };
+}
+
+function clRender() {
+  const wrap = document.getElementById('cl-wrap'); if (!wrap || !clResult) return;
+  const { list, done } = clSplit();
+  const K = clResult.kpi, cnt = { decline: 0, lost: 0, silent: 0 };
+  list.forEach(it => cnt[it.s]++);
+  if (clFilter !== 'all' && !cnt[clFilter]) clFilter = 'all';
+  let h = '';
+  if (clCanSeeKpi()) {
+    const pm = AN_THAI_M[(K.curKey - 1) % 12];
+    const pct = K.prevSame ? (K.mtd / K.prevSame - 1) * 100 : null;
+    const d1 = pct === null ? '<span class="d" style="color:#64748b">ยังไม่มียอดเดือนก่อนให้เทียบ</span>'
+      : '<span class="d" style="color:' + (pct >= 0 ? '#166534' : '#b91c1c') + '">' + (pct >= 0 ? '▲ ' : '▼ ') + Math.abs(Math.round(pct)) + '% เทียบ ' + pm + ' ณ วันเดียวกัน</span>';
+    h += '<div class="cl-kpis">' +
+      '<div class="cl-kpi"><small>ยอดขาย ' + clMonLbl(K.curKey) + ' (ถึง ' + K.day + ' ' + AN_THAI_M[K.curKey % 12] + ')</small><div class="v">' + clMB(K.mtd) + '</div>' + d1 + '</div>' +
+      '<div class="cl-kpi"><small>คาดการณ์ทั้งเดือน</small><div class="v">≈ ' + clMB(K.forecast) + '</div><span class="d" style="color:#64748b">' + (K.avg3n ? 'ค่าเฉลี่ย ' + K.avg3n + ' เดือนที่ผ่านมา ' + clMB(K.avg3) : 'คิดจากความเร็วขายเดือนนี้') + '</span></div>' +
+      '<div class="cl-kpi"><small>ลูกค้าที่สั่งเดือนนี้</small><div class="v">' + K.custMonth + ' / ' + K.active + ' ราย</div><span class="d" style="color:' + (list.length ? '#b91c1c' : '#166534') + '">' + (list.length ? 'ต้องโทรตาม ' + list.length + ' ราย ↓' : 'ไม่มีลูกค้าที่ต้องโทรตาม') + '</span></div>' +
+      '</div>';
+  }
+  const shown = list.filter(it => clFilter === 'all' || it.s === clFilter);
+  h += '<div class="cl-card"><div class="cl-top"><div><h3>📞 ลูกค้าที่ควรโทรตาม · ' + list.length + ' ราย</h3>' +
+    '<span class="cl-sub">เรียง: 🟠 สั่งน้อยลง → 🟡 หมวดหาย → 🔴 เงียบไปนาน · ในแต่ละกลุ่ม ลูกค้ายอดเฉลี่ย/เดือนสูงขึ้นก่อน</span></div>' +
+    '<div class="cl-flt">' +
+    '<button class="' + (clFilter === 'all' ? 'on' : '') + '" onclick="clSetFilter(\'all\')">ทั้งหมด ' + list.length + '</button>' +
+    ['decline', 'lost', 'silent'].map(k => '<button class="' + (clFilter === k ? 'on' : '') + '" onclick="clSetFilter(\'' + k + '\')">' + CL_STATUS[k].label + ' ' + cnt[k] + '</button>').join('') +
+    '<button class="cl-pr" onclick="clPrint()">🖨️ พิมพ์รายชื่อ</button></div></div>';
+  if (!shown.length) {
+    h += '<div class="cl-empty">✅ ตอนนี้ไม่มีลูกค้าที่ต้องโทรตาม</div>';
+  } else {
+    h += '<div class="cl-scroll"><table class="cl-tbl"><tr><th>ความเร่ง</th><th>ลูกค้า</th><th>ทำไมต้องโทร</th><th>ควรเสนอ</th><th class="n">ยอดเฉลี่ย/เดือน</th><th>การโทร</th></tr>' +
+      shown.map(it => '<tr><td><span class="cl-pri cl-p-' + it.s + '">' + CL_STATUS[it.s].label + '</span></td>' +
+        '<td><span class="cl-cust">' + clEsc(it.c) + '</span>' + (it.low ? '<span class="cl-low">ข้อมูลน้อย</span>' : '') + '<br><span class="cl-last">สั่งล่าสุด ' + clThaiD(it.last) + '</span></td>' +
+        '<td class="cl-why">' + it.main + '<span class="s">' + clEsc(it.sub) + '</span></td>' +
+        '<td>' + it.offers.map(o => '<span class="cl-chip">' + clEsc(o.cat) + ' <i>' + clEsc(o.note) + '</i></span>').join('') + '</td>' +
+        '<td class="n"><b>' + (it.val ? clFmt(it.val) : '–') + '</b></td>' +
+        '<td><button class="cl-btn-call" data-c="' + clEsc(it.c) + '" onclick="clOpenCall(this.dataset.c)">✓ โทรแล้ว</button>' +
+        (it.lc ? '<div class="cl-prev">โทรครั้งก่อน ' + clThaiD(it.lc.t) + ' · ' + clEsc(it.lc.by) + '<br>' + clEsc(it.lc.res) + (it.lc.note ? ' — "' + clEsc(it.lc.note) + '"' : '') + '</div>' : '') +
+        '</td></tr>').join('') + '</table></div>';
+  }
+  if (done.length) {
+    h += '<details class="cl-done"><summary>✓ โทรแล้วใน ' + CL_HIDE_DAYS + ' วันที่ผ่านมา · ' + done.length + ' ราย (ซ่อนจากรายการด้านบนจนครบ ' + CL_HIDE_DAYS + ' วัน)</summary>' +
+      '<div class="cl-scroll" style="padding:0 12px 10px"><table class="cl-tbl"><tr><th>วันที่โทร</th><th>ลูกค้า</th><th>ผลการโทร</th><th>บันทึก</th><th>โดย</th><th class="n">กลับมาในรายการ</th></tr>' +
+      done.map(d => '<tr><td>' + clThaiD(d.lc.t) + '</td><td class="cl-cust">' + clEsc(d.c) + '</td><td><span class="cl-chip">' + clEsc(d.lc.res) + '</span></td><td>' + clEsc(d.lc.note) + '</td><td>' + clEsc(d.lc.by) + '</td><td class="n">' + clThaiD(new Date(d.lc.t.getTime() + CL_HIDE_DAYS * 864e5)) + '</td></tr>').join('') +
+      '</table></div></details>';
+  }
+  h += '<div class="cl-foot">🟠 <b>สั่งน้อยลง</b> = ยอดเดือนนี้ต่ำกว่าค่าเฉลี่ยของลูกค้าเอง ณ วันเดียวกันของเดือน ≥' + Math.round(CL_DECLINE_PCT * 100) + '% (เฉพาะลูกค้าที่ปกติสั่งทุก ≤' + CL_DECLINE_MAX_GAP + ' วัน · เริ่มเช็ควันที่ ' + CL_DECLINE_MIN_DAY + ' ของเดือน) · ' +
+    '🟡 <b>หมวดหาย</b> = หมวดที่ปี 68 เคยซื้อ ≥' + clFmt(CL_LOST_MIN) + '/เดือน ตอนนี้ลดลง ≥' + Math.round(CL_LOST_PCT * 100) + '% · ' +
+    '🔴 <b>เงียบไปนาน</b> = ไม่สั่งเกิน ' + CL_SILENT_MULT + ' เท่าของรอบปกติ (อย่างน้อย 7 วัน)<br>' +
+    '<span class="cl-low" style="margin:0">ข้อมูลน้อย</span> = สั่งมาน้อยกว่า 4 ครั้ง ระบบยังเดารอบไม่แม่น · ลูกค้าที่มีออเดอร์เข้ามาวันนี้ไม่แสดง · ยอดคิดจากออเดอร์ที่ยืนยันแล้ว · หมวดกิโล/ตัวใหญ่ปี 68 เป็นค่าประมาณจากการแบ่งสัดส่วน</div></div>';
+  wrap.innerHTML = h;
+}
+
+function clSetFilter(k) { clFilter = k; clRender(); }
+
+function clOpenCall(cust) {
+  clCloseCall();
+  clModalCust = cust; clModalRes = '';
+  const d = document.createElement('div');
+  d.className = 'cl-ovl'; d.id = 'cl-ovl';
+  d.innerHTML = '<div class="cl-modal"><h4>✓ บันทึกการโทร · ' + clEsc(cust) + '</h4><div class="bd"><label>ลูกค้าตอบว่า</label><div class="cl-opts">' +
+    CL_RESULTS.map(r => '<button type="button" onclick="clPickRes(this)">' + r + '</button>').join('') +
+    '</div><label>จดสั้นๆ (ไม่บังคับ)</label><textarea id="cl-note" maxlength="200" placeholder="เช่น สิ้นเดือนจะสั่ง M10"></textarea><div class="err" id="cl-err"></div></div>' +
+    '<div class="ft"><button type="button" onclick="clCloseCall()">ยกเลิก</button><button type="button" class="ok" id="cl-save" onclick="clSaveCall()">💾 บันทึก</button></div></div>';
+  d.addEventListener('click', e => { if (e.target === d) clCloseCall(); });
+  document.body.appendChild(d);
+}
+function clPickRes(btn) {
+  document.querySelectorAll('#cl-ovl .cl-opts button').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel'); clModalRes = btn.textContent;
+}
+function clCloseCall() { const o = document.getElementById('cl-ovl'); if (o) o.remove(); }
+async function clSaveCall() {
+  const err = document.getElementById('cl-err'), btn = document.getElementById('cl-save');
+  if (!clModalRes) { err.textContent = 'กรุณาเลือกว่าลูกค้าตอบว่าอะไร'; return; }
+  const s = stcGetSession() || {};
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...'; err.textContent = '';
+  try {
+    const r = await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'saveCallLog', token: s.token || '', by: s.username || '', customer: clModalCust, result: clModalRes, note: document.getElementById('cl-note').value.trim() }) }).then(x => x.json());
+    if (!r.success) throw new Error(r.message || r.error || 'บันทึกไม่สำเร็จ');
+    (clLog = clLog || []).push(r.row);
+    clCloseCall(); clRender();
+  } catch (e) {
+    err.textContent = '❌ ' + e.message;
+    btn.disabled = false; btn.textContent = '💾 บันทึก';
+  }
+}
+
+function clPrint() {
+  if (!clResult) return;
+  const list = clSplit().list.filter(it => clFilter === 'all' || it.s === clFilter);
+  const now = new Date();
+  const rows = list.map((it, i) => '<tr><td>' + (i + 1) + '</td><td>' + CL_STATUS[it.s].label.replace(/^\S+\s/, '') + '</td><td><b>' + clEsc(it.c) + '</b><br><small>สั่งล่าสุด ' + clThaiD(it.last) + '</small></td>' +
+    '<td>' + it.main + '<br><small>' + clEsc(it.sub) + '</small></td><td>' + it.offers.map(o => clEsc(o.cat)).join(', ') + '</td><td></td></tr>').join('');
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>รายชื่อลูกค้าที่ควรโทรตาม</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet"><style>' +
+    'body{font-family:Sarabun,sans-serif;font-size:12px;color:#000;margin:12mm}h2{font-size:16px;margin:0 0 8px;display:flex;justify-content:space-between}' +
+    'table{width:100%;border-collapse:collapse}th{background:#000;color:#fff;padding:5px;text-align:left;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    'td{border:1px solid #999;padding:5px;vertical-align:top}td:last-child{width:28%}small{color:#444}' +
+    '</style></head><body><h2><span>รายชื่อลูกค้าที่ควรโทรตาม</span><span style="font-weight:400;font-size:12px">' + now.getDate() + '/' + (now.getMonth() + 1) + '/' + (now.getFullYear() + 543) + '</span></h2>' +
+    '<table><tr><th>#</th><th>สถานะ</th><th>ลูกค้า</th><th>ทำไมต้องโทร</th><th>ควรเสนอ</th><th>ผลการโทร (จดมือ)</th></tr>' + (rows || '<tr><td colspan="6">ไม่มีรายการ</td></tr>') + '</table>' +
+    '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>');
+  w.document.close();
+}
+
+// ส่งผลคำนวณ (ไม่มีตัวเลขเงิน) ไปเก็บให้หน้า Sale — ครั้งเดียวต่อวันต่อเบราว์เซอร์
+function clPushSnapshot() {
+  const s = stcGetSession();
+  if (!s || (s.role !== 'Admin' && s.role !== 'Warehouse') || !clResult) return;
+  const key = 'cl_push_' + clYmd(new Date());
+  try { if (sessionStorage.getItem(key)) return; } catch (e) {}
+  const items = clResult.items.map(it => ({ c: it.c, s: it.s, m: it.main, sb: it.subSale, o: it.offers.map(o => o.cat), l: it.last.toISOString(), low: it.low }));
+  fetch(API, { method: 'POST', body: JSON.stringify({ action: 'saveCallList', token: s.token || '', by: s.username || '', items }) })
+    .then(r => r.json()).then(r => { if (r.success) { try { sessionStorage.setItem(key, '1'); } catch (e) {} } })
+    .catch(() => {});
+}
+// ════ /รายชื่อลูกค้าที่ควรโทรตาม ════
+
+
 async function loadOverview() {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 20000);
@@ -4492,6 +4851,7 @@ async function loadHistory(force) {
     historyData = (data.orders||[]).filter(o => o.status === 'confirmed' || o.status === 'rejected');
     historyLoaded = true;
     renderHistory();
+    clRefresh(); // 2026-09-27: รายชื่อโทรตามในหน้าภาพรวม — ใช้ historyData ชุดนี้ ไม่ดึงออเดอร์ซ้ำ
   } catch(e) {}
 }
 
