@@ -2569,7 +2569,6 @@ function clCompute(now) {
       main = 'ไม่สั่งมา <b>' + since + ' วัน</b>';
       if (gap !== null && gap > 0) {
         sub.push('ปกติสั่งทุก ~' + gap + ' วัน');
-        if (since / gap >= 2) sub.push('ขาดไป ' + Math.floor(since / gap) + ' รอบ');
         if (low) sub.push('สั่งมาแค่ ' + dayList.length + ' ครั้ง รอบยังไม่แน่นอน');
       } else sub.push('สั่งมาแค่ ' + dayList.length + ' ครั้ง');
       subSale = sub.slice();
