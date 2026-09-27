@@ -840,6 +840,13 @@ table.list tr:hover td{background:#f8fbff}
 .cl-ul{margin:3px 0 0;padding:0;list-style:none;color:#64748b;font-size:12.5px;line-height:1.55}
 .cl-ul li::before{content:"• ";color:#cbd5e1}
 .cl-offer{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+.cl-res-grid{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start}
+.cl-res{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:13.5px}
+.cl-res b{text-align:right}
+.cl-recent-h{font-size:12.5px;color:#64748b;font-weight:600;margin-bottom:4px}
+.cl-rc{display:grid;grid-template-columns:60px 1fr auto;gap:10px;padding:6px 0;border-bottom:1px solid #eef2f7;font-size:13.5px}
+.cl-rc:last-child{border-bottom:none}.cl-rc .d,.cl-rc .q{color:#64748b}.cl-rc .by{color:#64748b;font-size:12.5px}
+@media(max-width:760px){.cl-res-grid{grid-template-columns:1fr}}
 .cl-why .s{color:#64748b;font-size:12px;display:block}
 .cl-chip{display:inline-block;background:#fffbeb;border:1px solid #fde68a;color:#92400e;border-radius:6px;padding:1px 8px;font-size:12px;margin:1px 3px 2px 0;white-space:nowrap}
 .cl-chip i{font-style:normal;color:#64748b;font-weight:400}
@@ -2632,6 +2639,7 @@ function clRender() {
       '<div class="cl-kpi"><small>ลูกค้าที่สั่งเดือนนี้</small><div class="v">' + K.custMonth + ' / ' + K.active + ' ราย</div><span class="d" style="color:' + (list.length ? '#b91c1c' : '#166534') + '">' + (list.length ? 'ต้องโทรตาม ' + list.length + ' ราย ↓' : 'ไม่มีลูกค้าที่ต้องโทรตาม') + '</span></div>' +
       '</div>';
   }
+  h += clResultsHtml();
   const shown = list.filter(it => clFilter === 'all' || it.s === clFilter);
   h += '<div class="cl-card"><div class="cl-top"><div><h3>📞 ลูกค้าที่ควรโทรตาม · ' + list.length + ' ราย</h3>' +
     '<span class="cl-sub">เรียง: 🟠 สั่งน้อยลง → 🟡 หมวดหาย → 🔴 เงียบไปนาน · ในแต่ละกลุ่ม ลูกค้ายอดเฉลี่ย/เดือนสูงขึ้นก่อน</span></div>' +
@@ -2666,6 +2674,28 @@ function clRender() {
 }
 
 function clSetFilter(k) { clFilter = k; clRender(); }
+
+// 2026-09-27: การ์ด "ผลการโทร 7 วันล่าสุด" (user เลือกจาก mockup_sales_dashboard_v1 — เอาแค่ส่วนนี้)
+// นับทุกครั้งที่กดโทรแล้วใน 7 วัน (ไม่ใช่เฉพาะครั้งล่าสุดต่อลูกค้า) · ไม่มีตัวเลขเงิน
+const CL_RES_ICON = { 'จะสั่งเร็วๆ นี้': '🟢', 'งานน้อยช่วงนี้': '🟡', 'ไปซื้อที่อื่น': '🔴', 'ติดต่อไม่ได้': '⚪', 'อื่นๆ': '🔵' };
+function clResultsHtml() {
+  const from = new Date(Date.now() - CL_HIDE_DAYS * 864e5);
+  const rows = (clLog || []).map(r => ({ t: new Date(r[0]), c: r[1], res: r[2], note: r[3], by: r[4] || '-' }))
+    .filter(r => !isNaN(r.t) && r.t >= from).sort((a, b) => b.t - a.t);
+  let h = '<div class="cl-card" style="margin-bottom:14px"><div class="cl-top"><div><h3>☎️ ผลการโทร ' + CL_HIDE_DAYS + ' วันล่าสุด · ' + rows.length + ' ครั้ง</h3>' +
+    '<span class="cl-sub">นับทุกครั้งที่กด "✓ โทรแล้ว" ทั้งหน้านี้และหน้า Sale</span></div></div>';
+  if (!rows.length) return h + '<div class="cl-empty">ยังไม่มีการโทรใน ' + CL_HIDE_DAYS + ' วันที่ผ่านมา</div></div>';
+  const cnt = {}; CL_RESULTS.forEach(r => cnt[r] = 0);
+  rows.forEach(r => { cnt[r.res] = (cnt[r.res] || 0) + 1; });
+  h += '<div class="cl-res-grid"><div class="cl-res">' +
+    Object.keys(cnt).map(k => '<span>' + (CL_RES_ICON[k] || '•') + ' ' + clEsc(k) + '</span><b>' + cnt[k] + '</b>').join('') + '</div>' +
+    // 2026-09-27: user ตัดตารางคนโทร/จำนวนออก → โชว์รายการโทรล่าสุด 5 ครั้งแทน (mockup_call_results_v2)
+    '<div><div class="cl-recent-h">โทรล่าสุด ' + Math.min(5, rows.length) + ' ครั้ง</div>' +
+    rows.slice(0, 5).map(r => '<div class="cl-rc"><span class="d">' + clThaiD(r.t) + '</span><span><b>' + clEsc(r.c) + '</b> — ' + (CL_RES_ICON[r.res] || '•') + ' ' + clEsc(r.res) +
+      (r.note ? ' <span class="q">"' + clEsc(r.note) + '"</span>' : '') + '</span><span class="by">' + clEsc(r.by) + '</span></div>').join('') +
+    '</div></div></div>';
+  return h;
+}
 
 function clOpenCall(cust) {
   clCloseCall();
