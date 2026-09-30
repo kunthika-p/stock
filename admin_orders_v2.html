@@ -5829,12 +5829,8 @@ function ppActHtml(it) {
   const out = it.out || {}, rcv = it.rcv || {};
   const units = [...new Set([...Object.keys(out), ...Object.keys(rcv)])].filter(u => (Number(out[u]) || 0) + (Number(rcv[u]) || 0) > 0);
   if (!units.length) return '<span style="color:#94a3b8;font-weight:400">0</span>';
-  const multi = units.length > 1, us = u => multi ? ' ' + ppUnitShort(u) : '';
   const main = units.map(u => ((Number(out[u]) || 0) + (Number(rcv[u]) || 0)) + ' ' + anEsc(ppUnitShort(u))).join(' + ');
-  const src = [];
-  units.forEach(u => { if (out[u] > 0) src.push('แปลงบรรจุ ' + out[u] + anEsc(us(u))); });
-  units.forEach(u => { if (rcv[u] > 0) src.push('รับเข้า ' + rcv[u] + anEsc(us(u))); });
-  return main + '<div style="font-size:10.5px;color:#94a3b8;font-weight:400">' + src.join(' + ') + '</div>';
+  return main;
 }
 function ppHistItemSt(it) {
   if (ppRcvTotal(it) > 0) return { k: 'ok', t: '✅ ครบ' };
@@ -5854,12 +5850,19 @@ function ppHistMatch(it, q) {
   return it.code.replace(/^0+/, '').startsWith(qs) || it.code.includes(q) || ppHistName(it).toLowerCase().includes(q.toLowerCase());
 }
 function ppHistToggle(no) { ppHistOpen.has(no) ? ppHistOpen.delete(no) : ppHistOpen.add(no); ppRenderHist(); }
-function ppHistClear() { ['pp-f-from', 'pp-f-to', 'pp-f-q'].forEach(i => document.getElementById(i).value = ''); document.getElementById('pp-f-st').value = ''; ppRenderHist(); }
+// 2026-09-30c: ค่าเริ่มต้นซ่อนใบที่บรรจุครบแล้ว (ข้อมูลยังอยู่ครบในชีท pack_plans) — ค้นด้วยวันที่/สินค้า/สถานะ = ค้นทุกใบรวมที่ครบแล้ว
+let ppHistShowAll = false;
+function ppHistToggleAll() { ppHistShowAll = !ppHistShowAll; ppRenderHist(); }
+function ppHistClear() { ppHistShowAll = false; ['pp-f-from', 'pp-f-to', 'pp-f-q'].forEach(i => document.getElementById(i).value = ''); document.getElementById('pp-f-st').value = ''; ppRenderHist(); }
 
 function ppRenderHist() {
   const from = document.getElementById('pp-f-from').value, to = document.getElementById('pp-f-to').value;
   const q = document.getElementById('pp-f-q').value.trim(), st = document.getElementById('pp-f-st').value;
+  const searching = !!(from || to || q || st);
+  const hideDone = !searching && !ppHistShowAll;
+  const doneCnt = ppPlansCache.filter(p => ppHistDone(p) === p.items.length).length;
   const list = ppPlansCache.filter(p => {
+    if (hideDone && ppHistDone(p) === p.items.length) return false;
     const d = ppDayKey(p.created_at);
     if (from && d < from) return false;
     if (to && d > to) return false;
@@ -5870,12 +5873,14 @@ function ppRenderHist() {
     return true;
   });
   const hits = q ? list.reduce((s, p) => s + p.items.filter(it => ppHistMatch(it, q)).length, 0) : 0;
-  document.getElementById('pp-hsum').innerHTML = ppPlansCache.length
-    ? 'พบ <b>' + list.length + '</b> ใบ' + (q ? ' · มีสินค้าที่ค้นหา <b>' + hits + '</b> รายการ (ไฮไลท์สีเหลือง)' : '') + ' · เรียงจากใหม่ → เก่า'
-    : '';
+  const tgl = t => ' <button class="pp-btn pp-btn-ghost" style="padding:3px 10px;font-size:12px;margin-left:6px" onclick="ppHistToggleAll()">' + t + '</button>';
+  document.getElementById('pp-hsum').innerHTML = !ppPlansCache.length ? '' :
+    hideDone
+      ? 'แสดงเฉพาะใบที่ยังบรรจุไม่ครบ <b>' + list.length + '</b> ใบ' + (doneCnt ? ' · ซ่อนใบที่บรรจุครบแล้ว <b>' + doneCnt + '</b> ใบ (ค้นด้วยวันที่/สินค้าเพื่อดูย้อนหลัง)' + tgl('📂 ดูทั้งหมด') : '')
+      : 'พบ <b>' + list.length + '</b> ใบ' + (q ? ' · มีสินค้าที่ค้นหา <b>' + hits + '</b> รายการ (ไฮไลท์สีเหลือง)' : '') + ' · เรียงจากใหม่ → เก่า' + (!searching ? tgl('🙈 ซ่อนใบที่ครบแล้ว') : '');
   const el = document.getElementById('pp-hlist');
   if (!ppPlansCache.length) { el.innerHTML = '<div class="empty">ยังไม่มีใบวางแผนที่บันทึกไว้ — กด 🖨️ พิมพ์ ในหน้าวางแผนบรรจุ แล้วเลือก "💾 บันทึก + พิมพ์"</div>'; return; }
-  if (!list.length) { el.innerHTML = '<div class="empty">ไม่พบใบวางแผนตามเงื่อนไข</div>'; return; }
+  if (!list.length) { el.innerHTML = '<div class="empty">' + (hideDone ? '🎉 ทุกใบบรรจุครบแล้ว — กด "📂 ดูทั้งหมด" หรือค้นด้วยวันที่/สินค้าเพื่อดูย้อนหลัง' : 'ไม่พบใบวางแผนตามเงื่อนไข') + '</div>'; return; }
   el.innerHTML = list.map(p => {
     const open = ppHistOpen.has(p.plan_no) || !!q;
     const dc = ppHistDone(p), n = p.items.length, pct = Math.round(dc / n * 100);
