@@ -5860,7 +5860,6 @@ function ppRenderHist() {
   const q = document.getElementById('pp-f-q').value.trim(), st = document.getElementById('pp-f-st').value;
   const searching = !!(from || to || q || st);
   const hideDone = !searching && !ppHistShowAll;
-  const doneCnt = ppPlansCache.filter(p => ppHistDone(p) === p.items.length).length;
   const list = ppPlansCache.filter(p => {
     if (hideDone && ppHistDone(p) === p.items.length) return false;
     const d = ppDayKey(p.created_at);
@@ -5876,7 +5875,7 @@ function ppRenderHist() {
   const tgl = t => ' <button class="pp-btn pp-btn-ghost" style="padding:3px 10px;font-size:12px;margin-left:6px" onclick="ppHistToggleAll()">' + t + '</button>';
   document.getElementById('pp-hsum').innerHTML = !ppPlansCache.length ? '' :
     hideDone
-      ? 'แสดงเฉพาะใบที่ยังบรรจุไม่ครบ <b>' + list.length + '</b> ใบ' + (doneCnt ? ' · ซ่อนใบที่บรรจุครบแล้ว <b>' + doneCnt + '</b> ใบ (ค้นด้วยวันที่/สินค้าเพื่อดูย้อนหลัง)' + tgl('📂 ดูทั้งหมด') : '')
+      ? 'แสดงเฉพาะใบที่ยังบรรจุไม่ครบ (ค้นด้วยวันที่/รหัสสินค้าเพื่อดูย้อนหลัง)' + tgl('📂 ดูทั้งหมด')
       : 'พบ <b>' + list.length + '</b> ใบ' + (q ? ' · มีสินค้าที่ค้นหา <b>' + hits + '</b> รายการ (ไฮไลท์สีเหลือง)' : '') + ' · เรียงจากใหม่ → เก่า' + (!searching ? tgl('🙈 ซ่อนใบที่ครบแล้ว') : '');
   const el = document.getElementById('pp-hlist');
   if (!ppPlansCache.length) { el.innerHTML = '<div class="empty">ยังไม่มีใบวางแผนที่บันทึกไว้ — กด 🖨️ พิมพ์ ในหน้าวางแผนบรรจุ แล้วเลือก "💾 บันทึก + พิมพ์"</div>'; return; }
