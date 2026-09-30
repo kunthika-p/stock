@@ -5377,6 +5377,7 @@ async function ppLoadAll() {
     // 2026-09-21: user ขอเพิ่มรายการที่ "สต็อกไม่พอ" (ขึ้นแดงในหน้ารอยืนยัน) เข้ามาด้วย แม้จะไม่เคย
     // มีระบบถัง/บรรจุมาก่อน — ช่วยให้เห็นในรายงานแผนบรรจุว่ามีของต้องเติมด่วนจากออเดอร์ค้างอยู่
     await ppMergeShortItems();
+    ppMergeNoKuabLow();
     ppRender();
   } catch (e) {
     tbody.innerHTML = '<tr><td colspan="8" class="empty">❌ โหลดไม่ได้: ' + e.message + '</td></tr>';
@@ -5416,6 +5417,20 @@ async function ppMergeShortItems() {
   } catch (e) {
     // เงียบไว้ — ไม่ให้กระทบรายงานหลักถ้าดึงออเดอร์รอยืนยันไม่ได้
   }
+}
+
+// 2026-09-30: user ขอให้ "น็อตเหลี่ยม W ไม่ควบหัว" ที่เหลือ ≤10 กระสอบ (รวม 0) ขึ้นในรายงานทุกไซส์ (mockup_pp_nokuab_le10_v1 อนุมัติแล้ว)
+// เดิมขึ้นเฉพาะรหัสที่มีใน stock_tank (ไม่ควบหัวแทบไม่มี เพราะถังกรอกไว้ใต้ "เกลียว W") หรือที่สต็อกไม่พอกับออเดอร์ค้าง · ถังดึงจากเกลียว W ผ่าน ppResolveTank
+const PP_NOKUAB_MAX = 10;
+function ppMergeNoKuabLow() {
+  const existing = new Set(ppItems.map(it => it.code));
+  allItems.forEach(x => {
+    if (x.type !== 'น็อตเหลี่ยม W ไม่ควบหัว' || existing.has(x.code)) return;
+    const stock = Number(x.stock) || 0;
+    if (stock > PP_NOKUAB_MAX) return;
+    existing.add(x.code);
+    ppItems.push({ code: x.code, type: x.type, col: x.col || '', row: x.row || '', bag: stock, bins: Number(x.bins) || 0, tank: 0, tankName: '' });
+  });
 }
 
 // 2026-09-22: "น็อตเหลี่ยม W ไม่ควบหัว" ไม่มีถังเป็นของตัวเอง — ถังจริงถูกกรอกไว้ใต้รหัส "น็อตเหลี่ยมเกลียว W"
@@ -5808,17 +5823,24 @@ async function ppLoadPlans() {
 // 2026-09-30: รับสินค้าเข้า (it.rcv {หน่วย: จำนวน}) นับเป็นบรรจุจริง — มีรับเข้าตั้งแต่วันที่ออกใบ = ครบ
 const ppRcvTotal = it => it.rcv ? Object.keys(it.rcv).reduce((a, u) => a + (Number(it.rcv[u]) || 0), 0) : 0;
 const ppUnitShort = u => u === 'กระสอบ' ? 'กส.' : u;
+// 2026-09-30b: ช่องบรรจุจริงเป็นหน่วยกระสอบ/กล่องทุกแถว = ได้จากแปลงบรรจุ (it.out) + รับสินค้าเข้า (it.rcv)
+// บรรทัดเล็กสีเทาบอกที่มา · ถ้ามีหลายหน่วย (บันทึกผิดหน่วย) แสดงแยก "20 กส. + 5 กล่อง"
 function ppActHtml(it) {
-  const parts = [];
-  if (it.act > 0) parts.push(it.act + ' ถัง');
-  if (it.rcv) Object.keys(it.rcv).forEach(u => { if (it.rcv[u] > 0) parts.push('<span style="color:#1d4ed8">รับเข้า ' + it.rcv[u] + ' ' + anEsc(ppUnitShort(u)) + '</span>'); });
-  return parts.length ? parts.join(' + ') : '<span style="color:#94a3b8;font-weight:400">0</span>';
+  const out = it.out || {}, rcv = it.rcv || {};
+  const units = [...new Set([...Object.keys(out), ...Object.keys(rcv)])].filter(u => (Number(out[u]) || 0) + (Number(rcv[u]) || 0) > 0);
+  if (!units.length) return '<span style="color:#94a3b8;font-weight:400">0</span>';
+  const multi = units.length > 1, us = u => multi ? ' ' + ppUnitShort(u) : '';
+  const main = units.map(u => ((Number(out[u]) || 0) + (Number(rcv[u]) || 0)) + ' ' + anEsc(ppUnitShort(u))).join(' + ');
+  const src = [];
+  units.forEach(u => { if (out[u] > 0) src.push('แปลงบรรจุ ' + out[u] + anEsc(us(u))); });
+  units.forEach(u => { if (rcv[u] > 0) src.push('รับเข้า ' + rcv[u] + anEsc(us(u))); });
+  return main + '<div style="font-size:10.5px;color:#94a3b8;font-weight:400">' + src.join(' + ') + '</div>';
 }
 function ppHistItemSt(it) {
   if (ppRcvTotal(it) > 0) return { k: 'ok', t: '✅ ครบ' };
   if (it.plan_qty == null) return it.act > 0 ? { k: 'hand', t: 'บรรจุแล้ว ' + it.act + ' ถัง (ไม่ได้ระบุจำนวน)' } : { k: 'wait', t: '⏳ ยังไม่บรรจุ' };
   if (it.act >= it.plan_qty) return { k: 'ok', t: '✅ ครบ' };
-  if (it.act > 0) return { k: 'part', t: '⚠ ไม่ครบ (ขาด ' + (it.plan_qty - it.act) + ')' };
+  if (it.act > 0) return { k: 'part', t: '⚠ ขาด ' + (it.plan_qty - it.act) + ' ถัง' };
   return { k: 'wait', t: '⏳ ยังไม่บรรจุ' };
 }
 const ppHistDone = p => p.items.filter(it => ['ok', 'hand'].includes(ppHistItemSt(it).k)).length;
@@ -5870,7 +5892,7 @@ function ppRenderHist() {
         (it.note ? '<div class="pp-hist-note">📝 ' + anEsc(it.note) + '</div>' : '') + '</td>' +
         ppQtyCells(it.bag, x ? x.type : '', x ? x.col : '') + '<td class="pp-qty-tank">' + it.tank + '</td>' +
         '<td class="pp-qty-tank">' + (it.plan_qty == null ? '<span style="color:#94a3b8;font-weight:400">–</span>' : it.plan_qty) + '</td>' +
-        '<td style="font-weight:700;color:#166534">' + ppActHtml(it) + '</td>' +
+        '<td style="font-weight:700;color:#166534;white-space:nowrap">' + ppActHtml(it) + '</td>' +
         '<td style="font-size:12px;color:#475569">' + (it.act_date ? ppFmtD(it.act_date + 'T00:00:00') : '–') + '</td>' +
         '<td><span class="pp-st ' + s.k + '">' + s.t + '</span></td>' +
         '<td><button class="pp-edit-btn" title="แก้จำนวน / หมายเหตุ" onclick="event.stopPropagation();ppEditOpen(\'' + p.plan_no.replace(/'/g, '') + '\',\'' + it.code + '\')">✏️</button></td></tr>';
@@ -5879,7 +5901,7 @@ function ppRenderHist() {
     return '<div class="pp-plan' + (open ? ' open' : '') + '">' +
       '<div class="pp-plan-h" onclick="ppHistToggle(\'' + noEsc + '\')"><span class="pp-arrow">▶</span><span class="no">' + anEsc(p.plan_no) + '</span><span>' + ppFmtDT(p.created_at) + '</span><span class="who">👤 ' + anEsc(p.created_by || '-') + '</span><span>' + n + ' รายการ</span>' +
       '<span class="pp-prog"><span class="pp-bar"><i style="width:' + pct + '%"></i></span>บรรจุแล้ว ' + dc + '/' + n + '</span>' + allSt + '</div>' +
-      '<div class="pp-plan-b"><div class="acts"><span>สต็อค/ถัง = ค่า ณ ตอนออกใบ · บรรจุจริง = ดึงจากบันทึก "แปลงบรรจุ" (ถัง) และ "รับสินค้าเข้า" (กระสอบ/กล่อง) ตั้งแต่วันที่ออกใบ</span>' +
+      '<div class="pp-plan-b"><div class="acts"><span>สต็อค/ถัง = ค่า ณ ตอนออกใบ · บรรจุจริง (กระสอบ/กล่อง) = ดึงจากบันทึก "แปลงบรรจุ" และ "รับสินค้าเข้า" ตั้งแต่วันที่ออกใบ</span>' +
       '<span style="display:flex;gap:6px"><button class="pp-btn pp-btn-ghost" style="padding:5px 12px" onclick="event.stopPropagation();ppAddOpen(\'' + noEsc + '\')">➕ เพิ่มรายการ</button>' +
       '<button class="pp-btn pp-btn-ghost" style="padding:5px 12px" onclick="event.stopPropagation();ppReprint(\'' + noEsc + '\')">🖨️ พิมพ์ซ้ำ</button></span></div>' +
       '<table class="pp-table"><thead><tr><th style="width:4%" rowspan="2">#</th><th class="pp-name-th" rowspan="2">ชื่อสินค้า</th><th class="pp-qty-grp-hdr" colspan="3">คงเหลือ (ตอนออกใบ)</th>' +
