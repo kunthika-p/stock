@@ -7118,7 +7118,12 @@ function anBuildCustomerResults() {
   // ใช้ anComputeCustomerTrend()/anSparklineSvg() ตัวเดิม (ไม่สร้างคำนวณเทรนด์ซ้ำ) — แนวโน้ม 6 เดือน + % เทียบเดือนก่อน
   // อิง 6 เดือนปฏิทินล่าสุดเสมอ ไม่ผูกกับ anCustRange ที่เลือกด้านบน (ตั้งใจ พฤติกรรมเดิมของการ์ดแนวโน้ม)
   const anTrendMap = {};
-  anComputeCustomerTrend().forEach(t => { anTrendMap[t.name] = t; });
+  // 2026-10-01: ยึดเดือนสุดท้ายของช่วงที่เลือก (anCustRange) แทนเดือนปฏิทินปัจจุบัน — user ทัก: เลือก "เดือนที่แล้ว" (ก.ย.)
+  // แต่ % กลับเทียบ ต.ค. กับ ก.ย. — ตอนนี้ % = เดือนสุดท้ายของช่วง เทียบเดือนก่อนหน้า "ทั้งเดือน" (user เลือกแบบ ข), สปาร์คไลน์ 6 เดือนจบที่เดือนเดียวกัน
+  const anTrendEnd = new Date(to.getFullYear(), to.getMonth(), 1);
+  const anTrendPrev = new Date(to.getFullYear(), to.getMonth()-1, 1);
+  const anTrendStart = new Date(to.getFullYear(), to.getMonth()-5, 1);
+  anComputeCustomerTrend(to).forEach(t => { anTrendMap[t.name] = t; });
   // 2026-09-08: รวมคอลัมน์ "ติด Top5 (Nด)" เข้ามาจากแท็บ "สรุปทั้งปี" ของ Top5 widget ที่ยุบไปแล้ว — คำนวณจากหน้าต่าง
   // N เดือนล่าสุดที่มีข้อมูลจริงเสมอ (anTop5StatsMap) ไม่ผูกกับ anCustRange ด้านบน (คนละช่วงเวลาตั้งใจ เหมือนคอลัมน์แนวโน้ม)
   const { map: anTop5Map, N: anTop5N } = anTop5StatsMap();
@@ -7197,8 +7202,8 @@ function anBuildCustomerResults() {
   const custSortCols = [
     ['name',   'ลูกค้า',            'left',   'min-width:170px', null],
     ['revenue','ยอดขาย',            'right',  'width:100px',     ['desc','asc']],
-    [null,     'แนวโน้ม 6 เดือน',    'center', 'width:100px',     null, '(เรียงตามยอดขาย)'],
-    ['pct',    '% เทียบเดือนก่อน',   'right',  'width:120px',     ['desc','asc']],
+    [null,     'แนวโน้ม 6 เดือน',    'center', 'width:100px',     null, AN_THAI_M[anTrendStart.getMonth()]+'–'+AN_THAI_M[anTrendEnd.getMonth()]+' · เรียงตามยอดขาย'],
+    ['pct',    '% เทียบ '+AN_THAI_M[anTrendPrev.getMonth()],   'right',  'width:120px',     ['desc','asc'], AN_THAI_M[anTrendEnd.getMonth()]+' เทียบ '+AN_THAI_M[anTrendPrev.getMonth()]+' (ทั้งเดือน)'],
     ['months', 'ติด Top5 ('+anTop5N+'ด)', 'right', 'width:150px', ['desc','asc']],
     ['orders', 'จำนวนออเดอร์',       'right',  'width:100px',     null],
     ['avg',    'เฉลี่ย/ออเดอร์',     'right',  'width:110px',     ['desc','asc']]
@@ -7790,8 +7795,9 @@ window.addEventListener('resize', anSyncChurnHeight);
 // ===== 2026-08-18: "แนวโน้มยอดขายต่อลูกค้า" (6 เดือนย้อนหลัง, ท็อป 5 + ปุ่มเรียงลำดับ) =====
 // คำนวณราคาเต็มด้วย getRevenuePerUnit() เหมือนจุดอื่นในระบบเสมอ (ดู CRITICAL RULES ใน memory — ห้ามใช้ qty ดิบ)
 // บักเก็ตตามเดือนปฏิทินจริง (ไม่ใช่ 30 วันย้อนหลัง) อิงจาก anPDate(o) (= confirmed_date เป็นหลัก) ตัวเดียวกับ anAggregate()
-function anComputeCustomerTrend() {
-  const now = new Date();
+function anComputeCustomerTrend(endRef) {
+  // 2026-10-01: endRef = วันใดก็ได้ในเดือนสุดท้ายที่ต้องการ (ไม่ส่ง = เดือนปัจจุบันเหมือนเดิม)
+  const now = (endRef instanceof Date && !isNaN(endRef)) ? endRef : new Date();
   const monthKeys = []; // เก่า -> ใหม่, index 5 = เดือนนี้
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
