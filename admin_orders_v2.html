@@ -1491,13 +1491,15 @@ table.list tr:hover td{background:#f8fbff}
           <button type="button" id="sum-mode-confirmed" onclick="setSummaryDateMode('confirmed')" style="padding:5px 10px;border:none;font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer">วันที่ยืนยัน</button>
         </span>
         <label>จาก:</label>
-        <input type="date" id="sum-date-from">
+        <input type="date" id="sum-date-from" onchange="sumDatesManual()">
         <label>ถึง:</label>
-        <input type="date" id="sum-date-to">
-        <button class="sum-btn-show" onclick="loadSummary()">🔍 แสดง</button>
+        <input type="date" id="sum-date-to" onchange="sumDatesManual()">
+        <button class="sum-btn-show" onclick="sumShow()">🔍 แสดง</button>
         <button class="sum-btn-print" onclick="window.print()">🖨️ พิมพ์</button>
         <span id="sum-stat" class="sum-stat-badge" style="display:none"></span>
       </div>
+      <!-- 2026-10-01: บรรทัดบอกว่ากำลังโชว์ "2 วันล่าสุด" อัตโนมัติ (mockup_summary_2days_v1 อนุมัติแล้ว) -->
+      <div id="sum-hint" class="sum-print-hide" style="display:none;font-size:12px;color:#64748b;margin:-10px 4px 16px"></div>
       <div id="sum-body"><p style="color:#aaa;padding:24px;text-align:center">เลือกเงื่อนไขแล้วกด "แสดง"</p></div>
     </div>
   </div>
@@ -3606,7 +3608,9 @@ async function tankVoidConfirm() {
 async function loadAll() {
   await loadStock();
   loadPending();
-  loadHistory();
+  // 2026-10-01: ปุ่ม 🔄 รีเฟรช ต้องดึงออเดอร์ใหม่จริง (force) — หน้าสรุปออเดอร์เลิกดึงเองแล้ว ใช้ historyData ชุดนี้แทน
+  // (โหลดครั้งแรกตอนเข้าระบบ historyLoaded=false อยู่แล้ว ดึงครั้งเดียวเหมือนเดิม ไม่ได้เพิ่มการโหลด)
+  loadHistory(true);
 }
 
 // ---- Stock tab ----
@@ -4889,6 +4893,7 @@ async function loadHistory(force) {
     historyLoaded = true;
     renderHistory();
     clRefresh(); // 2026-09-27: รายชื่อโทรตามในหน้าภาพรวม — ใช้ historyData ชุดนี้ ไม่ดึงออเดอร์ซ้ำ
+    sumOnHistoryReloaded(); // 2026-10-01: หน้าสรุปออเดอร์ใช้ historyData ชุดเดียวกันแล้ว
   } catch(e) {}
 }
 
@@ -5012,13 +5017,57 @@ function setSummaryDateMode(mode) {
   ob.style.color = mode==='ordered' ? 'white' : '#555';
   cb.style.background = mode==='confirmed' ? '#1a3a5c' : 'white';
   cb.style.color = mode==='confirmed' ? 'white' : '#555';
-  if (summaryData.length) renderSummary();
+  if (summaryData.length) { if (sumAutoDates) sumApplyAutoDates(); renderSummary(); }
 }
 
 function initSummaryTab() {
   setSummaryDateMode(summaryDateMode);
   if (!summaryData.length) loadSummary();
   else renderSummary();
+}
+
+// 2026-10-01: user ขอ — เปิดแท็บสรุปออเดอร์แล้วโชว์แค่ "2 วันล่าสุดที่มีการยืนยัน/สั่งจริง" (แบบ ข) ให้วาดตารางน้อยลง ขึ้นไว
+// + ไม่ดึง getOrders&status=all ซ้ำ ใช้ historyData ที่ loadHistory() โหลดไว้แล้วตอนเข้าระบบ (ปุ่ม 🔄 รีเฟรช บังคับดึงใหม่)
+// sumAutoDates=true = วันที่ในช่อง จาก/ถึง ระบบใส่ให้เอง · ผู้ใช้แก้วันที่เอง/กด "ดูทั้งหมด" → false (ไม่ทับค่าที่ผู้ใช้เลือก)
+let sumAutoDates = true;
+function sumDateOf(o) {
+  return summaryDateMode === 'confirmed' ? orderDateToInputISO(o.confirmed_date) : orderDateToInputISO(o.timestamp || o.date);
+}
+function sumFmtISO(iso) { const p = iso.split('-'); return Number(p[2])+'/'+Number(p[1])+'/'+String(Number(p[0])+543).slice(-2); }
+function sumApplyAutoDates() {
+  const t = new Date(); const today = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  const days = [...new Set(summaryData.map(sumDateOf).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= today))].sort();
+  const last2 = days.slice(-2);
+  document.getElementById('sum-date-from').value = last2[0] || '';
+  document.getElementById('sum-date-to').value = last2[last2.length-1] || '';
+  sumUpdateHint(last2);
+}
+function sumUpdateHint(last2) {
+  const el = document.getElementById('sum-hint');
+  if (!sumAutoDates || !last2 || !last2.length) { el.style.display = 'none'; return; }
+  const kind = summaryDateMode === 'confirmed' ? 'ที่มีการยืนยัน' : 'ที่มีการสั่ง';
+  const rng = last2.length > 1 ? sumFmtISO(last2[0])+' – '+sumFmtISO(last2[1]) : sumFmtISO(last2[0]);
+  el.innerHTML = '📅 แสดง <b style="color:#1a3a5c">2 วันล่าสุด'+kind+'</b> ('+rng+') · ต้องการดูมากกว่านี้ เปลี่ยนวันที่แล้วกด แสดง หรือ '+
+    '<a href="javascript:void(0)" onclick="sumShowAll()" style="color:#2563eb;text-decoration:underline">ดูทั้งหมด</a>';
+  el.style.display = 'block';
+}
+function sumDatesManual() { sumAutoDates = false; sumUpdateHint(null); }
+function sumShowAll() {
+  sumAutoDates = false; sumUpdateHint(null);
+  document.getElementById('sum-date-from').value = '';
+  document.getElementById('sum-date-to').value = '';
+  sumShow();
+}
+function sumShow() {
+  if (!summaryData.length) { loadSummary(); return; }
+  renderSummary();
+}
+// เรียกจาก loadHistory() ทุกครั้งที่ historyData ถูกโหลดใหม่ — อัปเดตชุดข้อมูลของหน้าสรุปให้ตรงกัน (ถ้าเคยเปิดหน้านี้แล้ว)
+function sumOnHistoryReloaded() {
+  if (!summaryData.length) return;
+  summaryData = historyData.filter(o => o.status === 'confirmed');
+  if (sumAutoDates) sumApplyAutoDates();
+  if (document.getElementById('tab-summary').classList.contains('active')) renderSummary();
 }
 
 async function loadSummary() {
@@ -5036,9 +5085,11 @@ async function loadSummary() {
   const body = document.getElementById('sum-body');
   body.innerHTML = '<p style="color:#aaa;padding:24px;text-align:center">⏳ กำลังโหลด...</p>';
   try {
-    const res = await fetch(API + '?action=getOrders&status=all');
-    const data = await res.json();
-    summaryData = (data.orders||[]).filter(o => o.status === 'confirmed');
+    // 2026-10-01: ใช้ historyData ที่โหลดไว้แล้ว (ไม่ดึงออเดอร์ทั้งหมดซ้ำ) — ถ้ายังไม่เคยโหลด ให้ loadHistory() ดึงก่อน
+    if (!historyLoaded) await loadHistory();
+    if (!historyLoaded) throw new Error('โหลดข้อมูลออเดอร์ไม่สำเร็จ');
+    summaryData = historyData.filter(o => o.status === 'confirmed');
+    if (sumAutoDates) sumApplyAutoDates();
     renderSummary();
   } catch(e) {
     body.innerHTML = '<p style="color:red;padding:24px">เกิดข้อผิดพลาด: '+e.message+'</p>';
