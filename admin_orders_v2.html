@@ -5413,12 +5413,15 @@ const STC_TAB_ROLES = {
   pending: ['Admin','Warehouse'], itemhistory: ['Admin','Warehouse'], history: ['Admin','Warehouse'],
   summary: ['Admin','Warehouse'], users: ['Admin'], analytics: ['Admin']
 };
+// 2026-10-20: user รายคนที่ได้เห็นแท็บเพิ่มจาก role (user ขอเปิดแท็บวิเคราะห์ข้อมูลให้ wint — ยังต้องกรอก password แท็บเหมือนเดิม)
+const STC_TAB_USERS = { analytics: ['wint'] };
 
-function stcApplyRoleUI(role) {
+function stcApplyRoleUI(role, username) {
   document.querySelectorAll('.tab-btn[data-tab]').forEach(function (btn) {
     const t = btn.getAttribute('data-tab');
     const allowed = STC_TAB_ROLES[t] || [];
-    btn.style.display = allowed.indexOf(role) === -1 ? 'none' : '';
+    const extra = STC_TAB_USERS[t] || [];
+    btn.style.display = (allowed.indexOf(role) === -1 && extra.indexOf(username) === -1) ? 'none' : '';
   });
   const activeBtn = document.querySelector('.tab-btn.active');
   if (activeBtn && activeBtn.style.display === 'none') {
@@ -5431,7 +5434,7 @@ function stcShowApp(session) {
   document.body.classList.remove('not-logged-in');
   document.getElementById('stcUserFullname').textContent = session.fullname || session.username;
   document.getElementById('stcUserRole').textContent = session.role;
-  stcApplyRoleUI(session.role);
+  stcApplyRoleUI(session.role, session.username);
   loadAll();
 }
 
