@@ -4909,7 +4909,11 @@ async function loadHistory(force) {
     const data = await res.json();
     historyData = (data.orders||[]).filter(o => o.status === 'confirmed' || o.status === 'rejected');
     historyLoaded = true;
-    renderHistory();
+    // 2026-10-03: วาดตารางประวัติเฉพาะตอนเปิดแท็บประวัติอยู่ — เดิมวาดทุกครั้งที่โหลด (ตอนเข้าระบบ + หลังยืนยัน/ปฏิเสธ/ดึงกลับ)
+    // ทั้งที่ซ่อนอยู่ ได้ตาราง 5,000+ แถว (~100,000 element) ค้างในหน้าเว็บ ทำให้ทั้งหน้าหนัก/ค้าง · user: แท็บประวัติใช้น้อยมาก
+    // ไม่ได้เปิดอยู่ → ไม่วาด, พอกดเข้าแท็บ switchTab → loadHistory() (ไม่ force) → renderHistory() จากข้อมูลชุดนี้เอง
+    if (document.getElementById('tab-history').classList.contains('active')) renderHistory();
+    else { const hb = document.getElementById('historyTbody'); if (hb) hb.innerHTML = ''; }
     clRefresh(); // 2026-09-27: รายชื่อโทรตามในหน้าภาพรวม — ใช้ historyData ชุดนี้ ไม่ดึงออเดอร์ซ้ำ
     sumOnHistoryReloaded(); // 2026-10-01: หน้าสรุปออเดอร์ใช้ historyData ชุดเดียวกันแล้ว
   } catch(e) {}
@@ -7654,6 +7658,78 @@ function anCatRevRenderRank(months, data) {
   return h;
 }
 
+// 2026-10-20: ปุ่ม "🖨️ พิมพ์ตารางนี้" ของ Heatmap รายเดือน — user อนุมัติ mockup_heat_print_v2_bw.html (ขาว-ดำ, A4 แนวนอน 1 หน้า)
+// เปิดหน้าต่างใหม่พิมพ์เฉพาะตาราง (ลูกค้า + ช่วงที่เลือกอยู่) · ใช้ anCatRevAggregate/anCatRevAvgInfo ตัวเดิม ตัวเลขตรงกับหน้าจอ
+// กติกาไฮไลต์มาก/น้อยสุดเหมือน anCatRevRenderHeat (เฉพาะเดือนยอดจริงจากเว็บ) · ไม่ต้องพิมพ์แท็บสรุปแรงค์หมวด (user ยืนยัน)
+function anCatRevPrint() {
+  if (!anCatRevCust) return;
+  const { months, data, prev, kind } = anCatRevAggregate(anCatRevCust);
+  const avgInfo = anCatRevAvgInfo(months, anCatRevCust);
+  const custInfo = CUST_MAP[anCatRevCust] || AN_EXTRA_CUSTOMERS.find(c => c.name === anCatRevCust) || {};
+  const fmt = v => v === 0 ? '–' : Math.round(v).toLocaleString();
+  const cats = AN_VCAT_ORDER.filter(cat => cat !== 'อื่นๆ');
+  const grandVals = months.map((mo, mi) => AN_VCAT_ORDER.reduce((s, cat) => s + data[cat][mi], 0));
+  const grandPrev = AN_VCAT_ORDER.reduce((s, cat) => s + (prev[cat] || 0), 0);
+  const grandTotal = grandVals.reduce((a, b) => a + b, 0);
+  function row(label, vals, isGrand, prevVal) {
+    const webVals = vals.map((v, i) => kind[i] === 'w' ? v : 0);
+    const webN = kind.filter(k => k === 'w').length;
+    const mx = Math.max(...webVals);
+    const nz = webVals.filter((v, i) => kind[i] === 'w' && v > 0);
+    const mn = nz.length ? Math.min(...nz) : null;
+    const maxIdx = mx > 0 && webN > 1 ? webVals.indexOf(mx) : -1;
+    const minIdx = mn !== null && mn !== mx ? webVals.lastIndexOf(mn) : -1;
+    let r = '<tr' + (isGrand ? ' class="g"' : '') + '><th>' + anEsc(label) + '</th>';
+    vals.forEach((v, i) => {
+      if (kind[i] === 'f') { r += '<td></td>'; return; }
+      const c = kind[i] === 'b' ? 'b' : (i === maxIdx ? 'mx' : (i === minIdx ? 'mn' : (v === 0 ? 'z' : '')));
+      r += '<td class="' + c + '">' + fmt(v) + '</td>';
+    });
+    const tot = vals.reduce((a, b) => a + b, 0);
+    const avgSum = avgInfo.idxs.reduce((a, i) => a + vals[i], 0) + (avgInfo.usePrev ? (prevVal || 0) : 0);
+    const avg = avgInfo.n ? avgSum / avgInfo.n : 0;
+    r += '<td class="tot">' + Math.round(tot).toLocaleString() + '</td><td class="avg">' + (avgInfo.n && avg ? Math.round(avg).toLocaleString() : '–') + '</td></tr>';
+    return r;
+  }
+  let body = '';
+  cats.forEach(cat => { body += row(cat, data[cat], false, prev[cat]); });
+  body += row('รวม', grandVals, true, grandPrev);
+  const rangeTxt = anCatRevRange === '69' ? 'ปี 69' : anCatRevRange === '68' ? 'ปี 68' : '12 เดือนล่าสุด';
+  const now = new Date();
+  const dTxt = now.getDate() + '/' + (now.getMonth() + 1) + '/' + (now.getFullYear() + 543);
+  const hasB = kind.includes('b');
+  const css = '@page{size:A4 landscape;margin:9mm 10mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box}' +
+    'body{font-family:Sarabun,sans-serif;color:#000;margin:0}' +
+    '.ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:8px}' +
+    '.ph .t{font-size:17px;font-weight:800}.ph .s{font-size:12.5px;color:#333;margin-top:2px}.ph .s b{color:#000}.ph .r{text-align:right;font-size:11px;color:#555}' +
+    '.lg{display:flex;gap:16px;font-size:10.5px;color:#333;margin-bottom:6px;flex-wrap:wrap}.lg span{display:flex;align-items:center;gap:5px}' +
+    '.k{width:18px;height:11px;border-radius:2px;display:inline-block;border:1px solid #000}.k.mx{background:#000}.k.mn{background:#c8c8c8;border-color:#888}.k.b{background:#fff;border:1px dashed #666}' +
+    'table{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}' +
+    'th,td{border:1px solid #999;padding:5px 3px;text-align:right;white-space:nowrap;color:#000}' +
+    'thead th{background:#000;color:#fff;font-size:10.5px;text-align:center;font-weight:700}' +
+    'thead th.l{width:134px;text-align:left;padding-left:6px}thead th.avgh{line-height:1.15;border-left:2px solid #000}small{font-weight:600;font-size:9px}' +
+    'tbody th{text-align:left;font-weight:700;padding-left:6px}td{font-weight:600}' +
+    'td.b{color:#555;font-style:italic;font-weight:400}td.mx{background:#000;color:#fff;font-weight:800}td.mn{background:#c8c8c8;font-weight:800}td.z{text-align:center}' +
+    'td.tot{background:#ececec;font-weight:800}td.avg{background:#ececec;font-weight:800;border-left:2px solid #000}' +
+    'tr.g th,tr.g td{border-top:2px solid #000;font-weight:800}' +
+    '.ft{font-size:9.5px;color:#555;margin-top:6px}';
+  const html = '<div class="ph"><div><div class="t">ยอดขายแยกตามหมวด — Heatmap รายเดือน</div>' +
+      '<div class="s">ลูกค้า: <b>' + anEsc(anCatRevCust) + '</b>' + (custInfo.code ? ' · รหัส ' + anEsc(custInfo.code) : '') +
+      ' · ช่วง: <b>' + rangeTxt + ' (' + months[0].label + ' – ' + months[11].label + ')</b> · รวมช่วงนี้ <b>฿' + Math.round(grandTotal).toLocaleString() + '</b></div></div>' +
+      '<div class="r">STIC น็อตกิโล<br>พิมพ์ ' + dTxt + '</div></div>' +
+    '<div class="lg"><span><i class="k mx"></i>เดือนขายมากสุด (ต่อหมวด)</span><span><i class="k mn"></i>เดือนขายน้อยสุด</span>' +
+      (hasB ? '<span><i class="k b"></i><em>ยอดเฉลี่ยจากบัญชี</em></span>' : '') + '<span>– = ไม่มียอด</span></div>' +
+    '<table><thead><tr><th class="l">หมวด</th>' + months.map(mo => '<th>' + mo.label + '</th>').join('') +
+      '<th>รวม</th><th class="avgh">เฉลี่ย/เดือน' + (avgInfo.n ? '<br><small>(' + avgInfo.n + ' เดือน)</small>' : '') + '</th></tr></thead><tbody>' + body + '</tbody></table>' +
+    '<div class="ft">' + (hasB ? 'ช่องตัวเอียง = ยอดเฉลี่ยต่อเดือนจากบัญชี (ปี 68 = ทั้งปี÷12, ม.ค.–มิ.ย.69 = ÷6) ก่อนระบบเริ่มเก็บออเดอร์ ก.ค.69 · ' : '') +
+      'เฉลี่ย/เดือน นับเฉพาะเดือนที่จบแล้ว' + (avgInfo.rangeLabel ? ' (' + avgInfo.rangeLabel + ')' : '') + ' ไม่รวมเดือนปัจจุบัน · หน่วย: บาท ก่อน VAT</div>';
+  const w = window.open('', '_blank');
+  if (!w) { showToast('เบราว์เซอร์บล็อกหน้าต่างใหม่ — กรุณาอนุญาต pop-up'); return; }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Heatmap ' + anEsc(anCatRevCust) + '</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet"><style>' + css + '</style></head><body>' + html +
+    '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>');
+  w.document.close();
+}
+
 function anBuildCatRevCard() {
   let h = '<div class="an-card-title" style="margin-bottom:2px">ยอดขายแยกตามหมวดต่อลูกค้า</div>'+
     '<div style="font-size:11px;color:#94a3b8;margin-bottom:14px">ทั้งปีย้อนหลัง 12 เดือน — พิมพ์ชื่อหรือรหัสลูกค้าเพื่อดู</div>'+
@@ -7699,7 +7775,7 @@ function anBuildCatRevCard() {
   h += '<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">' + [['12', '12 เดือนล่าสุด'], ['69', 'ปี 69'], ['68', 'ปี 68']].map(function (r) {
     const on = anCatRevRange === r[0];
     return '<button onclick="anCatRevSetRange(\'' + r[0] + '\')" style="font-family:inherit;font-size:13px;font-weight:700;border:1.5px solid #1a3a5c;background:' + (on ? '#1a3a5c' : '#fff') + ';color:' + (on ? '#fff' : '#1a3a5c') + ';border-radius:20px;padding:5px 16px;cursor:pointer">' + r[1] + '</button>';
-  }).join('') + '</div>';
+  }).join('') + (anCatRevTab === 'heat' ? '<button onclick="anCatRevPrint()" style="margin-left:auto;font-family:inherit;font-size:13px;font-weight:700;border:1.5px solid #1a3a5c;background:#fff;color:#1a3a5c;border-radius:8px;padding:5px 16px;cursor:pointer">🖨️ พิมพ์ตารางนี้</button>' : '') + '</div>';
   h += anCatRevTab==='heat' ? anCatRevRenderHeat(months, data, prev, kind) : anCatRevRenderRank(months, data);
   if (kind.includes('b')) h += '<div style="font-size:11px;color:#94a3b8;margin-top:8px">ช่องตัวเอียงสีเทา = ยอดเฉลี่ยต่อเดือนจากบัญชี (ปี 68 = ทั้งปี÷12, ม.ค.–มิ.ย.69 = ÷6) ก่อนระบบเริ่มเก็บออเดอร์ ก.ค.69 · ไม่ใช่ยอดจริงรายเดือน</div>';
   return h;
