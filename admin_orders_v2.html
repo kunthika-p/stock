@@ -871,6 +871,7 @@ table.list tr:hover td{background:#f8fbff}
 .cl-r ul{margin:0;padding-left:18px;font-size:12.5px;color:#475569;line-height:1.6}
 .cl-r .ex{margin-top:8px;font-size:12px;background:#f8fafc;border-radius:7px;padding:7px 9px;color:#475569;line-height:1.5}.cl-r .ex b{color:#1a3a5c}
 .cl-rother{margin-top:10px;font-size:12.5px;color:#475569;line-height:1.7}.cl-rother b{color:#334155}
+.cl-rprint{font-family:inherit;font-size:12.5px;font-weight:700;border:1.5px solid #1a3a5c;background:#fff;color:#1a3a5c;border-radius:7px;padding:4px 12px;cursor:pointer}
 .cl-empty{padding:18px;text-align:center;color:#64748b}
 .cl-ovl{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;z-index:3000;padding:16px}
 .cl-modal{width:400px;max-width:100%;background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.25);overflow:hidden}
@@ -2689,12 +2690,31 @@ function clRender() {
 
 function clSetFilter(k) { clFilter = k; clRender(); }
 function clToggleRules() { clRulesOpen = !clRulesOpen; clRender(); }
+// 2026-10-20: พิมพ์หลักการเลือก (mockup_calllist_rules_print_v1 — user เลือกพิมพ์สี) A4 แนวนอน 1 หน้า ใช้ CSS ชุดเดียวกับหน้าจอ
+function clPrintRules() {
+  const css = Array.from(document.querySelectorAll('style')).map(st => st.textContent).join('\n').split('\n')
+    .filter(l => /^\.cl-(rules|rgrid|r[ .{]|r\.|rother|low)|^@media \(max-width:900px\)\{\.cl-rgrid/.test(l)).join('\n');
+  const w = window.open('', '_blank');
+  if (!w) { showToast('เบราว์เซอร์บล็อกหน้าต่างใหม่ — กรุณาอนุญาต pop-up'); return; }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>หลักการเลือก ลูกค้าที่ควรโทรตาม</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet"><style>' +
+    '@page{size:A4 landscape;margin:10mm 12mm}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box}body{font-family:Sarabun,sans-serif;color:#1e293b;margin:0}' +
+    css + '.cl-rules.pr{border:none;background:#fff;padding:0;margin:0}.cl-rules.pr .cl-rgrid{grid-template-columns:repeat(3,1fr)}' +
+    '.cl-rules.pr .cl-r .main{font-size:15px}.cl-rules.pr .cl-r ul{font-size:13.5px}.cl-rules.pr .cl-r .ex{font-size:13px}.cl-rules.pr .cl-rother{font-size:13px}' +
+    '</style></head><body>' + clRulesHtml(true) +
+    '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>');
+  w.document.close();
+}
 // 2026-10-20: ข้อความอธิบายเกณฑ์ดึงจากค่าตั้ง CL_* ด้านบน — เปลี่ยนเกณฑ์แล้วข้อความเปลี่ยนตามเอง
-function clRulesHtml() {
+function clRulesHtml(forPrint) {
   const dp = Math.round(CL_DECLINE_PCT * 100), lp = Math.round(CL_LOST_PCT * 100);
   const exExp = 400000 * 20 / 31, exThr = exExp * (1 - CL_DECLINE_PCT), exLost = 40000 * (1 - CL_LOST_PCT);
   const exSil = new Date(2026, 8, 1 + CL_SILENT_DAYS + 1);
-  return '<div class="cl-rules"><div class="hd"><b>ℹ️ ระบบเลือกลูกค้าเข้ารายชื่ออย่างไร</b><span>เช็คตามลำดับ 🔴 → 🟠 → 🟡 · ลูกค้า 1 รายอยู่ได้กลุ่มเดียว</span></div><div class="cl-rgrid">' +
+  const ord = 'เช็คตามลำดับ 🔴 → 🟠 → 🟡 · ลูกค้า 1 รายอยู่ได้กลุ่มเดียว';
+  const head = forPrint
+    ? '<div class="hd" style="border-bottom:2px solid #1a3a5c;padding-bottom:6px"><b style="font-size:17px">หลักการเลือก ลูกค้าที่ควรโทรตาม</b><span>' + ord + ' · พิมพ์ ' + new Date().getDate() + '/' + (new Date().getMonth() + 1) + '/' + (new Date().getFullYear() + 543) + '</span></div>'
+    : '<div class="hd"><b>ℹ️ ระบบเลือกลูกค้าเข้ารายชื่ออย่างไร</b><span style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">' + ord + ' <button class="cl-rprint" onclick="clPrintRules()">🖨️ พิมพ์หลักการเลือก</button></span></div>';
+  return '<div class="cl-rules' + (forPrint ? ' pr' : '') + '">' + head + '<div class="cl-rgrid">' +
     '<div class="cl-r d"><h4>🔴 เงียบไปนาน</h4><div class="main">ไม่สั่งมาเกิน ' + CL_SILENT_DAYS + ' วัน</div>' +
       '<ul><li>ใช้เกณฑ์เดียวกันทุกลูกค้า</li><li>ออเดอร์รอยืนยันนับเป็น "สั่งแล้ว"</li><li>ในตารางยังโชว์ "ปกติสั่งทุก ~X วัน" ไว้ประกอบ</li></ul>' +
       '<div class="ex">ตัวอย่าง: สั่งล่าสุด 1 ก.ย. → ขึ้นในรายชื่อตั้งแต่ <b>' + clThaiD(exSil) + '</b> (ครบ ' + (CL_SILENT_DAYS + 1) + ' วัน)</div></div>' +
