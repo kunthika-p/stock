@@ -857,6 +857,20 @@ table.list tr:hover td{background:#f8fbff}
 .cl-done summary{padding:8px 12px;cursor:pointer;font-weight:600;color:#334155;font-size:13px}
 .cl-done .cl-tbl{min-width:640px}
 .cl-foot{color:#64748b;font-size:12px;margin-top:10px;line-height:1.6}
+/* 2026-10-20: กล่อง "ℹ️ หลักการเลือก" (mockup_calllist_rules_v2 อนุมัติ) แทนหมายเหตุตัวเล็กท้ายตาราง */
+.cl-flt .cl-info{border-radius:6px;border-color:#2563eb;color:#2563eb;background:#eff6ff;font-weight:600}
+.cl-flt .cl-info.open{background:#2563eb;color:#fff}
+.cl-rules{margin:12px 0 4px;border:1.5px solid #bfdbfe;background:#f8fbff;border-radius:12px;padding:14px 16px}
+.cl-rules .hd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.cl-rules .hd b{font-size:15px;color:#1a3a5c}.cl-rules .hd span{font-size:12.5px;color:#64748b}
+.cl-rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:900px){.cl-rgrid{grid-template-columns:1fr}}
+.cl-r{background:#fff;border-radius:10px;padding:12px 14px;border:1px solid #e2e8f0;border-top:4px solid}
+.cl-r.o{border-top-color:#f97316}.cl-r.y{border-top-color:#eab308}.cl-r.d{border-top-color:#dc2626}
+.cl-r h4{margin:0 0 6px;font-size:15px}.cl-r .main{font-size:13.5px;font-weight:700;color:#1e293b;margin-bottom:6px;line-height:1.45}
+.cl-r ul{margin:0;padding-left:18px;font-size:12.5px;color:#475569;line-height:1.6}
+.cl-r .ex{margin-top:8px;font-size:12px;background:#f8fafc;border-radius:7px;padding:7px 9px;color:#475569;line-height:1.5}.cl-r .ex b{color:#1a3a5c}
+.cl-rother{margin-top:10px;font-size:12.5px;color:#475569;line-height:1.7}.cl-rother b{color:#334155}
 .cl-empty{padding:18px;text-align:center;color:#64748b}
 .cl-ovl{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;z-index:3000;padding:16px}
 .cl-modal{width:400px;max-width:100%;background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(15,23,42,.25);overflow:hidden}
@@ -2442,13 +2456,14 @@ const CL_DECLINE_PCT = 0.30;   // 🟠 สั่งน้อยลง: ยอด
 const CL_DECLINE_MIN_DAY = 7;  //    เริ่มเช็คตั้งแต่วันที่ 7 ของเดือน (ต้นเดือนยอดน้อยเกินจะเทียบได้)
 const CL_DECLINE_MIN_AVG = 5000; //  ข้ามลูกค้าที่ค่าเฉลี่ย <5,000/เดือน
 const CL_DECLINE_MAX_GAP = 10; //  เช็คเฉพาะลูกค้าสั่งถี่ (รอบปกติ ≤10 วัน) — ลูกค้าสั่งเดือนละ 1–2 ครั้ง กลางเดือนยอดยังเป็น 0 จะดูเหมือนยอดตกผิดๆ ให้ดูแค่ "เงียบไปนาน" (user ยืนยัน 2026-09-27)
-const CL_LOST_PCT = 0.70;      // 🟡 หมวดหาย: หมวดที่ปี 68 เคยซื้อ ≥CL_LOST_MIN/เดือน ตอนนี้ลดลง ≥70%
+const CL_LOST_PCT = 0.50;      // 🟡 หมวดหาย: หมวดที่ปี 68 เคยซื้อ ≥CL_LOST_MIN/เดือน ตอนนี้ลดลง ≥50% (2026-10-20 user ขอลดจาก 70%)
 const CL_LOST_MIN = 10000;
-const CL_SILENT_MULT = 2;      // 🔴 เงียบไปนาน: ไม่สั่งเกิน 2 เท่าของรอบปกติ (อย่างน้อย 7 วัน; สั่งมาครั้งเดียว = 30 วัน)
+const CL_SILENT_DAYS = 30;     // 🔴 เงียบไปนาน: ไม่สั่งเกิน 30 วัน (ทุกลูกค้าเท่ากัน) — 2026-10-20 user เปลี่ยนจาก "เกิน 2 เท่าของรอบปกติ (ขั้นต่ำ 7 วัน)"
 const CL_HIDE_DAYS = 7;        // กด "โทรแล้ว" → ซ่อนจากรายการ 7 วัน
 const CL_KPI_USERS = ['wint']; // Warehouse ที่เห็นตัวเลขยอดขาย 3 ช่อง (Admin เห็นทุกคน) — user ยืนยัน 2026-09-27
 const CL_RESULTS = ['จะสั่งเร็วๆ นี้', 'งานน้อยช่วงนี้', 'ไปซื้อที่อื่น', 'ติดต่อไม่ได้', 'อื่นๆ'];
 const CL_STATUS = { decline: { label: '🟠 สั่งน้อยลง', ord: 0 }, lost: { label: '🟡 หมวดหาย', ord: 1 }, silent: { label: '🔴 เงียบไปนาน', ord: 2 } };
+let clRulesOpen = false; // 2026-10-20: กล่องหลักการเลือก เปิด/ปิด (ค่าเริ่มต้นปิด)
 let clBase = null, clLog = null, clLoading = false, clResult = null, clFilter = 'all', clModalCust = '', clModalRes = '';
 
 function clFmt(n) { return Math.round(n).toLocaleString('en-US'); }
@@ -2553,7 +2568,6 @@ function clCompute(now) {
     gaps.sort((a, b) => a - b);
     const gap = gaps.length ? Math.round(gaps.length % 2 ? gaps[(gaps.length - 1) / 2] : (gaps[gaps.length / 2 - 1] + gaps[gaps.length / 2]) / 2) : null;
     const low = dayList.length < 4;
-    const silentThr = gap !== null ? Math.max(CL_SILENT_MULT * gap, 7) : 30;
     const b68 = ((clBase || {})[c.name] || {})['68'] || {};
     const lost = [];
     if (n) AN_VCAT_ORDER.forEach(cat => {
@@ -2566,7 +2580,7 @@ function clCompute(now) {
     lost.sort((a, b) => b.b - a.b);
     const mtdC = c.mon[curKey] || 0, expected = avg * day / dim, nLbl = n ? clMonRange(from, curKey - 1) : '';
     let s = null, main = '', sub = [], subSale = [];
-    if (since >= silentThr) {
+    if (since > CL_SILENT_DAYS) {
       s = 'silent';
       main = 'ไม่สั่งมา <b>' + since + ' วัน</b>';
       if (gap !== null && gap > 0) {
@@ -2647,7 +2661,9 @@ function clRender() {
     '<div class="cl-flt">' +
     '<button class="' + (clFilter === 'all' ? 'on' : '') + '" onclick="clSetFilter(\'all\')">ทั้งหมด ' + list.length + '</button>' +
     ['decline', 'lost', 'silent'].map(k => '<button class="' + (clFilter === k ? 'on' : '') + '" onclick="clSetFilter(\'' + k + '\')">' + CL_STATUS[k].label + ' ' + cnt[k] + '</button>').join('') +
+    '<button class="cl-info' + (clRulesOpen ? ' open' : '') + '" onclick="clToggleRules()">ℹ️ หลักการเลือก ' + (clRulesOpen ? '▴' : '▾') + '</button>' +
     '<button class="cl-pr" onclick="clPrint()">🖨️ พิมพ์รายชื่อ</button></div></div>';
+  if (clRulesOpen) h += clRulesHtml();
   if (!shown.length) {
     h += '<div class="cl-empty">✅ ตอนนี้ไม่มีลูกค้าที่ต้องโทรตาม</div>';
   } else {
@@ -2667,14 +2683,31 @@ function clRender() {
       done.map(d => '<tr><td>' + clThaiD(d.lc.t) + '</td><td class="cl-cust">' + clEsc(d.c) + '</td><td><span class="cl-chip">' + clEsc(d.lc.res) + '</span></td><td>' + clEsc(d.lc.note) + '</td><td>' + clEsc(d.lc.by) + '</td><td class="n">' + clThaiD(new Date(d.lc.t.getTime() + CL_HIDE_DAYS * 864e5)) + '</td></tr>').join('') +
       '</table></div></details>';
   }
-  h += '<div class="cl-foot">🟠 <b>สั่งน้อยลง</b> = ยอดเดือนนี้ต่ำกว่าค่าเฉลี่ยของลูกค้าเอง ณ วันเดียวกันของเดือน ≥' + Math.round(CL_DECLINE_PCT * 100) + '% (เฉพาะลูกค้าที่ปกติสั่งทุก ≤' + CL_DECLINE_MAX_GAP + ' วัน · เริ่มเช็ควันที่ ' + CL_DECLINE_MIN_DAY + ' ของเดือน) · ' +
-    '🟡 <b>หมวดหาย</b> = หมวดที่ปี 68 เคยซื้อ ≥' + clFmt(CL_LOST_MIN) + '/เดือน ตอนนี้ลดลง ≥' + Math.round(CL_LOST_PCT * 100) + '% · ' +
-    '🔴 <b>เงียบไปนาน</b> = ไม่สั่งเกิน ' + CL_SILENT_MULT + ' เท่าของรอบปกติ (อย่างน้อย 7 วัน)<br>' +
-    '<span class="cl-low" style="margin:0">ข้อมูลน้อย</span> = สั่งมาน้อยกว่า 4 ครั้ง ระบบยังเดารอบไม่แม่น · ลูกค้าที่มีออเดอร์เข้ามาวันนี้ไม่แสดง · ยอดคิดจากออเดอร์ที่ยืนยันแล้ว · หมวดกิโล/ตัวใหญ่ปี 68 เป็นค่าประมาณจากการแบ่งสัดส่วน</div></div>';
+  h += '</div>'; // 2026-10-20: หมายเหตุเกณฑ์ย้ายไปอยู่ในกล่อง ℹ️ หลักการเลือก (clRulesHtml)
   wrap.innerHTML = h;
 }
 
 function clSetFilter(k) { clFilter = k; clRender(); }
+function clToggleRules() { clRulesOpen = !clRulesOpen; clRender(); }
+// 2026-10-20: ข้อความอธิบายเกณฑ์ดึงจากค่าตั้ง CL_* ด้านบน — เปลี่ยนเกณฑ์แล้วข้อความเปลี่ยนตามเอง
+function clRulesHtml() {
+  const dp = Math.round(CL_DECLINE_PCT * 100), lp = Math.round(CL_LOST_PCT * 100);
+  const exExp = 400000 * 20 / 31, exThr = exExp * (1 - CL_DECLINE_PCT), exLost = 40000 * (1 - CL_LOST_PCT);
+  const exSil = new Date(2026, 8, 1 + CL_SILENT_DAYS + 1);
+  return '<div class="cl-rules"><div class="hd"><b>ℹ️ ระบบเลือกลูกค้าเข้ารายชื่ออย่างไร</b><span>เช็คตามลำดับ 🔴 → 🟠 → 🟡 · ลูกค้า 1 รายอยู่ได้กลุ่มเดียว</span></div><div class="cl-rgrid">' +
+    '<div class="cl-r d"><h4>🔴 เงียบไปนาน</h4><div class="main">ไม่สั่งมาเกิน ' + CL_SILENT_DAYS + ' วัน</div>' +
+      '<ul><li>ใช้เกณฑ์เดียวกันทุกลูกค้า</li><li>ออเดอร์รอยืนยันนับเป็น "สั่งแล้ว"</li><li>ในตารางยังโชว์ "ปกติสั่งทุก ~X วัน" ไว้ประกอบ</li></ul>' +
+      '<div class="ex">ตัวอย่าง: สั่งล่าสุด 1 ก.ย. → ขึ้นในรายชื่อตั้งแต่ <b>' + clThaiD(exSil) + '</b> (ครบ ' + (CL_SILENT_DAYS + 1) + ' วัน)</div></div>' +
+    '<div class="cl-r o"><h4>🟠 สั่งน้อยลง</h4><div class="main">ยอดเดือนนี้ต่ำกว่ายอดที่ควรได้ถึงวันนี้ ≥' + dp + '%</div>' +
+      '<ul><li>ควรได้ = ค่าเฉลี่ย/เดือน × วันที่ผ่านไป ÷ วันในเดือน</li><li>ค่าเฉลี่ย = เดือนที่จบแล้วตั้งแต่ ก.ค.69 (นับตั้งแต่เดือนแรกที่ลูกค้าสั่ง)</li>' +
+      '<li>เฉพาะลูกค้าที่สั่งถี่ (รอบ ≤' + CL_DECLINE_MAX_GAP + ' วัน), เฉลี่ย ≥' + clFmt(CL_DECLINE_MIN_AVG) + '/เดือน, เริ่มเช็ควันที่ ' + CL_DECLINE_MIN_DAY + '</li></ul>' +
+      '<div class="ex">ตัวอย่าง: เฉลี่ย 400,000/เดือน วันที่ 20 (เดือน 31 วัน) ควรได้ ~' + clFmt(exExp) + ' → ขึ้นเมื่อได้จริง <b>ต่ำกว่า ~' + clFmt(exThr) + '</b></div></div>' +
+    '<div class="cl-r y"><h4>🟡 หมวดหาย</h4><div class="main">หมวดที่ปี 68 เคยซื้อ ≥' + clFmt(CL_LOST_MIN) + '/เดือน ตอนนี้ลดลง ≥' + lp + '%</div>' +
+      '<ul><li>ปี 68 = ยอดบัญชีทั้งปี ÷ 12</li><li>ตอนนี้ = เฉลี่ยเดือนที่จบแล้วตั้งแต่ ก.ค.69</li><li>ช่อง "ควรเสนอ" จะโชว์หมวดที่หาย</li></ul>' +
+      '<div class="ex">ตัวอย่าง: หัวกลม W ปี 68 40,000/เดือน → ขึ้นเมื่อตอนนี้เหลือ <b>≤' + clFmt(exLost) + '/เดือน</b></div></div>' +
+    '</div><div class="cl-rother"><b>อื่นๆ:</b> ลูกค้าที่มีออเดอร์เข้ามาวันนี้ไม่แสดง · กด ✓ โทรแล้ว = ซ่อน ' + CL_HIDE_DAYS + ' วัน · ' +
+      '<span class="cl-low" style="margin:0">ข้อมูลน้อย</span> = สั่งมาไม่ถึง 4 ครั้ง รอบยังไม่แม่น · ยอดคิดจากออเดอร์ที่ยืนยันแล้ว ราคาก่อน VAT · หมวดกิโล/ตัวใหญ่ปี 68 เป็นค่าประมาณจากการแบ่งสัดส่วน</div></div>';
+}
 
 // 2026-09-27: การ์ด "ผลการโทร 7 วันล่าสุด" (user เลือกจาก mockup_sales_dashboard_v1 — เอาแค่ส่วนนี้)
 // นับทุกครั้งที่กดโทรแล้วใน 7 วัน (ไม่ใช่เฉพาะครั้งล่าสุดต่อลูกค้า) · ไม่มีตัวเลขเงิน
