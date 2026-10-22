@@ -7259,8 +7259,10 @@ function anBuildCustomerResults() {
   let list = Object.entries(byCust).map(([name,v])=>{
     const t = anTrendMap[name] || null;
     const t5 = anTop5Map[name] || { months: 0, rank: 9999 };
-    return {name, revenue:v.revenue, orders:v.orders, avg: v.orders ? Math.round(v.revenue/v.orders) : 0, trendVals: t ? t.vals : null, pctChange: t ? t.pctChange : null, months: t5.months, top5Rank: t5.rank};
+    // 2026-10-22: prev = ยอดเต็มเดือนก่อนหน้า (เดือนเดียวกับที่ใช้คิด %) แทนคอลัมน์จำนวนออเดอร์/เฉลี่ยต่อออเดอร์ (mockup_cust_prevmonth_v1)
+    return {name, revenue:v.revenue, orders:v.orders, avg: v.orders ? Math.round(v.revenue/v.orders) : 0, prev: t ? t.vals[4] : 0, trendVals: t ? t.vals : null, pctChange: t ? t.pctChange : null, months: t5.months, top5Rank: t5.rank};
   });
+  if (anCustSortField === 'avg' || anCustSortField === 'orders') anCustSortField = 'revenue'; // คอลัมน์เดิมถูกเอาออก
   if (anCustSearch.trim()) {
     const q = anCustSearch.trim().toLowerCase();
     list = list.filter(c => c.name.toLowerCase().includes(q));
@@ -7286,7 +7288,7 @@ function anBuildCustomerResults() {
 
   let rows = '';
   if (!list.length) {
-    rows = '<tr><td colspan="7" style="padding:16px;text-align:center;color:#94a3b8;font-size:12px">ไม่พบลูกค้าในช่วงเวลานี้'+(anCustSearch?' หรือคำค้นหา':'')+'</td></tr>';
+    rows = '<tr><td colspan="6" style="padding:16px;text-align:center;color:#94a3b8;font-size:12px">ไม่พบลูกค้าในช่วงเวลานี้'+(anCustSearch?' หรือคำค้นหา':'')+'</td></tr>';
   } else {
     list.forEach((c,i) => {
       const open = anCustOpenRow === c.name;
@@ -7301,11 +7303,10 @@ function anBuildCustomerResults() {
       rows += '<tr style="cursor:pointer;background:'+(open?'#eef2f7':(isTop5?'#fffbeb':(i%2?'#f8fafc':'white')))+'" onclick="anCustToggleRow('+i+')">'+
         '<td style="padding:10px 14px;color:#1a3a5c;font-weight:700"><i class="ti ti-chevron-'+(open?'down':'right')+'" style="font-size:12px;margin-right:6px" aria-hidden="true"></i>'+rankBadge+anEsc(c.name)+'</td>'+
         '<td style="padding:10px 14px;text-align:right;font-weight:700">฿'+Math.round(c.revenue).toLocaleString()+'</td>'+
+        '<td style="padding:10px 14px;text-align:right;color:#475569;font-weight:600;background:rgba(26,58,92,.04)">'+(c.prev ? '฿'+Math.round(c.prev).toLocaleString() : '<span style="color:#cbd5e1">—</span>')+'</td>'+
+        '<td style="padding:10px 14px;text-align:center">'+pctCell+'</td>'+
         '<td style="padding:10px 14px">'+sparkCell+'</td>'+
-        '<td style="padding:10px 14px;text-align:right">'+pctCell+'</td>'+
-        '<td style="padding:10px 14px;text-align:right;color:#64748b">'+top5Cell+'</td>'+
-        '<td style="padding:10px 14px;text-align:right;color:#64748b">'+c.orders+'</td>'+
-        '<td style="padding:10px 14px;text-align:right;color:#64748b">฿'+c.avg.toLocaleString()+'</td></tr>';
+        '<td style="padding:10px 14px;text-align:right;color:#64748b">'+top5Cell+'</td></tr>';
       if (open) {
         const types = anTopTypes(byCustType[c.name] || {});
         const ctot = types.reduce((s,e)=>s+e[1],0) || 1;
@@ -7320,7 +7321,7 @@ function anBuildCustomerResults() {
             '<div style="width:110px;text-align:right;font-size:12px;font-weight:700;color:#1a3a5c">฿'+Math.round(q).toLocaleString()+' <span style="color:#94a3b8;font-weight:400">('+w+'%)</span></div></div>';
         });
         detail += '</div>';
-        rows += '<tr><td colspan="7" style="padding:0"><div style="padding:20px 18px;background:#f8fafc;border-top:1px solid #eef1f5">'+detail+'</div></td></tr>';
+        rows += '<tr><td colspan="6" style="padding:0"><div style="padding:20px 18px;background:#f8fafc;border-top:1px solid #eef1f5">'+detail+'</div></td></tr>';
       }
     });
   }
@@ -7328,14 +7329,19 @@ function anBuildCustomerResults() {
   // 2026-09-08: จำกัดคอลัมน์ที่เรียงได้เหลือ 4 คอลัมน์ตามที่ user ขอ (ยอดขาย/% เทียบเดือนก่อน/ติด Top5/เฉลี่ยฯ) —
   // ตัด ลูกค้า(ก-ฮ)/จำนวนออเดอร์ ออก ส่วน "แนวโน้ม 6 เดือน" ไม่มีปุ่มเรียงเองเลย ให้พ่วงไปกับ "ยอดขาย" (มีโน้ตกำกับใต้หัวข้อแทน)
   // dir: 'desc'|'asc' คือทิศเริ่มต้นที่โชว์ก่อนในเมนู dropdown (ไม่ใช่ค่า sort ปัจจุบัน)
+  // 2026-10-22: เอา จำนวนออเดอร์/เฉลี่ย/ออเดอร์ ออก เพิ่ม "ยอด <เดือนก่อน>" (ทั้งเดือน) + ย้าย % มาก่อนแนวโน้ม (mockup_cust_prevmonth_v1 อนุมัติ)
+  const revOneMonth = from.getFullYear() === to.getFullYear() && from.getMonth() === to.getMonth();
+  const revToday = new Date();
+  const revInMonth = revOneMonth && revToday.getFullYear() === to.getFullYear() && revToday.getMonth() === to.getMonth();
+  const revLabel = revOneMonth ? 'ยอดขาย ' + AN_THAI_M[to.getMonth()] : 'ยอดขาย';
+  const revSub = revOneMonth ? (revInMonth ? '1–' + revToday.getDate() + ' ' + AN_THAI_M[to.getMonth()] : 'ทั้งเดือน') : anRangeLabel(anCustRange);
   const custSortCols = [
     ['name',   'ลูกค้า',            'left',   'min-width:170px', null],
-    ['revenue','ยอดขาย',            'right',  'width:100px',     ['desc','asc']],
-    [null,     'แนวโน้ม 6 เดือน',    'center', 'width:100px',     null, AN_THAI_M[anTrendStart.getMonth()]+'–'+AN_THAI_M[anTrendEnd.getMonth()]+' · เรียงตามยอดขาย'],
-    ['pct',    '% เทียบ '+AN_THAI_M[anTrendPrev.getMonth()],   'right',  'width:120px',     ['desc','asc'], AN_THAI_M[anTrendEnd.getMonth()]+' เทียบ '+AN_THAI_M[anTrendPrev.getMonth()]+' (ทั้งเดือน)'],
-    ['months', 'ติด Top5 ('+anTop5N+'ด)', 'right', 'width:150px', ['desc','asc']],
-    ['orders', 'จำนวนออเดอร์',       'right',  'width:100px',     null],
-    ['avg',    'เฉลี่ย/ออเดอร์',     'right',  'width:110px',     ['desc','asc']]
+    ['revenue', revLabel,           'right',  'width:110px',     ['desc','asc'], revSub],
+    ['prev',   'ยอด '+AN_THAI_M[anTrendPrev.getMonth()], 'right', 'width:110px', ['desc','asc'], 'ทั้งเดือน'],
+    ['pct',    '% เทียบ '+AN_THAI_M[anTrendPrev.getMonth()],   'center',  'width:130px',     ['desc','asc'], AN_THAI_M[anTrendEnd.getMonth()]+' เทียบ '+AN_THAI_M[anTrendPrev.getMonth()]+' (ทั้งเดือน)'],
+    [null,     'แนวโน้ม 6 เดือน',    'center', 'width:110px',     null, AN_THAI_M[anTrendStart.getMonth()]+'–'+AN_THAI_M[anTrendEnd.getMonth()]+' · เรียงตามยอดขาย'],
+    ['months', 'ติด Top5 ('+anTop5N+'ด)', 'right', 'width:150px', ['desc','asc']]
   ];
   const sortDirLabel = { desc: 'มาก → น้อย', asc: 'น้อย → มาก' };
   let theadH = '';
@@ -7769,7 +7775,7 @@ function anCatRevPrint() {
     'td.tot{background:#ececec;font-weight:800}td.avg{background:#ececec;font-weight:800;border-left:2px solid #000}' +
     'tr.g th,tr.g td{border-top:2px solid #000;font-weight:800}' +
     '.ft{font-size:9.5px;color:#555;margin-top:6px}';
-  const html = '<div class="ph"><div><div class="t">ยอดขายแยกตามหมวด — Heatmap รายเดือน</div>' +
+  const html = '<div class="ph"><div><div class="t">ยอดขายแยกตามหมวด</div>' +
       '<div class="s">ลูกค้า: <b>' + anEsc(anCatRevCust) + '</b>' + (custInfo.code ? ' · รหัส ' + anEsc(custInfo.code) : '') +
       ' · ช่วง: <b>' + rangeTxt + ' (' + months[0].label + ' – ' + months[11].label + ')</b> · รวมช่วงนี้ <b>฿' + Math.round(grandTotal).toLocaleString() + '</b></div></div>' +
       '<div class="r">STIC น็อตกิโล<br>พิมพ์ ' + dTxt + '</div></div>' +
@@ -7781,7 +7787,7 @@ function anCatRevPrint() {
       'เฉลี่ย/เดือน นับเฉพาะเดือนที่จบแล้ว' + (avgInfo.rangeLabel ? ' (' + avgInfo.rangeLabel + ')' : '') + ' ไม่รวมเดือนปัจจุบัน · หน่วย: บาท ก่อน VAT</div>';
   const w = window.open('', '_blank');
   if (!w) { showToast('เบราว์เซอร์บล็อกหน้าต่างใหม่ — กรุณาอนุญาต pop-up'); return; }
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Heatmap ' + anEsc(anCatRevCust) + '</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet"><style>' + css + '</style></head><body>' + html +
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ยอดขายแยกตามหมวด ' + anEsc(anCatRevCust) + '</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet"><style>' + css + '</style></head><body>' + html +
     '<script>window.onload=function(){setTimeout(function(){window.print()},400)}<\/script></body></html>');
   w.document.close();
 }
@@ -8529,10 +8535,9 @@ function anRenderSalesCharts(orders, items) {
     // มาไว้เหนือ "ยอดขายแยกตามหมวดต่อลูกค้า" ตามที่ user ขอ (เดิมอยู่ใต้การ์ดนั้น) — mockup confirm แล้ว v4
     // ตารางลูกค้าเต็มความกว้าง (เดิมเป็นครึ่งคอลัมน์) ให้คอลัมน์แนวโน้ม/%เทียบเดือนก่อนใหม่มีที่พอ ไม่อึดอัด
     '<div class="an-card" id="an-cust-full-body" style="margin-top:14px"></div>'+
-    '<div class="an-sales-2col" style="margin-top:20px;align-items:start">'+
-      '<div class="an-card" id="an-churn-card">'+anBuildChurnCard()+'</div>'+
-      '<div class="an-card" id="an-champ-card"></div>'+
-    '</div>'+
+    // 2026-10-20: user ขอยกเลิกการ์ด "🚨 ลูกค้าที่เงียบนาน" (ใช้ 🔴 เงียบไปนาน ในรายชื่อโทรตามแทน) — "เก่งที่สุดต่อหมวด" กว้างเต็มแถว
+    // anBuildChurnCard()/anSyncChurnHeight() ยังอยู่ในไฟล์ (anSyncChurnHeight return เองเมื่อไม่มีการ์ด)
+    '<div class="an-card" id="an-champ-card" style="margin-top:20px"></div>'+
     '<div class="an-card" id="an-catrev-container" style="margin-top:20px">'+anBuildCatRevCard()+'</div>'+
     '<div class="an-card" id="an-top5-widget" style="margin-top:20px"></div>';
 
