@@ -2160,7 +2160,9 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating, breakdown
       // 2026-07-13: หัวน็อตมิลแข็ง เกรด8 — ราคา NET จากไฟล์ คม-กต-01 sheet "03 ม.ค. 56 11" (M12=1.12,M16=2.3,M20=4.5,M24=8.1,M30=20 บาท/ตัว)
       // แต่ MATRICES row มีแค่ M6-M24 (ไม่มี M30) — เจอราคาแค่ 4 ไซส์ (M12,16,20,24) จาก 10 ไซส์ในสต็อค ไซส์อื่นยังไม่มีราคา (ตกไป return null ปกติ)
       // user ยืนยัน 07-13: หน่วยเดิม "กระสอบ" ผิด แก้เป็น "กล่อง" แล้ว (เพิ่มเข้า BOX_TYPES) ให้ตรงกับ "บรรจุกล่อง/ตัว" ในตารางนี้
-      'grade8_M12': 200, 'grade8_M16': 150, 'grade8_M20': 70, 'grade8_M24': 40 };
+      'grade8_M12': 200, 'grade8_M16': 150, 'grade8_M20': 70, 'grade8_M24': 40,
+      // 2026-10-22: Spring Washer ราคาเน็ตบาท/ตัว (สีดำ/ชุบรุ้ง/ชุบขาว เลือกตอนสั่ง) — จำนวนตัวต่อกล่องตามตาราง JIS B1251 Type2
+      'sw_M6': 3000, 'sw_M8': 1500, 'sw_M10': 1000, 'sw_M12': 600, 'sw_M16': 300, 'sw_M20': 150, 'sw_M24': 100 };
     // 2026-07-30: เพิ่ม M.6-M.14 — หัวน็อตมิลไซส์กลาง (M6-M14) ปกติขายเป็น บาท/กก. แพ็ค 50กก. เหมือนกันหมด
     // (ดู H_MIL ด้านล่าง ใช้ pack=50 ทุกไซส์ในกลุ่มนี้) แต่กิ่งราคาเน็ตนี้เดิมมีแค่ M.3/M.4/M.5 ทำให้ออเดอร์ที่กรอก
     // ราคาเน็ตเอง (ไม่ใช้ %ส่วนลด) สำหรับ M6-M14 หลุดไปเข้า return null — ไม่ถูกนับยอดขายเลย (เงียบ ไม่ error)
@@ -2188,6 +2190,9 @@ function getRevenuePerUnit(type, col, row, discPct, netPrice, plating, breakdown
     } else if (itemType === 'หัวน็อตมิลแข็ง เกรด8') {
       const m = String(row || '').match(/^M\s*(\d+)/);
       if (m) hwKey = 'grade8_M' + m[1];
+    } else if (itemType === 'Spring Washer') { // 2026-10-22
+      const m = String(row || '').match(/^M\s*(\d+)/);
+      if (m) hwKey = 'sw_M' + m[1];
     }
     if (!hwKey) return null;
     if (NET_PIECE_PACK[hwKey] !== undefined) return finishNet(nP, NET_PIECE_PACK[hwKey]);

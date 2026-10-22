@@ -88,6 +88,11 @@ table.stk th,table.stk td{border:1px solid #c8d6e5}
 .modal-actions-3 .ma-lbl{font-size:11px;color:#888;text-align:center;visibility:hidden}
 .modal-actions-3 .ma-lbl.show{visibility:visible}
 .price-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* 2026-10-22: ปุ่มเลือกผิว Spring Washer (mockup_springwasher_price_v1 อนุมัติ) */
+.sw-opts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.sw-opt{padding:10px 4px;border:1.5px solid #cbd5e1;border-radius:8px;text-align:center;font-size:13.5px;font-weight:700;background:#fff;color:#475569;line-height:1.25;cursor:pointer}
+.sw-opt small{display:block;font-size:11px;font-weight:600;color:#94a3b8;margin-top:2px}
+.sw-opt.on{background:#1a3a5c;border-color:#1a3a5c;color:#fff}.sw-opt.on small{color:#cbd5e1}
 .price-row.has-extra{grid-template-columns:1fr 1fr 1fr}
 .field-auto input{background:var(--color-bg-auto,#f0f7ff);font-weight:500}
 .field-hint{font-size:11px;color:#999;margin:3px 0 0}
@@ -420,6 +425,10 @@ body.not-logged-in .login-overlay{display:flex}
       <label id="qtyLabel">จำนวน *</label>
       <input type="number" id="inputQty" placeholder="0" min="1" step="1">
     </div>
+    <div class="field" id="fieldSwFinish" style="display:none">
+      <label>ผิว *</label>
+      <div class="sw-opts" id="swFinishOpts"></div>
+    </div>
     <div class="field">
       <label>ความเร่งด่วน *</label>
       <div class="urgency-opts" id="itemUrgencyOpts" style="grid-template-columns:1fr 1fr 1fr">
@@ -674,6 +683,32 @@ function getPlatingSurcharge(code) {
   return (PLATING_SURCHARGE_OVERRIDE[code] !== undefined) ? PLATING_SURCHARGE_OVERRIDE[code] : PLATING_SURCHARGE;
 }
 let modalBaseNetPrice = null;
+// 2026-10-22: Spring Washer (JIS B1251 Type2) ราคาเน็ตบาท/ตัว — d=สีดำ, c=ชุบรุ้ง/ชุบขาว (ราคาเดียวกัน) · เลือกผิวด้วยปุ่ม เก็บในช่อง plating
+const SW_PRICE = {
+  '700600J2': {d: 0.083, c: 0.088}, '700800J2': {d: 0.15, c: 0.17}, '701000J2': {d: 0.26, c: 0.29},
+  '701200J2': {d: 0.43, c: 0.46}, '701600J2': {d: 0.92, c: 0.98}, '702000J2': {d: 1.74, c: 1.85}, '702400J2': {d: 2.92, c: 3.03}
+};
+const SW_FINISHES = ['สีดำ', 'ชุบรุ้ง', 'ชุบขาว'];
+let swFinish = '';
+function swPriceFor(code, f) { const p = SW_PRICE[String(code || '').toUpperCase()]; return p ? (f === 'สีดำ' ? p.d : p.c) : null; }
+// setPrice=true: ใส่ราคา Net ตามผิวที่เลือก (ตอนเพิ่มใหม่/เปลี่ยนผิว/เปลี่ยนขนาด) · false: คงราคาที่บันทึกไว้ (ตอนเปิดแก้ไขรายการเดิม)
+function renderSwFinish(code, f, setPrice) {
+  const isSw = !!SW_PRICE[String(code || '').toUpperCase()];
+  document.getElementById('fieldSwFinish').style.display = isSw ? '' : 'none';
+  if (!isSw) { swFinish = ''; return; }
+  swFinish = SW_FINISHES.includes(f) ? f : 'สีดำ';
+  document.getElementById('fieldPlating').style.display = 'none'; // ช่องชุบ +5 ของน็อตกิโลไม่ใช้กับ Spring Washer
+  document.getElementById('swFinishOpts').innerHTML = SW_FINISHES.map(x =>
+    '<div class="sw-opt' + (x === swFinish ? ' on' : '') + '" onclick="selectSwFinish(\'' + x + '\')">' + x + '<small>' + swPriceFor(code, x) + '</small></div>').join('');
+  if (setPrice) {
+    const p = swPriceFor(code, swFinish);
+    document.getElementById('inputDiscPct').value = '';
+    document.getElementById('inputNetPrice').value = p;
+    document.getElementById('hintNetPrice').textContent = 'ราคา' + swFinish + ' จากตาราง แก้ได้';
+    modalBaseNetPrice = p;
+  }
+}
+function selectSwFinish(f) { renderSwFinish(selectedCode, f, true); }
 // 2026-08-07: ปุ่มทอกเกิล "บิล" เฉพาะลูกค้าประวิทย์สลักภัณฑ์ (code 13700) — ไม่มีผลต่อราคา แค่บันทึกค่า 'X'/'' ไปกับออเดอร์
 const BILL_CUSTOMER_CODE = '13700';
 // 2026-09-05: ลูกค้า dummy "แสงไทย" (code 00000) — บัญชีตั้งออเดอร์ปรับสต็อคเวลานับสต็อคหน้างานไม่ตรงกับระบบ
@@ -1137,6 +1172,7 @@ function openModal(code, name, type) {
 
   // populate % ส่วนลด และ ราคา Net จาก CUST_PRICES
   applyAutoPriceToModal(customerCode, code, type);
+  renderSwFinish(code, 'สีดำ', true); // 2026-10-22: Spring Washer เท่านั้น (สินค้าอื่นซ่อนแถวผิว)
 
   document.getElementById('modalBg').classList.add('open');
 }
@@ -1281,6 +1317,7 @@ function openItemModalFrom(item, mode) {
   document.getElementById('fieldBill').style.display = customerCode === BILL_CUSTOMER_CODE ? '' : 'none';
   setBillFlag(item.bill === 'X');
   document.getElementById('priceRow').classList.toggle('has-extra', customerCode === PLATING_CUSTOMER_CODE || customerCode === BILL_CUSTOMER_CODE);
+  renderSwFinish(item.code, item.plating, false); // 2026-10-22: Spring Washer — ผิวที่เคยเลือก (ไม่ทับราคาที่บันทึกไว้)
 
   document.getElementById('modalBg').classList.add('open');
 }
@@ -1360,6 +1397,7 @@ function sizeSelectItem(idx) {
 
   // 2026-08-07: เปลี่ยนขนาด → รีเฟรชราคาให้ตรงเงื่อนไขสินค้าใหม่เสมอ (กันราคาเน็ต/%ส่วนลดของรหัสเดิมค้าง)
   applyAutoPriceToModal(customerCode, item.code, sizeChangeType);
+  renderSwFinish(item.code, swFinish, true); // 2026-10-22: เปลี่ยนขนาด Spring Washer → ราคาตามผิวเดิม
 }
 function sizeSearchBlur() {
   setTimeout(() => {
@@ -1413,7 +1451,7 @@ function addToCart() {
   const net_price = netVal !== '' ? parseFloat(netVal) : null;
   // 2026-07-29: ชุบขาว/ชุบรุ้ง — netVal ที่อ่านมาข้างบนรวมค่าชุบ +5 ไว้แล้วถ้ามี (updateNetForPlating() คำนวณสดตอนเลือก)
   const platingEl = document.getElementById('inputPlating');
-  const plating = platingEl ? platingEl.value : '';
+  const plating = SW_PRICE[String(selectedCode || '').toUpperCase()] ? swFinish : (platingEl ? platingEl.value : ''); // 2026-10-22: Spring Washer เก็บผิวในช่อง plating
   // 2026-08-07: ปุ่ม "บิล" — อ่านสถานะจากข้อความปุ่ม ('X' = ติ๊ก, อื่นๆ = ไม่ติ๊ก)
   const billEl = document.getElementById('inputBill');
   const bill = (billEl && billEl.textContent.trim() === 'X') ? 'X' : '';
