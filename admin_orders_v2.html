@@ -215,6 +215,19 @@ body.not-logged-in .login-overlay{display:flex}
 .edit-field input,.edit-field select{width:100%;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:15px;font-family:'Sarabun',sans-serif;background:white}
 .edit-field input:focus,.edit-field select:focus{outline:none;border-color:#d97706}
 .edit-actions{display:flex;gap:8px;margin-top:18px}
+/* 2026-10-27: วันที่เปิดบิล (mockup_billdate_v2 / _summary_v2 / _edit_v1 อนุมัติ) */
+.bd-days{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.bd-day{border:1.5px solid #cbd5e1;border-radius:8px;padding:8px;text-align:center;font-weight:700;font-size:13.5px;color:#475569;background:#fff;cursor:pointer;font-family:'Sarabun',sans-serif;line-height:1.25}
+.bd-day small{display:block;font-weight:600;font-size:11px;color:#94a3b8}
+.bd-day.on{background:#1a3a5c;border-color:#1a3a5c;color:#fff}.bd-day.on small{color:#cbd5e1}
+.bd-warn{font-size:12px;color:#b45309;margin-top:6px;min-height:14px}
+.bd-tag{background:#fef3c7;color:#92400e;border-radius:5px;padding:1px 6px;font-weight:700}
+.bd-old{color:#94a3b8}
+.bd-pen{border:1px solid #cbd5e1;background:#fff;border-radius:5px;padding:0 4px;font-size:11px;cursor:pointer;margin-left:3px}
+.bd-bar{display:none;align-items:center;gap:12px;background:#1a3a5c;color:#fff;border-radius:10px;padding:9px 14px;margin:0 0 10px;font-size:14px}
+.bd-bar.show{display:flex}
+.bd-bar .bd-bar-btn{background:#fbbf24;color:#1a3a5c;border:none;border-radius:7px;padding:6px 14px;font-weight:800;font-family:'Sarabun',sans-serif;font-size:13.5px;cursor:pointer}
+.bd-bar .bd-bar-x{margin-left:auto;background:none;border:none;color:#cbd5e1;font-family:'Sarabun',sans-serif;cursor:pointer;font-size:13px}
 .btn-save{flex:2;background:#d97706;color:white;border:none;border-radius:8px;padding:11px;font-size:14px;font-family:'Sarabun',sans-serif;font-weight:700;cursor:pointer}
 .btn-cancel-edit{flex:1;background:white;color:#555;border:1.5px solid #d1d5db;border-radius:8px;padding:11px;font-size:14px;font-family:'Sarabun',sans-serif;cursor:pointer}
 .btn-confirm:hover{background:#15803d}
@@ -525,29 +538,36 @@ table.list tr:hover td{background:#f8fbff}
      ย่อหัวตาราง %ส่วนลด/ราคาเน็ต/ราคาตั้ง เป็น ลด%/เน็ต/ตั้ง กันหัวตารางทับกันตอนคอลัมน์แคบ — ดู mockup_sum_print_columns_v2.html
      2026-09-22 (รอบ 3): user ทดสอบพิมพ์จริงแล้วเจอ %ส่วนลด/ราคาเน็ต ตัวเลขล้นช่อง (สาเหตุจริง: 2 คอลัมน์นี้ยังใช้ inline font-size:12px เดิม ไม่เคยถูกลดขนาดตอนพิมพ์เหมือนราคาตั้ง/ราคารวมที่แก้ไปรอบ1 — แก้ที่ต้นเหตุด้านล่างด้วย)
      ชื่อสินค้าที่ฟอนต์ใหญ่ขึ้นแล้วพบว่าช่อง 35% เหลือพื้นที่เกินจำเป็น ลดเหลือ 30% คืนพื้นที่ให้ %ส่วนลด/ราคาเน็ต (4%→5%) และขยายจัดส่ง (5%→7%) ตามที่ user ขอ */
-  #tab-summary .hist-tbl col:nth-child(1){width:6%!important}
-  #tab-summary .hist-tbl col:nth-child(2){width:10%!important}
-  #tab-summary .hist-tbl col:nth-child(3){width:30%!important}
-  #tab-summary .hist-tbl col:nth-child(4){width:6%!important}
-  #tab-summary .hist-tbl col:nth-child(5){width:5%!important}
-  #tab-summary .hist-tbl col:nth-child(6){width:5%!important}
+  /* 2026-10-27: เพิ่มคอลัมน์ ช่องติ๊ก (ซ่อนตอนพิมพ์) + วันที่เปิดบิล → คอลัมน์เดิมเลื่อนไป +2 · ชื่อสินค้า 30%→24% */
+  #tab-summary .hist-tbl col:nth-child(1){width:0!important}
+  #tab-summary .hist-tbl col:nth-child(2){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(3){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(4){width:10%!important}
+  #tab-summary .hist-tbl col:nth-child(5){width:24%!important}
+  #tab-summary .hist-tbl col:nth-child(6){width:6%!important}
   #tab-summary .hist-tbl col:nth-child(7){width:5%!important}
   #tab-summary .hist-tbl col:nth-child(8){width:5%!important}
-  #tab-summary .hist-tbl col:nth-child(9){width:6%!important}
-  #tab-summary .hist-tbl col:nth-child(10){width:8%!important}
-  #tab-summary .hist-tbl col:nth-child(11){width:7%!important}
-  #tab-summary .hist-tbl col:nth-child(12){width:7%!important}
+  #tab-summary .hist-tbl col:nth-child(9){width:5%!important}
+  #tab-summary .hist-tbl col:nth-child(10){width:5%!important}
+  #tab-summary .hist-tbl col:nth-child(11){width:6%!important}
+  #tab-summary .hist-tbl col:nth-child(12){width:8%!important}
+  #tab-summary .hist-tbl col:nth-child(13){width:7%!important}
+  #tab-summary .hist-tbl col:nth-child(14){width:7%!important}
   /* 2026-09-09: ลด font คอลัมน์ วันที่/รหัส (เดิม inline 11px แต่ละแถวข้อมูล) ตอนพิมพ์เท่านั้น (จอปกติยังเห็นครบ) — ให้พื้นที่ชื่อสินค้ากว้างขึ้น
      ตัดคอลัมน์ ความเร่งด่วน/สถานะ ออกจากตารางไปแล้ว (ไม่ใช่แค่ซ่อนตอนพิมพ์เหมือนเดิม) เพิ่มราคาตั้ง/ราคารวมแทน — ดู renderSummary()
      2026-09-22: เอาคอลัมน์ "หลังหักลด" ออกจากตารางนี้แล้วทั้งหมด (ไม่ใช่แค่ซ่อนตอนพิมพ์) — คอลัมน์ที่เหลือขยับ: ราคาตั้ง=col9, ราคารวม=col10, จัดส่ง=col11, หมายเหตุ=col12
      ตัวเลข ราคาตั้ง/ราคารวม เดิม inline font-size:12px ไม่เคยถูกลดขนาดตอนพิมพ์เหมือนคอลัมน์อื่น (ใหญ่กว่ากระสอบ/กล่องผิดสังเกต) — เพิ่ม override ให้เท่ากัน */
-  #tab-summary .hist-tbl td:nth-child(1){font-size:6.5pt!important;white-space:normal!important}
-  #tab-summary .hist-tbl td:nth-child(4){font-size:6.5pt!important}
-  #tab-summary .hist-tbl td:nth-child(7){font-size:6.5pt!important}
-  #tab-summary .hist-tbl td:nth-child(8){font-size:6.5pt!important}
+  #tab-summary .hist-tbl td:nth-child(2),#tab-summary .hist-tbl td:nth-child(3){font-size:6.5pt!important;white-space:normal!important}
+  #tab-summary .hist-tbl td:nth-child(3) .bd-tag{padding:0 3px!important}
+  #tab-summary .hist-tbl td:nth-child(6){font-size:6.5pt!important}
   #tab-summary .hist-tbl td:nth-child(9){font-size:6.5pt!important}
   #tab-summary .hist-tbl td:nth-child(10){font-size:6.5pt!important}
-  #tab-summary .hist-tbl td:nth-child(11) span{font-size:6.5pt!important;padding:1px 5px!important}
+  #tab-summary .hist-tbl td:nth-child(11){font-size:6.5pt!important}
+  #tab-summary .hist-tbl td:nth-child(12){font-size:6.5pt!important}
+  #tab-summary .hist-tbl td:nth-child(13) span{font-size:6.5pt!important;padding:1px 5px!important}
+  /* ช่องติ๊กเลือก: ห้าม display:none (คอลัมน์จะเลื่อนผิดจาก colgroup) → บีบให้กว้าง 0 แทน */
+  #tab-summary .hist-tbl .bd-chkcell{width:0!important;padding:0!important;border:0!important;font-size:0!important}
+  #tab-summary .hist-tbl .bd-chkcell *{display:none!important}
   .sum-tbl th,#tab-summary .hist-tbl th{padding:2px 4px!important;font-size:6.5pt!important}
   .sum-tbl td,#tab-summary .hist-tbl td{padding:2px 5px!important;line-height:1.2!important;border:0.5px solid #ccc!important}
   .sum-tbl .num,#tab-summary .hist-tbl td{text-align:center!important}
@@ -556,7 +576,7 @@ table.list tr:hover td{background:#f8fbff}
   #tab-summary .hist-tbl th.th-name{text-align:left!important}
   /* 2026-09-22 (รอบ 2): ลูกค้าชิดซ้ายด้วย (ของเดิมกึ่งกลางเหมือนคอลัมน์อื่น) + ยืนยันรหัสสินค้ากึ่งกลางชัดเจน (user รู้สึกว่าเบ้ขวา) */
   #tab-summary .hist-tbl td.td-cust{text-align:left!important}
-  #tab-summary .hist-tbl td:nth-child(4){text-align:center!important}
+  #tab-summary .hist-tbl td:nth-child(6){text-align:center!important}
   .sum-tbl .sub-row td,#tab-summary .hist-tbl tr.summary-row td{background:#1a3a5c!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:2px 5px!important}
   .sum-grand{font-size:8pt!important;padding:4px 0 0!important;margin-top:4px!important;border-top:1px solid #333!important}
   .truck-hdr{background:#eef3fb!important;color:#1a3a5c!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:9pt!important;padding:4px 6px!important;margin:0 0 2px!important}
@@ -993,7 +1013,9 @@ table.list tr:hover td{background:#f8fbff}
     <div class="tbl-wrap">
       <table class="hist-tbl">
         <thead><tr>
+          <th style="width:30px" class="hist-print-hide"><input type="checkbox" class="bd-chk-all" data-tab="hist" onchange="bdToggleAll('hist',this.checked)"></th>
           <th style="width:120px;font-size:11px">วันที่สั่ง</th>
+          <th style="width:95px;font-size:11px">วันที่เปิดบิล</th>
           <th style="text-align:left">ลูกค้า</th>
           <th style="text-align:left;min-width:180px">ชื่อ / ขนาดสินค้า</th>
           <th style="width:80px">รหัส</th>
@@ -1511,6 +1533,7 @@ table.list tr:hover td{background:#f8fbff}
         <span id="sum-date-mode-wrap" style="display:inline-flex;border:1.5px solid #d1d5db;border-radius:6px;overflow:hidden">
           <button type="button" id="sum-mode-ordered" onclick="setSummaryDateMode('ordered')" style="padding:5px 10px;border:none;font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer">วันที่สั่ง</button>
           <button type="button" id="sum-mode-confirmed" onclick="setSummaryDateMode('confirmed')" style="padding:5px 10px;border:none;font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer">วันที่ยืนยัน</button>
+          <button type="button" id="sum-mode-bill" onclick="setSummaryDateMode('bill')" style="padding:5px 10px;border:none;font-family:'Sarabun',sans-serif;font-size:12px;cursor:pointer">วันที่เปิดบิล</button>
         </span>
         <label>จาก:</label>
         <input type="date" id="sum-date-from" onchange="sumDatesManual()">
@@ -1522,6 +1545,7 @@ table.list tr:hover td{background:#f8fbff}
       </div>
       <!-- 2026-10-01: บรรทัดบอกว่ากำลังโชว์ "2 วันล่าสุด" อัตโนมัติ (mockup_summary_2days_v1 อนุมัติแล้ว) -->
       <div id="sum-hint" class="sum-print-hide" style="display:none;font-size:12px;color:#64748b;margin:-10px 4px 16px"></div>
+      <div id="sum-bd-bar" class="bd-bar sum-print-hide"></div>
       <div id="sum-body"><p style="color:#aaa;padding:24px;text-align:center">เลือกเงื่อนไขแล้วกด "แสดง"</p></div>
     </div>
   </div>
@@ -1597,13 +1621,37 @@ table.list tr:hover td{background:#f8fbff}
 </div>
 
 <!-- 2026-07-31: ฟีเจอร์ "ยืนยันเป็นชุดตามคันรถ" — modal ตั้งชื่อคันรถตอนกด "ยืนยันที่เลือก" (ไม่บังคับกรอก) -->
+<!-- 2026-10-27: แก้วันที่เปิดบิลย้อนหลัง (ทีละรายการ ✏️ / หลายรายการจากแถบที่เลือก) — mockup_billdate_edit_v1 -->
+<div class="edit-modal-bg" id="bdModalBg" onclick="if(event.target===this)bdClose()">
+  <div class="edit-modal">
+    <h3 id="bdTitle">✏️ แก้วันที่เปิดบิล</h3>
+    <div id="bdSub" style="font-size:12.5px;color:#475569;background:#f8fafc;border-radius:8px;padding:8px 10px;margin:8px 0 12px;line-height:1.6"></div>
+    <div class="edit-field">
+      <label id="bdLabel">วันที่เปิดบิลใหม่</label>
+      <div class="bd-days" id="bdDays"></div>
+      <input type="date" id="bdInput" onchange="bdSetNew(this.value)">
+      <div class="bd-warn" id="bdWarn"></div>
+    </div>
+    <div class="edit-actions">
+      <button class="btn-cancel-edit" onclick="bdClose()">ยกเลิก</button>
+      <button class="btn-save" id="bdSaveBtn" style="background:#1a3a5c" onclick="bdSave()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
 <div class="edit-modal-bg" id="truckModalBg" onclick="if(event.target===this)closeTruckModal()">
   <div class="edit-modal">
     <h3>✅ ยืนยันที่เลือก</h3>
     <div class="sub" id="truckModalSub"></div>
     <div class="edit-field">
-      <label>ชื่อคันรถ (ไม่บังคับ)</label>
+      <label>ชื่อคันรถ</label>
       <input type="text" id="truckNameInput" placeholder="เช่น คันรถ 1" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmTruckModal();}">
+    </div>
+    <div class="edit-field">
+      <label>วันที่เปิดบิล *</label>
+      <div class="bd-days" id="truckBdDays"></div>
+      <input type="date" id="truckBdInput" onchange="truckBdSet(this.value)">
+      <div class="bd-warn" id="truckBdWarn"></div>
     </div>
     <div class="edit-actions">
       <button class="btn-cancel-edit" onclick="closeTruckModal()">ยกเลิก</button>
@@ -4543,6 +4591,7 @@ async function bulkConfirm() {
   _bulkConfirmItems = items;
   document.getElementById('truckModalSub').textContent = `${checked.length} รายการ`;
   document.getElementById('truckNameInput').value = '';
+  truckBdSet(bdTodayISO(0)); // 2026-10-27: วันที่เปิดบิล ค่าเริ่มต้น = วันนี้
   document.getElementById('truckModalBg').classList.add('open');
   setTimeout(() => document.getElementById('truckNameInput').focus(), 50);
 }
@@ -4554,6 +4603,8 @@ function closeTruckModal() {
 
 async function confirmTruckModal() {
   const truck = (document.getElementById('truckNameInput').value || '').trim();
+  const billDate = truckBdValue;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(billDate)) { showToast('⚠️ กรุณาเลือกวันที่เปิดบิล', 'warn'); return; }
   const items = _bulkConfirmItems;
   document.getElementById('truckModalBg').classList.remove('open');
   if (!items || !items.length) return;
@@ -4570,7 +4621,7 @@ async function confirmTruckModal() {
       const t0 = performance.now();
       try {
         const res = await fetch(API, {
-          method: 'POST', body: JSON.stringify({action:'confirmOrder', row: item.row, code: item.code, qty: item.qty, truck})
+          method: 'POST', body: JSON.stringify({action:'confirmOrder', row: item.row, code: item.code, qty: item.qty, truck, bill_date: billDate})
         });
         const data = await res.json();
         const roundTripSec = ((performance.now() - t0) / 1000).toFixed(2);
@@ -4601,6 +4652,139 @@ async function confirmTruckModal() {
   } catch(e) { alert('เกิดข้อผิดพลาด: '+e.message); }
 }
 
+// ════ 2026-10-27: วันที่เปิดบิล ════
+// บัญชีลงวันที่บิลตามวันที่ของออกจากโกดัง (อาจเป็นวันถัดจากวันที่กดยืนยัน) — ชีท orders คอลัมน์ R (bill_date, yyyy-MM-dd)
+// ยอดขายทุกจุดนับตาม bill_date (anPDate) · ออเดอร์เก่าไม่มีค่านี้ → ใช้วันที่ยืนยัน
+const BD_TH_M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+function bdISOfromDate(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function bdTodayISO(off) { const d = new Date(); d.setDate(d.getDate() + (off || 0)); return bdISOfromDate(d); }
+function bdAddDays(iso, n) { const p = iso.split('-').map(Number); return bdISOfromDate(new Date(p[0], p[1] - 1, p[2] + n)); }
+function bdLabel(iso) { if (!iso) return '–'; const p = iso.split('-').map(Number); return p[2] + ' ' + BD_TH_M[p[1] - 1] + String(p[0] + 543).slice(-2); }
+function bdMonthLbl(iso) { const p = iso.split('-').map(Number); return BD_TH_M[p[1] - 1] + String(p[0] + 543).slice(-2); }
+function bdValid(v) { return /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')); }
+function billISO(o) { return bdValid(o.bill_date) ? o.bill_date : orderDateToInputISO(o.confirmed_date); }
+function bdCellHtml(o) {
+  const iso = billISO(o); if (!iso) return '';
+  const confISO = orderDateToInputISO(o.confirmed_date);
+  const txt = sumFmtISO(iso);
+  const body = !bdValid(o.bill_date) ? '<span class="bd-old" title="ออเดอร์เก่า — ยังไม่มีวันที่เปิดบิล ใช้วันที่ยืนยันแทน">' + txt + '</span>'
+    : (iso !== confISO ? '<span class="bd-tag" title="ไม่ตรงวันที่ยืนยัน (' + sumFmtISO(confISO || iso) + ')">' + txt + '</span>' : txt);
+  const pen = o.status === 'confirmed' ? '<button class="bd-pen sum-print-hide hist-print-hide" title="แก้วันที่เปิดบิล" onclick="bdOpen([' + o.row + '])">✏️</button>' : '';
+  return '<span style="white-space:nowrap">' + body + pen + '</span>';
+}
+function bdChkHtml(o, tab) {
+  return o.status === 'confirmed' ? '<input type="checkbox" class="bd-chk" data-tab="' + tab + '" data-row="' + o.row + '" onchange="bdSelChanged(\'' + tab + '\')">' : '';
+}
+function bdFindOrder(row) { return historyData.find(o => Number(o.row) === Number(row)); }
+function bdLineAmount(o) { // ราคาเดียวกับแท็บวิเคราะห์/call list (getRevenuePerUnit)
+  try {
+    const code = String(o.code || '').padStart(8, '0');
+    const it = (allItems || []).find(x => String(x.code || '').padStart(8, '0') === code); if (!it) return 0;
+    const per = getRevenuePerUnit(it.type || '', it.col, it.row, o.disc_pct, o.net_price, o.plating);
+    return (per === null || isNaN(per)) ? 0 : per * (Number(o.qty) || 0);
+  } catch (e) { return 0; }
+}
+function bdFmtBaht(n) { return '฿' + Math.round(n).toLocaleString(); }
+// --- กล่อง "ยืนยันที่เลือก" ---
+let truckBdValue = '';
+function truckBdSet(iso) {
+  truckBdValue = iso || '';
+  const today = bdTodayISO(0), tmr = bdTodayISO(1);
+  document.getElementById('truckBdDays').innerHTML =
+    '<button type="button" class="bd-day' + (truckBdValue === today ? ' on' : '') + '" onclick="truckBdSet(\'' + today + '\')">วันนี้<small>' + bdLabel(today) + '</small></button>' +
+    '<button type="button" class="bd-day' + (truckBdValue === tmr ? ' on' : '') + '" onclick="truckBdSet(\'' + tmr + '\')">พรุ่งนี้<small>' + bdLabel(tmr) + '</small></button>';
+  document.getElementById('truckBdInput').value = truckBdValue;
+  document.getElementById('truckBdWarn').textContent = (truckBdValue && truckBdValue.slice(0, 7) !== today.slice(0, 7))
+    ? '⚠ เปิดบิลคนละเดือนกับวันที่ยืนยัน → ยอดนี้จะนับเป็นเดือน ' + bdMonthLbl(truckBdValue) : '';
+}
+// --- เลือกหลายรายการ + แถบด้านบน ---
+function bdChecked(tab) { return [...document.querySelectorAll('.bd-chk[data-tab="' + tab + '"]:checked')].map(c => Number(c.dataset.row)); }
+function bdSelChanged(tab) {
+  const bar = document.getElementById(tab + '-bd-bar'); if (!bar) return;
+  const rows = bdChecked(tab);
+  if (!rows.length) { bar.classList.remove('show'); bar.innerHTML = ''; document.querySelectorAll('.bd-chk-all[data-tab="' + tab + '"]').forEach(c => { c.checked = false; }); return; }
+  const os = rows.map(bdFindOrder).filter(Boolean);
+  const custs = new Set(os.map(o => resolveCust(o.customer || ''))).size;
+  const amt = os.reduce((a, o) => a + bdLineAmount(o), 0);
+  bar.innerHTML = '<span>เลือกแล้ว <b>' + rows.length + ' รายการ</b> <span style="opacity:.85">(' + custs + ' ลูกค้า · ' + bdFmtBaht(amt) + ')</span></span>' +
+    '<button class="bd-bar-btn" onclick="bdOpen(bdChecked(\'' + tab + '\'))">✏️ แก้วันที่เปิดบิล</button>' +
+    '<button class="bd-bar-x" onclick="bdClearSel(\'' + tab + '\')">✕ ยกเลิกเลือก</button>';
+  bar.classList.add('show');
+}
+function bdToggleAll(tab, on) {
+  document.querySelectorAll('.bd-chk[data-tab="' + tab + '"]').forEach(c => { c.checked = on; });
+  bdSelChanged(tab);
+  document.querySelectorAll('.bd-chk-all[data-tab="' + tab + '"]').forEach(c => { c.checked = on && bdChecked(tab).length > 0; });
+}
+function bdClearSel(tab) { bdToggleAll(tab, false); }
+// --- กล่องแก้วันที่เปิดบิล ---
+let bdEditRows = [], bdNewValue = '', bdDayBtns = [];
+function bdOpen(rows) {
+  const os = rows.map(bdFindOrder).filter(o => o && o.status === 'confirmed');
+  if (!os.length) return;
+  bdEditRows = os.map(o => Number(o.row));
+  const multi = os.length > 1;
+  document.getElementById('bdTitle').textContent = multi ? '✏️ แก้วันที่เปิดบิล ' + os.length + ' รายการ' : '✏️ แก้วันที่เปิดบิล';
+  const olds = [...new Set(os.map(billISO))].sort();
+  let sub;
+  if (!multi) {
+    const o = os[0];
+    sub = '<b>' + clEsc(resolveCust(o.customer || '')) + '</b> · ' + clEsc(o.name || o.code || '') + ' · ' + (Number(o.qty) || 0) + ' ' + clEsc(o.unit || '') +
+      '<br>ยืนยันเมื่อ ' + sumFmtISO(orderDateToInputISO(o.confirmed_date)) + ' · วันที่เปิดบิลเดิม <b>' + sumFmtISO(olds[0]) + '</b>';
+  } else {
+    const by = {};
+    os.forEach(o => { const c = resolveCust(o.customer || ''); by[c] = by[c] || { n: 0, a: 0 }; by[c].n++; by[c].a += bdLineAmount(o); });
+    sub = Object.entries(by).map(([c, v]) => '<b>' + clEsc(c) + '</b> · ' + v.n + ' รายการ · ' + bdFmtBaht(v.a)).join('<br>') +
+      '<br>วันที่เปิดบิลเดิม: ' + (olds.length === 1 ? sumFmtISO(olds[0]) + ' (ทั้ง ' + os.length + ' รายการ)' : 'หลายวัน (' + olds.map(sumFmtISO).join(', ') + ')');
+  }
+  document.getElementById('bdSub').innerHTML = sub;
+  document.getElementById('bdLabel').textContent = multi ? 'วันที่เปิดบิลใหม่ (ใช้กับทุกรายการที่เลือก)' : 'วันที่เปิดบิลใหม่';
+  const base = multi ? olds[0] : (orderDateToInputISO(os[0].confirmed_date) || olds[0]);
+  bdDayBtns = multi
+    ? [[base, olds.length === 1 ? 'เดิม' : 'วันแรกที่เลือก', bdLabel(base)], [bdAddDays(base, 1), 'วันถัดไป', bdLabel(bdAddDays(base, 1))]]
+    : [[base, 'วันที่ยืนยัน', bdLabel(base)], [bdAddDays(base, 1), 'วันถัดไป', bdLabel(bdAddDays(base, 1))]];
+  const btn = document.getElementById('bdSaveBtn');
+  btn.textContent = multi ? '💾 บันทึก ' + os.length + ' รายการ' : '💾 บันทึก';
+  btn.disabled = false;
+  bdSetNew(multi ? olds[0] : billISO(os[0]));
+  document.getElementById('bdModalBg').classList.add('open');
+}
+function bdSetNew(iso) {
+  bdNewValue = iso || '';
+  document.getElementById('bdDays').innerHTML = bdDayBtns.map(b =>
+    '<button type="button" class="bd-day' + (bdNewValue === b[0] ? ' on' : '') + '" onclick="bdSetNew(\'' + b[0] + '\')">' + b[1] + '<small>' + b[2] + '</small></button>').join('');
+  document.getElementById('bdInput').value = bdNewValue;
+  const os = bdEditRows.map(bdFindOrder).filter(Boolean);
+  const moved = bdNewValue ? os.filter(o => billISO(o).slice(0, 7) !== bdNewValue.slice(0, 7)) : [];
+  document.getElementById('bdWarn').textContent = moved.length
+    ? '⚠ ย้ายเดือน: ยอด' + (os.length > 1 ? ' ' + bdFmtBaht(moved.reduce((a, o) => a + bdLineAmount(o), 0)) : 'นี้') + ' จะไปนับใน ' + bdMonthLbl(bdNewValue) : '';
+}
+function bdClose() { document.getElementById('bdModalBg').classList.remove('open'); bdEditRows = []; }
+async function bdSave() {
+  if (!bdValid(bdNewValue)) { showToast('⚠️ กรุณาเลือกวันที่', 'warn'); return; }
+  const rows = bdEditRows.slice(); if (!rows.length) return;
+  const btn = document.getElementById('bdSaveBtn'); btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+  let by = '';
+  try { const s = stcGetSession(); by = s ? (s.username || s.user || '') : ''; } catch (e) {}
+  try {
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify({ action: 'setBillDate', rows, bill_date: bdNewValue, by }) });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || data.message || 'บันทึกไม่สำเร็จ');
+    rows.forEach(r => { const o = bdFindOrder(r); if (o) o.bill_date = bdNewValue; });
+    try { if (Array.isArray(anOrdersCache)) anOrdersCache.forEach(o => { if (rows.includes(Number(o.row))) o.bill_date = bdNewValue; }); } catch (e) {}
+    bdClose();
+    if (document.getElementById('tab-summary').classList.contains('active') && summaryData.length) renderSummary();
+    if (document.getElementById('tab-history').classList.contains('active')) renderHistory();
+    ['sum', 'hist'].forEach(bdClearSel);
+    try { clRefresh(); } catch (e) {}
+    showToast('✅ แก้วันที่เปิดบิล ' + (data.updated || rows.length) + ' รายการ → ' + bdLabel(bdNewValue));
+  } catch (e) {
+    showToast('⚠️ ' + e.message, 'warn');
+    btn.disabled = false; btn.textContent = rows.length > 1 ? '💾 บันทึก ' + rows.length + ' รายการ' : '💾 บันทึก';
+  }
+}
+// ════ /วันที่เปิดบิล ════
+
 // 2026-07-14: บังคับต้องมีราคา (disc_pct หรือ net_price อย่างน้อย 1 อย่าง) ก่อนยืนยันออเดอร์ได้ — sale ยังกด
 // สั่งของได้ตามปกติ ไม่บล็อกตอนสั่ง แต่พอมาถึงขั้น admin กดยืนยัน ถ้ายังไม่มีราคาจะเด้งไปหน้ากรอกราคาแทนทันที
 // (กันเคสแบบ checkRoundHeadPricing_20260714 เจอ — ออเดอร์ยืนยันแล้วแต่ไม่มีราคา หายจากยอดขายเงียบๆ)
@@ -4627,7 +4811,7 @@ async function confirmOrder(row, code, qty) {
   if (!confirm(`ยืนยัน ${code} จำนวน ${qty}?`)) return;
   try {
     const res = await fetch(API, {
-      method: 'POST', body: JSON.stringify({action:'confirmOrder', row, code, qty})
+      method: 'POST', body: JSON.stringify({action:'confirmOrder', row, code, qty, bill_date: bdTodayISO(0)})
     });
     const data = await res.json();
     if (data.success) {
@@ -5023,7 +5207,7 @@ function renderHistory() {
   });
   const tbody = document.getElementById('historyTbody');
   if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:24px;color:#aaa">ไม่มีประวัติ</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;padding:24px;color:#aaa">ไม่มีประวัติ</td></tr>';
     return;
   }
   const grouped = {};
@@ -5043,7 +5227,9 @@ function renderHistory() {
       if (isBox) cBox += qty; else cSack += qty;
       const urgBg = {'ด่วน':'#fee2e2','จอง':'#fef9c3','ปกติ':'#d1fae5'}[o._urgency]||'#f3f4f6';
       html += `<tr class="${idx===0?'group-sep':''}">
+        <td class="hist-print-hide">${bdChkHtml(o,'hist')}</td>
         <td style="font-size:11px;white-space:nowrap">${getOrderDate(o)}</td>
+        <td style="font-size:11px">${o.status==='confirmed'?bdCellHtml(o):''}</td>
         <td class="td-cust">${idx===0?cust:''}</td>
         <td class="td-name">${fmtName(o.name||o.code)}</td>
         <td style="font-family:monospace;font-size:11px">${o.code||''}</td>
@@ -5062,13 +5248,14 @@ function renderHistory() {
       </tr>`;
     });
     html += `<tr class="summary-row">
-      <td colspan="4" style="text-align:right">รวม ${cust}</td>
+      <td colspan="6" style="text-align:right">รวม ${cust}</td>
       <td>${cSack||'-'}</td>
       <td>${cBox||'-'}</td>
       <td colspan="7"></td>
     </tr>`;
   });
   tbody.innerHTML = html;
+  bdSelChanged('hist'); // 2026-10-27
 }
 
 function showToast(msg, type) {
@@ -5094,16 +5281,15 @@ let summaryData = [];
 // 2026-07-30: โหมดกรองวันที่ในหน้าสรุปออเดอร์ — 'confirmed' (ค่าเริ่มต้น) = กรองตาม "วันที่ยืนยัน" (confirmed_date)
 // 'ordered' = กรองตาม "วันที่สั่ง" (date) แบบเดิม — ที่มา: ออเดอร์อาจสั่งคนละวันแต่มายืนยันพร้อมกันวันเดียวเพื่อพิมพ์ invoice
 // ส่งของรวมกัน กรองตามวันที่สั่งแบบเดิมจะไม่เจอครบทุกแถว ต้อง default เป็น confirmed ให้ตรงกับการใช้งานจริงตอนพิมพ์
-let summaryDateMode = 'confirmed';
+let summaryDateMode = 'bill'; // 2026-10-27: ค่าเริ่มต้น = วันที่เปิดบิล
 
 function setSummaryDateMode(mode) {
   summaryDateMode = mode;
-  const ob = document.getElementById('sum-mode-ordered');
-  const cb = document.getElementById('sum-mode-confirmed');
-  ob.style.background = mode==='ordered' ? '#1a3a5c' : 'white';
-  ob.style.color = mode==='ordered' ? 'white' : '#555';
-  cb.style.background = mode==='confirmed' ? '#1a3a5c' : 'white';
-  cb.style.color = mode==='confirmed' ? 'white' : '#555';
+  [['ordered','sum-mode-ordered'],['confirmed','sum-mode-confirmed'],['bill','sum-mode-bill']].forEach(([m, id]) => {
+    const b = document.getElementById(id); if (!b) return;
+    b.style.background = mode === m ? '#1a3a5c' : 'white';
+    b.style.color = mode === m ? 'white' : '#555';
+  });
   if (summaryData.length) { if (sumAutoDates) sumApplyAutoDates(); renderSummary(); }
 }
 
@@ -5118,6 +5304,7 @@ function initSummaryTab() {
 // sumAutoDates=true = วันที่ในช่อง จาก/ถึง ระบบใส่ให้เอง · ผู้ใช้แก้วันที่เอง/กด "ดูทั้งหมด" → false (ไม่ทับค่าที่ผู้ใช้เลือก)
 let sumAutoDates = true;
 function sumDateOf(o) {
+  if (summaryDateMode === 'bill') return billISO(o);
   return summaryDateMode === 'confirmed' ? orderDateToInputISO(o.confirmed_date) : orderDateToInputISO(o.timestamp || o.date);
 }
 function sumFmtISO(iso) { const p = iso.split('-'); return Number(p[2])+'/'+Number(p[1])+'/'+String(Number(p[0])+543).slice(-2); }
@@ -5132,7 +5319,7 @@ function sumApplyAutoDates() {
 function sumUpdateHint(last2) {
   const el = document.getElementById('sum-hint');
   if (!sumAutoDates || !last2 || !last2.length) { el.style.display = 'none'; return; }
-  const kind = summaryDateMode === 'confirmed' ? 'ที่มีการยืนยัน' : 'ที่มีการสั่ง';
+  const kind = summaryDateMode === 'bill' ? 'ที่มีการเปิดบิล' : summaryDateMode === 'confirmed' ? 'ที่มีการยืนยัน' : 'ที่มีการสั่ง';
   const rng = last2.length > 1 ? sumFmtISO(last2[0])+' – '+sumFmtISO(last2[1]) : sumFmtISO(last2[0]);
   el.innerHTML = '📅 แสดง <b style="color:#1a3a5c">2 วันล่าสุด'+kind+'</b> ('+rng+') · ต้องการดูมากกว่านี้ เปลี่ยนวันที่แล้วกด แสดง หรือ '+
     '<a href="javascript:void(0)" onclick="sumShowAll()" style="color:#2563eb;text-decoration:underline">ดูทั้งหมด</a>';
@@ -5202,9 +5389,7 @@ function renderSummary() {
     // (ทั้งที่วันที่ที่โชว์ในตารางถูกต้อง) — แก้โดย unify ให้ใช้ฟังก์ชันเดียวกับฝั่งโชว์ผล
     // 2026-07-30: กรองตาม o.confirmed_date แทน o.date เมื่อเลือกโหมด "วันที่ยืนยัน" (ค่าเริ่มต้น)
     // ออเดอร์เก่าก่อนมีฟีเจอร์นี้จะไม่มี confirmed_date (ค่าว่าง) — กรองแบบนี้จะไม่เจอ ต้องสลับไปโหมด "วันที่สั่ง" แทนถ้าจะหาออเดอร์เก่า
-    const d = summaryDateMode === 'confirmed'
-      ? orderDateToInputISO(o.confirmed_date)
-      : orderDateToInputISO(o.timestamp || o.date);
+    const d = sumDateOf(o); // 2026-10-27: 3 โหมด (สั่ง/ยืนยัน/เปิดบิล)
     if (dateFrom && d < dateFrom) return false;
     if (dateTo   && d > dateTo)   return false;
     return true;
@@ -5263,7 +5448,7 @@ function renderSummary() {
 
   // print header (hidden on screen)
   // 2026-07-30: บอกโหมดกรองวันที่ในหัวใบพิมพ์ด้วย กันสับสนว่าช่วงวันที่นี้คือ "สั่ง" หรือ "ยืนยัน"
-  const dateModeLabel = summaryDateMode === 'confirmed' ? 'วันที่ยืนยัน' : 'วันที่สั่ง';
+  const dateModeLabel = summaryDateMode === 'bill' ? 'วันที่เปิดบิล' : summaryDateMode === 'confirmed' ? 'วันที่ยืนยัน' : 'วันที่สั่ง';
   html += `<div class="sum-print-title" id="sum-print-hdr">
     <div style="display:flex;justify-content:space-between;align-items:baseline">
       <span class="phdr-title">ใบสรุปออเดอร์${dateFrom||dateTo?' &nbsp;·&nbsp; '+dateModeLabel+' '+(dateFrom||'')+(dateTo?' – '+dateTo:''):''}</span>
@@ -5275,12 +5460,14 @@ function renderSummary() {
   // (ตามบทเรียนเดิมจาก Matrix View print — page-break-before/inside/after เชื่อถือไม่ได้ 100% กลาง table เดียวกัน
   // ต้องใช้วิธีแยก table คนละอันแล้ว page-break-before ที่ตัว wrapper div แทน)
   const sumColgroup = `<colgroup>
-    <col><col><col><col style="width:80px"><col style="width:80px"><col style="width:80px">
+    <col style="width:30px"><col><col style="width:95px"><col><col><col style="width:80px"><col style="width:80px"><col style="width:80px">
     <col style="width:55px"><col style="width:65px"><col style="width:70px">
     <col style="width:90px"><col style="width:85px"><col>
   </colgroup>`;
   const sumThead = `<thead><tr>
+    <th class="bd-chkcell"><input type="checkbox" class="bd-chk-all" data-tab="sum" onchange="bdToggleAll('sum',this.checked)"></th>
     <th style="width:120px;font-size:11px">วันที่สั่ง</th>
+    <th style="font-size:11px">วันที่เปิดบิล</th>
     <th style="text-align:left">ลูกค้า</th>
     <th class="th-name" style="text-align:left;min-width:180px">ชื่อสินค้า</th>
     <th>รหัส</th>
@@ -5343,7 +5530,9 @@ function renderSummary() {
         if (lineTotal !== null) totalAmount += lineTotal;
         const totalStr = lineTotal !== null ? lineTotal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}) : '–';
         html += `<tr class="${idx===0?'group-sep':''}">
+          <td class="bd-chkcell">${bdChkHtml(o,'sum')}</td>
           <td style="font-size:11px;white-space:nowrap">${dateShort}</td>
+          <td style="font-size:11px">${bdCellHtml(o)}</td>
           <td class="td-cust">${idx===0?cust+(custCode?` <span class="sum-cust-code">${custCode}</span>`:''):''}</td>
           <td class="td-name">${fmtName(o.name||o.code)}</td>
           <td style="font-family:monospace;font-size:11px">${o.code||''}</td>
@@ -5359,7 +5548,8 @@ function renderSummary() {
       });
       // 2026-09-10: เพิ่มยอดเงินรวมของลูกค้าไว้ใต้คอลัมน์ "ราคารวม" เดิม (แนวเดียวกับตัวเลขแต่ละแถวด้านบน) ตาม mockup ที่ user เลือก (ตัวเลือก A)
       html += `<tr class="summary-row">
-        <td colspan="4" style="text-align:right">รวม ${cust}</td>
+        <td class="bd-chkcell"></td>
+        <td colspan="5" style="text-align:right">รวม ${cust}</td>
         <td>${totalSack||'-'}</td>
         <td>${totalBox||'-'}</td>
         <td colspan="3"></td>
@@ -5384,6 +5574,7 @@ function renderSummary() {
   html += `<div class="sum-grand">รวมทั้งหมด &nbsp; ${grandStr} &nbsp;·&nbsp; ${rows.length} รายการ &nbsp;·&nbsp; ${grandAmount.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})} บาท</div>`;
 
   document.getElementById('sum-body').innerHTML = html;
+  bdSelChanged('sum'); // 2026-10-27: วาดใหม่ → ซ่อนแถบที่เลือก
 
   const statEl = document.getElementById('sum-stat'); statEl.textContent = `${totalCustCount} ลูกค้า · ${rows.length} รายการ`; statEl.style.display='inline-block';
 
@@ -6994,7 +7185,8 @@ function anPDate(o) {
   // (getOrders() อ่านตามชื่อหัวคอลัมน์ → o.date = หมายเหตุ, o.timestamp = วันที่สั่งจริง คอลัมน์ A) ออเดอร์ก่อน 30/7/69 ที่ยังไม่มี
   // confirmed_date และมีหมายเหตุ (เช่น "ชุบขาว") จึงอ่านวันที่ไม่ได้ → ถูกตัดออกจากหน้าวิเคราะห์ทั้งหมด (พบ 46 ออเดอร์ ~588,000 บาท ก.ค.69)
   // แก้ให้ใช้ลำดับเดียวกับส่วนอื่นของไฟล์ (getOrderDate/ประวัติ ใช้ o.timestamp||o.date) — o.date เหลือเป็น fallback สุดท้ายเท่านั้น
-  const raw = o.confirmed_date || o.timestamp || o.date;
+  // 2026-10-27: นับยอดตาม "วันที่เปิดบิล" ก่อน (บัญชีลงบิลตามวันที่ของออกจากโกดัง) · ออเดอร์เก่าไม่มีค่านี้ → วันที่ยืนยันเหมือนเดิม
+  const raw = (/^\d{4}-\d{2}-\d{2}$/.test(String(o.bill_date || '')) ? o.bill_date + 'T00:00:00' : '') || o.confirmed_date || o.timestamp || o.date;
   if (!raw) return null;
   const s = String(raw).trim();
   if (s.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(s)) {
