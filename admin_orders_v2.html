@@ -8787,8 +8787,9 @@ function anRenderSalesCharts(orders, items) {
     '<div class="an-card" id="an-cust-full-body" style="margin-top:14px"></div>'+
     // 2026-10-20: user ขอยกเลิกการ์ด "🚨 ลูกค้าที่เงียบนาน" (ใช้ 🔴 เงียบไปนาน ในรายชื่อโทรตามแทน) — "เก่งที่สุดต่อหมวด" กว้างเต็มแถว
     // anBuildChurnCard()/anSyncChurnHeight() ยังอยู่ในไฟล์ (anSyncChurnHeight return เองเมื่อไม่มีการ์ด)
-    '<div class="an-card" id="an-champ-card" style="margin-top:20px"></div>'+
+    // 2026-10-27: ย้าย "ลูกค้าเก่งที่สุดต่อหมวด" ไปต่อท้าย "ยอดขายแยกตามหมวดต่อลูกค้า" (mockup_champ_move_v1 อนุมัติ)
     '<div class="an-card" id="an-catrev-container" style="margin-top:20px">'+anBuildCatRevCard()+'</div>'+
+    '<div class="an-card" id="an-champ-card" style="margin-top:20px"></div>'+
     '<div class="an-card" id="an-top5-widget" style="margin-top:20px"></div>';
 
   anRenderMainCharts();
