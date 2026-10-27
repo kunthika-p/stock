@@ -7704,18 +7704,24 @@ function anBuildCatChampCard() {
 // ที่โชว์ตารางลูกค้าทั้งหมดเป็นค่าเริ่มต้น) ตามที่ user ยืนยันชัดเจนหลายรอบ
 
 let anCatRevRange = '12'; // 2026-09-25: '12' = 12 เดือนล่าสุด | '69' | '68' (ปีปฏิทิน)
-function anCatRevMonths(range) {
+// ════ 2026-10-27: ลูกค้าตัดรอบบิลวันที่ 25 (mockup_heat_cutoff25_v2 อนุมัติ) ════
+// กิ้มง้วนฟาสเทนเนอร์ 00205 / โง้วกิ้มง้วน 2535 00204 / โง้วสลักภัณฑ์ 00203 — ใบวางบิลตัดรอบ 26 เดือนก่อน–25 เดือนนี้
+// ยอด "ต.ค." = วันที่เปิดบิล (anPDate) 26 ก.ย.–25 ต.ค. · บิลวันที่ 26 เป็นต้นไปนับเป็นเดือนถัดไป · ลูกค้าอื่นยังเป็นเดือนปฏิทิน
+const AN_CUT25_CODES = ['00203', '00204', '00205'];
+function anIsCut25(custName) { return !!custName && CUSTOMERS.some(c => AN_CUT25_CODES.includes(c.code) && anMergedCust(c.name) === custName); }
+function anCycKey(d, cut25) { const k = d.getFullYear() * 12 + d.getMonth(); return cut25 && d.getDate() > 25 ? k + 1 : k; }
+function anCatRevMonths(range, cut25) {
   const now = new Date();
   const out = [];
+  const mk = k => { const y = Math.floor(k / 12), m = k % 12, pm = (m + 11) % 12;
+    return { y, m, label: AN_THAI_M[m] + (y + 543).toString().slice(-2), sub: cut25 ? '26 ' + AN_THAI_M[pm] + '–25 ' + AN_THAI_M[m] : '' }; };
   if (range === '69' || range === '68') {
     const yr = range === '69' ? 2026 : 2025;
-    for (let m = 0; m < 12; m++) out.push({ y: yr, m, label: AN_THAI_M[m] + (yr + 543).toString().slice(-2) });
+    for (let m = 0; m < 12; m++) out.push(mk(yr * 12 + m));
     return out;
   }
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    out.push({ y: d.getFullYear(), m: d.getMonth(), label: AN_THAI_M[d.getMonth()] + (d.getFullYear()+543).toString().slice(-2) });
-  }
+  const cur = anCycKey(now, cut25); // ลูกค้าตัดรอบ 25: หลังวันที่ 25 รอบปัจจุบันคือเดือนถัดไป → หน้าต่าง 12 เดือนเลื่อนตาม
+  for (let i = 11; i >= 0; i--) out.push(mk(cur - i));
   return out;
 }
 
@@ -7761,7 +7767,8 @@ function anCatRevAutoCustomer() {
 }
 
 function anCatRevAggregate(custName) {
-  const months = anCatRevMonths(anCatRevRange);
+  const cut25 = anIsCut25(custName);
+  const months = anCatRevMonths(anCatRevRange, cut25);
   const idxOf = {};
   months.forEach((mo,i) => { idxOf[mo.y+'-'+mo.m] = i; });
   const data = {};
@@ -7770,14 +7777,15 @@ function anCatRevAggregate(custName) {
   // ครบ 12 เดือนเต็มแล้ว — เพราะหน้าต่างที่โชว์มีเดือนปัจจุบัน (ยังไม่จบ) อยู่ด้วย เดือนที่จบแล้วในหน้าต่างจึงมีได้แค่ 11 เดือน
   const prev = {};
   AN_VCAT_ORDER.forEach(cat => { prev[cat] = 0; });
-  const prevStart = new Date(months[0].y, months[0].m-1, 1);
-  const rangeStart = new Date(months[0].y, months[0].m, 1);
-  const rangeEnd = new Date(months[11].y, months[11].m+1, 0, 23,59,59,999);
+  // 2026-10-27: เทียบด้วย "คีย์รอบ" (anCycKey) แทนช่วงวันที่ — ลูกค้าตัดรอบ 25 บิลวันที่ 26+ ขยับไปเดือนถัดไป
+  const firstK = months[0].y * 12 + months[0].m, lastK = months[11].y * 12 + months[11].m;
   anOrdersCache.forEach(o => {
     if (anMergedCust(o.customer||'') !== custName) return;
-    const d = anPDate(o); if (!d || isNaN(d) || d < prevStart || d > rangeEnd) return;
-    const key = d.getFullYear()+'-'+d.getMonth();
-    const isPrev = d < rangeStart;
+    const d = anPDate(o); if (!d || isNaN(d)) return;
+    const ck = anCycKey(d, cut25);
+    if (ck < firstK - 1 || ck > lastK) return;
+    const key = Math.floor(ck / 12) + '-' + (ck % 12);
+    const isPrev = ck < firstK;
     if (!isPrev && !(key in idxOf)) return;
     const code = String(o.code||'').padStart(8,'0');
     const item = anItemMap[code];
@@ -7790,7 +7798,7 @@ function anCatRevAggregate(custName) {
     else data[cat][idxOf[key]] += amt;
   });
   // 2026-09-25: เดือนก่อนระบบเริ่ม (ก่อน ก.ค.69) ใช้ยอดเฉลี่ยจากบัญชี (kind 'b') · เดือนอนาคต = 'f' · นอกนั้น = ยอดจริงจากเว็บ 'w'
-  const now = new Date(), curKey = now.getFullYear() * 12 + now.getMonth();
+  const now = new Date(), curKey = anCycKey(now, cut25);
   const hasBase = !!anBaseline[custName];
   const kind = months.map(mo => { const k = mo.y * 12 + mo.m; return k > curKey ? 'f' : (k < AN_WEB_START_KEY && hasBase ? 'b' : 'w'); });
   months.forEach((mo, i) => {
@@ -7799,7 +7807,7 @@ function anCatRevAggregate(custName) {
   });
   const pk = months[0].y * 12 + months[0].m - 1;
   if (hasBase && pk < AN_WEB_START_KEY) AN_VCAT_ORDER.forEach(cat => { prev[cat] = anBaseVal(custName, Math.floor(pk / 12), pk % 12, cat); });
-  return { months, data, prev, kind };
+  return { months, data, prev, kind, cut25, curIdx: months.findIndex(mo => mo.y * 12 + mo.m === curKey) };
 }
 
 // 2026-09-24: user ขอให้ "เฉลี่ย/ด." หารเฉพาะเดือนที่ "จบแล้ว" และ "ระบบมีข้อมูลแล้ว" เท่านั้น — เดิมหาร 12 ตายตัว
@@ -7809,6 +7817,7 @@ function anCatRevAggregate(custName) {
 // ตัวหารจะขยับเองทุกต้นเดือน: ต.ค.69 = ก.ค.–ก.ย. (3 ด.) …
 // จนครบ 12 เดือนเต็มแล้วเป็น 12 เดือนล่าสุดที่จบแล้วตลอดไป (11 เดือนในตาราง + เดือนก่อนหน้าต่าง = prev)
 function anCatRevAvgInfo(months, custName) {
+  const cut25 = anIsCut25(custName); // 2026-10-27
   let earliest = null;
   anOrdersCache.forEach(o => {
     if (custName && anMergedCust(o.customer || '') !== custName) return;
@@ -7817,8 +7826,8 @@ function anCatRevAvgInfo(months, custName) {
     if (!earliest || d < earliest) earliest = d;
   });
   const now = new Date();
-  const curKey = now.getFullYear()*12 + now.getMonth();
-  let startKey = earliest ? earliest.getFullYear()*12 + earliest.getMonth() : curKey;
+  const curKey = anCycKey(now, cut25);
+  let startKey = earliest ? anCycKey(earliest, cut25) : curKey;
   if (custName && anBaseline[custName]) startKey = Math.min(startKey, 2025 * 12); // มียอดจากบัญชี → นับตั้งแต่ ม.ค.68
   const idxs = [];
   months.forEach((mo, i) => { const k = mo.y*12 + mo.m; if (k < curKey && k >= startKey) idxs.push(i); });
@@ -7833,19 +7842,26 @@ function anCatRevAvgInfo(months, custName) {
   return { idxs, usePrev, n, rangeLabel };
 }
 
-function anCatRevRenderHeat(months, data, prev, kind) {
+function anCatRevCut25Note(months, forPrint) { // 2026-10-27: หมายเหตุลูกค้าตัดรอบ 25 (user ขอให้คนอ่านไม่สับสน)
+  const hasJul = months.some(mo => mo.y === 2026 && mo.m === 6);
+  return '✂️ <b>ลูกค้ารายนี้ตัดรอบบิลวันที่ 25</b> — ยอดแต่ละเดือน = บิลที่ลงวันที่เปิดบิล 26 ของเดือนก่อน ถึง 25 ของเดือนนั้น (ตรงกับใบวางบิล) · บิลวันที่ 26 เป็นต้นไปนับเป็นเดือนถัดไป' +
+    (forPrint ? '' : ' · ช่องขอบม่วงประ = รอบปัจจุบัน ยังไม่จบรอบ') +
+    (hasJul ? ' · ก.ค.69 ระบบเริ่มเก็บออเดอร์ 1 ก.ค. จึงไม่มียอด 26–30 มิ.ย.' : '');
+}
+function anCatRevRenderHeat(months, data, prev, kind, cut25, curIdx) {
   prev = prev || {};
   kind = kind || months.map(() => 'w');
   const avgInfo = anCatRevAvgInfo(months, anCatRevCust);
   const avgTip = avgInfo.n ? 'เฉลี่ยต่อเดือน จาก ' + avgInfo.n + ' เดือนที่จบแล้ว (' + avgInfo.rangeLabel + ') นับตั้งแต่เดือนแรกที่ลูกค้ารายนี้เริ่มสั่ง (รวมเดือนที่ใช้ยอดเฉลี่ยจากบัญชี) — ไม่นับเดือนปัจจุบันที่ยังไม่จบเดือน' : 'ยังไม่มีเดือนที่จบแล้ว (นับตั้งแต่เดือนแรกที่ลูกค้ารายนี้เริ่มสั่ง)';
-  let h = '<div style="display:flex;gap:18px;align-items:center;margin-bottom:12px;flex-wrap:wrap;font-size:12px;color:#334155;font-weight:600">'+
+  let h = cut25 ? '<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:#5b21b6;line-height:1.55">' + anCatRevCut25Note(months) + '</div>' : '';
+  h += '<div style="display:flex;gap:18px;align-items:center;margin-bottom:12px;flex-wrap:wrap;font-size:12px;color:#334155;font-weight:600">'+
     '<div style="display:flex;align-items:center;gap:7px"><span style="width:24px;height:15px;border-radius:4px;background:#1a3a5c;display:inline-block"></span> เดือนขายมากสุด (ต่อหมวด)</div>'+
     '<div style="display:flex;align-items:center;gap:7px"><span style="width:24px;height:15px;border-radius:4px;background:#dbeafe;border:1px solid #b6cbe8;display:inline-block"></span> เดือนขายน้อยสุด (ต่อหมวด)</div>'+
     '<div style="display:flex;align-items:center;gap:7px"><span style="width:24px;height:15px;border-radius:4px;background:#fff;border:1px solid #d8dfe8;display:inline-block"></span> เดือนอื่นๆ</div>'+
     (kind.includes('b') ? '<div style="display:flex;align-items:center;gap:7px"><span style="width:24px;height:15px;border-radius:4px;background:#f8fafc;border:1px dashed #cbd5e1;display:inline-block"></span> <i style="color:#94a3b8">ยอดเฉลี่ยจากบัญชี</i></div>' : '')+
   '</div>';
   h += '<div style="overflow-x:auto"><div style="display:grid;grid-template-columns:126px repeat(12,1fr) 98px 108px;gap:3px;align-items:stretch;width:100%">';
-  h += '<div></div>' + months.map(mo=>'<div style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px">'+mo.label+'</div>').join('') +
+  h += '<div></div>' + months.map(mo=>'<div style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px;line-height:1.2">'+mo.label+(mo.sub ? '<br><span style="font-weight:600;font-size:8.5px;color:#7c3aed;white-space:nowrap">'+mo.sub+'</span>' : '')+'</div>').join('') +
     '<div style="font-size:10px;color:#94a3b8;font-weight:700;text-align:center;padding-bottom:2px">รวม</div>'+
     '<div title="'+anEsc(avgTip)+'" style="font-size:10px;color:#92400e;font-weight:700;text-align:center;padding-bottom:2px;line-height:1.2">เฉลี่ย/เดือน'+(avgInfo.n ? '<br><span style="font-weight:600;font-size:9px">('+avgInfo.n+' เดือน)</span>' : '')+'</div>';
 
@@ -7871,8 +7887,9 @@ function anCatRevRenderHeat(months, data, prev, kind) {
       else if (v === 0) { col = '#cbd5e1'; w = '400'; }
       else if (mi === maxIdx) { bg = '#1a3a5c'; col = '#fff'; bd = '1px solid #1a3a5c'; }
       else if (mi === minIdx) { bg = '#dbeafe'; col = '#1a3a5c'; bd = '1px solid #b6cbe8'; }
+      if (cut25 && mi === curIdx) st += ';outline:2px dashed #8b5cf6;outline-offset:-2px'; // 2026-10-27: รอบปัจจุบันยังไม่จบ
       const cellText = v === 0 ? '–' : Math.round(v).toLocaleString();
-      const tip = label + ' · ' + months[mi].label + ': ฿' + Math.round(v).toLocaleString() + (kind[mi] === 'b' ? ' (ยอดเฉลี่ยจากบัญชี)' : '');
+      const tip = label + ' · ' + months[mi].label + (months[mi].sub ? ' (' + months[mi].sub + ')' : '') + ': ฿' + Math.round(v).toLocaleString() + (kind[mi] === 'b' ? ' (ยอดเฉลี่ยจากบัญชี)' : '') + (cut25 && mi === curIdx ? ' · รอบปัจจุบัน ยังไม่จบ' : '');
       h += '<div title="' + anEsc(tip) + '" style="border-radius:6px;padding:10px 2px;text-align:center;font-size:' + fs + ';font-weight:' + w + ';color:' + col + ';background:' + bg + ';border:' + bd + extraBorder + st + ';white-space:nowrap">' + cellText + '</div>';
     });
     const totalExtraBorder = isGrand ? ';border-top:2px solid #d8dfe8' : '';
@@ -7929,7 +7946,7 @@ function anCatRevRenderRank(months, data) {
 // กติกาไฮไลต์มาก/น้อยสุดเหมือน anCatRevRenderHeat (เฉพาะเดือนยอดจริงจากเว็บ) · ไม่ต้องพิมพ์แท็บสรุปแรงค์หมวด (user ยืนยัน)
 function anCatRevPrint() {
   if (!anCatRevCust) return;
-  const { months, data, prev, kind } = anCatRevAggregate(anCatRevCust);
+  const { months, data, prev, kind, cut25 } = anCatRevAggregate(anCatRevCust);
   const avgInfo = anCatRevAvgInfo(months, anCatRevCust);
   const custInfo = CUST_MAP[anCatRevCust] || AN_EXTRA_CUSTOMERS.find(c => c.name === anCatRevCust) || {};
   const fmt = v => v === 0 ? '–' : Math.round(v).toLocaleString();
@@ -7978,14 +7995,16 @@ function anCatRevPrint() {
     'td.b{color:#555;font-style:italic;font-weight:400}td.mx{background:#000;color:#fff;font-weight:800}td.mn{background:#c8c8c8;font-weight:800}td.z{text-align:center}' +
     'td.tot{background:#ececec;font-weight:800}td.avg{background:#ececec;font-weight:800;border-left:2px solid #000}' +
     'tr.g th,tr.g td{border-top:2px solid #000;font-weight:800}' +
-    '.ft{font-size:9.5px;color:#555;margin-top:6px}';
+    '.ft{font-size:9.5px;color:#555;margin-top:6px}' +
+    '.c25{font-size:10.5px;color:#000;border:1px solid #000;border-radius:4px;padding:4px 8px;margin-bottom:6px}';
   const html = '<div class="ph"><div><div class="t">ยอดขายแยกตามหมวด</div>' +
-      '<div class="s">ลูกค้า: <b>' + anEsc(anCatRevCust) + '</b>' + (custInfo.code ? ' · รหัส ' + anEsc(custInfo.code) : '') +
+      '<div class="s">ลูกค้า: <b>' + anEsc(anCatRevCust) + '</b>' + (custInfo.code ? ' · รหัส ' + anEsc(custInfo.code) : '') + (cut25 ? ' · <b>✂️ ตัดรอบบิลวันที่ 25</b>' : '') +
       ' · ช่วง: <b>' + rangeTxt + ' (' + months[0].label + ' – ' + months[11].label + ')</b> · รวมช่วงนี้ <b>฿' + Math.round(grandTotal).toLocaleString() + '</b></div></div>' +
       '<div class="r">STIC น็อตกิโล<br>พิมพ์ ' + dTxt + '</div></div>' +
     '<div class="lg"><span><i class="k mx"></i>เดือนขายมากสุด (ต่อหมวด)</span><span><i class="k mn"></i>เดือนขายน้อยสุด</span>' +
       (hasB ? '<span><i class="k b"></i><em>ยอดเฉลี่ยจากบัญชี</em></span>' : '') + '<span>– = ไม่มียอด</span></div>' +
-    '<table><thead><tr><th class="l">หมวด</th>' + months.map(mo => '<th>' + mo.label + '</th>').join('') +
+    (cut25 ? '<div class="c25">' + anCatRevCut25Note(months, true) + '</div>' : '') +
+    '<table><thead><tr><th class="l">หมวด</th>' + months.map(mo => '<th' + (mo.sub ? ' style="line-height:1.15"' : '') + '>' + mo.label + (mo.sub ? '<br><small>' + mo.sub + '</small>' : '') + '</th>').join('') +
       '<th>รวม</th><th class="avgh">เฉลี่ย/เดือน' + (avgInfo.n ? '<br><small>(' + avgInfo.n + ' เดือน)</small>' : '') + '</th></tr></thead><tbody>' + body + '</tbody></table>' +
     '<div class="ft">' + (hasB ? 'ช่องตัวเอียง = ยอดเฉลี่ยต่อเดือนจากบัญชี (ปี 68 = ทั้งปี÷12, ม.ค.–มิ.ย.69 = ÷6) ก่อนระบบเริ่มเก็บออเดอร์ ก.ค.69 · ' : '') +
       'เฉลี่ย/เดือน นับเฉพาะเดือนที่จบแล้ว' + (avgInfo.rangeLabel ? ' (' + avgInfo.rangeLabel + ')' : '') + ' ไม่รวมเดือนปัจจุบัน · หน่วย: บาท ก่อน VAT</div>';
@@ -8017,12 +8036,13 @@ function anBuildCatRevCard() {
     h += '<div style="padding:40px 20px;text-align:center;color:#94a3b8;font-size:13px;border:1.5px dashed #d8dfe8;border-radius:10px">ยังไม่ได้เลือกลูกค้า<br><b style="color:#64748b">พิมพ์ชื่อหรือรหัสลูกค้าด้านบนแล้วกด Enter</b></div>';
     return h;
   }
-  const { months, data, prev, kind } = anCatRevAggregate(anCatRevCust);
+  const { months, data, prev, kind, cut25, curIdx } = anCatRevAggregate(anCatRevCust);
   const custInfo = CUST_MAP[anCatRevCust] || AN_EXTRA_CUSTOMERS.find(c => c.name === anCatRevCust) || {};
   const grandTotal = AN_VCAT_ORDER.reduce((s,cat)=> s + data[cat].reduce((a,b)=>a+b,0), 0);
   h += '<div style="display:flex;align-items:baseline;gap:10px;margin:4px 0 14px;flex-wrap:wrap">'+
       '<div style="font-size:16px;font-weight:700;color:#1a3a5c">'+anEsc(anCatRevCust)+'</div>'+
       '<div style="font-size:12px;color:#94a3b8;font-weight:600">รหัส '+anEsc(custInfo.code||'')+'</div>'+
+      (cut25 ? '<div style="font-size:11.5px;font-weight:700;color:#6d28d9;background:#ede9fe;border-radius:6px;padding:2px 9px">✂️ ตัดรอบบิลวันที่ 25</div>' : '')+
       '<div style="font-size:12.5px;color:#64748b">รวมช่วงนี้: <b style="color:#1a3a5c;font-size:14px">฿'+Math.round(grandTotal).toLocaleString()+'</b></div>'+
     '</div>';
   if (anCatRevAuto) {
@@ -8042,7 +8062,7 @@ function anBuildCatRevCard() {
     const on = anCatRevRange === r[0];
     return '<button onclick="anCatRevSetRange(\'' + r[0] + '\')" style="font-family:inherit;font-size:13px;font-weight:700;border:1.5px solid #1a3a5c;background:' + (on ? '#1a3a5c' : '#fff') + ';color:' + (on ? '#fff' : '#1a3a5c') + ';border-radius:20px;padding:5px 16px;cursor:pointer">' + r[1] + '</button>';
   }).join('') + (anCatRevTab === 'heat' ? '<button onclick="anCatRevPrint()" style="margin-left:auto;font-family:inherit;font-size:13px;font-weight:700;border:1.5px solid #1a3a5c;background:#fff;color:#1a3a5c;border-radius:8px;padding:5px 16px;cursor:pointer">🖨️ พิมพ์ตารางนี้</button>' : '') + '</div>';
-  h += anCatRevTab==='heat' ? anCatRevRenderHeat(months, data, prev, kind) : anCatRevRenderRank(months, data);
+  h += anCatRevTab==='heat' ? anCatRevRenderHeat(months, data, prev, kind, cut25, curIdx) : anCatRevRenderRank(months, data);
   if (kind.includes('b')) h += '<div style="font-size:11px;color:#94a3b8;margin-top:8px">ช่องตัวเอียงสีเทา = ยอดเฉลี่ยต่อเดือนจากบัญชี (ปี 68 = ทั้งปี÷12, ม.ค.–มิ.ย.69 = ÷6) ก่อนระบบเริ่มเก็บออเดอร์ ก.ค.69 · ไม่ใช่ยอดจริงรายเดือน</div>';
   return h;
 }
