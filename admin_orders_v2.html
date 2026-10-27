@@ -7291,10 +7291,23 @@ function anBaseVal(cust, y, m, cat) {
 }
 function anMergedCust(name) { return AN_CUST_MERGE[name] || name; }
 
-function anAggregate(from, to) {
+// 2026-10-27: cut25=true → ลูกค้าตัดรอบบิล 25 (anIsCut25) ใช้ช่วง 26 เดือนก่อน–25 เดือนสุดท้าย แทน 1–สิ้นเดือน
+// (เฉพาะช่วงที่เริ่มวันที่ 1 และจบสิ้นเดือน/วันนี้ — ช่วงกำหนดเองแบบกลางเดือนยังเป็นปฏิทินตามเดิม) · mockup_cust_cut25_v1 อนุมัติ
+function anCut25RangeOK(from, to) {
+  if (!from || !to || from.getDate() !== 1) return false;
+  const now = new Date();
+  const isEom = to.getDate() === new Date(to.getFullYear(), to.getMonth() + 1, 0).getDate();
+  const isToday = to.getFullYear() === now.getFullYear() && to.getMonth() === now.getMonth() && to.getDate() === now.getDate();
+  return isEom || isToday;
+}
+function anCut25Win(from, to) { return { from: new Date(from.getFullYear(), from.getMonth() - 1, 26), to: new Date(to.getFullYear(), to.getMonth(), 25, 23, 59, 59, 999) }; }
+function anAggregate(from, to, cut25) {
   const byType = {}, byCust = {}, byCustType = {};
+  const c25 = cut25 && anCut25RangeOK(from, to) ? anCut25Win(from, to) : null;
   anOrdersCache.forEach(o => {
-    const d = anPDate(o); if (!d || d < from || d > to) return;
+    const d = anPDate(o); if (!d) return;
+    if (c25 && anIsCut25(anMergedCust(o.customer || ''))) { if (d < c25.from || d > c25.to) return; }
+    else if (d < from || d > to) return;
     const code = String(o.code||'').padStart(8,'0');
     const item = anItemMap[code];
     const qty = Number(o.qty)||0;
@@ -7446,7 +7459,9 @@ function anBuildCustomerControls() {
 
 function anBuildCustomerResults() {
   const { from, to } = anResolveRange(anCustRange);
-  const { byCust, byCustType } = anAggregate(from, to);
+  const { byCust, byCustType } = anAggregate(from, to, true); // 2026-10-27: 3 ลูกค้าตัดรอบ 25
+  const c25On = anCut25RangeOK(from, to);
+  let c25Shown = false;
   // 2026-09-08: รวม "แนวโน้มยอดขายต่อลูกค้า" (การ์ดแยกเดิม) เข้ามาเป็น 2 คอลัมน์ในตารางนี้ (mockup confirm แล้ว v4)
   // ใช้ anComputeCustomerTrend()/anSparklineSvg() ตัวเดิม (ไม่สร้างคำนวณเทรนด์ซ้ำ) — แนวโน้ม 6 เดือน + % เทียบเดือนก่อน
   // อิง 6 เดือนปฏิทินล่าสุดเสมอ ไม่ผูกกับ anCustRange ที่เลือกด้านบน (ตั้งใจ พฤติกรรมเดิมของการ์ดแนวโน้ม)
@@ -7504,10 +7519,15 @@ function anBuildCustomerResults() {
       // ตัวเลขขยับซ้าย-ขวาไม่นิ่งเวลาบางแถวมีป้ายบางแถวไม่มี — user ทักเรื่องนี้ไว้
       const top5TagH = anTop5Tag(c.months, anTop5N, c.top5Rank);
       const top5Cell = '<div class="top5-cell"><span>'+c.months+'/'+anTop5N+'</span>'+top5TagH+'</div>';
+      // 2026-10-27: ลูกค้าตัดรอบ 25 — ป้าย ✂️ + ช่วงวันที่สีม่วงใต้ตัวเลข (mockup_cust_cut25_v1)
+      const isC25 = c25On && anIsCut25(c.name);
+      if (isC25) c25Shown = true;
+      const c25Tag = isC25 ? '<span style="display:inline-block;margin-left:8px;font-size:11px;font-weight:700;color:#6d28d9;background:#ede9fe;border-radius:6px;padding:1px 7px;vertical-align:middle">✂️ ตัดรอบ 25</span>' : '';
+      const c25Rng = (a, b) => isC25 ? '<span style="display:block;font-size:10.5px;font-weight:600;color:#7c3aed;margin-top:1px">26 '+AN_THAI_M[(a+12)%12]+'–25 '+AN_THAI_M[(b+12)%12]+'</span>' : '';
       rows += '<tr style="cursor:pointer;background:'+(open?'#eef2f7':(isTop5?'#fffbeb':(i%2?'#f8fafc':'white')))+'" onclick="anCustToggleRow('+i+')">'+
-        '<td style="padding:10px 14px;color:#1a3a5c;font-weight:700"><i class="ti ti-chevron-'+(open?'down':'right')+'" style="font-size:12px;margin-right:6px" aria-hidden="true"></i>'+rankBadge+anEsc(c.name)+'</td>'+
-        '<td class="cc" style="padding:10px 8px;font-weight:700"><span class="num">฿'+Math.round(c.revenue).toLocaleString()+'</span></td>'+
-        '<td class="cc" style="padding:10px 8px;color:#475569;font-weight:600;background:rgba(26,58,92,.04)">'+(c.prev ? '<span class="num">฿'+Math.round(c.prev).toLocaleString()+'</span>' : '<span style="color:#cbd5e1">—</span>')+'</td>'+
+        '<td style="padding:10px 14px;color:#1a3a5c;font-weight:700"><i class="ti ti-chevron-'+(open?'down':'right')+'" style="font-size:12px;margin-right:6px" aria-hidden="true"></i>'+rankBadge+anEsc(c.name)+c25Tag+'</td>'+
+        '<td class="cc" style="padding:10px 8px;font-weight:700"><span class="num">฿'+Math.round(c.revenue).toLocaleString()+c25Rng(from.getMonth()-1, to.getMonth())+'</span></td>'+
+        '<td class="cc" style="padding:10px 8px;color:#475569;font-weight:600;background:rgba(26,58,92,.04)">'+(c.prev ? '<span class="num">฿'+Math.round(c.prev).toLocaleString()+c25Rng(anTrendPrev.getMonth()-1, anTrendPrev.getMonth())+'</span>' : '<span style="color:#cbd5e1">—</span>')+'</td>'+
         '<td class="cc" style="padding:10px 8px">'+pctCell+'</td>'+
         '<td style="padding:10px 8px">'+sparkCell+'</td>'+
         '<td class="cc" style="padding:10px 8px;color:#64748b">'+top5Cell+'</td></tr>';
@@ -7573,7 +7593,8 @@ function anBuildCustomerResults() {
   });
 
   return '<div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:10px">ลูกค้าทั้งหมด <span style="font-size:11px;color:#94a3b8;font-weight:400">'+list.length+' ราย'+(isRevDesc?' · ไฮไลท์เหลือง = ท็อป 5':'')+'</span></div>'+
-    '<div class="an-cust-scroll"><table class="an-cust-tbl" style="border-collapse:collapse;font-size:13px;width:100%"><thead><tr>'+theadH+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+    '<div class="an-cust-scroll"><table class="an-cust-tbl" style="border-collapse:collapse;font-size:13px;width:100%"><thead><tr>'+theadH+'</tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    (c25Shown ? '<div style="margin-top:10px;font-size:12.5px;color:#5b21b6;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:8px 12px;line-height:1.6">✂️ <b>ตัดรอบบิลวันที่ 25</b> (กิ้มง้วนฟาสเทนเนอร์ · โง้วกิ้มง้วน 2535 · โง้วสลักภัณฑ์) — ยอดของเดือนนั้น = วันที่เปิดบิล 26 ของเดือนก่อน ถึง 25 ของเดือนนั้น ตรงกับใบวางบิล · ลูกค้ารายอื่นนับตามเดือนปฏิทิน</div>' : '');
 }
 
 // 2026-09-08: เปิด/ปิดเมนู dropdown เรียงลำดับที่หัวคอลัมน์ (แทนที่การคลิกหัวข้อสลับ asc/desc ตรงๆ แบบเดิม)
@@ -7708,7 +7729,11 @@ let anCatRevRange = '12'; // 2026-09-25: '12' = 12 เดือนล่าส�
 // กิ้มง้วนฟาสเทนเนอร์ 00205 / โง้วกิ้มง้วน 2535 00204 / โง้วสลักภัณฑ์ 00203 — ใบวางบิลตัดรอบ 26 เดือนก่อน–25 เดือนนี้
 // ยอด "ต.ค." = วันที่เปิดบิล (anPDate) 26 ก.ย.–25 ต.ค. · บิลวันที่ 26 เป็นต้นไปนับเป็นเดือนถัดไป · ลูกค้าอื่นยังเป็นเดือนปฏิทิน
 const AN_CUT25_CODES = ['00203', '00204', '00205'];
-function anIsCut25(custName) { return !!custName && CUSTOMERS.some(c => AN_CUT25_CODES.includes(c.code) && anMergedCust(c.name) === custName); }
+let anCut25Names = null;
+function anIsCut25(custName) {
+  if (!anCut25Names) anCut25Names = new Set(CUSTOMERS.filter(c => AN_CUT25_CODES.includes(c.code)).map(c => anMergedCust(c.name)));
+  return !!custName && anCut25Names.has(custName);
+}
 function anCycKey(d, cut25) { const k = d.getFullYear() * 12 + d.getMonth(); return cut25 && d.getDate() > 25 ? k + 1 : k; }
 function anCatRevMonths(range, cut25) {
   const now = new Date();
@@ -8237,7 +8262,8 @@ function anComputeCustomerTrend(endRef) {
   const byCustMonth = {}; // { custName: { 'YYYY-MM': revenue } }
   anOrdersCache.forEach(o => {
     const d = anPDate(o); if (!d || isNaN(d)) return;
-    const mk = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+    const ck = anCycKey(d, anIsCut25(anMergedCust(o.customer || ''))); // 2026-10-27: ลูกค้าตัดรอบ 25 → บิล 26+ เป็นเดือนถัดไป
+    const mk = Math.floor(ck / 12) + '-' + String(ck % 12 + 1).padStart(2,'0');
     if (!monthKeys.includes(mk)) return; // นอกช่วง 6 เดือนล่าสุด ข้าม
     const code = String(o.code||'').padStart(8,'0');
     const item = anItemMap[code];
@@ -8357,7 +8383,7 @@ function anTop5MonthlyData() {
     const isCurrent = i === months.length - 1;
     const from = new Date(mo.y, mo.m, 1);
     const to = isCurrent ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23,59,59,999) : new Date(mo.y, mo.m+1, 0, 23,59,59,999);
-    const { byCust } = anAggregate(from, to);
+    const { byCust } = anAggregate(from, to, true); // 2026-10-27: ลูกค้าตัดรอบ 25 นับตามรอบ
     const list = Object.entries(byCust).map(([name,v])=>({name, revenue:v.revenue})).sort((a,b)=>b.revenue-a.revenue);
     const totalRevenue = list.reduce((s,c)=>s+c.revenue,0);
     return { y: mo.y, m: mo.m, label: mo.label, isCurrent, top5: list.slice(0,5), totalRevenue };
@@ -8369,7 +8395,7 @@ function anTop5AnnualData(monthlyData) {
   const now = new Date();
   const from = new Date(first.y, first.m, 1);
   const to = last.isCurrent ? new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23,59,59,999) : new Date(last.y, last.m+1, 0, 23,59,59,999);
-  const { byCust } = anAggregate(from, to);
+  const { byCust } = anAggregate(from, to, true); // 2026-10-27
   const monthCount = {};
   monthlyData.forEach(mo => mo.top5.forEach(c => { monthCount[c.name] = (monthCount[c.name]||0) + 1; }));
   return Object.entries(byCust).map(([name,v])=>({name, revenue:v.revenue, months: monthCount[name]||0})).sort((a,b)=>b.revenue-a.revenue);
