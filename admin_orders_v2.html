@@ -7905,7 +7905,7 @@ const CP_SEED_EFF = '2000-01-01';
 // กลุ่มราคาตามไฟล์ "ปรับส่วนลด5-1-69 Rev3.xlsx" — ใช้ตอนย้ายข้อมูลครั้งแรกเท่านั้น (รหัส = รหัสชุดราคา)
 const CP_SEED_GROUPS = [{"name":"กลุ่ม 1","desc":"8 รายใหญ่ · Rev3 ปรับให้เท่าจิระบุญ","notes":["เกลียวปล่อย 20กส. 38.00บาท/กก.","บังคับใช้ 26 พ.ค. 69: กิ้มฟาสฯ,โง้วกิ้มง้วน,โง้วสลักฯ","บังคับใช้ 1 มิ.ย. 69: ประวิทย์,ช.กิจ,อิ้วเลี้ยน 3 เจ้า","Rev.3 ปรับราคา 8 เจ้าให้เท่าจิระบุญ"],"members":["13700","01300","00205","00204","00203","06000","06001","06002","03300"]},{"name":"กลุ่ม 2","desc":"ปรับ 5 ม.ค. 69 · ส่วนลดลดหลั่นตามราย","notes":["20กส.    1.05 บาท","20กส.    2.20 บาท","เกลียวปล่อย 10กส. 39.00บาท/กก.","เกลียวปล่อย 20กส. 38.00บาท/กก.","หัวกลม 20กส.  29.00 บาท / กก.","หัวกลม 40กส.  28.00 บาท / กก."],"members":["01500","00802","57100","13600","09100","57900","01101","12215","16498","16499","00900","05402","04900","12801","02300","02000","01501","16402","00500"]},{"name":"กลุ่ม 3","desc":"ปรับ 5 ม.ค. 69","notes":["20กส.    1.05 บาท","20กส.    2.20 บาท","เกลียวปล่อย 10กส. 39.00บาท/กก.","เกลียวปล่อย 20กส. 38.00บาท/กก.","หัวกลม 20กส.  29.00 บาท / กก.","หัวกลม 40กส.  28.00 บาท / กก."],"members":["03301","14104","02800","00100"]},{"name":"ไม่ปรับ","desc":"ไม่ได้ปรับเมื่อ 5 ม.ค. 69 · ใช้ราคา Net เดิม 1 ต.ค. 66","notes":["40กส.    1.10 บาท","20กส.    2.25 บาท","เกลียวปล่อย 10กส. 39.00บาท/กก.","เกลียวปล่อย 20กส. 38.00บาท/กก.","หัวกลม 20กส.  31.00 บาท / กก.","หมายเหตุ กรุ๊ปนี้ไม่มีการปรับส่วนลด ใช้ราคา Net เดิม 1 ตุลาคม 2566","หัวกลม 40กส.  30.00 บาท / กก."],"members":["04000","13800","04101","60500","11001","05700","01002","01200","01700","38300","06900","56900","58700","04200","08600","61500","06600","09700","00300","34400","00303","30800","08900","51400","17400","31000","62400","03000","05200","01400","11200","50600","01600","05100","02900","05900","61000","36300","61600","05000","09000","07400"]}];
 const CP_TAB_USERS = ['yo', 'wint'];
-const cp = { loaded: false, loading: false, err: '', cur: 0, cust: null, q: '', sel: new Set(), edits: {}, netEdits: {}, eff: '', saving: false };
+const cp = { loaded: false, loading: false, err: '', cur: 0, cust: null, q: '', sel: new Set(), edits: {}, netEdits: {}, eff: priceTodayISO(), saving: false }; // 2026-11-02: เดิมว่าง → ถ้าโหลดเบื้องหลังเสร็จก่อนเปิดแท็บ วันที่ไม่ถูกตั้ง ราคาไม่ขึ้น
 
 function cpEsc(s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
 function cpJs(s) { return cpEsc(String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'")); }
@@ -8038,8 +8038,8 @@ function cpGo(i) {
 }
 function cpPendingCount() { let n = 0; cpPctChanges().forEach(x => { n += x.diffs.length; }); cpNetChanges().forEach(x => { n += x.diffs.length; }); return n; }
 function cpEffBox(txt) {
-  const past = cp.eff < priceTodayISO();
-  return '<div class="cp-efftop"><div class="ic">📅</div><div style="flex:1"><div class="t1">' + txt + '</div><div class="t2">บิลก่อนวันนี้ใช้ราคาเดิม · ตั้งเป็นวันในอนาคตได้ (ขึ้น "รอมีผล" จนถึงวัน)' + (past ? ' · <b style="color:#b45309">⚠ เป็นวันที่ย้อนหลัง</b>' : '') + '</div></div><input type="date" id="cpEff" value="' + cp.eff + '" onchange="cpSetEff(this.value)"><div class="t3">' + cpThd(cp.eff) + '</div></div>';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(cp.eff)) cp.eff = priceTodayISO();
+  return '<div class="cp-efftop"><div class="ic">📅</div><div style="flex:1"><div class="t1">มีผลตั้งแต่วันที่เปิดบิล วันที่</div></div><input type="date" id="cpEff" value="' + cp.eff + '" onchange="cpSetEff(this.value)"><div class="t3">' + cpThd(cp.eff) + '</div></div>';
 }
 function cpSetEff(v) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
@@ -8056,9 +8056,8 @@ function cpRenderMain() {
   const mem = cpMasters(g.name);
   const lines = cpGroupDescLines(g);
   let h = '<div class="cp-ttl"><h2>' + cpEsc(g.name) + '</h2><span class="s">' + cpEsc(lines[0] || '') + ' · ' + mem.length + ' ราย</span><a href="#" class="cp-small" onclick="cpEditGroup();return false">แก้ชื่อ/คำอธิบาย</a></div>';
-  if (lines.length > 1) h += '<div class="cp-notes">' + lines.slice(1).map(n => '<span>' + cpEsc(n) + '</span>').join('') + '</div>';
   h += cpEffBox('ราคาที่แก้ในหน้านี้ มีผลกับบิลตั้งแต่วันที่เปิดบิล');
-  h += '<div class="cp-callout">ราคาเน็ต (ส่วน ②) เป็น <b>ของทั้งกลุ่ม</b> — แก้ครั้งเดียว ทุกรายในกลุ่มได้ราคาใหม่ · %ส่วนลดเป็น <b>ของแต่ละราย</b> · ติ๊กหลายรายเพื่อปรับ % พร้อมกัน</div>';
+  h += '<div class="cp-callout">%ส่วนลดเป็น <b>ของแต่ละราย</b> · ติ๊กหลายรายเพื่อปรับ % พร้อมกัน</div>';
   const tiers = [];
   mem.forEach(m => { const t = cpTierKey(cpBaseD(m.code)); if (!tiers.includes(t)) tiers.push(t); });
   mem.sort((a, b) => tiers.indexOf(cpTierKey(cpBaseD(a.code))) - tiers.indexOf(cpTierKey(cpBaseD(b.code))));
@@ -8084,9 +8083,10 @@ function cpRenderMain() {
   });
   if (!mem.length) h += '<tr><td colspan="12" class="cp-mut" style="padding:14px">ยังไม่มีลูกค้าในกลุ่มนี้ — เพิ่มได้จาก "⚠ ยังไม่อยู่ในกลุ่มไหน" หรือหน้าข้อมูลลูกค้า</td></tr>';
   h += '</table></div>';
-  h += '<div class="cp-bulk"><b>เลือก ' + cp.sel.size + ' ราย</b>' + (cp.sel.size ?
+  if (cp.sel.size) h += '<div class="cp-bulk"><b>เลือก ' + cp.sel.size + ' ราย</b>' + (cp.sel.size ?
     '<select id="cpBk"><option value="all">ทุกหมวด</option>' + CP_K.map(k => '<option value="' + k[0] + '">' + k[1].replace('<br>', ' ') + '</option>').join('') + '</select><select id="cpBo"><option value="set">ตั้งเป็น</option><option value="add">เพิ่ม +</option><option value="sub">ลด −</option></select><input id="cpBv" type="number" step="0.5" placeholder="%"><button class="cp-btn cp-pri" onclick="cpApplyBulk()">ใช้กับที่เลือก</button><span style="color:#cbd5e1">|</span><select id="cpMoveTo"><option value="">ย้ายไปกลุ่ม…</option>' + cpGroups().filter((x, i) => i !== cp.cur).map(x => '<option value="' + cpEsc(x.name) + '">' + cpEsc(x.name) + '</option>').join('') + '<option value="__none__">— เอาออกจากกลุ่ม —</option></select><button class="cp-btn" onclick="cpMoveSel()">ย้าย</button>'
-    : '<span class="cp-mut" style="font-size:13px">แก้ % ได้ 2 ทาง: <b>คลิกช่องตัวเลขในตาราง</b> แก้ทีละช่อง · หรือ <b>ติ๊กหลายราย</b> แล้วปรับพร้อมกันที่แถบนี้</span>') + '</div></div>';
+    : '') + '</div>';
+  h += '</div>';
   const netTable = idxs => '<table class="cp-nt"><tr><th class="l">สินค้า</th><th>ราคา</th><th>เดิม</th></tr>' + idxs.map(i => {
     const [gn, u, ks] = CP_NETG[i];
     return '<tr class="gh2"><td colspan="3">' + gn + ' <span>(' + u + ')</span></td></tr>' + ks.map(k => {
@@ -8094,6 +8094,7 @@ function cpRenderMain() {
       return '<tr><td class="l" style="padding-left:16px">' + cpEsc(cpLbl(k)) + '</td><td><input class="ni' + (chg ? ' chg' : '') + '" type="number" step="0.01" min="0" value="' + cpEsc(v) + '" data-k="' + cpEsc(k) + '" onchange="cpSetNet(this.dataset.k,this.value)"></td><td class="old' + (chg ? ' chg' : '') + '">' + (b === undefined ? '–' : cpEsc(b)) + '</td></tr>';
     }).join('');
   }).join('') + '</table>';
+  h += '<div class="cp-callout">ราคาเน็ต (ส่วน ②) เป็น <b>ของทั้งกลุ่ม</b> — แก้ครั้งเดียว ทุกรายในกลุ่มได้ราคาใหม่</div>';
   h += '<div class="cp-sec"><div class="cp-sec-t">② ราคาเน็ตของกลุ่ม <small>ใช้กับทุกรายในกลุ่ม · ช่องสีส้ม = แก้แล้ว · เว้นว่าง = ไม่มีราคาเน็ต</small></div><div class="cp-nt2">' + netTable([0, 1, 2]) + netTable([3, 4, 5]) + '</div></div>';
   const targets = ['G:' + g.name].concat(mem.map(m => m.code));
   h += '<div class="cp-sec"><div class="cp-sec-t">③ ประวัติราคาของกลุ่มนี้ <small>รวมราคาที่ตั้งไว้ล่วงหน้า · ใหม่สุดอยู่บน</small></div>' + cpHistoryTable(targets, true) + '</div>';
