@@ -915,6 +915,103 @@ table.list tr:hover td{background:#f8fbff}
 .cl-modal .err{color:#b91c1c;font-size:12.5px;margin-top:6px}
 @media(max-width:760px){.cl-kpis{grid-template-columns:1fr}}
 @media print{#cl-wrap{display:none!important}}
+/* 2026-11-02: แท็บ ประวัติส่วนลดลูกค้า (คลาสขึ้นต้น cp- ทั้งหมด กันชนกับสไตล์เดิม) */
+#tab-custprice{--cpnavy:#1a3a5c;--cpline:#d8dfe8;--cpmut:#64748b;--cpsoft:#94a3b8;--cpamber:#d97706}
+#cpRoot{padding:16px;max-width:1600px;margin:0 auto;font-size:14px;color:#1e293b}
+.cp-wrap{display:grid;grid-template-columns:290px minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:1000px){.cp-wrap{grid-template-columns:1fr}}
+.cp-card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(15,23,42,.08);border:1px solid #e6ebf1}
+.cp-gl{padding:12px;position:sticky;top:8px}
+.cp-main{padding:18px 20px;min-width:0}
+.cp-h2{font-size:14px;font-weight:700;color:var(--cpnavy);margin:2px 4px 10px}
+.cp-in{width:100%;font-family:inherit;font-size:13.5px;border:1.5px solid var(--cpline);border-radius:8px;padding:7px 9px;background:#fff}
+.cp-in:disabled{background:#f1f5f9;color:#64748b}
+.cp-gi{border:1.5px solid #e6ebf1;border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.cp-gi:hover{background:#f8fafc}
+.cp-gi.on{border-color:var(--cpnavy);background:#eef4fa;box-shadow:inset 3px 0 0 var(--cpnavy)}
+.cp-gi.in{border-color:#93c5fd;background:#f0f7ff}
+.cp-gi .n{font-weight:700;font-size:15px;color:var(--cpnavy);display:flex;justify-content:space-between}
+.cp-gi .n span{font-size:12px;color:var(--cpmut);font-weight:600}
+.cp-gi .d{font-size:12px;color:var(--cpmut);margin-top:2px}
+.cp-gi.warn{border-style:dashed;border-color:#fcd34d;background:#fffbeb}
+.cp-gi.warn .n{color:#92400e}
+.cp-btn{font-family:inherit;font-size:13px;font-weight:700;border-radius:8px;padding:7px 13px;border:1.5px solid var(--cpnavy);background:#fff;color:var(--cpnavy);cursor:pointer}
+.cp-btn.cp-pri{background:var(--cpnavy);color:#fff}
+.cp-btn.cp-grn{background:#16a34a;border-color:#16a34a;color:#fff}
+.cp-btn:disabled{opacity:.45;cursor:not-allowed}
+.cp-mut{color:var(--cpmut)}
+.cp-small{font-size:12.5px;color:#2563eb}
+.cp-ttl{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.cp-ttl h2{font-size:22px;margin:0;color:var(--cpnavy)}
+.cp-ttl .s{color:var(--cpmut);font-size:13.5px}
+.cp-crumb{font-size:13.5px;margin-bottom:6px}.cp-crumb a{color:#2563eb;cursor:pointer;font-weight:600}.cp-crumb a:hover{text-decoration:underline}
+.cp-notes{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 12px}
+.cp-notes span{font-size:12px;background:#f1f5f9;color:#475569;border-radius:6px;padding:2px 8px}
+.cp-sec{border:1px solid #e6ebf1;border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.cp-sec-t{font-size:14px;font-weight:700;color:var(--cpnavy);margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cp-sec-t small{font-weight:400;color:var(--cpsoft);font-size:12px}
+.cp-scroll{overflow:auto}
+table.cp-mt{width:100%;border-collapse:collapse;font-size:13px}
+.cp-mt th{background:#f8fafc;color:var(--cpmut);font-size:11.5px;font-weight:700;padding:7px 6px;border-bottom:1px solid #e6ebf1;text-align:center;line-height:1.25}
+.cp-mt th.l,.cp-mt td.l{text-align:left}
+.cp-mt td{padding:6px 6px;border-bottom:1px solid #f1f5f9;text-align:center}
+.cp-mt tr.sel td{background:#f0f7ff}
+.cp-mt tr.tierline td{border-top:2px solid #e2e8f0}
+.cp-mt .nm{font-weight:600}
+.cp-mt .sub{font-size:11px;color:var(--cpsoft)}
+.cp-mt .nos{display:inline-block;font-size:11px;background:#fef3c7;color:#92400e;border-radius:5px;padding:1px 6px;font-weight:700;margin-right:4px}
+.cp-mt input[type=checkbox]{width:16px;height:16px;accent-color:var(--cpnavy)}
+.cp-mt .ed{font-size:11px;font-weight:600;color:#2563eb;cursor:pointer;margin-left:4px;white-space:nowrap}
+.cp-mt .tier{display:inline-block;font-size:11px;font-weight:700;border-radius:10px;padding:0 7px;background:#e0e7ff;color:#3730a3}
+.cp-mt input.pc{width:54px;font-family:inherit;font-size:13.5px;font-weight:700;text-align:center;border:1.5px solid transparent;border-radius:6px;padding:3px 2px;background:transparent;color:#1e293b;cursor:pointer}
+.cp-mt input.pc:hover{border-color:var(--cpline);background:#fff}
+.cp-mt input.pc:focus{border-color:#24507d;background:#fff;outline:none}
+.cp-mt input.pc.chg{border-color:var(--cpamber);background:#fffbeb;color:#92400e}
+.cp-mt .was{font-size:10.5px;color:var(--cpamber)}
+a.cp-cl{color:var(--cpnavy);cursor:pointer;text-decoration:none}a.cp-cl:hover{text-decoration:underline}
+.cp-bulk{background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:10px 12px;margin-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cp-bulk b{color:#9a3412}
+.cp-bulk select,.cp-bulk input{font-family:inherit;font-size:13px;border:1.5px solid var(--cpline);border-radius:7px;padding:5px 7px}
+.cp-bulk input{width:64px;text-align:right}
+.cp-callout{border:1.5px solid #c7d2fe;background:#eef2ff;border-radius:10px;padding:10px 14px;font-size:13px;color:#3730a3;margin-bottom:14px}
+.cp-callout b{color:#1e1b4b}
+.cp-nt2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+@media(max-width:1100px){.cp-nt2{grid-template-columns:1fr}}
+table.cp-nt{width:100%;border-collapse:collapse;font-size:13.5px}
+.cp-nt th{font-size:12px;color:var(--cpmut);font-weight:600;padding:6px 8px;border-bottom:1px solid #e6ebf1;text-align:center}
+.cp-nt th.l,.cp-nt td.l{text-align:left}
+.cp-nt td{padding:5px 8px;border-bottom:1px solid #f1f5f9;text-align:center}
+.cp-nt tr.gh2 td{font-weight:700;color:var(--cpnavy);font-size:12.5px;padding-top:12px;text-align:left}
+.cp-nt tr.gh2 span{font-weight:400;color:var(--cpsoft)}
+.cp-nt input.ni{width:86px;font-family:inherit;font-size:14px;font-weight:700;text-align:right;border:1.5px solid var(--cpline);border-radius:7px;padding:5px 8px}
+.cp-nt input.ni:disabled{background:#f1f5f9;color:#94a3b8}
+.cp-nt input.ni.chg{border-color:var(--cpamber);background:#fffbeb;color:#92400e}
+.cp-nt .old{font-size:12px;color:var(--cpsoft)}.cp-nt .old.chg{color:var(--cpamber);font-weight:700}
+.cp-hist td{vertical-align:top}
+.cp-st{font-size:11.5px;font-weight:700;border-radius:10px;padding:1px 9px;white-space:nowrap}.cp-st.up{background:#fef3c7;color:#92400e}.cp-st.on{background:#dcfce7;color:#166534}.cp-st.old{background:#f1f5f9;color:#94a3b8}
+.cp-efftop{display:flex;align-items:center;gap:14px;background:#eef4fa;border:2px solid #24507d;border-radius:12px;padding:12px 16px;margin-bottom:14px;flex-wrap:wrap}
+.cp-efftop .ic{font-size:26px}
+.cp-efftop .t1{font-size:15px;font-weight:700;color:var(--cpnavy)}
+.cp-efftop .t2{font-size:12.5px;color:var(--cpmut)}
+.cp-efftop input{font-family:inherit;font-size:16px;font-weight:700;border:2px solid #24507d;border-radius:8px;padding:6px 10px;color:var(--cpnavy)}
+.cp-efftop .t3{font-size:15px;font-weight:700;color:var(--cpnavy);min-width:90px}
+.cp-savebar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--cpline);margin:14px -20px -18px;padding:12px 20px;display:flex;align-items:center;gap:10px;border-radius:0 0 12px 12px;font-size:13.5px;color:var(--cpmut);z-index:5}
+.cp-savebar span{flex:1}.cp-savebar b{color:var(--cpamber)}
+.cp-sres{border:1.5px solid var(--cpline);border-radius:8px;margin-top:6px;max-height:300px;overflow:auto}
+.cp-sres div{padding:7px 10px;border-bottom:1px solid #f1f5f9;font-size:13px;cursor:pointer}.cp-sres div:hover{background:#f5f8fb}
+.cp-sres span{color:var(--cpsoft);font-size:11.5px}
+.cp-f2{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media(max-width:800px){.cp-f2{grid-template-columns:1fr 1fr}}
+.cp-f2 label{display:block;font-size:12px;color:var(--cpmut);font-weight:600;margin-bottom:3px}
+.cp-radio{display:flex;gap:16px;flex-wrap:wrap;padding-top:4px}.cp-radio label{display:flex;gap:6px;align-items:center;white-space:nowrap;font-size:13.5px;color:#1e293b;font-weight:400;margin:0}
+.cp-note2{font-size:12.5px;background:#ede9fe;color:#4c1d95;border-radius:8px;padding:7px 10px;margin-top:8px}
+.cp-netmini{font-size:12.5px;color:#334155;display:grid;gap:6px}.cp-netmini span{color:var(--cpsoft)}
+.cp-warn{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 12px;font-size:13px;color:#92400e}
+.cp-effbox{background:#eef4fa;border:1.5px solid #bcd0e5;border-radius:8px;padding:8px 12px;font-size:13.5px;color:var(--cpnavy);margin-bottom:10px}.cp-effbox span{font-size:12px;color:var(--cpmut)}
+#cpModal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:3000}
+#cpModal .cp-mm{background:#fff;border-radius:14px;width:min(620px,94vw);max-height:92vh;overflow:auto;padding:20px 22px;font-size:14px}
+#cpToast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(40px);background:#166534;color:#fff;padding:10px 18px;border-radius:10px;font-weight:700;opacity:0;transition:all .25s;z-index:3100;pointer-events:none}
+#cpToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body class="not-logged-in">
@@ -963,6 +1060,7 @@ table.list tr:hover td{background:#f8fbff}
   <button class="tab-btn" data-tab="history" onclick="switchTab('history',this)">ประวัติ</button>
   <button class="tab-btn" data-tab="summary" onclick="switchTab('summary',this)">🖨️ สรุปออเดอร์</button>
   <button class="tab-btn" data-tab="analytics" onclick="switchTab('analytics',this)">📈 วิเคราะห์ข้อมูล 🔒</button>
+  <button class="tab-btn" data-tab="custprice" onclick="switchTab('custprice',this)">🏷️ ประวัติส่วนลดลูกค้า</button>
 </div>
 
 <div class="content">
@@ -1766,6 +1864,10 @@ table.list tr:hover td{background:#f8fbff}
   </div>
 </div>
 
+<!-- 2026-11-02: แท็บ ประวัติส่วนลดลูกค้า (Admin + yo + wint) -->
+<div class="tab-panel" id="tab-custprice"><div id="cpRoot"></div></div>
+<div id="cpModal"><div class="cp-mm"></div></div>
+
 <div class="tab-panel" id="tab-analytics">
   <div class="content">
     <!-- password gate -->
@@ -2001,10 +2103,69 @@ const CANCELLED_CUSTS = new Set(["00301","01102","06302","06700","11800","29600"
 // ============================================================
 // CUST_PRICES — ราคาเน็ต/กก. + %ส่วนลด (sync จาก sales_grid_v2)
 // ============================================================
-const CUST_PRICES = {"13700":{"n":"ประวิทย์สลักภัณฑ์","d":{"sw":57,"bw":46,"nc_s":42,"nc_l":40,"mw":55,"nc":31,"mb":50,"h":57},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"01300":{"n":"ช.กิจเจริญ","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":50,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"00205":{"n":"กิ้มง้วน ฟาสเทรนเนอร์","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"00204":{"n":"โง้วกิ้มง้วน 2535","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"00203":{"n":"โง้วสลักภัณฑ์","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"06000":{"n":"อิ้วเลี้ยนวิจิตร","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"06001":{"n":"อิ้วเลี้ยนค้าน็อต","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"06002":{"n":"อิ้วเลี้ยนสลักภัณฑ์","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"03300":{"n":"จิระบุญ","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"บังคับใช้":{"n":"ร้าน","d":{},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"26 พ.ค. 69":{"n":"กิ้มฟาสฯ,โง้วกิ้มง้วน,โง้วสลักฯ","d":{},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"1 มิ.ย. 69":{"n":"ประวิทย์,ช.กิจ,อิ้วเลี้ยน 3 เจ้า","d":{},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"01500":{"n":"ง่วนฮงพาณิชย์","d":{"sw":57,"bw":45,"nc_s":40,"nc_l":38,"mw":53,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"00802":{"n":"ที.เอส.เอช. อิมปอร์ต","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":53,"nc":31,"mb":50,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"57100":{"n":"ลิ้มเฮง","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"57101":{"n":"ลิ้มเฮง (เทพารักษ์)","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"57102":{"n":"ลิ้มเฮง สกรูน็อตอิมพอร็ท","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"13600":{"n":"ศรีประชายนต์","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"09100":{"n":"มงคลชัยกลการ","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"57900":{"n":"เอส.บี.โบลท์","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"01101":{"n":"ซุ่นไถ่จั่น - LST - ลี้ซุ่นไถ่ไทยแลนด์","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"12215":{"n":"ยู.พี.โลหะภัณฑ์","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"16498":{"n":"เจ.เอส.สลักภัณฑ์","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"16499":{"n":"เอสสลักภัณฑ์","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"00900":{"n":"เตียเซียมฮงสลักภัณฑ์","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"05402":{"n":"เจริญชัยสลักภัณฑ์ (1996)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"04900":{"n":"ทิเม้งสกรู","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"12801":{"n":"อ.บุญถาวร (เอี้ยง)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"02300":{"n":"นามทอง","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"02000":{"n":"เด่นชัย","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"01501":{"n":"ง่วนฮงโลหะกิจ","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"16402":{"n":"อาณาจักรสลักภัณฑ์","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"00500":{"n":"เตียลั้งเฮง อินเตอร์","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"03301":{"n":"ส.จิระอิมปอร์ต","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"14104":{"n":"ชัยเสรีกลการ","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"02800":{"n":"ช.ศรีพงศ์-สินทวีพลัส","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"00100":{"n":"กิ้มฮวด-กิ้มฮวดพาณิชย์ (ลาซาล)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"04000":{"n":"ณรงค์ฤทธ์-ชินเกษม","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"13800":{"n":"เค.แอล.สลักภัณฑ์","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"04101":{"n":"กรุงเทพสกรูไทย","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"60500":{"n":"เอส เจ สกรูไทย","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11001":{"n":"อ.บุญประเสริฐ - แอปปอน","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05700":{"n":"โลหะกิจกลการ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01002":{"n":"เจริญกิจชัยพาณิชย์ - วี เจ แบริ่งเวิล์ด","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01200":{"n":"ช.เจริญโลหะกิจ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01700":{"n":"จารุรังสี","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"38300":{"n":"เจ.อาร์.เอส","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"06900":{"n":"ศรีเมืองโลหะกิจ ซัพพลาย","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"56900":{"n":"เอ็ม เอ็ม แกรนด์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"58700":{"n":"ทรัพย์วิษณุ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"04200":{"n":"บางกอกสลักภัณฑ์","d":{"sw":29,"bw":23,"nc_s":19,"nc_l":17,"mw":36,"nc":23,"mb":36,"h":34},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"08600":{"n":"ศรีทองโลหะกิจ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"61500":{"n":"ประสิทธิผลอุตสาหกรรม","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"06600":{"n":"สงวนโลหะกิจ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"09700":{"n":"ดำรงไทย","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"00300":{"n":"เตียวเล่งฮวด-SJP","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"34400":{"n":"อี.เอ็น.บี.ซัพพลาย","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"00303":{"n":"เอ็ม.จี.อาร์ - สยามเนยิ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"30800":{"n":"เอส.เอ็น.ที.พี.","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"08900":{"n":"ย้งเจริญการค้า","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"51400":{"n":"เอเซียคอนกรีต (1989)  , (1993)","d":{"sw":"-","bw":40,"nc_s":38,"nc_l":35,"mw":"-","nc":"-","mb":"-","h":"-"},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"17400":{"n":"จิระวัฒนา","d":{"sw":"-","bw":"-","nc_s":"-","nc_l":"-","mw":48,"nc":"-","mb":"-","h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"31000":{"n":"เอ็กโก้","d":{"sw":"-","bw":"-","nc_s":"-","nc_l":"-","mw":"-","nc":"-","mb":44,"h":"-"},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"62400":{"n":"เค.เอส.พี.สลักภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"03000":{"n":"บุญประสิทธิ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05200":{"n":"แพร่พิพัฒน์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01400":{"n":"ส.สถาพร","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11200":{"n":"ธนาวิวัฒน์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"50600":{"n":"เอส.วี.โลหะภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01600":{"n":"มงคลโลหะ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05100":{"n":"พิศาลภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"02900":{"n":"ชุนย้ง - บรรจงพาณิชย์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05900":{"n":"อ.โลหะภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"61000":{"n":"เอสเอฟซี ฟาสเทนเนอร์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"36300":{"n":"บี. พี. กรุ๊ป","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"61600":{"n":"กิจยืนยง","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05000":{"n":"ไทยไพศาลสลักภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"09000":{"n":"เม่งฮงเส็ง","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"07400":{"n":"แหลมทองสปริง","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"04102":{"n":"กรุงเทพสกรูไทย","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"00103":{"n":"กิ้มฮวดพาณิชย์ (ลาซาล)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"02001":{"n":"ดีซีน็อต (เด่นชัย)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"01103":{"n":"ลี้ซุ่นไถ่ (ไทยแลนด์)","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"01003":{"n":"วี เจ แบริ่ง (เจริญกิจชัย)","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"02801":{"n":"สินทวีพลัส","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"11000":{"n":"อ.บุญประเสริฐ (ป้อมปราบ)","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11004":{"n":"อ.บุญประเสริฐ (สี่พระยา)","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11002":{"n":"แอปปอน (คลองถม)","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11003":{"n":"แอปปอน (สาทร)","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"13801":{"n":"เค แอล เครื่องเหล็ก","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"61800":{"n":"ประสิทธิผลอุตสาหกรรม","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}}};
+const CUST_PRICES = {"13700":{"n":"ประวิทย์สลักภัณฑ์","d":{"sw":57,"bw":46,"nc_s":42,"nc_l":40,"mw":55,"nc":31,"mb":50,"h":57},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"01300":{"n":"ช.กิจเจริญ","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":50,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"00205":{"n":"กิ้มง้วน ฟาสเทรนเนอร์","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"00204":{"n":"โง้วกิ้มง้วน 2535","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"00203":{"n":"โง้วสลักภัณฑ์","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"06000":{"n":"อิ้วเลี้ยนวิจิตร","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"06001":{"n":"อิ้วเลี้ยนค้าน็อต","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"06002":{"n":"อิ้วเลี้ยนสลักภัณฑ์","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"03300":{"n":"จิระบุญ","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":55,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"บังคับใช้":{"n":"ร้าน","d":{},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"26 พ.ค. 69":{"n":"กิ้มฟาสฯ,โง้วกิ้มง้วน,โง้วสลักฯ","d":{},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"1 มิ.ย. 69":{"n":"ประวิทย์,ช.กิจ,อิ้วเลี้ยน 3 เจ้า","d":{},"hw":{"3/16\"W":63,"5/8\"W":30,"3/4\"W":31,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.05,"M.18":2.15,"M.20":2.2,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.05,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":39,"screw_5/16\"":39,"screw_3/8\"":39,"round_3/8 x 3\" - 12\"":27,"round_1/2 x 4\" - 12\"":27}},"01500":{"n":"ง่วนฮงพาณิชย์","d":{"sw":57,"bw":45,"nc_s":40,"nc_l":38,"mw":53,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"00802":{"n":"ที.เอส.เอช. อิมปอร์ต","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":53,"nc":31,"mb":50,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"57100":{"n":"ลิ้มเฮง","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"57101":{"n":"ลิ้มเฮง (เทพารักษ์)","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"57102":{"n":"ลิ้มเฮง สกรูน็อตอิมพอร็ท","d":{"sw":55,"bw":45,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":55},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"13600":{"n":"ศรีประชายนต์","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"13601":{"n":"สิทธินนท์ สีมารัตน์","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"09100":{"n":"มงคลชัยกลการ","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"57900":{"n":"เอส.บี.โบลท์","d":{"sw":53,"bw":44,"nc_s":40,"nc_l":38,"mw":52,"nc":31,"mb":48,"h":53},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"01101":{"n":"ซุ่นไถ่จั่น - LST - ลี้ซุ่นไถ่ไทยแลนด์","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"12215":{"n":"ยู.พี.โลหะภัณฑ์","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"16498":{"n":"เจ.เอส.สลักภัณฑ์","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"16499":{"n":"เอสสลักภัณฑ์","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"00900":{"n":"เตียเซียมฮงสลักภัณฑ์","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"05402":{"n":"เจริญชัยสลักภัณฑ์ (1996)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"04900":{"n":"ทิเม้งสกรู","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"12801":{"n":"อ.บุญถาวร (เอี้ยง)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"02300":{"n":"นามทอง","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"02000":{"n":"เด่นชัย","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"01501":{"n":"ง่วนฮงโลหะกิจ","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"16402":{"n":"อาณาจักรสลักภัณฑ์","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"00500":{"n":"เตียลั้งเฮง อินเตอร์","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"03301":{"n":"ส.จิระอิมปอร์ต","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"14104":{"n":"ชัยเสรีกลการ","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"02800":{"n":"ช.ศรีพงศ์-สินทวีพลัส","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"00100":{"n":"กิ้มฮวด-กิ้มฮวดพาณิชย์ (ลาซาล)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"04000":{"n":"ณรงค์ฤทธ์-ชินเกษม","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"13800":{"n":"เค.แอล.สลักภัณฑ์","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"04101":{"n":"กรุงเทพสกรูไทย","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"60500":{"n":"เอส เจ สกรูไทย","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11001":{"n":"อ.บุญประเสริฐ - แอปปอน","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05700":{"n":"โลหะกิจกลการ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01002":{"n":"เจริญกิจชัยพาณิชย์ - วี เจ แบริ่งเวิล์ด","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01200":{"n":"ช.เจริญโลหะกิจ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01700":{"n":"จารุรังสี","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"38300":{"n":"เจ.อาร์.เอส","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"06900":{"n":"ศรีเมืองโลหะกิจ ซัพพลาย","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"56900":{"n":"เอ็ม เอ็ม แกรนด์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"58700":{"n":"ทรัพย์วิษณุ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"04200":{"n":"บางกอกสลักภัณฑ์","d":{"sw":29,"bw":23,"nc_s":19,"nc_l":17,"mw":36,"nc":23,"mb":36,"h":34},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"08600":{"n":"ศรีทองโลหะกิจ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"61500":{"n":"ประสิทธิผลอุตสาหกรรม","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"06600":{"n":"สงวนโลหะกิจ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"09700":{"n":"ดำรงไทย","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"00300":{"n":"เตียวเล่งฮวด-SJP","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"34400":{"n":"อี.เอ็น.บี.ซัพพลาย","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"00303":{"n":"เอ็ม.จี.อาร์ - สยามเนยิ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"30800":{"n":"เอส.เอ็น.ที.พี.","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"08900":{"n":"ย้งเจริญการค้า","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"51400":{"n":"เอเซียคอนกรีต (1989)  , (1993)","d":{"sw":"-","bw":40,"nc_s":38,"nc_l":35,"mw":"-","nc":"-","mb":"-","h":"-"},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"17400":{"n":"จิระวัฒนา","d":{"sw":"-","bw":"-","nc_s":"-","nc_l":"-","mw":48,"nc":"-","mb":"-","h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"31000":{"n":"เอ็กโก้","d":{"sw":"-","bw":"-","nc_s":"-","nc_l":"-","mw":"-","nc":"-","mb":44,"h":"-"},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"62400":{"n":"เค.เอส.พี.สลักภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"03000":{"n":"บุญประสิทธิ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05200":{"n":"แพร่พิพัฒน์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01400":{"n":"ส.สถาพร","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11200":{"n":"ธนาวิวัฒน์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"50600":{"n":"เอส.วี.โลหะภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"01600":{"n":"มงคลโลหะ","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05100":{"n":"พิศาลภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"02900":{"n":"ชุนย้ง - บรรจงพาณิชย์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05900":{"n":"อ.โลหะภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"61000":{"n":"เอสเอฟซี ฟาสเทนเนอร์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"36300":{"n":"บี. พี. กรุ๊ป","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"61600":{"n":"กิจยืนยง","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"05000":{"n":"ไทยไพศาลสลักภัณฑ์","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"09000":{"n":"เม่งฮงเส็ง","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"07400":{"n":"แหลมทองสปริง","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"04102":{"n":"กรุงเทพสกรูไทย","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"00103":{"n":"กิ้มฮวดพาณิชย์ (ลาซาล)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"02001":{"n":"ดีซีน็อต (เด่นชัย)","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"01103":{"n":"ลี้ซุ่นไถ่ (ไทยแลนด์)","d":{"sw":52,"bw":43,"nc_s":39,"nc_l":37,"mw":51,"nc":31,"mb":47,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"01003":{"n":"วี เจ แบริ่ง (เจริญกิจชัย)","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"02801":{"n":"สินทวีพลัส","d":{"sw":51,"bw":42,"nc_s":38,"nc_l":36,"mw":49,"nc":31,"mb":46,"h":51},"hw":{"3/16\"W":63,"5/8\"W":32,"3/4\"W":33,"7/8\"W":50,"1\"W":50,"M.3":102,"M.4":68,"M.5":60,"M.16":1.1,"M.18":2.25,"M.20":2.3,"M.22":3.7,"M.24":4.65,"5/8\"NC,NF":1.1,"3/4\"NC,NF":2.1,"7/8\"NC":4.4,"1\"NC":5.7,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":30,"round_1/2 x 4\" - 12\"":30}},"11000":{"n":"อ.บุญประเสริฐ (ป้อมปราบ)","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11004":{"n":"อ.บุญประเสริฐ (สี่พระยา)","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11002":{"n":"แอปปอน (คลองถม)","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"11003":{"n":"แอปปอน (สาทร)","d":{"sw":49,"bw":41,"nc_s":39,"nc_l":36,"mw":49,"nc":28,"mb":45,"h":49},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"13801":{"n":"เค แอล เครื่องเหล็ก","d":{"sw":50,"bw":42,"nc_s":40,"nc_l":37,"mw":50,"nc":28,"mb":46,"h":50},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}},"61800":{"n":"ประสิทธิผลอุตสาหกรรม","d":{"sw":48,"bw":40,"nc_s":38,"nc_l":35,"mw":48,"nc":28,"mb":44,"h":48},"hw":{"3/16\"W":65,"5/8\"W":33,"3/4\"W":34,"7/8\"W":52,"1\"W":52,"M.3":105,"M.4":70,"M.5":60,"M.16":1.15,"M.18":2.3,"M.20":2.35,"M.22":3.8,"M.24":4.75,"5/8\"NC,NF":1.15,"3/4\"NC,NF":2.15,"7/8\"NC":4.5,"1\"NC":5.8,"screw_1/4\"":40,"screw_5/16\"":40,"screw_3/8\"":40,"round_3/8 x 3\" - 12\"":32,"round_1/2 x 4\" - 12\"":32}}};
 const CUST_PRICE_REF = {"00103": "00100", "00106": "00100", "00304": "00303", "01003": "01002", "01103": "01101", "02001": "02000", "02801": "02800", "04102": "04101", "11000": "11001", "11002": "11001", "11003": "11001", "11004": "11001", "13801": "13800", "13802": "13800", "16900": "50600", "52700": "05700", "56900": "56900", "57101": "57100", "57102": "57100", "61600": "61600", "61800": "61500"};
-function getPriceInfo(custCode, itemCode, type) {
-  const cp = CUST_PRICES[CUST_PRICE_REF[custCode] || custCode];
+// ============================================================
+// 2026-11-02: ข้อมูลลูกค้า/ราคาจากชีท (customers / price_groups / price_log) — แก้ได้ในแท็บ "ประวัติส่วนลดลูกค้า"
+// โหลดสำเร็จ → PRICE_DB ใช้แทน CUSTOMERS / CUST_PRICES / CUST_PRICE_REF ที่เขียนติดไฟล์ (ค่าที่เขียนติดไฟล์ยังเก็บไว้
+// เป็นตัวสำรอง: ถ้าโหลดไม่ได้หรือยังไม่ได้ย้ายข้อมูลลงชีท หน้าเว็บทำงานแบบเดิมทุกอย่าง)
+// ราคาเลือกตาม "วันที่เปิดบิล": แถวล่าสุดใน price_log ที่ eff_date <= วันที่บิล (ไม่ส่งวันที่ = วันนี้)
+// ============================================================
+let PRICE_DB = null;
+const PRICE_D_KEYS = ['sw', 'bw', 'nc_s', 'nc_l', 'mw', 'nc', 'mb', 'h'];
+function priceTodayISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function priceDbSet(res) {
+  if (!res || res.error || res.empty || !Array.isArray(res.customers) || !res.customers.length) return false;
+  const byCode = {};
+  res.customers.forEach(c => { byCode[c.code] = c; });
+  const idx = {};
+  (res.log || []).forEach(L => { const k = L.target + '|' + L.field; (idx[k] = idx[k] || []).push(L); });
+  Object.keys(idx).forEach(k => idx[k].sort((x, y) => (x.eff < y.eff ? -1 : x.eff > y.eff ? 1 : x.row - y.row)));
+  PRICE_DB = { customers: res.customers, groups: res.groups || [], log: res.log || [], byCode: byCode, idx: idx };
+  return true;
+}
+// แถวราคาที่มีผล ณ วันที่ day (yyyy-mm-dd) — null ถ้าไม่มี
+function priceLogAt(target, field, day) {
+  const a = PRICE_DB && PRICE_DB.idx[target + '|' + field];
+  if (!a) return null;
+  let hit = null;
+  for (let i = 0; i < a.length; i++) { if (a[i].eff <= day) hit = a[i]; else break; }
+  return hit;
+}
+// ชุดราคาของลูกค้า ณ วันที่ — รูปแบบเดียวกับ CUST_PRICES[code] = {n, d:{sw..h}, hw:{...}} (undefined = ไม่มีราคา)
+function custPriceAt(custCode, onDate) {
+  if (!PRICE_DB) return CUST_PRICES[CUST_PRICE_REF[custCode] || custCode];
+  const day = /^\d{4}-\d{2}-\d{2}$/.test(String(onDate || '')) ? onDate : priceTodayISO();
+  const c = PRICE_DB.byCode[custCode];
+  const pc = (c && c.price_ref) ? c.price_ref : custCode;
+  const pr = PRICE_DB.byCode[pc] || c || {};
+  const grp = pr.price_group || (c && c.price_group) || '';
+  const dL = priceLogAt(pc, 'd', day);
+  const gL = grp ? priceLogAt('G:' + grp, 'hw', day) : null;
+  const hL = priceLogAt(pc, 'hw', day);
+  if (!dL && !gL && !hL) return undefined;
+  const d = {};
+  PRICE_D_KEYS.forEach(k => { const v = dL ? dL.data[k] : undefined; d[k] = (v === '' || v === undefined || v === null) ? null : v; });
+  return { n: pr.name || '', d: d, hw: Object.assign({}, gL ? gL.data : {}, hL ? hL.data : {}) };
+}
+// เติม CUSTOMERS (+ map ที่สร้างจากมัน) ใหม่จากชีท — แก้ในที่เดิม (array/object เดิม) เพื่อให้โค้ดทุกจุดที่อ้างอยู่ใช้ได้ทันที
+// ชุดราคาอย่างเดียว (active = P) ไม่ใช่ลูกค้าในหน้าสั่งสินค้า จึงไม่ใส่
+function priceApplyCustomers(maps) {
+  if (!PRICE_DB) return;
+  const list = PRICE_DB.customers.filter(c => c.active !== 'P').map(c => ({ name: c.name, code: c.code, grade: c.grade, active: c.active, cut25: c.cut25 }));
+  CUSTOMERS.length = 0;
+  list.forEach(c => CUSTOMERS.push(c));
+  (maps || []).forEach(([obj, keyOf]) => {
+    Object.keys(obj).forEach(k => { delete obj[k]; });
+    CUSTOMERS.forEach(c => { obj[keyOf(c)] = c; });
+  });
+}
+// onDate = วันที่เปิดบิล yyyy-mm-dd (ไม่ส่ง = วันนี้) — 2026-11-02 ราคาเปลี่ยนตามวันที่มีผล
+function getPriceInfo(custCode, itemCode, type, onDate) {
+  const cp = custPriceAt(custCode, onDate);
   if (!cp) return {disc_pct: null, net_price: null};
   const d = cp.d;
   const hw = cp.hw || {};
@@ -2385,6 +2546,7 @@ function switchTab(name, btn) {
   if (name === 'pending') { if (!allItems.length) loadStock().then(loadPending); else loadPending(); }
   if (name === 'history') { setHistoryDateMode(historyDateMode); loadHistory(); }
   if (name === 'summary') initSummaryTab();
+  if (name === 'custprice') cpLoad();
   if (name === 'itemhistory') {
     if (!allItems.length) loadStock();
     const fromEl = document.getElementById('ih-from'), toEl = document.getElementById('ih-to');
@@ -4245,8 +4407,8 @@ function renderPendingTable() {
         <td style="font-weight:700;color:#1a3a5c">${!isBox?qty:''}</td>
         <td style="font-weight:700;color:#7c3aed">${isBox?qty:''}</td>
         <td class="pend-stock-cell" data-code="${o.code}" data-basestock="${_stk.stock||0}" data-qty="${qty}" data-unit="${isBox?'ก.':'กส.'}" style="white-space:nowrap;font-size:11px;${_short?'background:#fecaca;color:#991b1b':'color:#374151'}"><span style="font-size:10px">${_tank} ถัง</span><span style="color:${_short?'#c98a8a':'#9ca3af'};padding:0 3px">/</span><span class="pend-stock-remain" style="font-weight:700">${_short?'เหลือ '+(_stk.stock||0):(_stk.stock||0)+''}&nbsp;${isBox?'ก.':'กส.'}</span></td>
-        <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _dv=(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)?o.disc_pct:(_pi.disc_pct!==null?_pi.disc_pct:'');return _dv!==''&&_dv!==null?_dv+'%':'';})()}</td>
-        <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'');const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
+        <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'',o.bill_date);const _dv=(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)?o.disc_pct:(_pi.disc_pct!==null?_pi.disc_pct:'');return _dv!==''&&_dv!==null?_dv+'%':'';})()}</td>
+        <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo(custInfo.code||'',o.code,'',o.bill_date);const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
         <td><span style="background:${urgColor2[o._urgency]||'#f3f4f6'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
         <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td style="font-size:11px;color:#666">${o._note}${o.plating?' <span style="color:#0369a1;font-weight:600">['+o.plating+']</span>':''}${o.bill==='X'?' <span style="color:#b45309;font-weight:600">[บิล X]</span>':''}</td>
@@ -5235,8 +5397,8 @@ function renderHistory() {
         <td style="font-family:monospace;font-size:11px">${o.code||''}</td>
         <td>${!isBox?qty:''}</td>
         <td>${isBox?qty:''}</td>
-        <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo((CUST_MAP[cust]||{}).code||'',o.code,'');const _dv=(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)?o.disc_pct:(_pi.disc_pct!==null?_pi.disc_pct:'');return _dv!==''&&_dv!==null?_dv+'%':'';})()}</td>
-        <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo((CUST_MAP[cust]||{}).code||'',o.code,'');const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
+        <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo((CUST_MAP[cust]||{}).code||'',o.code,'',o.bill_date);const _dv=(o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined)?o.disc_pct:(_pi.disc_pct!==null?_pi.disc_pct:'');return _dv!==''&&_dv!==null?_dv+'%':'';})()}</td>
+        <td style="text-align:center;font-size:12px">${(()=>{const _pi=getPriceInfo((CUST_MAP[cust]||{}).code||'',o.code,'',o.bill_date);const _nv=(o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined)?o.net_price:(_pi.net_price!==null?_pi.net_price:'');return _nv!==''?Number(_nv).toFixed(2):'';})()}</td>
         <td><span style="background:${urgBg};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap">${urgText2[o._urgency]||o._urgency||'-'}</span></td>
         <td><span style="background:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#dbeafe':'#f3f4f6'};color:${(o.delivery&&o.delivery!=='หน้าร้าน')?'#1e40af':'#9ca3af'};padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600">${o.delivery||'หน้าร้าน'}</span></td>
         <td class="${o.status==='confirmed'?'status-done':'status-rejected'}">${o.status==='confirmed'?'✅ ยืนยัน':'❌ ปฏิเสธ'}</td>
@@ -5517,7 +5679,7 @@ function renderSummary() {
         const dateStr = getOrderDate(o);
         // 2026-09-22: ย่อ format วันที่เฉพาะตาราง "สรุปออเดอร์" ตอนพิมพ์ เหลือ d/m/yy (ตัดเลข 0 นำหน้า, ปี พ.ศ. 2 หลัก) ให้ช่องแคบลงได้ — ไม่แตะ fmtOrderDate()/getOrderDate() ที่ใช้ร่วมกับแท็บอื่น
         const dateShort = dateStr.replace(/^0?(\d{1,2})\/0?(\d{1,2})\/(\d{4})$/, (m,d,mo,y) => `${d}/${mo}/${y.slice(-2)}`);
-        const _pi = getPriceInfo(custCode, o.code, '');
+        const _pi = getPriceInfo(custCode, o.code, '', o.bill_date);
         const discVal = (o.disc_pct!==''&&o.disc_pct!==null&&o.disc_pct!==undefined) ? o.disc_pct : (_pi.disc_pct !== null ? _pi.disc_pct : '');
         const _netRaw = (o.net_price!==''&&o.net_price!==null&&o.net_price!==undefined) ? o.net_price : (_pi.net_price !== null ? _pi.net_price : '');
         const netVal  = _netRaw !== '' ? Number(_netRaw).toFixed(2) : '';
@@ -5614,10 +5776,10 @@ const STC_TAB_ROLES = {
   overview: ['Admin','Warehouse'], stock: ['Admin','Warehouse'], stockin: ['Admin','Warehouse'],
   packplan: ['Admin','Warehouse'],
   pending: ['Admin','Warehouse'], itemhistory: ['Admin','Warehouse'], history: ['Admin','Warehouse'],
-  summary: ['Admin','Warehouse'], users: ['Admin'], analytics: ['Admin']
+  summary: ['Admin','Warehouse'], users: ['Admin'], analytics: ['Admin'], custprice: ['Admin']
 };
 // 2026-10-20: user รายคนที่ได้เห็นแท็บเพิ่มจาก role (user ขอเปิดแท็บวิเคราะห์ข้อมูลให้ wint — ยังต้องกรอก password แท็บเหมือนเดิม)
-const STC_TAB_USERS = { analytics: ['wint'] };
+const STC_TAB_USERS = { analytics: ['wint'], custprice: ['yo', 'wint'] }; // custprice: user ยืนยัน 2026-11-02
 
 function stcApplyRoleUI(role, username) {
   document.querySelectorAll('.tab-btn[data-tab]').forEach(function (btn) {
@@ -5638,6 +5800,7 @@ function stcShowApp(session) {
   document.getElementById('stcUserFullname').textContent = session.fullname || session.username;
   document.getElementById('stcUserRole').textContent = session.role;
   stcApplyRoleUI(session.role, session.username);
+  cpBackgroundLoad(); // 2026-11-02: รายชื่อลูกค้า/ราคาจากชีท
   loadAll();
 }
 
@@ -7730,6 +7893,545 @@ let anCatRevRange = '12'; // 2026-09-25: '12' = 12 เดือนล่าส�
 // ยอด "ต.ค." = วันที่เปิดบิล (anPDate) 26 ก.ย.–25 ต.ค. · บิลวันที่ 26 เป็นต้นไปนับเป็นเดือนถัดไป · ลูกค้าอื่นยังเป็นเดือนปฏิทิน
 const AN_CUT25_CODES = ['00203', '00204', '00205'];
 let anCut25Names = null;
+// ============================================================
+// 2026-11-02: แท็บ "🏷️ ประวัติส่วนลดลูกค้า" (ตาม mockup v3.6 ที่ user อนุมัติ)
+// ซ้าย = ค้นหาลูกค้า / เพิ่มลูกค้าใหม่ / รายชื่อกลุ่มราคา · ขวา = หน้ากลุ่ม (สมาชิก + %ส่วนลดรายคน + ราคาเน็ตของกลุ่ม + ประวัติ)
+// หรือหน้าลูกค้า (ข้อมูลลูกค้า + กลุ่มราคา + %ส่วนลด + ประวัติ) · ทุกการแก้ราคาต้องระบุ "มีผลกับบิลตั้งแต่วันที่เปิดบิล"
+// เห็น/แก้ได้: Admin + yo + wint (server เช็คซ้ำใน saveCustomerPrices)
+// ============================================================
+const CP_K = [['sw', 'น็อตกิโล W<br>ตัวเล็ก'], ['bw', 'W ตัวใหญ่<br>5/8–3/4'], ['nc_s', 'NC,NF<br>5/8–3/4'], ['nc_l', 'NC,NF<br>7/8–1"'], ['mw', 'มิลขาว'], ['nc', 'NC,NF'], ['mb', 'มิลดำ'], ['h', 'หัวน็อต']];
+const CP_NETG = [['หัวน็อต W', 'บาท/กก.', ['3/16"W', '5/8"W', '3/4"W', '7/8"W', '1"W']], ['หัวน็อตมิล เล็ก', 'บาท/กก.', ['M.3', 'M.4', 'M.5']], ['หัวน็อตมิล ใหญ่', 'บาท/ตัว', ['M.16', 'M.18', 'M.20', 'M.22', 'M.24']], ['หัวน็อต NC,NF', 'บาท/ตัว', ['5/8"NC,NF', '3/4"NC,NF', '7/8"NC', '1"NC']], ['สกรูเกลียวปล่อย', 'บาท/กก.', ['screw_1/4"', 'screw_5/16"', 'screw_3/8"']], ['หัวกลม W ไซส์ยาว', 'บาท/กก.', ['round_3/8 x 3" - 12"', 'round_1/2 x 4" - 12"']]];
+const CP_SEED_EFF = '2000-01-01';
+// กลุ่มราคาตามไฟล์ "ปรับส่วนลด5-1-69 Rev3.xlsx" — ใช้ตอนย้ายข้อมูลครั้งแรกเท่านั้น (รหัส = รหัสชุดราคา)
+const CP_SEED_GROUPS = [{"name":"กลุ่ม 1","desc":"8 รายใหญ่ · Rev3 ปรับให้เท่าจิระบุญ","notes":["เกลียวปล่อย 20กส. 38.00บาท/กก.","บังคับใช้ 26 พ.ค. 69: กิ้มฟาสฯ,โง้วกิ้มง้วน,โง้วสลักฯ","บังคับใช้ 1 มิ.ย. 69: ประวิทย์,ช.กิจ,อิ้วเลี้ยน 3 เจ้า","Rev.3 ปรับราคา 8 เจ้าให้เท่าจิระบุญ"],"members":["13700","01300","00205","00204","00203","06000","06001","06002","03300"]},{"name":"กลุ่ม 2","desc":"ปรับ 5 ม.ค. 69 · ส่วนลดลดหลั่นตามราย","notes":["20กส.    1.05 บาท","20กส.    2.20 บาท","เกลียวปล่อย 10กส. 39.00บาท/กก.","เกลียวปล่อย 20กส. 38.00บาท/กก.","หัวกลม 20กส.  29.00 บาท / กก.","หัวกลม 40กส.  28.00 บาท / กก."],"members":["01500","00802","57100","13600","09100","57900","01101","12215","16498","16499","00900","05402","04900","12801","02300","02000","01501","16402","00500"]},{"name":"กลุ่ม 3","desc":"ปรับ 5 ม.ค. 69","notes":["20กส.    1.05 บาท","20กส.    2.20 บาท","เกลียวปล่อย 10กส. 39.00บาท/กก.","เกลียวปล่อย 20กส. 38.00บาท/กก.","หัวกลม 20กส.  29.00 บาท / กก.","หัวกลม 40กส.  28.00 บาท / กก."],"members":["03301","14104","02800","00100"]},{"name":"ไม่ปรับ","desc":"ไม่ได้ปรับเมื่อ 5 ม.ค. 69 · ใช้ราคา Net เดิม 1 ต.ค. 66","notes":["40กส.    1.10 บาท","20กส.    2.25 บาท","เกลียวปล่อย 10กส. 39.00บาท/กก.","เกลียวปล่อย 20กส. 38.00บาท/กก.","หัวกลม 20กส.  31.00 บาท / กก.","หมายเหตุ กรุ๊ปนี้ไม่มีการปรับส่วนลด ใช้ราคา Net เดิม 1 ตุลาคม 2566","หัวกลม 40กส.  30.00 บาท / กก."],"members":["04000","13800","04101","60500","11001","05700","01002","01200","01700","38300","06900","56900","58700","04200","08600","61500","06600","09700","00300","34400","00303","30800","08900","51400","17400","31000","62400","03000","05200","01400","11200","50600","01600","05100","02900","05900","61000","36300","61600","05000","09000","07400"]}];
+const CP_TAB_USERS = ['yo', 'wint'];
+const cp = { loaded: false, loading: false, err: '', cur: 0, cust: null, q: '', sel: new Set(), edits: {}, netEdits: {}, eff: '', saving: false };
+
+function cpEsc(s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
+function cpJs(s) { return cpEsc(String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'")); }
+function cpThd(d) { if (!/^\d{4}-\d{2}-\d{2}$/.test(String(d || ''))) return '–'; const [y, m, dd] = d.split('-'); return Number(dd) + '/' + Number(m) + '/' + (Number(y) + 543); }
+function cpLbl(k) { return k.replace('screw_', '').replace('round_', '').replace('"W', '"').replace('"NC,NF', '" NC/NF').replace('"NC', '" NC'); }
+function cpKLbl(k) { const x = CP_K.find(z => z[0] === k); return x ? x[1].replace('<br>', ' ') : k; }
+function cpCanEdit() { const s = stcGetSession(); return !!s && (s.role === 'Admin' || CP_TAB_USERS.indexOf(String(s.username || '').toLowerCase()) !== -1); }
+function cpRoot() { return document.getElementById('cpRoot'); }
+
+// ---------- โหลด ----------
+async function cpLoad(force) {
+  if (cp.loading) return;
+  if (cp.loaded && !force) { cpRender(); return; }
+  cp.loading = true; cp.err = '';
+  if (!cp.eff) cp.eff = priceTodayISO();
+  cpRender();
+  try {
+    const res = await fetch(API + '?action=getCustomerData', { credentials: 'omit' }).then(r => r.json());
+    if (res.error) throw new Error(res.error);
+    cp.empty = !!res.empty;
+    if (!res.empty) { priceDbSet(res); cpApplyToPage(); }
+    cp.loaded = true;
+  } catch (e) {
+    cp.err = 'โหลดข้อมูลลูกค้าไม่สำเร็จ: ' + (e.message || e);
+  }
+  cp.loading = false;
+  cpRender();
+}
+// ใช้รายชื่อลูกค้าจากชีททั้งหน้า admin (รอยืนยัน, วิเคราะห์ข้อมูล, ตัดรอบ 25 ฯลฯ)
+function cpApplyToPage() {
+  priceApplyCustomers([[CUST_MAP, c => c.name], [CUST_CODE_MAP, c => c.code]]);
+  try {
+    AN_CUT25_CODES.length = 0;
+    PRICE_DB.customers.filter(c => c.cut25).forEach(c => AN_CUT25_CODES.push(c.code));
+    anCut25Names = null;
+  } catch (e) {}
+}
+// โหลดเงียบๆ ตอนเปิดหน้า (ทุก role) — ให้ราคา/รายชื่อในแท็บอื่นตรงกับชีท
+function cpBackgroundLoad() {
+  fetch(API + '?action=getCustomerData', { credentials: 'omit' }).then(r => r.json()).then(res => {
+    if (res && !res.error && !res.empty && priceDbSet(res)) { cpApplyToPage(); cp.loaded = true; cp.empty = false; }
+    else if (res && res.empty) { cp.loaded = true; cp.empty = true; }
+  }).catch(() => {});
+}
+
+// ---------- ข้อมูลที่ใช้แสดง ----------
+function cpGroups() { return PRICE_DB ? PRICE_DB.groups : []; }
+function cpCust(code) { return PRICE_DB && PRICE_DB.byCode[code]; }
+function cpMasters(gname) { return PRICE_DB.customers.filter(c => c.price_group === gname && !c.price_ref); }
+function cpBranches(code) { return PRICE_DB.customers.filter(c => c.price_ref === code); }
+function cpUngrouped() { return PRICE_DB.customers.filter(c => !c.price_group && !c.price_ref && c.active !== 'P'); }
+function cpBaseD(code) { const L = priceLogAt(code, 'd', cp.eff); return L ? L.data : null; }
+function cpBaseNet(gname) { const L = priceLogAt('G:' + gname, 'hw', cp.eff); return L ? L.data : {}; }
+function cpPctVal(code, k) { const e = cp.edits[code]; if (e && e[k] !== undefined) return e[k]; const d = cpBaseD(code); return d ? d[k] : ''; }
+function cpNetVal(gname, k) { const e = cp.netEdits[gname]; if (e && e[k] !== undefined) return e[k]; const v = cpBaseNet(gname)[k]; return v === undefined ? '' : v; }
+function cpSame(a, b) { return String(a === null || a === undefined ? '' : a) === String(b === null || b === undefined ? '' : b); }
+function cpPctChanges() { // [{code, d(full), diffs:[[k, old, new]]}]
+  const out = [];
+  Object.keys(cp.edits).forEach(code => {
+    const base = cpBaseD(code) || {};
+    const e = cp.edits[code];
+    const diffs = Object.keys(e).filter(k => !cpSame(e[k], base[k])).map(k => [k, base[k], e[k]]);
+    if (!diffs.length) return;
+    const d = {};
+    PRICE_D_KEYS.forEach(k => { d[k] = e[k] !== undefined ? e[k] : (base[k] === undefined ? '' : base[k]); });
+    out.push({ code: code, d: d, diffs: diffs });
+  });
+  return out;
+}
+function cpNetChanges() {
+  const out = [];
+  Object.keys(cp.netEdits).forEach(g => {
+    const base = cpBaseNet(g), e = cp.netEdits[g];
+    const diffs = Object.keys(e).filter(k => !cpSame(e[k], base[k])).map(k => [k, base[k], e[k]]);
+    if (!diffs.length) return;
+    const hw = Object.assign({}, base);
+    Object.keys(e).forEach(k => { if (e[k] === '') delete hw[k]; else hw[k] = e[k]; });
+    out.push({ group: g, hw: hw, diffs: diffs });
+  });
+  return out;
+}
+
+// ---------- วาด ----------
+function cpRender() {
+  const root = cpRoot();
+  if (!root) return;
+  if (!cpCanEdit()) { root.innerHTML = '<div class="cp-card cp-main">ไม่มีสิทธิ์ดูหน้านี้</div>'; return; }
+  if (cp.loading && !PRICE_DB) { root.innerHTML = '<div class="cp-card cp-main cp-mut">⏳ กำลังโหลดข้อมูลลูกค้า…</div>'; return; }
+  if (cp.err && !PRICE_DB) { root.innerHTML = '<div class="cp-card cp-main"><div class="cp-warn">' + cpEsc(cp.err) + '</div><button class="cp-btn" onclick="cpLoad(true)">ลองใหม่</button></div>'; return; }
+  if (!PRICE_DB) { cpRenderSeed(root); return; }
+  if (cp.cur >= cpGroups().length) cp.cur = cpGroups().length ? 0 : -1;
+  root.innerHTML = '<div class="cp-wrap"><div class="cp-card cp-gl" id="cpGl"></div><div class="cp-card cp-main" id="cpMain"></div></div>';
+  cpRenderGL();
+  cpRenderMain();
+}
+function cpRenderSeed(root) {
+  const s = stcGetSession() || {};
+  root.innerHTML = '<div class="cp-card cp-main" style="max-width:760px">' +
+    '<div class="cp-ttl"><h2>🏷️ ย้ายข้อมูลลูกค้า/ราคาลงชีท (ทำครั้งเดียว)</h2></div>' +
+    '<p>ตอนนี้รายชื่อลูกค้าและ %ส่วนลด/ราคาเน็ต ยังเขียนติดอยู่ในไฟล์หน้าเว็บ — กดปุ่มด้านล่างเพื่อคัดลอกค่าที่ใช้อยู่ตอนนี้ลงชีท <b>customers / price_groups / price_log</b> แล้วจะแก้ได้จากหน้านี้</p>' +
+    '<ul class="cp-mut"><li>ลูกค้า ' + CUSTOMERS.length + ' ราย · ชุดราคา ' + Object.keys(CUST_PRICES).filter(k => /^\d{5}$/.test(k)).length + ' ชุด · กลุ่มราคา ' + CP_SEED_GROUPS.length + ' กลุ่ม (ตามไฟล์ปรับส่วนลด 5-1-69 Rev3)</li>' +
+    '<li>ราคาที่ย้ายไปถือเป็น "ราคาตั้งต้น" ใช้กับบิลทุกวันที่ จนกว่าจะแก้ใหม่</li><li>ราคาที่บันทึกในออเดอร์เก่าไม่เปลี่ยน</li></ul>' +
+    (s.role === 'Admin' ? '<button class="cp-btn cp-grn" id="cpSeedBtn" onclick="cpSeed()">ย้ายข้อมูลตอนนี้</button>' : '<div class="cp-warn">ต้องให้ Admin กดย้ายข้อมูลก่อน</div>') +
+    '<div id="cpSeedMsg" class="cp-mut" style="margin-top:8px"></div></div>';
+}
+function cpGroupDescLines(g) { return String(g.desc || '').split('\n').map(x => x.trim()).filter(Boolean); }
+function cpRenderGL() {
+  const groups = cpGroups();
+  let h = '<input type="text" id="cpQ" class="cp-in" placeholder="🔍 ค้นชื่อหรือรหัสลูกค้า…" value="' + cpEsc(cp.q) + '" oninput="cp.q=this.value;cpRenderGL();const e=document.getElementById(\'cpQ\');e.focus();e.setSelectionRange(e.value.length,e.value.length)">';
+  if (cp.q.trim()) {
+    const q = cp.q.trim().toLowerCase();
+    const res = PRICE_DB.customers.filter(c => c.name.toLowerCase().includes(q) || c.code.includes(q)).slice(0, 10);
+    h += '<div class="cp-sres">' + (res.length ? res.map(c => '<div onclick="cpOpenCust(\'' + cpJs(c.code) + '\')"><b>' + cpEsc(c.name) + '</b> <span>' + c.code + ' · ' + cpEsc(c.price_ref ? 'ราคาเดียวกับ ' + c.price_ref : (c.price_group || 'ยังไม่อยู่ในกลุ่ม')) + (c.active === 'N' ? ' · เลิกค้าขาย' : c.active === 'P' ? ' · ชุดราคา' : '') + '</span></div>').join('') : '<div class="cp-mut">ไม่พบ</div>') + '</div>';
+  }
+  h += '<button class="cp-btn cp-grn" style="width:100%;margin:8px 0 12px" onclick="cpOpenCust(null)">＋ เพิ่มลูกค้าใหม่</button><div class="cp-h2">กลุ่มราคา</div>';
+  const inGi = cp.cust ? groups.findIndex(g => g.name === cp.cust.price_group) : -2;
+  groups.forEach((g, i) => {
+    const n = cpMasters(g.name).length;
+    h += '<div class="cp-gi' + (cp.cur === i && !cp.cust ? ' on' : '') + (inGi === i ? ' in' : '') + '" onclick="cpGo(' + i + ')"><div class="n">' + cpEsc(g.name) + '<span>' + n + ' ราย</span></div><div class="d">' + cpEsc(cpGroupDescLines(g)[0] || '') + '</div></div>';
+  });
+  const un = cpUngrouped();
+  h += '<div class="cp-gi warn' + (cp.cur === -1 && !cp.cust ? ' on' : '') + (cp.cust && inGi === -1 ? ' in' : '') + '" onclick="cpGo(-1)"><div class="n">⚠ ยังไม่อยู่ในกลุ่มไหน<span>' + un.length + ' ราย</span></div><div class="d">ยังไม่มีราคาเน็ตของกลุ่ม</div></div>';
+  h += '<button class="cp-btn" style="width:100%;margin-top:4px" onclick="cpNewGroup()">＋ สร้างกลุ่มใหม่</button>';
+  h += '<div class="cp-mut" style="font-size:11.5px;margin-top:10px">ข้อมูลจากชีท customers / price_groups / price_log · <a href="#" onclick="cpLoad(true);return false">โหลดใหม่</a></div>';
+  document.getElementById('cpGl').innerHTML = h;
+}
+function cpGo(i) {
+  if (cpPendingCount() && !confirm('มีราคาที่แก้แล้วยังไม่บันทึก — ทิ้งการแก้ไขแล้วเปลี่ยนหน้า?')) return;
+  cp.edits = {}; cp.netEdits = {}; cp.cur = i; cp.cust = null; cp.sel.clear(); cpRender();
+}
+function cpPendingCount() { let n = 0; cpPctChanges().forEach(x => { n += x.diffs.length; }); cpNetChanges().forEach(x => { n += x.diffs.length; }); return n; }
+function cpEffBox(txt) {
+  const past = cp.eff < priceTodayISO();
+  return '<div class="cp-efftop"><div class="ic">📅</div><div style="flex:1"><div class="t1">' + txt + '</div><div class="t2">บิลก่อนวันนี้ใช้ราคาเดิม · ตั้งเป็นวันในอนาคตได้ (ขึ้น "รอมีผล" จนถึงวัน)' + (past ? ' · <b style="color:#b45309">⚠ เป็นวันที่ย้อนหลัง</b>' : '') + '</div></div><input type="date" id="cpEff" value="' + cp.eff + '" onchange="cpSetEff(this.value)"><div class="t3">' + cpThd(cp.eff) + '</div></div>';
+}
+function cpSetEff(v) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+  cp.eff = v; cpRender();
+}
+function cpTierKey(d) { return d ? PRICE_D_KEYS.map(k => d[k]).join('/') : ''; }
+
+function cpRenderMain() {
+  const el = document.getElementById('cpMain');
+  if (cp.cust) { cpRenderCust(el); return; }
+  if (cp.cur === -1) { cpRenderUngrouped(el); return; }
+  const g = cpGroups()[cp.cur];
+  if (!g) { el.innerHTML = '<div class="cp-mut">ยังไม่มีกลุ่มราคา — กด "＋ สร้างกลุ่มใหม่"</div>'; return; }
+  const mem = cpMasters(g.name);
+  const lines = cpGroupDescLines(g);
+  let h = '<div class="cp-ttl"><h2>' + cpEsc(g.name) + '</h2><span class="s">' + cpEsc(lines[0] || '') + ' · ' + mem.length + ' ราย</span><a href="#" class="cp-small" onclick="cpEditGroup();return false">แก้ชื่อ/คำอธิบาย</a></div>';
+  if (lines.length > 1) h += '<div class="cp-notes">' + lines.slice(1).map(n => '<span>' + cpEsc(n) + '</span>').join('') + '</div>';
+  h += cpEffBox('ราคาที่แก้ในหน้านี้ มีผลกับบิลตั้งแต่วันที่เปิดบิล');
+  h += '<div class="cp-callout">ราคาเน็ต (ส่วน ②) เป็น <b>ของทั้งกลุ่ม</b> — แก้ครั้งเดียว ทุกรายในกลุ่มได้ราคาใหม่ · %ส่วนลดเป็น <b>ของแต่ละราย</b> · ติ๊กหลายรายเพื่อปรับ % พร้อมกัน</div>';
+  const tiers = [];
+  mem.forEach(m => { const t = cpTierKey(cpBaseD(m.code)); if (!tiers.includes(t)) tiers.push(t); });
+  mem.sort((a, b) => tiers.indexOf(cpTierKey(cpBaseD(a.code))) - tiers.indexOf(cpTierKey(cpBaseD(b.code))));
+  h += '<div class="cp-sec"><div class="cp-sec-t">① ลูกค้าในกลุ่ม และ %ส่วนลด' + (tiers.length > 1 ? ' <small>มี ' + tiers.length + ' ขั้นส่วนลดในกลุ่มนี้ (ป้ายสีม่วง = ขั้น)</small>' : ' <small>ทุกรายส่วนลดเท่ากัน</small>') + '</div>';
+  h += '<div class="cp-scroll"><table class="cp-mt"><tr><th style="width:30px"><input type="checkbox" onchange="cpSelAll(this.checked)"' + (mem.length && mem.every(m => cp.sel.has(m.code)) ? ' checked' : '') + '></th><th class="l">รหัส</th><th class="l">ชื่อลูกค้า</th>' + (tiers.length > 1 ? '<th>ขั้น</th>' : '') + CP_K.map(k => '<th>' + k[1] + '</th>').join('') + '</tr>';
+  let prevT = null;
+  mem.forEach(m => {
+    const base = cpBaseD(m.code);
+    const t = cpTierKey(base), ti = tiers.indexOf(t) + 1;
+    const br = cpBranches(m.code);
+    h += '<tr class="' + (cp.sel.has(m.code) ? 'sel ' : '') + (prevT !== null && t !== prevT ? 'tierline' : '') + '"><td><input type="checkbox"' + (cp.sel.has(m.code) ? ' checked' : '') + ' onchange="cpSel(\'' + cpJs(m.code) + '\',this.checked)"></td><td class="l">' + m.code + '</td><td class="l"><div class="nm"><a class="cp-cl" onclick="cpOpenCust(\'' + cpJs(m.code) + '\')">' + cpEsc(m.name) + '</a> <span class="ed" onclick="cpOpenCust(\'' + cpJs(m.code) + '\')">ข้อมูลลูกค้า ›</span></div>' +
+      (br.length ? '<div class="sub">ราคาเดียวกัน: ' + br.map(b => '<a class="cp-cl" onclick="cpOpenCust(\'' + cpJs(b.code) + '\')">' + cpEsc(b.name) + '</a>').join(', ') + '</div>' : '') +
+      (m.active === 'P' ? '<span class="nos">ชุดราคา (ไม่ใช่ชื่อในหน้าสั่งสินค้า)</span>' : m.active === 'N' ? '<span class="nos">เลิกค้าขาย</span>' : '') + (!base ? '<span class="nos">ยังไม่มี %ส่วนลด</span>' : '') + '</td>' +
+      (tiers.length > 1 ? '<td><span class="tier">' + ti + '</span></td>' : '') +
+      CP_K.map(([k]) => {
+        const b = base ? base[k] : '';
+        const v = cpPctVal(m.code, k);
+        const chg = !cpSame(v, b);
+        if (b === '-' && !chg) return '<td><span class="cp-mut">–</span></td>';
+        return '<td><input class="pc' + (chg ? ' chg' : '') + '" type="number" step="0.5" value="' + cpEsc(v === '-' ? '' : v) + '" onchange="cpSetPct(\'' + cpJs(m.code) + '\',\'' + k + '\',this.value)">' + (chg ? '<div class="was">เดิม ' + cpEsc(b === '' || b === undefined ? '–' : b) + '</div>' : '') + '</td>';
+      }).join('') + '</tr>';
+    prevT = t;
+  });
+  if (!mem.length) h += '<tr><td colspan="12" class="cp-mut" style="padding:14px">ยังไม่มีลูกค้าในกลุ่มนี้ — เพิ่มได้จาก "⚠ ยังไม่อยู่ในกลุ่มไหน" หรือหน้าข้อมูลลูกค้า</td></tr>';
+  h += '</table></div>';
+  h += '<div class="cp-bulk"><b>เลือก ' + cp.sel.size + ' ราย</b>' + (cp.sel.size ?
+    '<select id="cpBk"><option value="all">ทุกหมวด</option>' + CP_K.map(k => '<option value="' + k[0] + '">' + k[1].replace('<br>', ' ') + '</option>').join('') + '</select><select id="cpBo"><option value="set">ตั้งเป็น</option><option value="add">เพิ่ม +</option><option value="sub">ลด −</option></select><input id="cpBv" type="number" step="0.5" placeholder="%"><button class="cp-btn cp-pri" onclick="cpApplyBulk()">ใช้กับที่เลือก</button><span style="color:#cbd5e1">|</span><select id="cpMoveTo"><option value="">ย้ายไปกลุ่ม…</option>' + cpGroups().filter((x, i) => i !== cp.cur).map(x => '<option value="' + cpEsc(x.name) + '">' + cpEsc(x.name) + '</option>').join('') + '<option value="__none__">— เอาออกจากกลุ่ม —</option></select><button class="cp-btn" onclick="cpMoveSel()">ย้าย</button>'
+    : '<span class="cp-mut" style="font-size:13px">แก้ % ได้ 2 ทาง: <b>คลิกช่องตัวเลขในตาราง</b> แก้ทีละช่อง · หรือ <b>ติ๊กหลายราย</b> แล้วปรับพร้อมกันที่แถบนี้</span>') + '</div></div>';
+  const netTable = idxs => '<table class="cp-nt"><tr><th class="l">สินค้า</th><th>ราคา</th><th>เดิม</th></tr>' + idxs.map(i => {
+    const [gn, u, ks] = CP_NETG[i];
+    return '<tr class="gh2"><td colspan="3">' + gn + ' <span>(' + u + ')</span></td></tr>' + ks.map(k => {
+      const b = cpBaseNet(g.name)[k], v = cpNetVal(g.name, k), chg = !cpSame(v, b);
+      return '<tr><td class="l" style="padding-left:16px">' + cpEsc(cpLbl(k)) + '</td><td><input class="ni' + (chg ? ' chg' : '') + '" type="number" step="0.01" min="0" value="' + cpEsc(v) + '" data-k="' + cpEsc(k) + '" onchange="cpSetNet(this.dataset.k,this.value)"></td><td class="old' + (chg ? ' chg' : '') + '">' + (b === undefined ? '–' : cpEsc(b)) + '</td></tr>';
+    }).join('');
+  }).join('') + '</table>';
+  h += '<div class="cp-sec"><div class="cp-sec-t">② ราคาเน็ตของกลุ่ม <small>ใช้กับทุกรายในกลุ่ม · ช่องสีส้ม = แก้แล้ว · เว้นว่าง = ไม่มีราคาเน็ต</small></div><div class="cp-nt2">' + netTable([0, 1, 2]) + netTable([3, 4, 5]) + '</div></div>';
+  const targets = ['G:' + g.name].concat(mem.map(m => m.code));
+  h += '<div class="cp-sec"><div class="cp-sec-t">③ ประวัติราคาของกลุ่มนี้ <small>รวมราคาที่ตั้งไว้ล่วงหน้า · ใหม่สุดอยู่บน</small></div>' + cpHistoryTable(targets, true) + '</div>';
+  h += cpSaveBar();
+  el.innerHTML = h;
+}
+function cpSaveBar() {
+  const n = cpPendingCount();
+  return '<div class="cp-savebar"><span>' + (n ? 'แก้แล้ว <b>' + n + ' ช่อง</b> (สีส้ม) — ยังไม่บันทึก' : 'ยังไม่มีการแก้ไข') + '</span><button class="cp-btn" onclick="cp.edits={};cp.netEdits={};cpRender()"' + (n ? '' : ' disabled') + '>ยกเลิกทั้งหมด</button><button class="cp-btn cp-grn" onclick="cpConfirmSave()"' + (n ? '' : ' disabled') + '>💾 บันทึก</button></div>';
+}
+function cpSel(code, on) { if (on) cp.sel.add(code); else cp.sel.delete(code); cpRenderMain(); }
+function cpSelAll(on) { const g = cpGroups()[cp.cur]; if (!g) return; cpMasters(g.name).forEach(m => { if (on) cp.sel.add(m.code); else cp.sel.delete(m.code); }); cpRenderMain(); }
+function cpNum(v) { if (v === '' || v === null || v === undefined) return ''; const n = Number(v); return isFinite(n) ? n : ''; }
+function cpSetPct(code, k, v) { (cp.edits[code] = cp.edits[code] || {})[k] = cpNum(v); cpRenderMain(); }
+function cpSetNet(k, v) { const g = cpGroups()[cp.cur]; if (!g) return; (cp.netEdits[g.name] = cp.netEdits[g.name] || {})[k] = cpNum(v); cpRenderMain(); }
+function cpApplyBulk() {
+  const vRaw = document.getElementById('cpBv').value;
+  if (vRaw === '') { alert('ใส่ตัวเลข % ก่อน'); return; }
+  const k = document.getElementById('cpBk').value, op = document.getElementById('cpBo').value, v = Number(vRaw);
+  const ks = k === 'all' ? PRICE_D_KEYS : [k];
+  cp.sel.forEach(code => ks.forEach(kk => {
+    const old = cpPctVal(code, kk);
+    if (old === '-') return;
+    if (op !== 'set' && (old === '' || old === null || old === undefined)) return;
+    const n = op === 'set' ? v : Math.round((Number(old) + (op === 'add' ? v : -v)) * 100) / 100;
+    (cp.edits[code] = cp.edits[code] || {})[kk] = n;
+  }));
+  cpRenderMain();
+}
+
+// ---------- ประวัติ ----------
+function cpTargetName(t) { if (t.indexOf('G:') === 0) return 'ราคาเน็ต ' + t.slice(2); const c = cpCust(t); return c ? c.name : t; }
+function cpFmtVal(v) { return (v === '' || v === undefined || v === null) ? '–' : v; }
+function cpHistoryTable(targets, showWho) {
+  const today = priceTodayISO();
+  const rows = [];
+  let seedN = 0, seedL = null;
+  targets.forEach(t => ['d', 'hw'].forEach(f => {
+    const a = PRICE_DB.idx[t + '|' + f];
+    if (!a) return;
+    let active = null;
+    a.forEach(L => { if (L.eff <= today) active = L; });
+    a.forEach((L, i) => {
+      const prev = i ? a[i - 1].data : null;
+      let txt;
+      if (!prev) txt = L.eff === CP_SEED_EFF ? 'ราคาตั้งต้น (ย้ายจากไฟล์เดิม)' : 'ตั้งราคาครั้งแรก';
+      else {
+        const keys = Array.from(new Set(Object.keys(prev).concat(Object.keys(L.data))));
+        const ch = keys.filter(k => !cpSame(prev[k], L.data[k])).map(k => (f === 'd' ? cpKLbl(k) : cpLbl(k)) + ' ' + cpFmtVal(prev[k]) + ' → <b>' + cpFmtVal(L.data[k]) + '</b>');
+        txt = ch.length ? ch.join(' · ') : 'ไม่เปลี่ยนค่า';
+      }
+      if (L.eff === CP_SEED_EFF && showWho !== 'one') { seedN++; seedL = L; return; } // ราคาตั้งต้นของทุกราย → รวมเป็นแถวเดียว
+      const st = L.eff > today ? '<span class="cp-st up">รอมีผล</span>' : (L === active ? '<span class="cp-st on">ใช้อยู่</span>' : '<span class="cp-st old">เก่า</span>');
+      rows.push({ L: L, html: '<tr><td class="l">' + (L.eff === CP_SEED_EFF ? 'ตั้งต้น' : cpThd(L.eff)) + '</td>' + (showWho !== 'one' ? '<td class="l">' + cpEsc(cpTargetName(t)) + (f === 'd' ? ' <span class="cp-mut">(%ส่วนลด)</span>' : '') + '</td>' : '') + '<td class="l">' + txt + (L.note ? '<div class="cp-mut" style="font-size:11.5px">' + cpEsc(L.note) + '</div>' : '') + '</td><td class="l cp-mut" style="font-size:12px;white-space:nowrap">' + cpEsc(L.by) + '<br>' + cpEsc(cpAt(L.at)) + '</td><td>' + st + '</td></tr>' });
+    });
+  }));
+  if (seedN) rows.push({ L: { eff: CP_SEED_EFF, row: 0 }, html: '<tr><td class="l">ตั้งต้น</td><td class="l">ทุกรายในกลุ่ม</td><td class="l">ราคาตั้งต้น (ย้ายจากไฟล์เดิม) ' + seedN + ' รายการ · ดูค่าของแต่ละรายได้ที่หน้าข้อมูลลูกค้า</td><td class="l cp-mut" style="font-size:12px;white-space:nowrap">' + cpEsc(seedL.by) + '<br>' + cpEsc(cpAt(seedL.at)) + '</td><td><span class="cp-st old">ตั้งต้น</span></td></tr>' });
+  if (!rows.length) return '<div class="cp-mut">ยังไม่มีประวัติ</div>';
+  rows.sort((x, y) => (x.L.eff < y.L.eff ? 1 : x.L.eff > y.L.eff ? -1 : y.L.row - x.L.row));
+  const shown = rows.slice(0, 60);
+  return '<div class="cp-scroll" style="max-height:420px"><table class="cp-nt cp-hist"><tr><th class="l">มีผลกับบิลตั้งแต่</th>' + (showWho !== 'one' ? '<th class="l">ของ</th>' : '') + '<th class="l">รายการ</th><th class="l">โดย / เมื่อ</th><th>สถานะ</th></tr>' + shown.map(r => r.html).join('') + '</table></div>' + (rows.length > shown.length ? '<div class="cp-mut" style="font-size:12px">แสดง ' + shown.length + ' จาก ' + rows.length + ' รายการล่าสุด</div>' : '');
+}
+function cpAt(iso) { const d = new Date(iso); if (isNaN(d)) return ''; return d.getDate() + '/' + (d.getMonth() + 1) + '/' + (d.getFullYear() + 543) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+
+// ---------- ยังไม่อยู่ในกลุ่ม ----------
+function cpRenderUngrouped(el) {
+  const un = cpUngrouped();
+  let h = '<div class="cp-ttl"><h2>⚠ ยังไม่อยู่ในกลุ่มไหน</h2><span class="s">' + un.length + ' ราย — ไม่ได้รับราคาเน็ตของกลุ่ม (ถ้าไม่มี %ส่วนลดของตัวเอง เซลส์ต้องกรอกราคาเองทุกครั้ง)</span></div>';
+  h += '<div class="cp-callout" style="margin-top:12px">ติ๊กเลือกแล้วเลือก <b>"เพิ่มเข้ากลุ่ม…"</b> เพื่อให้ได้ราคาเน็ตของกลุ่มนั้น · %ส่วนลดใส่ต่อได้ที่หน้ากลุ่มหรือหน้าข้อมูลลูกค้า · บางรายอาจตั้งใจไม่ใส่ราคา (เช่น ลูกค้าที่ใช้ปรับสต็อค หรือราคาพิเศษรายออเดอร์)</div>';
+  h += '<div class="cp-scroll"><table class="cp-mt"><tr><th style="width:34px"><input type="checkbox" onchange="cpSelUn(this.checked)"></th><th class="l">รหัส</th><th class="l">ชื่อลูกค้า</th><th>กลุ่มรถ</th><th>%ส่วนลดของตัวเอง</th><th>สถานะ</th></tr>' +
+    un.map(c => '<tr' + (cp.sel.has(c.code) ? ' class="sel"' : '') + '><td><input type="checkbox"' + (cp.sel.has(c.code) ? ' checked' : '') + ' onchange="cpSel(\'' + cpJs(c.code) + '\',this.checked)"></td><td class="l">' + c.code + '</td><td class="l nm"><a class="cp-cl" onclick="cpOpenCust(\'' + cpJs(c.code) + '\')">' + cpEsc(c.name) + '</a></td><td>' + cpEsc(c.grade || '–') + '</td><td>' + (cpBaseD(c.code) ? '✓ มี' : '<span class="cp-mut">–</span>') + '</td><td>' + (c.active === 'N' ? '<span class="nos">เลิกค้าขาย</span>' : 'ใช้งาน') + '</td></tr>').join('') + '</table></div>';
+  h += '<div class="cp-bulk"><b>เลือก ' + cp.sel.size + ' ราย</b><span>→</span><select id="cpMoveTo"><option value="">เพิ่มเข้ากลุ่ม…</option>' + cpGroups().map(g => '<option value="' + cpEsc(g.name) + '">' + cpEsc(g.name) + '</option>').join('') + '</select><button class="cp-btn cp-pri" onclick="cpMoveSel()"' + (cp.sel.size ? '' : ' disabled') + '>บันทึก</button></div>';
+  el.innerHTML = h;
+}
+function cpSelUn(on) { cpUngrouped().forEach(c => { if (on) cp.sel.add(c.code); else cp.sel.delete(c.code); }); cpRenderMain(); }
+function cpCustPayload(c, over) {
+  const o = Object.assign({ code: c.code, name: c.name, grade: c.grade, cut25: c.cut25, active: c.active, price_group: c.price_group, price_ref: c.price_ref }, over || {});
+  return o;
+}
+async function cpMoveSel() {
+  const sel = Array.from(cp.sel);
+  const to = (document.getElementById('cpMoveTo') || {}).value || '';
+  if (!sel.length || !to) { alert('เลือกลูกค้าและกลุ่มก่อน'); return; }
+  if (cpPendingCount()) { alert('มีราคาที่แก้แล้วยังไม่บันทึก — กดบันทึกหรือยกเลิกก่อน'); return; }
+  const gname = to === '__none__' ? '' : to;
+  const list = [];
+  sel.forEach(code => { const c = cpCust(code); if (!c) return; list.push(cpCustPayload(c, { price_group: gname })); cpBranches(code).forEach(b => list.push(cpCustPayload(b, { price_group: gname }))); });
+  const names = sel.map(code => (cpCust(code) || {}).name || code);
+  if (!confirm((gname ? 'ย้าย ' + names.length + ' รายไป "' + gname + '"' : 'เอา ' + names.length + ' รายออกจากกลุ่ม') + '\n\n' + names.join(', ') + '\n\nราคาเน็ตของกลุ่มใหม่มีผลทันที (ทุกวันที่บิลที่กลุ่มนั้นมีราคา)')) return;
+  const ok = await cpPost({ customers: list }, 'ย้ายกลุ่มแล้ว');
+  if (ok) cp.sel.clear();
+  cpRender();
+}
+
+// ---------- กลุ่ม ----------
+async function cpNewGroup() {
+  const name = (prompt('ชื่อกลุ่มราคาใหม่') || '').trim();
+  if (!name) return;
+  if (cpGroups().some(g => g.name === name)) { alert('มีกลุ่มชื่อนี้แล้ว'); return; }
+  const desc = (prompt('คำอธิบายกลุ่ม (ไม่ใส่ก็ได้)') || '').trim();
+  const sort = cpGroups().reduce((m, g) => Math.max(m, g.sort || 0), 0) + 1;
+  if (await cpPost({ groups: [{ name: name, desc: desc, sort: sort }] }, 'สร้างกลุ่มแล้ว')) { cp.cur = cpGroups().findIndex(g => g.name === name); cp.cust = null; }
+  cpRender();
+}
+async function cpEditGroup() {
+  const g = cpGroups()[cp.cur];
+  if (!g) return;
+  const desc = prompt('คำอธิบายกลุ่ม "' + g.name + '" (ขึ้นบรรทัดใหม่ด้วย " | " — บรรทัดแรกโชว์ในรายชื่อกลุ่ม)', cpGroupDescLines(g).join(' | '));
+  if (desc === null) return;
+  await cpPost({ groups: [{ name: g.name, desc: desc.split('|').map(x => x.trim()).filter(Boolean).join('\n'), sort: g.sort }] }, 'บันทึกแล้ว');
+  cpRender();
+}
+
+// ---------- หน้าข้อมูลลูกค้า ----------
+function cpOpenCust(code) {
+  if (cpPendingCount() && !confirm('มีราคาที่แก้แล้วยังไม่บันทึก — ทิ้งการแก้ไขแล้วเปลี่ยนหน้า?')) return;
+  cp.edits = {}; cp.netEdits = {}; cp.sel.clear();
+  if (code === null) {
+    const g = cpGroups()[cp.cur];
+    cp.cust = { isNew: true, code: '', name: '', grade: '', cut25: false, active: 'Y', price_group: g ? g.name : '', price_ref: '' };
+  } else {
+    const c = cpCust(code);
+    if (!c) return;
+    cp.cust = Object.assign({ isNew: false, origName: c.name, origGroup: c.price_group }, c);
+  }
+  cpRender();
+  try { document.getElementById('cpRoot').scrollIntoView({ block: 'start' }); } catch (e) {}
+}
+function cpBackGroup() {
+  if (cpPendingCount() && !confirm('มีราคาที่แก้แล้วยังไม่บันทึก — ทิ้งการแก้ไข?')) return;
+  const c = cp.cust;
+  const i = c ? cpGroups().findIndex(g => g.name === (c.origGroup !== undefined ? c.origGroup : c.price_group)) : cp.cur;
+  cp.cur = i; cp.cust = null; cp.edits = {}; cp.netEdits = {};
+  cpRender();
+}
+function cpCustField(k, v) { cp.cust[k] = v; if (k === 'price_group') { cp.cust.price_ref = ''; } cpRenderMain(); cpRenderGL(); }
+function cpRenderCust(el) {
+  const c = cp.cust;
+  const g = cpGroups().find(x => x.name === c.price_group) || null;
+  const pc = c.price_ref || c.code;
+  let h = '<div class="cp-crumb"><a onclick="cpBackGroup()">← กลับไป' + cpEsc(c.origGroup ? c.origGroup : (c.isNew ? (c.price_group || 'รายชื่อกลุ่ม') : 'รายชื่อลูกค้าที่ยังไม่อยู่ในกลุ่ม')) + '</a></div>';
+  h += '<div class="cp-ttl"><h2>' + (c.isNew ? '＋ เพิ่มลูกค้าใหม่' : '👤 ' + cpEsc(c.origName)) + '</h2>' + (!c.isNew ? '<span class="s">รหัส ' + c.code + ' · ' + cpEsc(c.price_ref ? 'ราคาเดียวกับ ' + c.price_ref : (c.price_group || 'ยังไม่อยู่ในกลุ่ม')) + '</span>' : '') + '</div>';
+  h += cpEffBox('%ส่วนลดที่แก้ในหน้านี้ มีผลกับบิลตั้งแต่วันที่เปิดบิล');
+  // ① ข้อมูลลูกค้า
+  h += '<div class="cp-sec"><div class="cp-sec-t">① ข้อมูลลูกค้า <small>มีผลทันทีเมื่อบันทึก (ไม่ขึ้นกับวันที่ด้านบน)</small></div><div class="cp-f2">' +
+    '<div><label>รหัสลูกค้า</label><input type="text" class="cp-in" maxlength="10" value="' + cpEsc(c.code) + '"' + (c.isNew ? ' placeholder="เช่น 14500" onchange="cpNewCode(this.value)"' : ' disabled') + '></div>' +
+    '<div style="grid-column:span 2"><label>ชื่อลูกค้า</label><input type="text" class="cp-in" maxlength="100" value="' + cpEsc(c.name) + '" placeholder="ชื่อที่โชว์ในหน้าสั่งสินค้า" oninput="cp.cust.name=this.value" onchange="cpRenderMain()"></div>' +
+    '<div><label>กลุ่มรถส่ง</label><select class="cp-in" onchange="cp.cust.grade=this.value">' + ['', 'A', 'B', 'C', 'D'].map(x => '<option value="' + x + '"' + (c.grade === x ? ' selected' : '') + '>' + (x || '— ไม่ระบุ —') + '</option>').join('') + '</select></div>' +
+    '<div style="grid-column:span 2"><label>รอบบิล</label><div class="cp-radio"><label><input type="radio" name="cpcut"' + (c.cut25 ? '' : ' checked') + ' onchange="cp.cust.cut25=false"> เดือนปฏิทิน</label><label><input type="radio" name="cpcut"' + (c.cut25 ? ' checked' : '') + ' onchange="cp.cust.cut25=true"> ✂️ ตัดรอบวันที่ 25</label></div></div>' +
+    '<div style="grid-column:span 2"><label>สถานะ</label><div class="cp-radio">' + [['Y', 'ใช้งาน'], ['N', 'เลิกค้าขาย (ซ่อนจากหน้าสั่งสินค้า)'], ['P', 'ชุดราคาอย่างเดียว']].filter(x => x[0] !== 'P' || c.active === 'P').map(x => '<label><input type="radio" name="cpact"' + (c.active === x[0] ? ' checked' : '') + ' onchange="cp.cust.active=\'' + x[0] + '\'"> ' + x[1] + '</label>').join('') + '</div></div></div>' +
+    (!c.isNew && c.name.trim() !== c.origName ? '<div class="cp-warn" style="margin-top:8px">⚠ เปลี่ยนชื่อ: ออเดอร์เก่าบันทึกด้วยชื่อเดิม "' + cpEsc(c.origName) + '" — ยอดขายย้อนหลัง/วิเคราะห์ข้อมูลจะแยกเป็นอีกชื่อ</div>' : '') + '</div>';
+  // ② กลุ่มราคา
+  const refOpts = PRICE_DB.customers.filter(x => x.code !== c.code && !x.price_ref && (!c.price_group || x.price_group === c.price_group));
+  h += '<div class="cp-sec"><div class="cp-sec-t">② กลุ่มราคา</div><div class="cp-f2"><div style="grid-column:span 2"><label>อยู่กลุ่ม</label><select class="cp-in" onchange="cpCustField(\'price_group\',this.value)">' + cpGroups().map(x => '<option value="' + cpEsc(x.name) + '"' + (c.price_group === x.name ? ' selected' : '') + '>' + cpEsc(x.name) + '</option>').join('') + '<option value=""' + (!c.price_group ? ' selected' : '') + '>— ยังไม่อยู่ในกลุ่ม —</option></select></div>' +
+    '<div style="grid-column:span 2"><label>ใช้ %ส่วนลดเดียวกับ (สาขา)</label><select class="cp-in" onchange="cpCustField2(this.value)"><option value="">— ของตัวเอง —</option>' + refOpts.map(x => '<option value="' + x.code + '"' + (c.price_ref === x.code ? ' selected' : '') + '>' + x.code + ' · ' + cpEsc(x.name) + '</option>').join('') + '</select></div></div>' +
+    (c.price_ref ? '<div class="cp-note2">รายนี้ใช้ %ส่วนลดของ <b>' + cpEsc(c.price_ref + ' ' + ((cpCust(c.price_ref) || {}).name || '')) + '</b> — แก้ที่รายหลักแล้วเปลี่ยนให้ทุกสาขา</div>' : '') +
+    (!c.isNew && cpBranches(c.code).length ? '<div class="cp-note2">สาขาที่ใช้ราคาเดียวกับรายนี้: ' + cpBranches(c.code).map(b => cpEsc(b.code + ' ' + b.name)).join(', ') + ' (ย้ายกลุ่มรายนี้ → สาขาย้ายตาม)</div>' : '') + '</div>';
+  // ③ %ส่วนลด
+  const canPct = !c.price_ref && (c.isNew ? /^[0-9A-Za-z]{2,10}$/.test(c.code) : true);
+  h += '<div class="cp-sec"><div class="cp-sec-t">③ %ส่วนลด' + (c.price_ref ? 'ของรายหลัก (' + cpEsc(c.price_ref) + ')' : 'ของรายนี้') + (c.isNew && !canPct && !c.price_ref ? ' <small>ใส่รหัสลูกค้าก่อน</small>' : '') + '</div><table class="cp-nt" style="max-width:560px"><tr><th class="l">หมวด</th><th>%ส่วนลด</th><th>เดิม</th></tr>' +
+    CP_K.map(([k, l]) => {
+      const base = cpBaseD(pc);
+      const b = base ? base[k] : '';
+      const v = cpPctVal(pc, k);
+      const chg = !cpSame(v, b);
+      return '<tr><td class="l">' + l.replace('<br>', ' ') + '</td><td><input class="ni' + (chg ? ' chg' : '') + '" type="number" step="0.5" value="' + cpEsc(v === '-' ? '' : v) + '"' + (canPct ? ' onchange="cpSetPctCust(\'' + k + '\',this.value)"' : ' disabled') + '></td><td class="old' + (chg ? ' chg' : '') + '">' + cpEsc(b === '' || b === undefined ? '–' : b) + '</td></tr>';
+    }).join('') + '</table></div>';
+  // ④ ราคาเน็ต
+  h += '<div class="cp-sec"><div class="cp-sec-t">④ ราคาเน็ต <small>' + (g ? 'ใช้ของ' + cpEsc(g.name) + ' ณ ' + cpThd(cp.eff) + ' — แก้ที่หน้ากลุ่ม' : 'ยังไม่อยู่ในกลุ่ม — ไม่มีราคาเน็ตของกลุ่ม') + '</small></div>' +
+    (g ? '<div class="cp-netmini">' + CP_NETG.map(([gn, u, ks]) => '<div><b>' + gn + '</b> <span>(' + u + ')</span><br>' + ks.map(k => cpEsc(cpLbl(k)) + ' <b>' + cpEsc(cpFmtVal(cpBaseNet(g.name)[k])) + '</b>').join(' · ') + '</div>').join('') + '</div>' : '') +
+    (!c.isNew && priceLogAt(pc, 'hw', cp.eff) ? '<div class="cp-note2">รายนี้มีราคาเน็ตของตัวเองบางรายการ (ใช้แทนราคาของกลุ่ม): ' + Object.entries(priceLogAt(pc, 'hw', cp.eff).data).map(([k, v]) => cpEsc(cpLbl(k)) + ' ' + v).join(' · ') + '</div>' : '') + '</div>';
+  if (!c.isNew) h += '<div class="cp-sec"><div class="cp-sec-t">⑤ ประวัติส่วนลดของรายนี้</div>' + cpHistoryTable([pc], 'one') + '</div>';
+  h += '<div class="cp-savebar"><span>' + (c.isNew ? 'กรอกรหัส ชื่อ แล้วกดบันทึก' : 'กดบันทึกเพื่อเก็บทั้งข้อมูลลูกค้าและ %ส่วนลด') + (cpPendingCount() ? ' · แก้ % แล้ว <b>' + cpPendingCount() + ' ช่อง</b>' : '') + '</span><button class="cp-btn" onclick="cpBackGroup()">ยกเลิก</button><button class="cp-btn cp-grn" onclick="cpSaveCust()">💾 บันทึก</button></div>';
+  el.innerHTML = h;
+}
+function cpNewCode(v) {
+  const old = cp.cust.code, nv = String(v || '').trim();
+  if (old && cp.edits[old] && old !== nv) { cp.edits[nv] = cp.edits[old]; delete cp.edits[old]; }
+  cp.cust.code = nv; cpRenderMain();
+}
+function cpCustField2(v) { cp.cust.price_ref = v; cp.edits = {}; cpRenderMain(); }
+function cpSetPctCust(k, v) { const code = cp.cust.price_ref || cp.cust.code; (cp.edits[code] = cp.edits[code] || {})[k] = cpNum(v); cpRenderMain(); }
+function cpSaveCust() {
+  const c = cp.cust;
+  c.code = String(c.code || '').trim(); c.name = String(c.name || '').trim();
+  if (!/^[0-9A-Za-z]{2,10}$/.test(c.code)) { alert('รหัสลูกค้าไม่ถูกต้อง (ตัวเลข/อังกฤษ 2–10 ตัว)'); return; }
+  if (!c.name) { alert('กรอกชื่อลูกค้า'); return; }
+  if (c.isNew && cpCust(c.code)) { alert('มีรหัส ' + c.code + ' อยู่แล้ว: ' + cpCust(c.code).name); return; }
+  if (PRICE_DB.customers.some(x => x.code !== c.code && x.name === c.name)) { alert('มีลูกค้าชื่อ "' + c.name + '" อยู่แล้ว — ชื่อต้องไม่ซ้ำ (ออเดอร์อ้างลูกค้าด้วยชื่อ)'); return; }
+  // ย้ายกลุ่ม → สาขาที่ใช้ราคาเดียวกันย้ายตาม
+  const list = [cpCustPayload(c)];
+  if (!c.isNew && c.origGroup !== c.price_group) cpBranches(c.code).forEach(b => list.push(cpCustPayload(b, { price_group: c.price_group })));
+  cpConfirmSave(list);
+}
+
+// ---------- บันทึก ----------
+function cpConfirmSave(custList) {
+  const pct = cpPctChanges(), nets = cpNetChanges();
+  const custs = custList || [];
+  if (!pct.length && !nets.length && !custs.length) return;
+  const rows = [];
+  custs.forEach(x => {
+    const old = cpCust(x.code);
+    if (!old) { rows.push(['ลูกค้าใหม่ ' + x.code, cpEsc(x.name) + (x.price_group ? ' · ' + cpEsc(x.price_group) : '')]); return; }
+    const ch = [];
+    if (old.name !== x.name) ch.push('ชื่อ ' + cpEsc(old.name) + ' → <b>' + cpEsc(x.name) + '</b>');
+    if (old.grade !== x.grade) ch.push('กลุ่มรถ ' + (old.grade || '–') + ' → <b>' + (x.grade || '–') + '</b>');
+    if (!!old.cut25 !== !!x.cut25) ch.push('รอบบิล → <b>' + (x.cut25 ? 'ตัดรอบ 25' : 'เดือนปฏิทิน') + '</b>');
+    if (old.active !== x.active) ch.push('สถานะ → <b>' + ({ Y: 'ใช้งาน', N: 'เลิกค้าขาย', P: 'ชุดราคา' }[x.active]) + '</b>');
+    if (old.price_group !== x.price_group) ch.push('กลุ่ม ' + cpEsc(old.price_group || '–') + ' → <b>' + cpEsc(x.price_group || '–') + '</b>');
+    if (old.price_ref !== x.price_ref) ch.push('ใช้ราคาเดียวกับ ' + (old.price_ref || 'ตัวเอง') + ' → <b>' + (x.price_ref || 'ตัวเอง') + '</b>');
+    if (ch.length) rows.push([cpEsc(x.name) + ' (' + x.code + ')', ch.join(' · ')]);
+  });
+  pct.forEach(p => { const c = cpCust(p.code); rows.push([cpEsc(c ? c.name : (cp.cust && cp.cust.code === p.code ? cp.cust.name : p.code)) + ' · %ส่วนลด', p.diffs.map(([k, o, n]) => cpKLbl(k) + ' ' + cpFmtVal(o) + ' → <b>' + cpFmtVal(n) + '</b>').join(' · ')]); });
+  nets.forEach(n => rows.push([cpEsc(n.group) + ' (ทั้งกลุ่ม) · ราคาเน็ต', n.diffs.map(([k, o, v]) => cpEsc(cpLbl(k)) + ' ' + cpFmtVal(o) + ' → <b>' + cpFmtVal(v) + '</b>').join(' · ')]));
+  if (!rows.length) { alert('ไม่มีอะไรเปลี่ยน'); return; }
+  const hasPrice = pct.length || nets.length;
+  const past = cp.eff < priceTodayISO();
+  const later = hasPrice ? cpLaterRows(pct, nets) : 0;
+  const m = document.getElementById('cpModal');
+  m.querySelector('.cp-mm').innerHTML = '<h3 style="margin:0 0 6px;color:#1a3a5c">ยืนยันบันทึก</h3>' +
+    (hasPrice ? '<div class="cp-effbox">📅 ราคาที่แก้ มีผลกับ <b>บิลที่ลงวันที่เปิดบิลตั้งแต่ ' + cpThd(cp.eff) + '</b> เป็นต้นไป<br><span>บิลก่อนวันนั้นยังใช้ราคาเดิม' + (cp.eff > priceTodayISO() ? ' · ขึ้นสถานะ "รอมีผล" จนถึงวันนั้น' : '') + '</span></div>' : '') +
+    '<div style="max-height:300px;overflow:auto;border:1px solid #e6ebf1;border-radius:8px">' + rows.map(r => '<div style="padding:7px 12px;border-bottom:1px solid #f1f5f9;font-size:13.5px"><div style="font-weight:700;color:#1a3a5c">' + r[0] + '</div><div>' + r[1] + '</div></div>').join('') + '</div>' +
+    (hasPrice ? '<div style="font-size:12.5px;color:#64748b;background:#f8fafc;border-radius:8px;padding:8px 10px;margin-top:10px">📌 ราคาใหม่ใช้กับ <b>ออเดอร์ที่คีย์หลังบันทึก</b> (หน้าสั่งสินค้า/แก้ไขออเดอร์ ดึงราคาตามวันที่เปิดบิล) · ออเดอร์ที่คีย์ไปแล้วเก็บราคาที่บันทึกไว้ตอนคีย์ ไม่เปลี่ยนเอง</div>' : '') +
+    (past && hasPrice ? '<div class="cp-warn" style="margin-top:8px">⚠ วันที่มีผลเป็น<b>วันที่ย้อนหลัง</b> — ออเดอร์ที่ยืนยัน/คีย์ไปแล้วตั้งแต่ ' + cpThd(cp.eff) + ' ยังเป็นราคาเดิม ถ้าต้องการราคาใหม่ต้องแก้ที่รายการนั้น</div>' : '') +
+    (later ? '<div class="cp-warn" style="margin-top:8px">⚠ มีราคาที่ตั้งไว้ล่วงหน้าหลังวันที่นี้อยู่แล้ว ' + later + ' รายการ — ราคานั้นยังมีผลตามวันของมัน (ทับราคาที่บันทึกตอนนี้)</div>' : '') +
+    '<label style="display:block;margin-top:10px;font-size:13px;color:#475569">หมายเหตุ (ไม่ใส่ก็ได้)<input id="cpNote" type="text" class="cp-in" maxlength="200" placeholder="เช่น ปรับตามต้นทุน พ.ย. 69"></label>' +
+    '<div id="cpSaveMsg" style="color:#b91c1c;font-size:13px;margin-top:6px"></div>' +
+    '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px"><button class="cp-btn" onclick="cpCloseModal()">กลับไปแก้</button><button class="cp-btn cp-grn" id="cpDoSave" onclick="cpDoSave()">ยืนยันบันทึก</button></div>';
+  cp.pendingCusts = custs;
+  m.style.display = 'flex';
+}
+function cpLaterRows(pct, nets) {
+  let n = 0;
+  pct.forEach(p => (PRICE_DB.idx[p.code + '|d'] || []).forEach(L => { if (L.eff > cp.eff) n++; }));
+  nets.forEach(x => (PRICE_DB.idx['G:' + x.group + '|hw'] || []).forEach(L => { if (L.eff > cp.eff) n++; }));
+  return n;
+}
+function cpCloseModal() { document.getElementById('cpModal').style.display = 'none'; }
+async function cpDoSave() {
+  const btn = document.getElementById('cpDoSave');
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+  const pct = cpPctChanges().map(p => ({ code: p.code, d: p.d }));
+  const nets = cpNetChanges().map(n => ({ group: n.group, hw: n.hw }));
+  const body = { customers: cp.pendingCusts || [], pct: pct, nets: nets, eff_date: cp.eff, note: (document.getElementById('cpNote') || {}).value || '' };
+  const ok = await cpPost(body, 'บันทึกแล้ว', document.getElementById('cpSaveMsg'));
+  if (!ok) { btn.disabled = false; btn.textContent = 'ยืนยันบันทึก'; return; }
+  cpCloseModal();
+  if (cp.cust) {
+    const code = cp.cust.code;
+    cp.cust = null; cp.edits = {};
+    cpOpenCust(code);
+  } else { cp.edits = {}; cp.netEdits = {}; cpRender(); }
+}
+// ส่งบันทึก → ได้ข้อมูลชุดใหม่ทั้งหมดกลับมา
+async function cpPost(body, okMsg, msgEl) {
+  const s = stcGetSession() || {};
+  try {
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify(Object.assign({ action: 'saveCustomerPrices', token: s.token || '' }, body)) }).then(r => r.json());
+    if (res.error || !res.success) throw new Error(res.message || res.error || 'บันทึกไม่สำเร็จ');
+    priceDbSet(res); cpApplyToPage();
+    cpToast(okMsg);
+    return true;
+  } catch (e) {
+    if (msgEl) msgEl.textContent = '❌ ' + (e.message || e); else alert('❌ ' + (e.message || e));
+    return false;
+  }
+}
+function cpToast(msg) {
+  let t = document.getElementById('cpToast');
+  if (!t) { t = document.createElement('div'); t.id = 'cpToast'; document.body.appendChild(t); }
+  t.textContent = '✓ ' + msg; t.className = 'show';
+  clearTimeout(cpToast._t); cpToast._t = setTimeout(() => { t.className = ''; }, 2500);
+}
+
+// ---------- ย้ายข้อมูลครั้งแรก ----------
+function cpBuildSeed() {
+  const isCode = k => /^\d{5}$/.test(k);
+  const custs = [];
+  const seen = {};
+  const groupOf = {};
+  CP_SEED_GROUPS.forEach(g => g.members.forEach(code => { groupOf[code] = g.name; }));
+  CUSTOMERS.forEach(c => {
+    let code = c.code;
+    let ref = CUST_PRICE_REF[c.code] && CUST_PRICE_REF[c.code] !== c.code ? CUST_PRICE_REF[c.code] : '';
+    if (seen[code]) {
+      // รหัสซ้ำกับลูกค้าอีกชื่อ (เช่น 02900 มี 2 ชื่อ) — เก็บไว้ทั้งคู่: รายที่ 2 ได้รหัส 02900B ใช้ราคาเดียวกับ 02900
+      if (custs.some(x => x.code === code && x.name === c.name)) return;
+      let n = 1; do { code = c.code + 'BCDEFG'[n - 1]; n++; } while (seen[code]);
+      ref = ref || c.code;
+    }
+    seen[code] = true;
+    custs.push({ code: code, name: c.name, grade: c.grade || '', cut25: AN_CUT25_CODES.indexOf(c.code) !== -1, active: 'Y', price_group: groupOf[ref || c.code] || '', price_ref: ref });
+  });
+  // ชุดราคาที่ไม่มีชื่อในรายชื่อลูกค้า (รหัสในไฟล์ส่วนลด เช่น 04101 ← 04102 ใช้) → สถานะ P
+  Object.keys(CUST_PRICES).filter(isCode).forEach(code => {
+    if (seen[code]) return;
+    seen[code] = true;
+    custs.push({ code: code, name: CUST_PRICES[code].n || code, grade: '', cut25: false, active: 'P', price_group: groupOf[code] || '', price_ref: '' });
+  });
+  const log = [];
+  const note = 'ย้ายจากไฟล์เดิม (ราคาที่ใช้อยู่ ณ ' + cpThd(priceTodayISO()) + ')';
+  const groupHw = {};
+  CP_SEED_GROUPS.forEach(g => {
+    const first = g.members.find(code => CUST_PRICES[code]);
+    if (!first) return;
+    groupHw[g.name] = JSON.stringify(CUST_PRICES[first].hw || {});
+    log.push({ eff: CP_SEED_EFF, target: 'G:' + g.name, field: 'hw', data: CUST_PRICES[first].hw || {}, note: note });
+  });
+  Object.keys(CUST_PRICES).filter(isCode).forEach(code => {
+    if (CUST_PRICE_REF[code] && CUST_PRICE_REF[code] !== code) return; // ใช้ราคาของรหัสอื่นอยู่แล้ว — ชุดของตัวเองไม่ถูกใช้
+    const p = CUST_PRICES[code];
+    if (p.d && Object.keys(p.d).length) log.push({ eff: CP_SEED_EFF, target: code, field: 'd', data: p.d, note: note });
+    const g = groupOf[code];
+    const hw = JSON.stringify(p.hw || {});
+    if (hw !== '{}' && (!g || groupHw[g] !== hw)) log.push({ eff: CP_SEED_EFF, target: code, field: 'hw', data: p.hw, note: note });
+  });
+  const groups = CP_SEED_GROUPS.map((g, i) => ({ name: g.name, desc: [g.desc].concat(g.notes || []).join('\n'), sort: i + 1 }));
+  return { customers: custs, groups: groups, log: log };
+}
+async function cpSeed() {
+  const seed = cpBuildSeed();
+  if (!confirm('ย้ายลูกค้า ' + seed.customers.length + ' รายการ · กลุ่ม ' + seed.groups.length + ' · ราคา ' + seed.log.length + ' แถว ลงชีท?')) return;
+  const btn = document.getElementById('cpSeedBtn'), msg = document.getElementById('cpSeedMsg');
+  btn.disabled = true; btn.textContent = 'กำลังย้าย…';
+  const s = stcGetSession() || {};
+  try {
+    const res = await fetch(API, { method: 'POST', body: JSON.stringify(Object.assign({ action: 'seedCustomerData', token: s.token || '' }, seed)) }).then(r => r.json());
+    if (res.error || !res.success) throw new Error(res.message || res.error || 'ย้ายไม่สำเร็จ');
+    priceDbSet(res); cpApplyToPage(); cp.empty = false; cp.loaded = true;
+    cpToast('ย้ายข้อมูลแล้ว');
+    cpRender();
+  } catch (e) {
+    msg.textContent = '❌ ' + (e.message || e);
+    btn.disabled = false; btn.textContent = 'ย้ายข้อมูลตอนนี้';
+  }
+}
+
 function anIsCut25(custName) {
   if (!anCut25Names) anCut25Names = new Set(CUSTOMERS.filter(c => AN_CUT25_CODES.includes(c.code)).map(c => anMergedCust(c.name)));
   return !!custName && anCut25Names.has(custName);
