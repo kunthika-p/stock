@@ -5472,8 +5472,9 @@ function sumDateOf(o) {
 function sumFmtISO(iso) { const p = iso.split('-'); return Number(p[2])+'/'+Number(p[1])+'/'+String(Number(p[0])+543).slice(-2); }
 function sumApplyAutoDates() {
   const t = new Date(); const today = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
-  const days = [...new Set(summaryData.map(sumDateOf).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= today))].sort();
-  const last2 = days.slice(-2);
+  // 2026-11-05: user ขอ — โชว์ "วันล่าสุดที่มีรายการ" วันเดียว (เดิม 2 วัน) และนับวันในอนาคตด้วย (เช่น บิลที่ตั้งวันเปิดบิลเป็นพรุ่งนี้)
+  const days = [...new Set(summaryData.map(sumDateOf).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)))].sort();
+  const last2 = days.slice(-1);
   document.getElementById('sum-date-from').value = last2[0] || '';
   document.getElementById('sum-date-to').value = last2[last2.length-1] || '';
   sumUpdateHint(last2);
@@ -5482,8 +5483,10 @@ function sumUpdateHint(last2) {
   const el = document.getElementById('sum-hint');
   if (!sumAutoDates || !last2 || !last2.length) { el.style.display = 'none'; return; }
   const kind = summaryDateMode === 'bill' ? 'ที่มีการเปิดบิล' : summaryDateMode === 'confirmed' ? 'ที่มีการยืนยัน' : 'ที่มีการสั่ง';
-  const rng = last2.length > 1 ? sumFmtISO(last2[0])+' – '+sumFmtISO(last2[1]) : sumFmtISO(last2[0]);
-  el.innerHTML = '📅 แสดง <b style="color:#1a3a5c">2 วันล่าสุด'+kind+'</b> ('+rng+') · ต้องการดูมากกว่านี้ เปลี่ยนวันที่แล้วกด แสดง หรือ '+
+  const t = new Date(); const today = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  const d = last2[last2.length-1];
+  const rng = (d === today ? 'วันนี้ ' : d > today ? 'ล่วงหน้า ' : '') + sumFmtISO(d);
+  el.innerHTML = '📅 แสดง <b style="color:#1a3a5c">วันล่าสุด'+kind+'</b> ('+rng+') · ต้องการดูมากกว่านี้ เปลี่ยนวันที่แล้วกด แสดง หรือ '+
     '<a href="javascript:void(0)" onclick="sumShowAll()" style="color:#2563eb;text-decoration:underline">ดูทั้งหมด</a>';
   el.style.display = 'block';
 }
